@@ -6,7 +6,7 @@ verify_prog() {
 }
 
 verify_rsync() {
-  verify_prog('rsync')
+  verify_prog 'rsync'
 }
 
 verify_ssh() {

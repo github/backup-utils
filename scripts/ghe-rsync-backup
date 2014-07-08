@@ -98,7 +98,7 @@ sync_objects() {
 
 sync() {
   trap "cleanup_sync_in_progress_file" EXIT
-  if [ -z "$first_run" ]; then
+  if [ -n "$first_run" ]; then
       create_backup_structure
   fi
   create_sync_in_progress_file

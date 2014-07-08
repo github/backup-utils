@@ -41,7 +41,7 @@ build_rsync_cmd() {
   local cmd_opts="$@ $git_exclude $extra_excludes"
 
   # use hardlinks if we can
-  if $first_run == 0; then
+  if [ -z "$first_run" ]; then
       cmd_opts="$(rsync_link_dest_options) $cmd_opts"
   fi
 
@@ -98,7 +98,7 @@ sync_objects() {
 
 sync() {
   trap "cleanup_sync_in_progress_file" EXIT
-  if $first_run; then
+  if [ -z "$first_run" ]; then
       create_backup_structure
   fi
   create_sync_in_progress_file
@@ -125,7 +125,5 @@ repo_path="/data/repositories"
 sync_in_progress_file="$repo_path/.sync_in_progress"
 
 if [ -d "$backup_dir/current" ]; then
-  first_run=1
-else
-  first_run=0
+  first_run="1"
 fi

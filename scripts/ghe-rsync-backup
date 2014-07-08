@@ -84,22 +84,22 @@ sync_configuration() {
   echo '- *.git/*' >> $sync_file
 
   local cmd=$(build_rsync_cmd '--filter' ". $sync_file")
-  ${cmd}
+  eval cmd
 }
 
 sync_packed_refs() {
   local cmd=$(build_rsync_cmd '--include', '/*/*.git/packed-refs')
-  ${cmd}
+  eval cmd
 }
 
 sync_loose_refs() {
   local cmd=$(build_rsync_cmd '--include', '/*/*.git/refs')
-  ${cmd}
+  eval cmd
 }
 
 sync_objects() {
   local cmd=$(build_rsync_cmd '--include', '/*/*.git/refs')
-  ${cmd}
+  eval cmd
 }
 
 sync() {

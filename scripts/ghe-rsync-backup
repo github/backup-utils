@@ -1,7 +1,7 @@
 #!/bin/bash
 
 verify_prog() {
-  prog=$1
+  local prog=$1
   which $prog || ( echo "$prog wasn't found"; exit 1 )
 }
 
@@ -10,7 +10,7 @@ verify_rsync() {
 }
 
 verify_ssh() {
-  host=$1
+  local host=$1
   (ssh -o PasswordAuthentication=no -o ConnectTimeout=5 -o ConnectionAttempts=1 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $host -- exit) || (echo "couldn't connect to $host over ssh"; exit 1)
 }
 
@@ -42,7 +42,7 @@ build_rsync_cmd() {
 
   # use hardlinks if we can
   if [ -z "$first_run" ]; then
-      cmd_opts="$(rsync_link_dest_options) $cmd_opts"
+      local cmd_opts="$(rsync_link_dest_options) $cmd_opts"
   fi
 
   local rsync_cmd="rsync $default_opts $cmd_opts $(rsync_source_destination_options)"

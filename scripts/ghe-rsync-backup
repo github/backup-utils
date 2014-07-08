@@ -1,0 +1,131 @@
+#!/bin/bash
+
+verify_prog() {
+  prog=$1
+  which $prog || ( echo "$prog wasn't found"; exit 1 )
+}
+
+verify_rsync() {
+  verify_prog('rsync')
+}
+
+verify_ssh() {
+  host=$1
+  (ssh -o PasswordAuthentication=no -o ConnectTimeout=5 -o ConnectionAttempts=1 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $host -- exit) || (echo "couldn't connect to $host over ssh"; exit 1)
+}
+
+usage() {
+  echo "ghe-rsync-backup <host> <backup dir>"
+}
+
+create_backup_structure() {
+  mkdir -p $backup_dir
+}
+
+create_sync_in_progress_file() {
+  ssh $host -- sudo -u git -- touch $sync_in_progress_file
+}
+
+cleanup_sync_in_progress_file() {
+  ssh $host -- sudo -u git -- rm -f $sync_in_progress_file
+}
+
+kill_all_hup_git_repacks() {
+  ssh $host -- killall -HUP git-repack
+}
+
+build_rsync_cmd() {
+  local default_opts="-azPrh --delete --rsync-path 'sudo -u git rsync'"
+  local git_exclude="--exclude /*/*.git/*"
+  local extra_excludes=$(enterprise_extra_excludes | xargs -n1 -IEXCLUDE echo --exclude EXCLUDE | xargs echo)
+  local cmd_opts="$@ $git_exclude $extra_excludes"
+
+  # use hardlinks if we can
+  if $first_run == 0; then
+      cmd_opts="$(rsync_link_dest_options) $cmd_opts"
+  fi
+
+  local rsync_cmd="rsync $default_opts $cmd_opts $(rsync_source_destination_options)"
+
+  echo $rsync_cmd
+}
+
+enterprise_extra_excludes() {
+  echo "__alambic_assets__ __gitmon__ __hookshot__ __nodeload_archives__ __purgatory__ __render__"
+}
+
+rsync_link_dest_option() {
+  echo "--link-dest $backup_dir/current/"
+}
+
+rsync_source_destination_options() {
+  echo "$host:$repo_path/ $backup_dir/$backup_name"
+}
+
+sync_configuration() {
+  local sync_file="repo_conf_sync_rules"
+  trap "rm -f repo_conf_sync_rules" EXIT
+  # setup base rules
+  echo '+ *.git/conf' >> $sync_file
+  echo '+ *.git/HEAD' >> $sync_file
+  echo '+ *.git/audit_log' >> $sync_file
+  echo '+ *.git/git-daemon-export-ok' >> $sync_file
+  echo '+ *.git/info/*' >> $sync_file
+  echo '+ *.git/logs/*' >> $sync_file
+  echo '+ *.git/COMMIT_EDITMSG' >> $sync_file
+  # exclude non-repo dirs
+  enterprise_extra_excludes | xargs -n1 -IRULE echo "- RULE/" >> $sync_file
+  echo '- *.git/*' >> $sync_file
+
+  local cmd=$(build_rsync_cmd '--filter' ". $sync_file")
+  ${cmd}
+}
+
+sync_packed_refs() {
+  local cmd=$(build_rsync_cmd '--include', '/*/*.git/packed-refs')
+  ${cmd}
+}
+
+sync_loose_refs() {
+  local cmd=$(build_rsync_cmd '--include', '/*/*.git/refs')
+  ${cmd}
+}
+
+sync_objects() {
+  local cmd=$(build_rsync_cmd '--include', '/*/*.git/refs')
+  ${cmd}
+}
+
+sync() {
+  trap "cleanup_sync_in_progress_file" EXIT
+  if $first_run; then
+      create_backup_structure
+  fi
+  create_sync_in_progress_file
+  kill_all_hup_git_repacks
+  sync_configuration
+  sync_loose_refs
+  sync_packed_refs
+  sync_objects
+  update_current
+}
+
+# vars needed
+host=$1
+backup_dir=$2
+
+[ -e "$host" && -e "$back" ] || ( usage; exit 1 )
+
+# expand the path
+backup_dir=$(cd $backup_dir; pwd -P)
+
+backup_date=$(date +"%Y-%m-%dT%H_%M_%S")
+backup_name="github_repositories-$backup_date"
+repo_path="/data/repositories"
+sync_in_progress_file="$repo_path/.sync_in_progress"
+
+if [ -d "$backup_dir/current" ]; then
+  first_run=1
+else
+  first_run=0
+fi

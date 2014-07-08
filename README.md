@@ -10,7 +10,7 @@ Follow these instructions to configure a new backup site:
 
  1. `git clone https://github.com/github/enterprise-backup-site.git ghe-backup`
  1. Copy the `backup.config-example` file to `backup.config` and modify as needed.
- 2. Add the local user's ssh key to the GitHub Enteprise instance's authorized keys.
+ 2. Add the local user's ssh key to the GitHub Enterprise instance's authorized keys.
     See [Adding an SSH key for shell access](https://enterprise.github.com/help/articles/adding-an-ssh-key-for-shell-access)
     for instructions.
  3. Run `scripts/ghe-host-check` to verify connectivity with the GitHub Enterprise instance.

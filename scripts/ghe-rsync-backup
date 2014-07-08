@@ -1,5 +1,11 @@
 #!/bin/bash
 
+cleanup() {
+  rm -f repo_conf_sync_rules
+  cleanup_sync_in_progress_file
+  exit $1
+}
+
 verify_prog() {
   local prog=$1
   which $prog || ( echo "$prog wasn't found"; exit 1 )
@@ -64,7 +70,7 @@ rsync_source_destination_options() {
 
 sync_configuration() {
   local sync_file="repo_conf_sync_rules"
-  trap "rm -f repo_conf_sync_rules" EXIT
+
   # setup base rules
   echo '+ *.git/conf' >> $sync_file
   echo '+ *.git/HEAD' >> $sync_file
@@ -97,7 +103,6 @@ sync_objects() {
 }
 
 sync() {
-  trap "cleanup_sync_in_progress_file" EXIT
   if [ -n "$first_run" ]; then
       create_backup_structure
   fi
@@ -127,3 +132,6 @@ sync_in_progress_file="$repo_path/.sync_in_progress"
 if [ -d "$backup_dir/current" ]; then
   first_run="1"
 fi
+
+trap "clean_up" EXIT
+

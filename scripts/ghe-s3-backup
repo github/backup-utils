@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # Usage: ghe-s3-backup-all
 # Take snapshots of all GitHub Enterprise data, including the mysql database,
 set -e
@@ -20,4 +20,5 @@ scripts/ghe-backup-all
 s3cmd mb s3://$GHE_S3_BUCKET
 
 # backup to s3
-s3cmd sync $GHE_DATA_DIR s3://$GHE_S3_BUCKET
+cd $GHE_DATA_DIR
+s3cmd sync . s3://$GHE_S3_BUCKET

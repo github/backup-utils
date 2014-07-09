@@ -11,4 +11,7 @@ GHE_DATA_DIR="data"
 # The S3 bucket where your backup files get uploaded should you choose to use S3.
 GHE_S3_BUCKET="${GHE_HOSTNAME}_ghe_backups"
 
+# The hostname of the machine you are wanting to restore from backups
+GHE_RESTORE_HOST="localhost"
+
 # vim: ft=sh

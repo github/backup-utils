@@ -9,19 +9,19 @@ cd $(dirname "$0")/..
 
 # Snapshot all git repository data
 echo "Backing up git repository data ..." 1>&2
-ssh admin@"$GHE_HOSTNAME" -- 'ghe-export-repositories' > "$GHE_DATA_DIR"/ghe-repositories.tar
+ssh admin@"$GHE_HOSTNAME" -- 'ghe-export-repositories' > "$GHE_DATA_DIR"/ghe-repositories-backup.tar
 
 # Snapshot all Pages data
 echo "Backing up GitHub Pages data ..." 1>&2
-ssh admin@"$GHE_HOSTNAME" -- 'ghe-export-pages' > "$GHE_DATA_DIR"/ghe-pages.tar
+ssh admin@"$GHE_HOSTNAME" -- 'ghe-export-pages' > "$GHE_DATA_DIR"/ghe-pages-backup.tar
 
 # Snapshot all mysql data
 echo "Backing up mysql data ..." 1>&2
-ssh admin@"$GHE_HOSTNAME" -- 'ghe-export-mysql | gzip' > "$GHE_DATA_DIR"/ghe-mysql.sql.tar.gz
+ssh admin@"$GHE_HOSTNAME" -- 'ghe-export-mysql | gzip' > "$GHE_DATA_DIR"/ghe-mysql-backup.sql.gz
 
 # Snapshot all redis data
 echo "Backing up redis data ..." 1>&2
-ssh admin@"$GHE_HOSTNAME" -- 'ghe-export-redis' > "$GHE_DATA_DIR"/ghe-redis.rdb
+ssh admin@"$GHE_HOSTNAME" -- 'ghe-export-redis' > "$GHE_DATA_DIR"/ghe-redis-backup.rdb
 
 # Snapshot authorized keys
 echo "Backing up authorized keys ..." 1>&2
@@ -29,10 +29,10 @@ ssh admin@"$GHE_HOSTNAME" -- 'ghe-export-authorized-keys' > "$GHE_DATA_DIR"/ghe-
 
 # Snapshot SSH host keys
 echo "Backing up SSH host keys ..." 1>&2
-ssh admin@"$GHE_HOSTNAME" -- 'ghe-export-ssh-host-keys' > "$GHE_DATA_DIR"/ghe-ssh-host-keys.tar
+ssh admin@"$GHE_HOSTNAME" -- 'ghe-export-ssh-host-keys' > "$GHE_DATA_DIR"/ghe-ssh-host-keys-backup.tar
 
 # Snapshot ES indices
 echo "Backing up ES indices ..." 1>&2
-ssh admin@"$GHE_HOSTNAME" -- 'ghe-export-es-indices' > "$GHE_DATA_DIR"/ghe-es-indices.tar
+ssh admin@"$GHE_HOSTNAME" -- 'ghe-export-es-indices' > "$GHE_DATA_DIR"/ghe-es-indices-backup.tar
 
 echo "Backup completed at $(date +"%Y-%m-%dT%H:%M:%S")"

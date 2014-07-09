@@ -14,12 +14,14 @@ else
   s3cmd --configure
 fi
 
-# backup to s3
-s3cmd sync s3://$GHE_S3_BUCKET $GHE_DATA_DIR
+# Restore from S3
+s3cmd --preserve get s3://$GHE_S3_BUCKET/* $GHE_DATA_DIR
 
+echo ""
 echo "Using the files in $GHE_DATA_DIR to restore your GHE installation at $GHE_RESTORE_HOST"
 echo "Note that your SSH key needs to be setup on the new host as described in:"
 echo "*  https://enterprise.github.com/help/articles/restoring-enterprise-data"
+echo ""
 
 echo "Restoring git repository data ..." 1>&2
 ssh admin@$GHE_RESTORE_HOST -- 'ghe-import-repositories' < $GHE_DATA_DIR/ghe-repositories-backup.tar

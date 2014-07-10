@@ -87,17 +87,17 @@ sync_configuration() {
 }
 
 sync_packed_refs() {
-  local cmd=$(build_rsync_cmd '--include', '/*/*.git/packed-refs')
+  local cmd=$(build_rsync_cmd '--include' '/*/*.git/packed-refs')
   eval cmd
 }
 
 sync_loose_refs() {
-  local cmd=$(build_rsync_cmd '--include', '/*/*.git/refs', '--include', '*.git/logs/*')
+  local cmd=$(build_rsync_cmd '--include' '/*/*.git/refs' '--include' '*.git/logs/*')
   eval cmd
 }
 
 sync_objects() {
-  local cmd=$(build_rsync_cmd '--include', '/*/*.git/objects')
+  local cmd=$(build_rsync_cmd '--include' '/*/*.git/objects')
   eval cmd
 }
 

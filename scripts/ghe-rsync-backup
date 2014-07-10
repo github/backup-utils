@@ -101,6 +101,11 @@ sync_objects() {
   eval cmd
 }
 
+update_current() {
+  rm -f "$backup_dir/current"
+  ln -s "$backup_dir/$backup_name" "$backup_dir/current"
+}
+
 sync() {
   if [ -n "$first_run" ]; then
       create_backup_structure

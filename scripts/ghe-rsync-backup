@@ -22,6 +22,7 @@ verify_ssh() {
 
 usage() {
   echo "ghe-rsync-backup <host> <backup dir>"
+  exit $1
 }
 
 create_backup_structure() {

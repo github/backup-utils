@@ -15,7 +15,7 @@ else
 fi
 
 # Run the backup script
-scripts/ghe-backup-all
+scripts/ghe-backup
 
 # Create the bucket if it doesn't exist
 s3cmd mb s3://$GHE_S3_BUCKET

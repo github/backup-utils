@@ -42,19 +42,16 @@ cleanup_sync_in_progress_file() {
   ssh $host -- sudo -u git -- rm -f $sync_in_progress_file
 }
 
-kill_all_hup_git_repacks() {
-  ssh $host -- killall -HUP git-repack
-}
-
-find_remote_git_repack_processes() {
-  ssh $host -- "ps auxw | grep git-repack | grep -v grep | awk '{ printf \"%d \",\$2; }'"
-}
-
-wait_for_repacks_to_die() {
-  local pids="$(find_remote_git_repack_processes)"
-  until [ -z "$pids" ]; do
-    local pids="$(find_remote_git_repack_processes)"
-  done
+wait_for_gc_to_die() {
+  ssh "$host" -- '
+    sanity=0
+    while test "$sanity" -lt 60; do
+        test -z "$(ps auxw | grep git.gc | grep -v grep)" && exit 0
+        sleep 1
+        sanity=$(($sanity+1))
+    done
+    exit 1
+' || die "waited 60 seconds for gc-free state"
 }
 
 build_rsync_cmd() {
@@ -128,7 +125,7 @@ sync() {
       create_backup_structure
   fi
   create_sync_in_progress_file
-  kill_all_hup_git_repacks
+  wait_for_gc_to_die
   sync_configuration
   sync_loose_refs
   sync_packed_refs

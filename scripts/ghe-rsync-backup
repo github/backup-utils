@@ -35,11 +35,11 @@ create_backup_structure() {
 }
 
 create_sync_in_progress_file() {
-  ssh $host -- sudo -u git -- touch $sync_in_progress_file
+  ssh "$host" -- sudo -u git -- touch $sync_in_progress_file
 }
 
 cleanup_sync_in_progress_file() {
-  ssh $host -- sudo -u git -- rm -f $sync_in_progress_file
+  ssh "$host" -- sudo -u git -- rm -f $sync_in_progress_file
 }
 
 wait_for_gc_to_die() {

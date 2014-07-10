@@ -40,6 +40,17 @@ kill_all_hup_git_repacks() {
   ssh $host -- killall -HUP git-repack
 }
 
+find_remote_git_repack_processes() {
+  ssh $host -- "ps auxw | grep git-repack | grep -v grep | awk '{ printf \"%d \",\$2; }'"
+}
+
+wait_for_repacks_to_die() {
+  local pids="$(find_remote_git_repack_processes)"
+  until [ -z "$pids" ]; do
+    local pids="$(find_remote_git_repack_processes)"
+  done
+}
+
 build_rsync_cmd() {
   local default_opts="-azPrh --delete --rsync-path 'sudo -u git rsync'"
   local git_exclude="--exclude /*/*.git/*"
@@ -92,7 +103,7 @@ sync_packed_refs() {
 }
 
 sync_loose_refs() {
-  local cmd=$(build_rsync_cmd '--include' '/*/*.git/refs' '--include' '*.git/logs/*')
+  local cmd=$(build_rsync_cmd '--include' '/*/*.git/refs' '--include' '/*/*.git/logs/*')
   eval cmd
 }
 

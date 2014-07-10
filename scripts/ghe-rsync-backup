@@ -76,7 +76,6 @@ sync_configuration() {
   echo '+ *.git/HEAD' >> $sync_file
   echo '+ *.git/audit_log' >> $sync_file
   echo '+ *.git/git-daemon-export-ok' >> $sync_file
-  echo '+ *.git/info/*' >> $sync_file
   echo '+ *.git/logs/*' >> $sync_file
   echo '+ *.git/COMMIT_EDITMSG' >> $sync_file
   # exclude non-repo dirs
@@ -98,7 +97,7 @@ sync_loose_refs() {
 }
 
 sync_objects() {
-  local cmd=$(build_rsync_cmd '--include', '/*/*.git/objects')
+  local cmd=$(build_rsync_cmd '--include', '/*/*.git/objects', '--include', '*.git/logs/*')
   eval cmd
 }
 

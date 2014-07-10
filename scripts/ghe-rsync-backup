@@ -8,7 +8,10 @@ cleanup() {
 
 verify_prog() {
   local prog=$1
-  which $prog || ( echo "$prog wasn't found"; exit 1 )
+  if ! which $prog; then
+      echo "$prog wasn't found"
+      exit 1
+  fi
 }
 
 verify_rsync() {
@@ -16,8 +19,10 @@ verify_rsync() {
 }
 
 verify_ssh() {
-  local host=$1
-  (ssh -o PasswordAuthentication=no -o ConnectTimeout=5 -o ConnectionAttempts=1 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $host -- exit) || (echo "couldn't connect to $host over ssh"; exit 1)
+  if ! ssh -o PasswordAuthentication=no -o ConnectTimeout=5 -o ConnectionAttempts=1 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$host" -- exit; then
+      echo "Couldn't connect to $host over ssh"
+      exit 1
+  fi
 }
 
 usage() {

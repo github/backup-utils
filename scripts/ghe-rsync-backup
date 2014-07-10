@@ -92,12 +92,12 @@ sync_packed_refs() {
 }
 
 sync_loose_refs() {
-  local cmd=$(build_rsync_cmd '--include', '/*/*.git/refs')
+  local cmd=$(build_rsync_cmd '--include', '/*/*.git/refs', '--include', '*.git/logs/*')
   eval cmd
 }
 
 sync_objects() {
-  local cmd=$(build_rsync_cmd '--include', '/*/*.git/objects', '--include', '*.git/logs/*')
+  local cmd=$(build_rsync_cmd '--include', '/*/*.git/objects')
   eval cmd
 }
 

@@ -137,10 +137,15 @@ sync() {
 }
 
 # vars needed
-host=$1
-backup_dir=$2
+host="$1"
+backup_dir="$2"
 
-[ -e "$host" && -e "$back" ] || ( usage; exit 1 )
+test -n "$host" -a -n "$backup_dir" || usage 1
+if test ! -d "$backup_dir"; then
+  echo "Couldn't cd to $backup_dir"
+  exit 1
+fi
+
 
 # expand the path
 backup_dir=$(cd "$backup_dir"; pwd -P)

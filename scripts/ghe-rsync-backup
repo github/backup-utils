@@ -146,6 +146,8 @@ if test ! -d "$backup_dir"; then
   exit 1
 fi
 
+verify_rsync
+verify_ssh
 
 # expand the path
 backup_dir=$(cd "$backup_dir"; pwd -P)

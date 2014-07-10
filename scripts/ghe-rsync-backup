@@ -61,11 +61,11 @@ enterprise_extra_excludes() {
 }
 
 rsync_link_dest_option() {
-  echo "--link-dest $backup_dir/current/"
+  echo "--link-dest \"$backup_dir/current/\""
 }
 
 rsync_source_destination_options() {
-  echo "$host:$repo_path/ $backup_dir/$backup_name"
+  echo "$host:$repo_path/ \"$backup_dir/$backup_name\""
 }
 
 sync_configuration() {

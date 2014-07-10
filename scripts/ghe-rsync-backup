@@ -31,7 +31,7 @@ usage() {
 }
 
 create_backup_structure() {
-  mkdir -p "$backup_dir"
+  mkdir -p "'$(printf '%s' "$backup_dir" | sed "s/'/\\\\''/g")'"
 }
 
 create_sync_in_progress_file() {
@@ -60,26 +60,29 @@ build_rsync_cmd() {
   local extra_excludes=$(enterprise_extra_excludes | xargs -n1 -IEXCLUDE echo --exclude EXCLUDE | xargs echo)
   local cmd_opts="$@ $git_exclude $extra_excludes"
 
+  local rsync_cmd[0]="rsync"
+  rsync_cmd+=("$default_opts")
   # use hardlinks if we can
   if [ -z "$first_run" ]; then
-      local cmd_opts="$(rsync_link_dest_options) $cmd_opts"
+      rsync_cmd+=(--link-dest "$(backup_current)")
   fi
 
-  local rsync_cmd="rsync $default_opts $cmd_opts $(rsync_source_destination_options)"
+  rsync_cmd+=("$cmd_opts")
+  rsync_cmd+=("$host:$repo_path" "$(backup_named)")
 
-  echo $rsync_cmd
+  "${rsync_cmd[*]}"
+}
+
+backup_current() {
+  echo "'$(printf '%s' "$backup_dir/current" | sed "s/'/\\\\''/g")'"
+}
+
+backup_named() {
+  echo "'$(printf '%s' "$backup_dir/$backup_name" | sed "s/'/\\\\''/g")'"
 }
 
 enterprise_extra_excludes() {
   echo "__alambic_assets__ __gitmon__ __hookshot__ __nodeload_archives__ __purgatory__ __render__"
-}
-
-rsync_link_dest_option() {
-  echo "--link-dest \"$backup_dir/current/\""
-}
-
-rsync_source_destination_options() {
-  echo "$host:$repo_path/ \"$backup_dir/$backup_name\""
 }
 
 sync_configuration() {
@@ -96,28 +99,24 @@ sync_configuration() {
   enterprise_extra_excludes | xargs -n1 -IRULE echo "- RULE/" >> $sync_file
   echo '- *.git/*' >> $sync_file
 
-  local cmd=$(build_rsync_cmd '--filter' ". $sync_file")
-  eval cmd
+  build_rsync_cmd '--filter' ". $sync_file"
 }
 
 sync_packed_refs() {
-  local cmd=$(build_rsync_cmd '--include' '/*/*.git/packed-refs')
-  eval cmd
+  build_rsync_cmd '--include' '/*/*.git/packed-refs'
 }
 
 sync_loose_refs() {
-  local cmd=$(build_rsync_cmd '--include' '/*/*.git/refs' '--include' '/*/*.git/logs/*')
-  eval cmd
+  build_rsync_cmd '--include' '/*/*.git/refs' '--include' '/*/*.git/logs/*'
 }
 
 sync_objects() {
-  local cmd=$(build_rsync_cmd '--include' '/*/*.git/objects' '--exclude' 'tmp_*')
-  eval cmd
+  build_rsync_cmd '--include' '/*/*.git/objects' '--exclude' 'tmp_*'
 }
 
 update_current() {
-  rm -f "$backup_dir/current"
-  ln -s "$backup_dir/$backup_name" "$backup_dir/current"
+  rm -f "$(backup_current)"
+  ln -s "$(backup_named)" "$(backup_current)"
 }
 
 sync() {

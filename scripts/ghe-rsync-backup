@@ -157,7 +157,7 @@ backup_name="github_repositories-$backup_date"
 repo_path="/data/repositories"
 sync_in_progress_file="$repo_path/.sync_in_progress"
 
-if [ -d "$backup_dir/current" ]; then
+if [ ! -d "$(backup_current)" ]; then
   first_run="1"
 fi
 

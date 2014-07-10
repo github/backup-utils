@@ -108,7 +108,7 @@ sync_loose_refs() {
 }
 
 sync_objects() {
-  local cmd=$(build_rsync_cmd '--include' '/*/*.git/objects')
+  local cmd=$(build_rsync_cmd '--include' '/*/*.git/objects' '--exclude' 'tmp_*')
   eval cmd
 }
 

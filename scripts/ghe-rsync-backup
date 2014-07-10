@@ -121,9 +121,6 @@ update_current() {
 }
 
 sync() {
-  if [ -n "$first_run" ]; then
-      create_backup_structure
-  fi
   create_sync_in_progress_file
   wait_for_gc_to_die
   sync_configuration
@@ -138,25 +135,21 @@ host="$1"
 backup_dir="$2"
 
 test -n "$host" -a -n "$backup_dir" || usage 1
-if test ! -d "$backup_dir"; then
-  echo "Couldn't cd to $backup_dir"
-  exit 1
-fi
 
 verify_rsync
 verify_ssh
 
-# expand the path
-backup_dir=$(cd "$backup_dir"; pwd -P)
+if [ ! -d "$(backup_current)" ]; then
+  first_run="1"
+  create_backup_structure
+fi
 
+# expand the path
+backup_dir=$(cd "$backup_dir" && pwd -P)
 backup_date=$(date +"%Y-%m-%dT%H_%M_%S")
 backup_name="github_repositories-$backup_date"
 repo_path="/data/repositories"
 sync_in_progress_file="$repo_path/.sync_in_progress"
-
-if [ ! -d "$(backup_current)" ]; then
-  first_run="1"
-fi
 
 trap "cleanup" EXIT
 

@@ -154,6 +154,6 @@ if [ -d "$backup_dir/current" ]; then
   first_run="1"
 fi
 
-trap "clean_up" EXIT
+trap "cleanup" EXIT
 
 sync

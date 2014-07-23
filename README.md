@@ -35,4 +35,4 @@ GitHub Enterprise knowledge base. See the following articles for more informatio
 
 ### Support
 
-If you have any questions about how to backup your data from the GitHub Enterprise appliance please get in touch with [Enterprise Support](https://enterprise.github.com/support/)!
+If you have any questions about how to backup your data from the GitHub Enterprise appliance please get in touch with [GitHub Enterprise Support](https://enterprise.github.com/support/)!

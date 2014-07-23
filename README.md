@@ -32,3 +32,7 @@ GitHub Enterprise knowledge base. See the following articles for more informatio
 
  - [Backing up GitHub Enterprise data](https://enterprise.github.com/help/articles/backing-up-enterprise-data)
  - [Restoring GitHub Enterprise data](https://enterprise.github.com/help/articles/restoring-enterprise-data)
+
+### Support
+
+If you have any questions about how to backup your data from the GitHub Enterprise appliance please get in touch with [Enterprise Support](https://enterprise.github.com/support/)!

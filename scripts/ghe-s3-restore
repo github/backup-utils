@@ -1,21 +1,21 @@
 #!/bin/sh
 # Usage: ghe-s3-restore
-# Restores backup files from S3
+# Restores backup files from S3.
 set -e
 
-# Bring in the backup configuration
+# Bring in the backup configuration.
 cd $(dirname "$0")/..
 . scripts/ghe-backup-config
 
 if [ -e $HOME/.s3cfg ]; then
   echo "Using existing ~/.s3cfg ..."
 else
-  # configure s3cmd if there already isn't a config file
+  # Configure s3cmd if there isn't a config file already.
   s3cmd --configure
 fi
 
-# Restore from S3
+# Restore from S3.
 s3cmd --preserve get s3://$GHE_S3_BUCKET/* $GHE_DATA_DIR
 
-# Run the restore script
+# Run the restore script.
 scripts/ghe-restore

@@ -3,13 +3,13 @@
 # Verify connectivity with the GitHub Enterprise host.
 set -e
 
-# Bring in the backup configuration
+# Bring in the backup configuration.
 cd $(dirname "$0")/..
 . scripts/ghe-backup-config
 
-# SSH to the GHE host and run a simple command
+# SSH to the GHE host and run a simple command.
 if ! ssh admin@"$GHE_HOSTNAME" -- "true"; then
-    echo "error: ssh to '$GHE_HOSTNAME' failed." 1>&2
+    echo "Error: ssh to '$GHE_HOSTNAME' failed." 1>&2
     exit 2
 fi
 

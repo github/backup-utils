@@ -18,18 +18,18 @@ GHE_BACKUP_ROOT="$(pwd)"
 # Add the scripts dir to PATH
 PATH="$GHE_BACKUP_ROOT/scripts:$PATH"
 
-# Check that the config file exists before we source it in
+# Check that the config file exists before we source it in.
 if [ ! -f "backup.config" ]; then
-    echo "error: The backup.config file doesn't exist." 1>&2
+    echo "Error: The backup.config file doesn't exist." 1>&2
     exit 2
 fi
 
-# Source in the backup config file
+# Source in the backup config file.
 . "$GHE_BACKUP_ROOT"/backup.config
 
 # Check that the GHE hostname is set.
 if [ -z "$GHE_HOSTNAME" ]; then
-    echo "error: GHE_HOSTNAME not set in config file." 1>&2
+    echo "Error: GHE_HOSTNAME not set in config file." 1>&2
     exit 2
 fi
 

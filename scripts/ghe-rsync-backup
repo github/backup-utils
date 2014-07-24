@@ -23,9 +23,8 @@ repo_path="/data/repositories"
 sync_in_progress_file="$repo_path/.sync_in_progress"
 
 # Verify rsync is available
-# TODO which has some portability issues. use type(1) or a null invocation instead.
-if ! which rsync; then
-    echo "rsync wasn't found"
+if ! rsync --version 1>/dev/null 2>&1; then
+    echo "Error: rsync not found." 1>&2
     exit 1
 fi
 

@@ -45,12 +45,12 @@ if [ ! -d "$backup_current" ]; then
   mkdir -p "$backup_dir"
 fi
 
+# Cleans up the local rsync rules file and remote sync in progress file on exit.
 cleanup() {
   rm -f repo_conf_sync_rules
   cleanup_sync_in_progress_file
-  exit $1
 }
-
+trap "cleanup" EXIT
 
 create_sync_in_progress_file() {
   ssh "$host" -- sudo -u git -- touch $sync_in_progress_file
@@ -138,7 +138,5 @@ sync() {
   sync_objects
   update_current
 }
-
-trap "cleanup" EXIT
 
 sync

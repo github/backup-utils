@@ -14,4 +14,8 @@ GHE_S3_BUCKET="${GHE_HOSTNAME}_ghe_backups"
 # The hostname of the machine you are wanting to restore from backups.
 GHE_RESTORE_HOST="somerestorehost.your-company.com"
 
+# Maintenance mode is enabled by default. Set to `0` if you want to backup your
+# data without maintenance mode being turned on.
+MAINTENANCE_MODE=1
+
 # vim: ft=sh

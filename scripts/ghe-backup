@@ -1,6 +1,10 @@
 #!/bin/sh
 # Usage: ghe-backup-all
 # Take snapshots of all GitHub Enterprise data, including the MySQL database.
+#
+# By default we put your GitHub Enterprise appliance into maintenance mode when
+# backing up data. You can override this by setting MAINTENANCE_MODE to 0 in
+# your `backup.config`.
 set -e
 
 # Bring in the backup configuration
@@ -11,6 +15,14 @@ echo ""
 echo "Note that your SSH key needs to be setup on the new host as described in:"
 echo "*  https://enterprise.github.com/help/articles/backing-up-enterprise-data"
 echo ""
+
+# Enable maintenance mode if not disabled.
+if [ $MAINTENANCE_MODE -eq 1 ]; then
+  echo "Enabling maintenance mode..."
+  ssh admin@"$GHE_HOSTNAME" -- 'ghe-maintenance -s'
+  # Wait a few seconds for possible Resque jobs in the queues to complete.
+  sleep 15
+fi
 
 # Snapshot all Git repository data
 echo "Backing up Git repository data ..." 1>&2
@@ -39,5 +51,11 @@ ssh admin@"$GHE_HOSTNAME" -- 'ghe-export-ssh-host-keys' > "$GHE_DATA_DIR"/ghe-ss
 # Snapshot Elasticsearch indices
 echo "Backing up Elasticsearch indices ..." 1>&2
 ssh admin@"$GHE_HOSTNAME" -- 'ghe-export-es-indices' > "$GHE_DATA_DIR"/ghe-es-indices-backup.tar
+
+# Disabling maintenance mode
+if [ $MAINTENANCE_MODE -eq 1 ]; then
+  echo "Disabling maintenance mode..."
+  ssh admin@"$GHE_HOSTNAME" -- 'ghe-maintenance -u'
+fi
 
 echo "Backup completed at $(date +"%Y-%m-%dT%H:%M:%S")."

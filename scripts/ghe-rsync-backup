@@ -28,17 +28,18 @@ if ! rsync --version 1>/dev/null 2>&1; then
     exit 1
 fi
 
+# Verify ssh connectivity with the GHE host.
+# TODO move this to use ghe-host-check instead. Should move all these nice
+#      config / quick timeout options into that script.
+if ! ssh -o PasswordAuthentication=no -o ConnectTimeout=5 -o ConnectionAttempts=1 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$host" -- exit; then
+    echo "Error: Couldn't connect to '$host' over ssh" 1>&2
+    exit 1
+fi
+
 cleanup() {
   rm -f repo_conf_sync_rules
   cleanup_sync_in_progress_file
   exit $1
-}
-
-verify_ssh() {
-  if ! ssh -o PasswordAuthentication=no -o ConnectTimeout=5 -o ConnectionAttempts=1 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$host" -- exit; then
-      echo "Couldn't connect to $host over ssh"
-      exit 1
-  fi
 }
 
 create_backup_structure() {
@@ -139,8 +140,6 @@ sync() {
   sync_objects
   update_current
 }
-
-verify_ssh
 
 if [ ! -d "$(backup_current)" ]; then
   first_run="1"

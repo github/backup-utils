@@ -37,15 +37,20 @@ if ! ssh -o PasswordAuthentication=no -o ConnectTimeout=5 -o ConnectionAttempts=
     exit 1
 fi
 
+# Setup the basic directory structure when this is the first time we've
+# performed a backup.
+first_run=false
+if [ ! -d "$backup_current" ]; then
+  first_run=true
+  mkdir -p "$backup_dir"
+fi
+
 cleanup() {
   rm -f repo_conf_sync_rules
   cleanup_sync_in_progress_file
   exit $1
 }
 
-create_backup_structure() {
-  mkdir -p "'$(printf '%s' "$backup_dir" | sed "s/'/\\\\''/g")'"
-}
 
 create_sync_in_progress_file() {
   ssh "$host" -- sudo -u git -- touch $sync_in_progress_file
@@ -133,11 +138,6 @@ sync() {
   sync_objects
   update_current
 }
-
-if [ ! -d "$(backup_current)" ]; then
-  first_run="1"
-  create_backup_structure
-fi
 
 trap "cleanup" EXIT
 

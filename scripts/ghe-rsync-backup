@@ -20,8 +20,8 @@ backup_current="$backup_dir/current"
 backup_named="$backup_dir/$backup_date"
 
 # Remote file locations
-repo_path="/data/repositories"
-sync_in_progress_file="$repo_path/.sync_in_progress"
+remote_repo_path="/data/repositories"
+sync_in_progress_file="$remote_repo_path/.sync_in_progress"
 
 # Verify rsync is available
 if ! rsync --version 1>/dev/null 2>&1; then
@@ -52,13 +52,10 @@ cleanup() {
 }
 trap "cleanup" EXIT
 
-create_sync_in_progress_file() {
-  ssh "$host" -- sudo -u git -- touch $sync_in_progress_file
-}
-
-cleanup_sync_in_progress_file() {
-  ssh "$host" -- sudo -u git -- rm -f $sync_in_progress_file
-}
+# Create the remote sync in progress file. This signals to the git-gc machinery
+# that no objects or packs should be discarded for the duration of the backup
+# run, which is required in order to perform the backup online.
+ssh "$host" -- sudo -u git -- touch $sync_in_progress_file
 
 wait_for_gc_to_die() {
   ssh "$host" -- '
@@ -86,7 +83,7 @@ build_rsync_cmd() {
   fi
 
   rsync_cmd+=("$cmd_opts")
-  rsync_cmd+=("$host:$repo_path" "$backup_named")
+  rsync_cmd+=("$host:$remote_repo_path" "$backup_named")
 
   "${rsync_cmd[*]}"
 }
@@ -130,7 +127,6 @@ update_current() {
 }
 
 sync() {
-  create_sync_in_progress_file
   wait_for_gc_to_die
   sync_configuration
   sync_loose_refs

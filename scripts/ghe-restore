@@ -1,0 +1,35 @@
+#!/bin/sh
+# Usage: ghe-restore
+# Restores a GHE instance from backups
+set -e
+
+# Bring in the backup configuration.
+cd $(dirname "$0")/..
+. scripts/ghe-backup-config
+
+echo ""
+echo "Using the files in $GHE_DATA_DIR to restore your GHE installation at $GHE_RESTORE_HOST."
+echo "Note that your SSH key needs to be setup on the new host as described in:"
+echo "*  https://enterprise.github.com/help/articles/restoring-enterprise-data"
+echo ""
+
+echo "Restoring Git repository data ..." 1>&2
+ssh admin@$GHE_RESTORE_HOST -- 'ghe-import-repositories' < $GHE_DATA_DIR/ghe-repositories-backup.tar
+
+echo "Restoring GitHub Pages data ..." 1>&2
+ssh admin@$GHE_RESTORE_HOST -- 'ghe-import-pages' < $GHE_DATA_DIR/ghe-pages-backup.tar
+
+echo "Restoring MySQL data ..." 1>&2
+gzip -dc $GHE_DATA_DIR/ghe-mysql-backup.sql.gz | ssh admin@$GHE_RESTORE_HOST -- 'ghe-import-mysql'
+
+echo "Restoring Redis data ..." 1>&2
+ssh admin@$GHE_RESTORE_HOST -- 'ghe-import-redis' < $GHE_DATA_DIR/ghe-redis-backup.rdb
+
+echo "Restoring SSH public keys ..." 1>&2
+ssh admin@$GHE_RESTORE_HOST -- 'ghe-import-authorized-keys' < $GHE_DATA_DIR/ghe-authorized-keys-backup.json
+
+echo "Restoring SSH host keys ..." 1>&2
+ssh admin@$GHE_RESTORE_HOST -- 'ghe-import-ssh-host-keys' < $GHE_DATA_DIR/ghe-ssh-host-keys-backup.tar
+
+echo "Restoring Elasticsearch indices ..." 1>&2
+ssh admin@$GHE_RESTORE_HOST -- 'ghe-import-es-indices' < $GHE_DATA_DIR/ghe-es-indices-backup.tar

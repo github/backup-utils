@@ -1,11 +1,17 @@
 # GitHub Enterprise backup site configuration file
 
 # The hostname of the GitHub Enterprise instance. The host must be reachable via
-# ssh from the backup site location.
+# SSH from the backup site location.
 GHE_HOSTNAME="enterprise.your-company.com"
 
 # Where backup data should be stored. By default this is the "data" directory
 # relative to this directory but can be set to an absolute path elsewhere.
 GHE_DATA_DIR="data"
+
+# The S3 bucket where your backup files get uploaded should you choose to use S3.
+GHE_S3_BUCKET="${GHE_HOSTNAME}_ghe_backups"
+
+# The hostname of the machine you are wanting to restore from backups.
+GHE_RESTORE_HOST="somerestorehost.your-company.com"
 
 # vim: ft=sh

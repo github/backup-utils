@@ -31,6 +31,23 @@ Follow these instructions to configure S3 backups:
  
 GitHub Enterprise's running version can be seen on http(s)://[hostname]/setup/upgrade. If you're not running on the latest release we recommend to upgrade the appliance. Please download the most recent GHP from the [GitHub Enterprise website](https://enterprise.github.com/download) and see [our guide](https://enterprise.github.com/help/articles/upgrading-to-a-newer-release) for more information on how to perform upgrades.
 
+### Backup file structure
+
+The `GHE_DATA_DIR` variable set in `backup.config` controls where backup data is written. It has the following file hierarchy:
+
+    $GHE_DATA_DIR
+    |- ghe-pages-backup.tar
+    |- ghe-mysql-backup.sql.gz
+    |- ghe-redis-backup.rdb
+    |- ghe-authorized-keys-backup.json
+    |- ghe-ssh-host-keys-backup.tar
+    |- ghe-es-indices-backup.tar
+    |- ghe-repositories/
+       |- 20140724T010000
+       |- current -> 20140724T010000
+
+The `ghe-repositories` directory stores all git repositories under timestamped increment directories. The `current` symlink points to the most recent full increment.
+
 ### See Also
 
 The scripts in this repository are based on the documentation provided by the

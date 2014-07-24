@@ -13,6 +13,15 @@ if [ -z "$host" -o -z "$backup_dir" ] || [ "$1" = "--help" ]; then
   exit 1
 fi
 
+# Local file locations
+backup_dir=$(cd "$backup_dir" && pwd -P)
+backup_date=$(date +"%Y%m%dT%H%M%S")
+backup_name="$backup_date"
+
+# Remote file locations
+repo_path="/data/repositories"
+sync_in_progress_file="$repo_path/.sync_in_progress"
+
 cleanup() {
   rm -f repo_conf_sync_rules
   cleanup_sync_in_progress_file
@@ -144,13 +153,6 @@ if [ ! -d "$(backup_current)" ]; then
   first_run="1"
   create_backup_structure
 fi
-
-# expand the path
-backup_dir=$(cd "$backup_dir" && pwd -P)
-backup_date=$(date +"%Y-%m-%dT%H_%M_%S")
-backup_name="github_repositories-$backup_date"
-repo_path="/data/repositories"
-sync_in_progress_file="$repo_path/.sync_in_progress"
 
 trap "cleanup" EXIT
 

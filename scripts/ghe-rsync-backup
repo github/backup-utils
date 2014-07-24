@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 cleanup() {
   rm -f repo_conf_sync_rules

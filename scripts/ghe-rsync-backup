@@ -16,7 +16,8 @@ fi
 # Local file locations
 backup_dir=$(cd "$backup_dir" && pwd -P)
 backup_date=$(date +"%Y%m%dT%H%M%S")
-backup_name="$backup_date"
+backup_current="$backup_dir/current"
+backup_named="$backup_dir/$backup_date"
 
 # Remote file locations
 repo_path="/data/repositories"
@@ -76,21 +77,13 @@ build_rsync_cmd() {
   rsync_cmd+=("$default_opts")
   # use hardlinks if we can
   if [ -z "$first_run" ]; then
-      rsync_cmd+=(--link-dest "$(backup_current)")
+      rsync_cmd+=(--link-dest "$backup_current")
   fi
 
   rsync_cmd+=("$cmd_opts")
-  rsync_cmd+=("$host:$repo_path" "$(backup_named)")
+  rsync_cmd+=("$host:$repo_path" "$backup_named")
 
   "${rsync_cmd[*]}"
-}
-
-backup_current() {
-  echo "'$(printf '%s' "$backup_dir/current" | sed "s/'/\\\\''/g")'"
-}
-
-backup_named() {
-  echo "'$(printf '%s' "$backup_dir/$backup_name" | sed "s/'/\\\\''/g")'"
 }
 
 enterprise_extra_excludes() {
@@ -127,8 +120,8 @@ sync_objects() {
 }
 
 update_current() {
-  rm -f "$(backup_current)"
-  ln -s "$(backup_named)" "$(backup_current)"
+  rm -f "$backup_current"
+  ln -s "$backup_named" "$backup_current"
 }
 
 sync() {

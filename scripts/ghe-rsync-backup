@@ -22,22 +22,17 @@ backup_name="$backup_date"
 repo_path="/data/repositories"
 sync_in_progress_file="$repo_path/.sync_in_progress"
 
+# Verify rsync is available
+# TODO which has some portability issues. use type(1) or a null invocation instead.
+if ! which rsync; then
+    echo "rsync wasn't found"
+    exit 1
+fi
+
 cleanup() {
   rm -f repo_conf_sync_rules
   cleanup_sync_in_progress_file
   exit $1
-}
-
-verify_prog() {
-  local prog=$1
-  if ! which $prog; then
-      echo "$prog wasn't found"
-      exit 1
-  fi
-}
-
-verify_rsync() {
-  verify_prog 'rsync'
 }
 
 verify_ssh() {
@@ -146,7 +141,6 @@ sync() {
   update_current
 }
 
-verify_rsync
 verify_ssh
 
 if [ ! -d "$(backup_current)" ]; then

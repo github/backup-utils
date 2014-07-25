@@ -14,7 +14,7 @@ echo "*  https://enterprise.github.com/help/articles/restoring-enterprise-data"
 echo ""
 
 echo "Restoring Git repository data ..." 1>&2
-ssh admin@$GHE_RESTORE_HOST -- 'ghe-import-repositories' < $GHE_DATA_DIR/ghe-repositories-backup.tar
+ghe-${GHE_BACKUP_STRATEGY}-restore
 
 echo "Restoring GitHub Pages data ..." 1>&2
 ssh admin@$GHE_RESTORE_HOST -- 'ghe-import-pages' < $GHE_DATA_DIR/ghe-pages-backup.tar

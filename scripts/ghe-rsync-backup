@@ -98,7 +98,7 @@ ssh "$host" -- "
 # specific files to be transferred in the run, which are combined with
 # general arguments and exclude rules.
 rsync_repository_data() {
-    rsync_args=(-azr --verbose --delete --rsync-path='sudo -u git rsync')
+    rsync_args=(-ar --verbose --delete --rsync-path='sudo -u git rsync')
 
     # use previous snapshot when present for incremental backup
     if [ -d "$backup_current" ]; then
@@ -126,13 +126,13 @@ auxiliary_include_args=()
 for f in $repository_auxiliary_files; do
     auxiliary_include_args+=(--include="/*/*.git/$f")
 done
-rsync_repository_data "${auxiliary_include_args[@]}"
+rsync_repository_data -z "${auxiliary_include_args[@]}"
 
 # Sync packed refs files
-rsync_repository_data --include='/*/*.git/packed-refs'
+rsync_repository_data -z --include='/*/*.git/packed-refs'
 
 # Sync loose refs and ref logs
-rsync_repository_data --include='/*/*.git/refs' --include='/*/*.git/logs'
+rsync_repository_data -z --include='/*/*.git/refs' --include='/*/*.git/logs'
 
 # Sync loose objects and pack files
 rsync_repository_data --include='/*/*.git/objects' --exclude='tmp_*'

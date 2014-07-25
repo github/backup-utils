@@ -38,3 +38,6 @@ if [ ! -d "$GHE_DATA_DIR" ]; then
     echo "Creating the backup data directory ..." 1>&2
     mkdir -p "$GHE_DATA_DIR"
 fi
+
+# Set some defaults if needed
+: ${GHE_BACKUP_STRATEGY:=rsync}

@@ -26,8 +26,21 @@ backup_named="$backup_dir/$backup_date"
 remote_repo_path="/data/repositories"
 sync_in_progress_file="$remote_repo_path/.sync_in_progress"
 
-# List of remote directories to exclude when transfering repositories
-rsync_extra_excludes="
+# List of auxiliary git repository files. These are transferred before all refs,
+# reflogs, and object data.
+repository_auxiliary_files="
+    HEAD
+    audit_log
+    config
+    description
+    git-daemon-export-ok
+    hooks
+    info
+"
+
+# List of special directories under the remote /data/repositories directory.
+# These contain non-repository data and must be treated specially.
+special_data_dirs="
     __alambic_assets__
     __gitmon__
     __hookshot__
@@ -55,7 +68,6 @@ fi
 
 # Cleans up the local rsync rules file and remote sync-in-progress file on exit.
 cleanup() {
-  rm -f repo_conf_sync_rules
   ssh "$host" -- "sudo rm -f '$sync_in_progress_file'"
 }
 trap "cleanup" EXIT
@@ -82,45 +94,35 @@ ssh "$host" -- "
     exit 1
 }
 
-rsync_extra_excludes_args=$(
-    echo "$rsync_extra_excludes" |
-    xargs -n1 -IEXCLUDE echo --exclude='EXCLUDE' |
-    xargs echo
-)
-
 # Function to build up an rsync command that transfers data from a live GHE
 # environment to the local backup site. Repository data must be transfered in a
 # specific order to guarantee repositories are transfered in a consistent state
 # so multiple runs of rsync are required.
 rsync_repository_data() {
-    # default arguments
     rsync_args=(-azrh -P --delete --rsync-path='sudo -u git rsync')
 
-    # use hardlinks if we can
     if ! $first_run; then
         rsync_args+=(--link-dest="../current")
     fi
 
     rsync_args+=("$@")
+
     rsync_args+=(--exclude='/*/*.git/*')
-    rsync_args+=($rsync_extra_excludes_args)
+    for dir in $special_data_dirs; do
+        rsync_args+=(--exclude="/$dir")
+    done
+
     rsync_args+=("$host:$remote_repo_path/" "$backup_named")
 
     rsync "${rsync_args[@]}"
 }
 
 # Sync auxiliary repository data.
-sync_file="repo_conf_sync_rules"
-echo '+ *.git/HEAD' >> $sync_file
-echo '+ *.git/audit_log' >> $sync_file
-echo '+ *.git/config' >> $sync_file
-echo '+ *.git/description' >> $sync_file
-echo '+ *.git/git-daemon-export-ok' >> $sync_file
-echo '+ *.git/hooks' >> $sync_file
-echo '+ *.git/info' >> $sync_file
-echo "$rsync_extra_excludes" | xargs -n1 -IRULE echo "- RULE/" >> $sync_file
-echo '- *.git/*' >> $sync_file
-rsync_repository_data --filter=". $sync_file"
+auxiliary_include_args=()
+for f in $repository_auxiliary_files; do
+    auxiliary_include_args+=(--include="/*/*.git/$f")
+done
+rsync_repository_data "${auxiliary_include_args[@]}"
 
 # Sync packed refs files
 rsync_repository_data --include='/*/*.git/packed-refs'

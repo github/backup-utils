@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #/ Usage: ghe-rsync-backup <host> <backup-dir>
 #/ Take online, incremental snapshot of all Git repository data.
-set -e
+set -ex
 
 # Parse args
 host="$1"
@@ -22,6 +22,16 @@ backup_named="$backup_dir/$backup_date"
 # Remote file locations
 remote_repo_path="/data/repositories"
 sync_in_progress_file="$remote_repo_path/.sync_in_progress"
+
+# List of remote directories to exclude when transfering repositories
+rsync_extra_excludes="
+    __alambic_assets__
+    __gitmon__
+    __hookshot__
+    __nodeload_archives__
+    __purgatory__
+    __render__
+"
 
 # Verify rsync is available
 if ! rsync --version 1>/dev/null 2>&1; then
@@ -74,16 +84,21 @@ ssh "$host" -- "
     exit 1
 }
 
-build_rsync_cmd() {
+# Function to build up an rsync command that transfers data from a live GHE
+# environment to the local backup site. Repository data must be transfered in a
+# specific order to guarantee repositories are transfered in a consistent state
+# so multiple runs of rsync are required.
+rsync_repository_data() {
   local default_opts="-azPrh --delete --rsync-path 'sudo -u git rsync'"
   local git_exclude="--exclude /*/*.git/*"
-  local extra_excludes=$(enterprise_extra_excludes | xargs -n1 -IEXCLUDE echo --exclude EXCLUDE | xargs echo)
+  local extra_excludes=$(echo "$rsync_extra_excludes" | xargs -n1 -IEXCLUDE echo --exclude EXCLUDE | xargs echo)
   local cmd_opts="$@ $git_exclude $extra_excludes"
 
   local rsync_cmd[0]="rsync"
   rsync_cmd+=("$default_opts")
+
   # use hardlinks if we can
-  if [ -z "$first_run" ]; then
+  if $first_run; then
       rsync_cmd+=(--link-dest "$backup_current")
   fi
 
@@ -93,50 +108,27 @@ build_rsync_cmd() {
   "${rsync_cmd[*]}"
 }
 
-enterprise_extra_excludes() {
-  echo "__alambic_assets__ __gitmon__ __hookshot__ __nodeload_archives__ __purgatory__ __render__"
-}
+# Sync auxiliary repository data.
+sync_file="repo_conf_sync_rules"
+echo '+ *.git/conf' >> $sync_file
+echo '+ *.git/HEAD' >> $sync_file
+echo '+ *.git/audit_log' >> $sync_file
+echo '+ *.git/git-daemon-export-ok' >> $sync_file
+echo '+ *.git/logs/*' >> $sync_file
+echo '+ *.git/COMMIT_EDITMSG' >> $sync_file
+echo "$rsync_extra_excludes" | xargs -n1 -IRULE echo "- RULE/" >> $sync_file
+echo '- *.git/*' >> $sync_file
+rsync_repository_data '--filter' ". $sync_file"
 
-sync_configuration() {
-  local sync_file="repo_conf_sync_rules"
+# Sync packed refs files
+rsync_repository_data '--include' '/*/*.git/packed-refs'
 
-  # setup base rules
-  echo '+ *.git/conf' >> $sync_file
-  echo '+ *.git/HEAD' >> $sync_file
-  echo '+ *.git/audit_log' >> $sync_file
-  echo '+ *.git/git-daemon-export-ok' >> $sync_file
-  echo '+ *.git/logs/*' >> $sync_file
-  echo '+ *.git/COMMIT_EDITMSG' >> $sync_file
-  # exclude non-repo dirs
-  enterprise_extra_excludes | xargs -n1 -IRULE echo "- RULE/" >> $sync_file
-  echo '- *.git/*' >> $sync_file
+# Sync loose refs and ref logs
+rsync_repository_data '--include' '/*/*.git/refs' '--include' '/*/*.git/logs/*'
 
-  build_rsync_cmd '--filter' ". $sync_file"
-}
+# Sync loose objects and pack files
+rsync_repository_data '--include' '/*/*.git/objects' '--exclude' 'tmp_*'
 
-sync_packed_refs() {
-  build_rsync_cmd '--include' '/*/*.git/packed-refs'
-}
-
-sync_loose_refs() {
-  build_rsync_cmd '--include' '/*/*.git/refs' '--include' '/*/*.git/logs/*'
-}
-
-sync_objects() {
-  build_rsync_cmd '--include' '/*/*.git/objects' '--exclude' 'tmp_*'
-}
-
-update_current() {
-  rm -f "$backup_current"
-  ln -s "$backup_named" "$backup_current"
-}
-
-sync() {
-  sync_configuration
-  sync_loose_refs
-  sync_packed_refs
-  sync_objects
-  update_current
-}
-
-sync
+# Update the current symlink
+rm -f "$backup_current"
+ln -s "$backup_named" "$backup_current"

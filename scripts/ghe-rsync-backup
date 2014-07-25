@@ -58,13 +58,8 @@ fi
 # Verify ssh connectivity with the GHE host.
 ghe-host-check 1>/dev/null
 
-# Setup the basic directory structure when this is the first time we've
-# performed a backup.
-first_run=false
-if [ ! -d "$backup_current" ]; then
-  first_run=true
-  mkdir -p "$backup_dir"
-fi
+# Make sure root backup dir exists if this is the first run
+mkdir -p "$backup_dir"
 
 # Cleans up the local rsync rules file and remote sync-in-progress file on exit.
 cleanup() {
@@ -100,10 +95,7 @@ ssh "$host" -- "
 # so multiple runs of rsync are required.
 rsync_repository_data() {
     rsync_args=(-azrh -P --delete --rsync-path='sudo -u git rsync')
-
-    if ! $first_run; then
-        rsync_args+=(--link-dest="../current")
-    fi
+    rsync_args+=(--link-dest="../current")
 
     rsync_args+=("$@")
 

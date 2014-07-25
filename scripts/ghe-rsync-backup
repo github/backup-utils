@@ -57,7 +57,7 @@ fi
 # Cleans up the local rsync rules file and remote sync-in-progress file on exit.
 cleanup() {
   rm -f repo_conf_sync_rules
-  ssh "$host" -- "sudo -u git -- rm -f '$sync_in_progress_file'"
+  ssh "$host" -- "sudo rm -f '$sync_in_progress_file'"
 }
 trap "cleanup" EXIT
 

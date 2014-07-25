@@ -43,12 +43,7 @@ if ! rsync --version 1>/dev/null 2>&1; then
 fi
 
 # Verify ssh connectivity with the GHE host.
-# TODO move this to use ghe-host-check instead. Should move all these nice
-#      config / quick timeout options into that script.
-if ! ssh -o PasswordAuthentication=no -o ConnectTimeout=5 -o ConnectionAttempts=1 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$host" -- exit; then
-    echo "Error: Couldn't connect to '$host' over ssh" 1>&2
-    exit 1
-fi
+ghe-host-check 1>/dev/null
 
 # Setup the basic directory structure when this is the first time we've
 # performed a backup.

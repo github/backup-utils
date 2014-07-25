@@ -1,14 +1,18 @@
 #!/usr/bin/env bash
-#/ Usage: ghe-rsync-backup <host> <backup-dir>
+#/ Usage: ghe-rsync-backup
 #/ Take online, incremental snapshot of all Git repository data.
 set -e
 
-# Parse args
-host="$1"
-backup_dir="$2"
+# Bring in the backup configuration
+cd $(dirname "$0")/..
+. scripts/ghe-backup-config
 
-# Show usage if host or backup_dir not set
-if [ -z "$host" -o -z "$backup_dir" ] || [ "$1" = "--help" ]; then
+# Set up remote host and root backup snapshot directory based on config
+host="admin@$GHE_HOSTNAME"
+backup_dir="$GHE_DATA_DIR/ghe-repositories"
+
+# Show usage with --help
+if [ "$1" = "--help" ]; then
   grep '^#/' <"$0" | cut -c 4-
   exit 1
 fi

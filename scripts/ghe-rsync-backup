@@ -84,28 +84,31 @@ ssh "$host" -- "
     exit 1
 }
 
+rsync_extra_excludes_args=$(
+    echo "$rsync_extra_excludes" |
+    xargs -n1 -IEXCLUDE echo --exclude='EXCLUDE' |
+    xargs echo
+)
+
 # Function to build up an rsync command that transfers data from a live GHE
 # environment to the local backup site. Repository data must be transfered in a
 # specific order to guarantee repositories are transfered in a consistent state
 # so multiple runs of rsync are required.
 rsync_repository_data() {
-  local default_opts="-azPrh --delete --rsync-path 'sudo -u git rsync'"
-  local git_exclude="--exclude /*/*.git/*"
-  local extra_excludes=$(echo "$rsync_extra_excludes" | xargs -n1 -IEXCLUDE echo --exclude EXCLUDE | xargs echo)
-  local cmd_opts="$@ $git_exclude $extra_excludes"
+    # default arguments
+    rsync_args=(-azrh -P --delete --rsync-path='sudo -u git rsync')
 
-  local rsync_cmd[0]="rsync"
-  rsync_cmd+=("$default_opts")
+    # use hardlinks if we can
+    if ! $first_run; then
+        rsync_args+=(--link-dest="$backup_current")
+    fi
 
-  # use hardlinks if we can
-  if $first_run; then
-      rsync_cmd+=(--link-dest "$backup_current")
-  fi
+    rsync_args+=("$@")
+    rsync_args+=(--exclude='/*/*.git/*')
+    rsync_args+=($rsync_extra_excludes_args)
+    rsync_args+=("$host:$remote_repo_path/" "$backup_named")
 
-  rsync_cmd+=("$cmd_opts")
-  rsync_cmd+=("$host:$remote_repo_path" "$backup_named")
-
-  "${rsync_cmd[*]}"
+    rsync "${rsync_args[@]}"
 }
 
 # Sync auxiliary repository data.
@@ -118,16 +121,16 @@ echo '+ *.git/logs/*' >> $sync_file
 echo '+ *.git/COMMIT_EDITMSG' >> $sync_file
 echo "$rsync_extra_excludes" | xargs -n1 -IRULE echo "- RULE/" >> $sync_file
 echo '- *.git/*' >> $sync_file
-rsync_repository_data '--filter' ". $sync_file"
+rsync_repository_data --filter=". $sync_file"
 
 # Sync packed refs files
-rsync_repository_data '--include' '/*/*.git/packed-refs'
+rsync_repository_data --include='/*/*.git/packed-refs'
 
 # Sync loose refs and ref logs
-rsync_repository_data '--include' '/*/*.git/refs' '--include' '/*/*.git/logs/*'
+rsync_repository_data --include='/*/*.git/refs' --include='/*/*.git/logs'
 
 # Sync loose objects and pack files
-rsync_repository_data '--include' '/*/*.git/objects' '--exclude' 'tmp_*'
+rsync_repository_data --include='/*/*.git/objects' --exclude='tmp_*'
 
 # Update the current symlink
 rm -f "$backup_current"

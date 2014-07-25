@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #/ Usage: ghe-rsync-backup <host> <backup-dir>
 #/ Take online, incremental snapshot of all Git repository data.
-set -ex
+set -e
 
 # Parse args
 host="$1"

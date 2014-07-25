@@ -112,12 +112,13 @@ rsync_repository_data() {
 
 # Sync auxiliary repository data.
 sync_file="repo_conf_sync_rules"
-echo '+ *.git/conf' >> $sync_file
 echo '+ *.git/HEAD' >> $sync_file
 echo '+ *.git/audit_log' >> $sync_file
+echo '+ *.git/config' >> $sync_file
+echo '+ *.git/description' >> $sync_file
 echo '+ *.git/git-daemon-export-ok' >> $sync_file
-echo '+ *.git/logs/*' >> $sync_file
-echo '+ *.git/COMMIT_EDITMSG' >> $sync_file
+echo '+ *.git/hooks' >> $sync_file
+echo '+ *.git/info' >> $sync_file
 echo "$rsync_extra_excludes" | xargs -n1 -IRULE echo "- RULE/" >> $sync_file
 echo '- *.git/*' >> $sync_file
 rsync_repository_data --filter=". $sync_file"

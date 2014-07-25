@@ -7,10 +7,8 @@ set -e
 cd $(dirname "$0")/..
 . scripts/ghe-backup-config
 
-echo ""
-echo "Note that your SSH key needs to be setup on the new host as described in:"
-echo "*  https://enterprise.github.com/help/articles/backing-up-enterprise-data"
-echo ""
+# Make sure we have SSH connectivity to the GHE host
+ghe-host-check
 
 # Snapshot all Git repository data
 echo "Backing up Git repository data ..." 1>&2

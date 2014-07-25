@@ -99,7 +99,7 @@ rsync_repository_data() {
 
     # use hardlinks if we can
     if ! $first_run; then
-        rsync_args+=(--link-dest="$backup_current")
+        rsync_args+=(--link-dest="../current")
     fi
 
     rsync_args+=("$@")

@@ -12,8 +12,6 @@ options="
     -o PasswordAuthentication=no
     -o ConnectTimeout=5
     -o ConnectionAttempts=1
-    -o StrictHostKeyChecking=no
-    -o UserKnownHostsFile=/dev/null
 "
 
 # SSH to the GHE host and run a simple command.

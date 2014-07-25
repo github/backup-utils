@@ -14,9 +14,8 @@ if [ -z "$host" -o -z "$backup_dir" ] || [ "$1" = "--help" ]; then
 fi
 
 # Local file locations
-backup_dir=$(cd "$backup_dir" && pwd -P)
-backup_date=$(date +"%Y%m%dT%H%M%S")
 backup_current="$backup_dir/current"
+backup_date=$(date +"%Y%m%dT%H%M%S")
 backup_named="$backup_dir/$backup_date"
 
 # Remote file locations

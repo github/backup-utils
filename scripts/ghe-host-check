@@ -22,6 +22,8 @@ options="
 # SSH to the GHE host and run a simple command to check SSH connectivity
 if ! ssh $options admin@"$host"  -- "true"; then
     echo "Error: ssh to '$host' failed." 1>&2
+    echo "Note that your SSH key needs to be setup on $host as described in:" 1>&2
+    echo "* https://enterprise.github.com/help/articles/adding-an-ssh-key-for-shell-access" 1>&2
     exit 2
 fi
 

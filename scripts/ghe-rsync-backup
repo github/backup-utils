@@ -36,6 +36,8 @@ repository_auxiliary_files="
     git-daemon-export-ok
     hooks
     info
+    svn.history.msgpack
+    svn_data/property_history.msgpack
 "
 
 # List of special directories under the remote /data/repositories directory.

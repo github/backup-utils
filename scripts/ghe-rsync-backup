@@ -134,4 +134,4 @@ rsync_repository_data --include='/*/*.git/objects' --exclude='tmp_*'
 
 # Update the current symlink
 rm -f "$backup_current"
-ln -s "$backup_named" "$backup_current"
+ln -s "$backup_date" "$backup_current"

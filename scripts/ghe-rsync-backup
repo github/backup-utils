@@ -45,28 +45,33 @@ if [ ! -d "$backup_current" ]; then
   mkdir -p "$backup_dir"
 fi
 
-# Cleans up the local rsync rules file and remote sync in progress file on exit.
+# Cleans up the local rsync rules file and remote sync-in-progress file on exit.
 cleanup() {
   rm -f repo_conf_sync_rules
-  cleanup_sync_in_progress_file
+  ssh "$host" -- "sudo -u git -- rm -f '$sync_in_progress_file'"
 }
 trap "cleanup" EXIT
 
-# Create the remote sync in progress file. This signals to the git-gc machinery
+# Touch the sync-in-progress file and wait for all active git-gc processes
+# to finish on the remote side. This signals to the git-gc machinery
 # that no objects or packs should be discarded for the duration of the backup
-# run, which is required in order to perform the backup online.
-ssh "$host" -- sudo -u git -- touch $sync_in_progress_file
+# run, which is required in order to perform a consistent online backup.
+ssh "$host" -- "
+    sudo -u git -- touch '$sync_in_progress_file'
 
-wait_for_gc_to_die() {
-  ssh "$host" -- '
     sanity=0
-    while test "$sanity" -lt 60; do
-        test -z "$(ps auxw | grep git.gc | grep -v grep)" && exit 0
-        sleep 1
-        sanity=$(($sanity+1))
+    while [ \$sanity -lt 60 ]; do
+        if ps axo pid,args | grep -q git.g[c]; then
+            sleep 1
+            sanity=\$(( sanity + 1 ))
+        else
+            exit 0
+        fi
     done
     exit 1
-' || die "waited 60 seconds for gc-free state"
+" || {
+    echo "Error: git-gc processes remain after 60 seconds. Aborting..." 1>&2
+    exit 1
 }
 
 build_rsync_cmd() {
@@ -127,7 +132,6 @@ update_current() {
 }
 
 sync() {
-  wait_for_gc_to_die
   sync_configuration
   sync_loose_refs
   sync_packed_refs

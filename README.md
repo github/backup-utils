@@ -46,7 +46,11 @@ The `GHE_DATA_DIR` variable set in `backup.config` controls where backup data is
     |- ghe-es-indices-backup.tar
     |- ghe-repositories/
        |- 20140724T010000
-       |- current -> 20140724T010000
+       |- 20140725T010000
+       |- 20140726T010000
+       |- 20140727T010000
+       |- 20140728T010000
+       |- current -> 20140727T010000
 
 The `ghe-repositories` directory stores all git repositories under timestamped increment directories. The `current` symlink points to the most recent full increment.
 

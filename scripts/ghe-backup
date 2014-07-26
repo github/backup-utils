@@ -12,7 +12,7 @@ ghe-host-check
 
 # Snapshot all Git repository data
 echo "Backing up Git repository data ..." 1>&2
-ssh admin@"$GHE_HOSTNAME" -- 'ghe-export-repositories' > "$GHE_DATA_DIR"/ghe-repositories-backup.tar
+ghe-${GHE_BACKUP_STRATEGY}-backup
 
 # Snapshot all Pages data
 echo "Backing up GitHub Pages data ..." 1>&2

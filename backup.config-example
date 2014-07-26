@@ -8,6 +8,15 @@ GHE_HOSTNAME="enterprise.your-company.com"
 # relative to this directory but can be set to an absolute path elsewhere.
 GHE_DATA_DIR="data"
 
+# The Git repository backup strategy. This may be set to either "rsync"
+# (default) or "tarball". The rsync backup strategy takes online and
+# incremental backups stored under "$GHE_DATA_DIR/ghe-repositories" and is
+# highly recommended for GitHub Enterprise versions 11.10.340 or greater. The
+# "tarball" strategy takes full backups and requires the GitHub instance be
+# put in maintenance mode for the duration of the backup. It's provided for
+# older versions.
+GHE_BACKUP_STRATEGY="rsync"
+
 # The S3 bucket where your backup files get uploaded should you choose to use S3.
 GHE_S3_BUCKET="${GHE_HOSTNAME}_ghe_backups"
 

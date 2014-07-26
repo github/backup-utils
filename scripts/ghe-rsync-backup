@@ -91,26 +91,33 @@ ssh "$host" -- "
     exit 1
 }
 
-# Function to build up an rsync command that transfers data from a live GHE
-# environment to the local backup site. Repository data must be transfered in a
-# specific order to guarantee repositories are transfered in a consistent state
-# so multiple runs of rsync are required.
+# Function to rsync repository data from a GitHub instance to the local
+# backup site. Repository data must be transfered in a specific order to
+# guarantee data is in a consistent state so multiple runs of rsync are
+# required. Each invocation provides a list of --include arguments for the
+# specific files to be transferred in the run, which are combined with
+# general arguments and exclude rules.
 rsync_repository_data() {
     rsync_args=(-azr --verbose --delete --rsync-path='sudo -u git rsync')
 
+    # use previous snapshot when present for incremental backup
     if [ -d "$backup_current" ]; then
         rsync_args+=(--link-dest="../current")
     fi
 
+    # add provided include rules and other arguments
     rsync_args+=("$@")
 
+    # exclude all __special__ dirs
     rsync_args+=(--exclude='/*/*.git/*')
     for dir in $special_data_dirs; do
         rsync_args+=(--exclude="/$dir")
     done
 
+    # write into new snapshot directory
     rsync_args+=("$host:$remote_repo_path/" "$backup_named")
 
+    # run the rsync command
     rsync "${rsync_args[@]}"
 }
 

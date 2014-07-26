@@ -1,0 +1,39 @@
+#!/bin/sh
+#/ Usage: ghe-rsync-restore <host>
+#/ Restore an rsync snapshot of all Git repository data to a GitHub instance.
+#/
+#/ Note: This script typically isn't called directly. It's invoked by the
+#/ ghe-restore command when GHE_BACKUP_STRATEGY is set to "rsync".
+set -e
+
+# Bring in the backup configuration
+cd $(dirname "$0")/..
+. scripts/ghe-backup-config
+
+# Show usage with --help
+if [ -z "$*" -o "$1" = "--help" ]; then
+  grep '^#/' <"$0" | cut -c 4-
+  exit 1
+fi
+
+# Parse host argument, adding the admin@ user bit if no user is provided.
+if echo "$host" | grep -q "@"; then
+    host="$1"
+else
+    host="admin@$1"
+fi
+
+# Use config to determine local backup snapshot location.
+backup_dir="$GHE_DATA_DIR/ghe-repositories"
+backup_current="$backup_dir/current"
+remote_repo_path="/data/repositories"
+
+# Bail out if we don't have a good snapshot.
+if [ ! -d "$backup_dir/current" ]; then
+    echo "Error: Git repository snapshot backup missing. Aborting." 1>&2
+    exit 1
+fi
+
+# Transfer all git repository data from the latest snapshot to the GitHub
+# instance in a single rsync invocation.
+rsync -arv --delete --rsync-path="sudo -u git rsync" "$backup_dir/current/" "$host:$remote_repo_path"

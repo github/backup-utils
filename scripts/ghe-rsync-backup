@@ -113,6 +113,7 @@ rsync_repository_data() {
     for dir in $special_data_dirs; do
         rsync_args+=(--exclude="/$dir")
     done
+    rsync_args+=(--exclude="/$(basename "$sync_in_progress_file")")
 
     # write into new snapshot directory
     rsync_args+=("$host:$remote_repo_path/" "$backup_named")

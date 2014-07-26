@@ -18,13 +18,23 @@ cd $(dirname "$0")/..
 # Grab the host arg
 host="${1:-$GHE_RESTORE_HOST}"
 
+# Bail out if we don't have a good snapshot.
+if [ ! -d "$GHE_DATA_DIR/current" ]; then
+    echo "Error: No backup snapshot exists. Aborting." 1>&2
+    exit 1
+fi
+
+# Figure out what the current increment number is by reading the symlink.
+# Use gross ls/sed hack because readlink of isn't available.
+current_snapshot=$(ls -1d "$GHE_DATA_DIR"/current 2>&1 | sed 's/.*-> //')
+
 # Show usage with no <host> or if --help was given
 if [ -z "$host" -o "$1" = "--help" ]; then
     grep '^#/' <"$0" | cut -c 4-
     exit 1
 fi
 
-echo "Using the snapshots in '$GHE_DATA_DIR' to restore GitHub instance at $host."
+echo "Using snapshot '$GHE_DATA_DIR/$current_snapshot' to restore GitHub instance at $host."
 
 # Make sure we have SSH connectivity to the restore host
 ghe-host-check "$host"
@@ -33,19 +43,20 @@ echo "Restoring Git repository data ..." 1>&2
 ghe-${GHE_BACKUP_STRATEGY}-restore "$host"
 
 echo "Restoring GitHub Pages data ..." 1>&2
-ssh "admin@$host" -- 'ghe-import-pages' < "$GHE_DATA_DIR"/ghe-pages-backup.tar
+ssh "admin@$host" -- 'ghe-import-pages' < "$GHE_DATA_DIR"/current/ghe-pages-backup.tar
 
 echo "Restoring MySQL data ..." 1>&2
-gzip -dc $GHE_DATA_DIR/ghe-mysql-backup.sql.gz | ssh "admin@$host" -- 'ghe-import-mysql'
+gzip -dc $GHE_DATA_DIR/current/ghe-mysql-backup.sql.gz |
+ssh "admin@$host" -- 'ghe-import-mysql'
 
 echo "Restoring Redis data ..." 1>&2
-ssh "admin@$host" -- 'ghe-import-redis' < "$GHE_DATA_DIR"/ghe-redis-backup.rdb
+ssh "admin@$host" -- 'ghe-import-redis' < "$GHE_DATA_DIR"/current/ghe-redis-backup.rdb
 
 echo "Restoring SSH public keys ..." 1>&2
-ssh "admin@$host" -- 'ghe-import-authorized-keys' < "$GHE_DATA_DIR"/ghe-authorized-keys-backup.json
+ssh "admin@$host" -- 'ghe-import-authorized-keys' < "$GHE_DATA_DIR"/current/ghe-authorized-keys-backup.json
 
 echo "Restoring Elasticsearch indices ..." 1>&2
-ssh "admin@$host" -- 'ghe-import-es-indices' < "$GHE_DATA_DIR"/ghe-es-indices-backup.tar
+ssh "admin@$host" -- 'ghe-import-es-indices' < "$GHE_DATA_DIR"/current/ghe-es-indices-backup.tar
 
 echo "Restoring SSH host keys ..." 1>&2
-ssh "admin@$host" -- 'ghe-import-ssh-host-keys' < "$GHE_DATA_DIR"/ghe-ssh-host-keys-backup.tar
+ssh "admin@$host" -- 'ghe-import-ssh-host-keys' < "$GHE_DATA_DIR"/current/ghe-ssh-host-keys-backup.tar

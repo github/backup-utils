@@ -100,7 +100,7 @@ rsync_repository_data() {
 
     # use previous snapshot when present for incremental backup
     if [ -d "$backup_current" ]; then
-        rsync_args+=(--link-dest="../current")
+        rsync_args+=(--link-dest="../../current/repositories")
     fi
 
     # add provided include rules and other arguments

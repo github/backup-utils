@@ -23,12 +23,6 @@ else
     host="admin@$1"
 fi
 
-# Bail out if we don't have a good snapshot.
-if [ ! -d "$GHE_DATA_DIR/current" ]; then
-    echo "Error: Git repository snapshot backup missing. Aborting." 1>&2
-    exit 1
-fi
-
 # Transfer all git repository data from the latest snapshot to the GitHub
 # instance in a single rsync invocation.
 rsync -arv --delete --rsync-path="sudo -u git rsync" \

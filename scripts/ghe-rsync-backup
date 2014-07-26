@@ -98,7 +98,7 @@ ssh "$host" -- "
 # specific files to be transferred in the run, which are combined with
 # general arguments and exclude rules.
 rsync_repository_data() {
-    rsync_args=(-ar --verbose --delete --rsync-path='sudo -u git rsync')
+    rsync_args=(-ar --verbose --rsync-path='sudo -u git rsync')
 
     # use previous snapshot when present for incremental backup
     if [ -d "$backup_current" ]; then

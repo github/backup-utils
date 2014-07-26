@@ -14,8 +14,9 @@ else
   s3cmd --configure
 fi
 
-# Restore from S3.
-s3cmd --preserve get s3://$GHE_S3_BUCKET/* $GHE_DATA_DIR
+# Restore from S3 into a new snapshot directory.
+mkdir -p "$GHE_SNAPSHOT_DIR"
+s3cmd --preserve get s3://$GHE_S3_BUCKET/* "$GHE_SNAPSHOT_DIR"
 
 # Run the restore script.
-scripts/ghe-restore
+scripts/ghe-restore -s "$GHE_SNAPSHOT_DIR"

@@ -20,4 +20,4 @@ if [ -z "$host" -o "$1" = "--help" ]; then
 fi
 
 # Restore Git repository data from tarball snapshot.
-ssh "admin@$1" -- 'ghe-import-repositories' < "$GHE_DATA_DIR"/ghe-repositories.tar
+ssh "admin@$1" -- 'ghe-import-repositories' < "$GHE_DATA_DIR"/current/repositories.tar

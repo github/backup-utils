@@ -41,3 +41,12 @@ fi
 
 # Set some defaults if needed
 : ${GHE_BACKUP_STRATEGY:=rsync}
+
+# Generate a backup timestamp if one has not already been generated.
+# We export the variable so the process group shares the same value.
+: ${GHE_SNAPSHOT_TIMESTAMP:=$(date +"%Y%m%dT%H%M%S")}
+export GHE_SNAPSHOT_TIMESTAMP
+
+# Set the current snapshot directory to <data-dir>/<timestamp>. This is where
+# all backups should be written for the current invocation.
+GHE_SNAPSHOT_DIR="$GHE_DATA_DIR"/"$GHE_BACKUP_TIMESTAMP"

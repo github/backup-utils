@@ -4,7 +4,7 @@
 #/
 #/ Note: This script typically isn't called directly. It's invoked by the
 #/ ghe-restore command when GHE_BACKUP_STRATEGY is set to "rsync".
-set -ex
+set -e
 
 # Bring in the backup configuration
 cd $(dirname "$0")/..

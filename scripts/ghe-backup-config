@@ -50,3 +50,19 @@ export GHE_SNAPSHOT_TIMESTAMP
 # Set the current snapshot directory to <data-dir>/<timestamp>. This is where
 # all backups should be written for the current invocation.
 GHE_SNAPSHOT_DIR="$GHE_DATA_DIR"/"$GHE_SNAPSHOT_TIMESTAMP"
+
+###############################################################################
+### Utility functions
+
+# Function to print usage embedded in a scripts opening doc comments.
+print_usage () {
+    grep '^#/' <"$0" | cut -c 4-
+    exit ${1:-1}
+}
+
+# Check for a "--help" arg and show usage
+for a in "$@"; do
+    if [ "$a" == "--help" ]; then
+        print_usage
+    fi
+done

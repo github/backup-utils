@@ -7,12 +7,6 @@ set -e
 cd $(dirname "$0")/..
 . scripts/ghe-backup-config
 
-# Show usage with --help
-if [ "$1" = "--help" ]; then
-  grep '^#/' <"$0" | cut -c 4-
-  exit 1
-fi
-
 # Set up remote host and root backup snapshot directory based on config
 host="admin@$GHE_HOSTNAME"
 backup_dir="$GHE_SNAPSHOT_DIR/repositories"

@@ -1,6 +1,6 @@
 #!/bin/sh
-# Usage: ghe-backup
-# Take snapshots of all GitHub Enterprise data, including the MySQL database.
+#/ Usage: ghe-backup
+#/ Take snapshots of all GitHub Enterprise data, including the MySQL database.
 set -e
 
 # Bring in the backup configuration

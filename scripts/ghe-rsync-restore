@@ -10,11 +10,8 @@ set -e
 cd $(dirname "$0")/..
 . scripts/ghe-backup-config
 
-# Show usage with --help
-if [ -z "$*" -o "$1" = "--help" ]; then
-  grep '^#/' <"$0" | cut -c 4-
-  exit 1
-fi
+# Show usage and bail with no arguments
+[ -z "$*" ] && print_usage
 
 # Parse host argument, adding the admin@ user bit if no user is provided.
 if echo "$host" | grep -q "@"; then

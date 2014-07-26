@@ -1,7 +1,7 @@
 #!/bin/sh
-# Usage: ghe-host-check [<host>]
-# Verify connectivity with the GitHub Enterprise host. When no <host> is
-# provided, the $GHE_HOSTNAME configured in backup.config is assumed.
+#/ Usage: ghe-host-check [<host>]
+#/ Verify connectivity with the GitHub Enterprise host. When no <host> is
+#/ provided, the $GHE_HOSTNAME configured in backup.config is assumed.
 set -e
 
 # Bring in the backup configuration.

@@ -13,11 +13,8 @@ cd $(dirname "$0")/..
 # Grab the host arg
 host="$1"
 
-# Show usage with no <host> or if --help was given
-if [ -z "$host" -o "$1" = "--help" ]; then
-    grep '^#/' <"$0" | cut -c 4-
-    exit 1
-fi
+# Show usage and bail with no <host>
+[ -z "$host" ] && print_usage
 
 # The snapshot to restore should be set by the ghe-restore command but this lets
 # us run this script directly.

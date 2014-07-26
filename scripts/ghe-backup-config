@@ -49,4 +49,4 @@ export GHE_SNAPSHOT_TIMESTAMP
 
 # Set the current snapshot directory to <data-dir>/<timestamp>. This is where
 # all backups should be written for the current invocation.
-GHE_SNAPSHOT_DIR="$GHE_DATA_DIR"/"$GHE_BACKUP_TIMESTAMP"
+GHE_SNAPSHOT_DIR="$GHE_DATA_DIR"/"$GHE_SNAPSHOT_TIMESTAMP"

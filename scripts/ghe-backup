@@ -41,4 +41,8 @@ ssh admin@"$GHE_HOSTNAME" -- 'ghe-export-ssh-host-keys' > "$GHE_SNAPSHOT_DIR"/gh
 echo "Backing up Elasticsearch indices ..." 1>&2
 ssh admin@"$GHE_HOSTNAME" -- 'ghe-export-es-indices' > "$GHE_SNAPSHOT_DIR"/ghe-es-indices-backup.tar
 
+# Update the current symlink to point to the new snapshot
+rm -f "$GHE_DATA_DIR/current"
+ln -s "$GHE_SNAPSHOT_TIMESTAMP" "$GHE_DATA_DIR/current"
+
 echo "Backup completed at $(date +"%Y-%m-%dT%H:%M:%S")."

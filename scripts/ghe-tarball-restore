@@ -1,5 +1,5 @@
 #!/bin/sh
-#/ Usage: ghe-tarball-restore
+#/ Usage: ghe-tarball-restore <host>
 #/ Restore a tarball snapshot of all Git repository data to a GitHub instance.
 #/
 #/ Note: This script typically isn't called directly. It's invoked by the
@@ -10,5 +10,14 @@ set -e
 cd $(dirname "$0")/..
 . scripts/ghe-backup-config
 
+# Grab the host arg
+host="$1"
+
+# Show usage with no <host> or if --help was given
+if [ -z "$host" -o "$1" = "--help" ]; then
+    grep '^#/' <"$0" | cut -c 4-
+    exit 1
+fi
+
 # Restore Git repository data from tarball snapshot.
-ssh admin@$GHE_RESTORE_HOST -- 'ghe-import-repositories' < "$GHE_DATA_DIR"/ghe-repositories.tar
+ssh "admin@$1" -- 'ghe-import-repositories' < "$GHE_DATA_DIR"/ghe-repositories.tar

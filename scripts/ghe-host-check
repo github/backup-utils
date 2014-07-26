@@ -1,11 +1,16 @@
 #!/bin/sh
-# Usage: ghe-host-check
-# Verify connectivity with the GitHub Enterprise host.
+# Usage: ghe-host-check [<host>]
+# Verify connectivity with the GitHub Enterprise host. When no <host> is
+# provided, the $GHE_HOSTNAME configured in backup.config is assumed.
 set -e
 
 # Bring in the backup configuration.
 cd $(dirname "$0")/..
 . scripts/ghe-backup-config
+
+# Use the host provided on the command line if provided, or fallback on the
+# $GHE_HOSTNAME configured in backup.config when not present.
+host="${1:-$GHE_HOSTNAME}"
 
 # Options to pass to SSH during connection check
 options="
@@ -14,9 +19,11 @@ options="
     -o ConnectionAttempts=1
 "
 
-# SSH to the GHE host and run a simple command.
-if ! ssh $options admin@"$GHE_HOSTNAME"  -- "true"; then
-    echo "Error: ssh to '$GHE_HOSTNAME' failed." 1>&2
+# SSH to the GHE host and run a simple command to check SSH connectivity
+if ! ssh $options admin@"$host"  -- "true"; then
+    echo "Error: ssh to '$host' failed." 1>&2
+    echo "Note that your SSH key needs to be setup on $host as described in:" 1>&2
+    echo "* https://enterprise.github.com/help/articles/adding-an-ssh-key-for-shell-access" 1>&2
     exit 2
 fi
 

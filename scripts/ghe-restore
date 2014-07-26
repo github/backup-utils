@@ -7,11 +7,10 @@ set -e
 cd $(dirname "$0")/..
 . scripts/ghe-backup-config
 
-echo ""
 echo "Using the files in $GHE_DATA_DIR to restore your GHE installation at $GHE_RESTORE_HOST."
-echo "Note that your SSH key needs to be setup on the new host as described in:"
-echo "*  https://enterprise.github.com/help/articles/restoring-enterprise-data"
-echo ""
+
+# Make sure we have SSH connectivity to the GHE host
+ghe-host-check "$GHE_RESTORE_HOST"
 
 echo "Restoring Git repository data ..." 1>&2
 ssh admin@$GHE_RESTORE_HOST -- 'ghe-import-repositories' < $GHE_DATA_DIR/ghe-repositories-backup.tar

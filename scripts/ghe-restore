@@ -24,7 +24,7 @@ if [ -z "$host" -o "$1" = "--help" ]; then
     exit 1
 fi
 
-echo "Using the snapshots in $GHE_DATA_DIR to restore GitHub instance at $host."
+echo "Using the snapshots in '$GHE_DATA_DIR' to restore GitHub instance at $host."
 
 # Make sure we have SSH connectivity to the restore host
 ghe-host-check "$host"
@@ -44,8 +44,8 @@ ssh "admin@$host" -- 'ghe-import-redis' < $GHE_DATA_DIR/ghe-redis-backup.rdb
 echo "Restoring SSH public keys ..." 1>&2
 ssh "admin@$host" -- 'ghe-import-authorized-keys' < $GHE_DATA_DIR/ghe-authorized-keys-backup.json
 
-echo "Restoring SSH host keys ..." 1>&2
-ssh "admin@$host" -- 'ghe-import-ssh-host-keys' < $GHE_DATA_DIR/ghe-ssh-host-keys-backup.tar
-
 echo "Restoring Elasticsearch indices ..." 1>&2
 ssh "admin@$host" -- 'ghe-import-es-indices' < $GHE_DATA_DIR/ghe-es-indices-backup.tar
+
+echo "Restoring SSH host keys ..." 1>&2
+ssh "admin@$host" -- 'ghe-import-ssh-host-keys' < $GHE_DATA_DIR/ghe-ssh-host-keys-backup.tar

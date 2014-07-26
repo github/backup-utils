@@ -1,34 +1,51 @@
 #!/bin/sh
-# Usage: ghe-restore
-# Restores a GHE instance from backups
+#/ Usage: ghe-restore [<host>]
+#/ Restores a GitHub instance from local backup snapshots. The <host> is the
+#/ hostname or IP of the GitHub instance. The <host> may be omitted when
+#/ the GHE_RESTORE_HOST config variable is set in backup.config. When a <host>
+#/ argument is provided, it always overrides the configured restore host.
+#/
+#/ Note that the host must be reachable and your SSH key must be setup as
+#/ described in the following help article:
+#/
+#/ <https://enterprise.github.com/help/articles/adding-an-ssh-key-for-shell-access>
 set -e
 
 # Bring in the backup configuration.
 cd $(dirname "$0")/..
 . scripts/ghe-backup-config
 
-echo "Using the files in $GHE_DATA_DIR to restore your GHE installation at $GHE_RESTORE_HOST."
+# Grab the host arg
+host="${1:-$GHE_RESTORE_HOST}"
 
-# Make sure we have SSH connectivity to the GHE host
-ghe-host-check "$GHE_RESTORE_HOST"
+# Show usage with no <host> or if --help was given
+if [ -z "$host" -o "$1" = "--help" ]; then
+    grep '^#/' <"$0" | cut -c 4-
+    exit 1
+fi
+
+echo "Using the snapshots in $GHE_DATA_DIR to restore GitHub instance at $host."
+
+# Make sure we have SSH connectivity to the restore host
+ghe-host-check "$host"
 
 echo "Restoring Git repository data ..." 1>&2
-ghe-${GHE_BACKUP_STRATEGY}-restore
+ghe-${GHE_BACKUP_STRATEGY}-restore "$host"
 
 echo "Restoring GitHub Pages data ..." 1>&2
-ssh admin@$GHE_RESTORE_HOST -- 'ghe-import-pages' < $GHE_DATA_DIR/ghe-pages-backup.tar
+ssh "admin@$host" -- 'ghe-import-pages' < $GHE_DATA_DIR/ghe-pages-backup.tar
 
 echo "Restoring MySQL data ..." 1>&2
-gzip -dc $GHE_DATA_DIR/ghe-mysql-backup.sql.gz | ssh admin@$GHE_RESTORE_HOST -- 'ghe-import-mysql'
+gzip -dc $GHE_DATA_DIR/ghe-mysql-backup.sql.gz | ssh "admin@$host" -- 'ghe-import-mysql'
 
 echo "Restoring Redis data ..." 1>&2
-ssh admin@$GHE_RESTORE_HOST -- 'ghe-import-redis' < $GHE_DATA_DIR/ghe-redis-backup.rdb
+ssh "admin@$host" -- 'ghe-import-redis' < $GHE_DATA_DIR/ghe-redis-backup.rdb
 
 echo "Restoring SSH public keys ..." 1>&2
-ssh admin@$GHE_RESTORE_HOST -- 'ghe-import-authorized-keys' < $GHE_DATA_DIR/ghe-authorized-keys-backup.json
+ssh "admin@$host" -- 'ghe-import-authorized-keys' < $GHE_DATA_DIR/ghe-authorized-keys-backup.json
 
 echo "Restoring SSH host keys ..." 1>&2
-ssh admin@$GHE_RESTORE_HOST -- 'ghe-import-ssh-host-keys' < $GHE_DATA_DIR/ghe-ssh-host-keys-backup.tar
+ssh "admin@$host" -- 'ghe-import-ssh-host-keys' < $GHE_DATA_DIR/ghe-ssh-host-keys-backup.tar
 
 echo "Restoring Elasticsearch indices ..." 1>&2
-ssh admin@$GHE_RESTORE_HOST -- 'ghe-import-es-indices' < $GHE_DATA_DIR/ghe-es-indices-backup.tar
+ssh "admin@$host" -- 'ghe-import-es-indices' < $GHE_DATA_DIR/ghe-es-indices-backup.tar

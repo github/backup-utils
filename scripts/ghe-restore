@@ -26,7 +26,7 @@ fi
 
 # Figure out what the current increment number is by reading the symlink.
 # Use gross ls/sed hack because readlink of isn't available.
-current_snapshot=$(ls -1d "$GHE_DATA_DIR"/current 2>&1 | sed 's/.*-> //')
+current_snapshot=$(ls -ld "$GHE_DATA_DIR"/current 2>&1 | sed 's/.*-> //')
 
 # Show usage with no <host> or if --help was given
 if [ -z "$host" -o "$1" = "--help" ]; then

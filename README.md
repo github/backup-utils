@@ -35,24 +35,26 @@ GitHub Enterprise's running version can be seen on http(s)://[hostname]/setup/up
 
 ### Backup file structure
 
-The `GHE_DATA_DIR` variable set in `backup.config` controls where backup data is written. It has the following file hierarchy:
+Backups are stored in rotating increment directories named after the time the snapshot was taken. Each increment directory contains a full backup snapshot of all relevant datastores.
 
-    $GHE_DATA_DIR
-    |- ghe-pages-backup.tar
-    |- ghe-mysql-backup.sql.gz
-    |- ghe-redis-backup.rdb
-    |- ghe-authorized-keys-backup.json
-    |- ghe-ssh-host-keys-backup.tar
-    |- ghe-es-indices-backup.tar
-    |- ghe-repositories/
+    ./data
        |- 20140724T010000
        |- 20140725T010000
        |- 20140726T010000
        |- 20140727T010000
        |- 20140728T010000
+          |- pages.tar
+          |- mysql.sql.gz
+          |- redis.rdb
+          |- authorized-keys.json
+          |- ssh-host-keys.tar
+          |- es-indices.tar
+          |- repositories/
        |- current -> 20140727T010000
 
-The `ghe-repositories` directory stores all git repositories under timestamped increment directories. The `current` symlink points to the most recent full increment.
+In the example above, five snapshot directories exist with the most recent successful snapshot being pointed to by the `current` symlink.
+
+Note: the `GHE_DATA_DIR` variable set in `backup.config` can be used to change the location where snapshot directories are written.
 
 ### See Also
 

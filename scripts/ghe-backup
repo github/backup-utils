@@ -13,6 +13,7 @@ ghe-host-check
 # Save configuration settings
 echo "Backing up settings ..." 1>&2
 ssh admin@"$GHE_HOSTNAME" -- 'ghe-export-settings' > "$GHE_DATA_DIR"/ghe-settings.json
+ssh admin@"$GHE_HOSTNAME" -- 'cat /data/enterprise/enterprise.ghl' > "$GHE_DATA_DIR"/enterprise.ghl
 
 # Snapshot all Git repository data
 echo "Backing up Git repository data ..." 1>&2

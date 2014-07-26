@@ -23,17 +23,13 @@ else
     host="admin@$1"
 fi
 
-# Use config to determine local backup snapshot location.
-backup_dir="$GHE_DATA_DIR/ghe-repositories"
-backup_current="$backup_dir/current"
-remote_repo_path="/data/repositories"
-
 # Bail out if we don't have a good snapshot.
-if [ ! -d "$backup_dir/current" ]; then
+if [ ! -d "$GHE_DATA_DIR/current" ]; then
     echo "Error: Git repository snapshot backup missing. Aborting." 1>&2
     exit 1
 fi
 
 # Transfer all git repository data from the latest snapshot to the GitHub
 # instance in a single rsync invocation.
-rsync -arv --delete --rsync-path="sudo -u git rsync" "$backup_dir/current/" "$host:$remote_repo_path"
+rsync -arv --delete --rsync-path="sudo -u git rsync" \
+    "$GHE_DATA_DIR/current/repositories/" "$host:/data/repositories"

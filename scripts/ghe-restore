@@ -43,20 +43,20 @@ echo "Restoring Git repository data ..." 1>&2
 ghe-${GHE_BACKUP_STRATEGY}-restore "$host"
 
 echo "Restoring GitHub Pages data ..." 1>&2
-ssh "admin@$host" -- 'ghe-import-pages' < "$GHE_DATA_DIR"/current/ghe-pages-backup.tar
+ssh "admin@$host" -- 'ghe-import-pages' < "$GHE_DATA_DIR"/current/pages.tar
 
 echo "Restoring MySQL data ..." 1>&2
-gzip -dc $GHE_DATA_DIR/current/ghe-mysql-backup.sql.gz |
+gzip -dc $GHE_DATA_DIR/current/mysql.sql.gz |
 ssh "admin@$host" -- 'ghe-import-mysql'
 
 echo "Restoring Redis data ..." 1>&2
-ssh "admin@$host" -- 'ghe-import-redis' < "$GHE_DATA_DIR"/current/ghe-redis-backup.rdb
+ssh "admin@$host" -- 'ghe-import-redis' < "$GHE_DATA_DIR"/current/redis.rdb
 
 echo "Restoring SSH public keys ..." 1>&2
-ssh "admin@$host" -- 'ghe-import-authorized-keys' < "$GHE_DATA_DIR"/current/ghe-authorized-keys-backup.json
+ssh "admin@$host" -- 'ghe-import-authorized-keys' < "$GHE_DATA_DIR"/current/authorized-keys.json
 
 echo "Restoring Elasticsearch indices ..." 1>&2
-ssh "admin@$host" -- 'ghe-import-es-indices' < "$GHE_DATA_DIR"/current/ghe-es-indices-backup.tar
+ssh "admin@$host" -- 'ghe-import-es-indices' < "$GHE_DATA_DIR"/current/es-indices.tar
 
 echo "Restoring SSH host keys ..." 1>&2
-ssh "admin@$host" -- 'ghe-import-ssh-host-keys' < "$GHE_DATA_DIR"/current/ghe-ssh-host-keys-backup.tar
+ssh "admin@$host" -- 'ghe-import-ssh-host-keys' < "$GHE_DATA_DIR"/current/ssh-host-keys.tar

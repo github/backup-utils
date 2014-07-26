@@ -10,6 +10,10 @@ cd $(dirname "$0")/..
 # Make sure we have SSH connectivity to the GHE host
 ghe-host-check
 
+# Save configuration settings
+echo "Backing up settings ..." 1>&2
+ssh admin@"$GHE_HOSTNAME" -- 'ghe-export-settings' > "$GHE_DATA_DIR"/ghe-settings.json
+
 # Snapshot all Git repository data
 echo "Backing up Git repository data ..." 1>&2
 ssh admin@"$GHE_HOSTNAME" -- 'ghe-export-repositories' > "$GHE_DATA_DIR"/ghe-repositories-backup.tar

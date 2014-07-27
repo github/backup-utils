@@ -1,0 +1,22 @@
+#!/bin/sh
+# Usage: ssh [-o opt=val]... <host> <command>...
+# Fake ssh command that executes <command> locally.
+set -e
+
+# Shift off -o opt=val arguments.
+while [ "$1" = "-o" ]; do
+    shift 2
+done
+
+# Shift off host argument
+host="$1"
+shift
+
+# Shift off command separator
+if [ "$1" = "--" ]; then
+    shift
+fi
+
+# Change into test dir and run command
+cd "$(dirname "$0")"/..
+exec "$@"

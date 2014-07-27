@@ -30,7 +30,7 @@ repository_auxiliary_files="
     hooks
     info
     svn.history.msgpack
-    svn_data/property_history.msgpack
+    svn_data
 "
 
 # List of special directories under the remote /data/repositories directory.

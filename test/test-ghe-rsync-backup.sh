@@ -33,6 +33,11 @@ git --git-dir="alice/repo1.git" pack-refs
 # Generate a pack in repo2
 git --git-dir="alice/repo2.git" repack -q
 
+# Add some fake svn data to repo3
+echo "fake svn history data" > bob/repo3.git/svn.history.msgpack
+mkdir bob/repo3.git/svn_data
+echo "fake property history data" > bob/repo3.git/svn_data/property_history.msgpack
+
 begin_test "ghe-rsync-backup first snapshot"
 (
     set -e
@@ -50,8 +55,12 @@ begin_test "ghe-rsync-backup first snapshot"
     # check that packed-refs file was transferred
     [ -f "$GHE_DATA_DIR/1/repositories/alice/repo1.git/packed-refs" ]
 
-    # check that a pack file was transfered
+    # check that a pack file was transferred
     [ -f "$GHE_DATA_DIR"/1/repositories/alice/repo2.git/objects/pack/*.pack ]
+
+    # check that svn data was transferred
+    [ -f "$GHE_DATA_DIR"/1/repositories/bob/repo3.git/svn.history.msgpack ]
+    [ -f "$GHE_DATA_DIR"/1/repositories/bob/repo3.git/svn_data/property_history.msgpack ]
 
     # verify all repository data was transferred
     diff -ru "$GHE_REMOTE_DATA_DIR" "$GHE_DATA_DIR/1/repositories"

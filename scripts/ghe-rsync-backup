@@ -1,7 +1,35 @@
 #!/usr/bin/env bash
 #/ Usage: ghe-rsync-backup
-#/ Take online, incremental snapshot of all Git repository data.
+#/ Take an online, incremental snapshot of all Git repository data.
+#/
+#/ Note: This command typically isn't called directly. It's invoked by
+#/ ghe-backup when the GHE_BACKUP_STRATEGY is set to "rsync".
 set -e
+
+# This command is designed to allow for transferring active Git repository data
+# from a GitHub instance to a backup site in a way that ensures data is
+# captured in a consistent state even when being written to.
+#
+# - All Git GC operations are disabled on the GitHub instance for the duration of
+#   the backup. This removes the possibly of objects or packs being removed
+#   while the backup is in progress.
+#
+# - In progress Git GC operations are given a cooldown window to complete. The
+#   script will sleep for up to 60 seconds waiting for GC operations to finish.
+#
+# - Git repository data is transferred in a specific order: auxiliary files,
+#   packed refs, loose refs, reflogs, and finally objects and pack files in that
+#   order. This ensures that all referenced objects are captured.
+#
+# - Git GC operations are re-enabled on the GitHub instance.
+#
+# The script uses multiple runs of rsync to transfer repository files. Each run
+# includes a list of filter rules that ensure only specific types of files are
+# transferred.
+#
+# See the "FILTER RULES" and "INCLUDE/EXCLUDE PATTERN RULES" sections of the
+# rsync(1) manual for more information:
+#      <http://rsync.samba.org/ftp/rsync/rsync.html>
 
 # Bring in the backup configuration
 cd $(dirname "$0")/..
@@ -14,10 +42,11 @@ backup_dir="$GHE_SNAPSHOT_DIR/repositories"
 # Location of last good backup for rsync --link-dest
 backup_current="$GHE_DATA_DIR/current/repositories"
 
-# Remote file locations
+# Remote sync-in-progress file location. When this file exists, Git GC
+# operations are disabled on the GitHub instance.
 sync_in_progress_file="$GHE_REMOTE_DATA_DIR/.sync_in_progress"
 
-# Verify rsync is available
+# Verify rsync is available.
 if ! rsync --version 1>/dev/null 2>&1; then
     echo "Error: rsync not found." 1>&2
     exit 1
@@ -26,16 +55,15 @@ fi
 # Make sure root backup dir exists if this is the first run
 mkdir -p "$backup_dir"
 
-# Cleans up the local rsync rules file and remote sync-in-progress file on exit.
+# Removes the remote sync-in-progress file on exit, re-enabling GC operations
+# on the remote instance.
 cleanup() {
   ssh "$host" -- "sudo rm -f '$sync_in_progress_file'"
 }
 trap "cleanup" EXIT
 
-# Touch the sync-in-progress file and wait for all active git-gc processes
-# to finish on the remote side. This signals to the git-gc machinery
-# that no objects or packs should be discarded for the duration of the backup
-# run, which is required in order to perform a consistent online backup.
+# Touch the sync-in-progress file, disabling GC operations, and wait for all
+# active GC processes to finish on the remote side.
 ssh "$host" -- "
     set -e
     sudo -u git touch '$sync_in_progress_file'
@@ -58,12 +86,10 @@ ssh "$host" -- "
     exit $res
 }
 
-# Function to rsync repository data from a GitHub instance to the local
-# backup site. Repository data must be transfered in a specific order to
-# guarantee data is in a consistent state so multiple runs of rsync are
-# required. Each invocation provides a list of --include arguments for the
-# specific files to be transferred in the run, which are combined with
-# general arguments and exclude rules.
+# Transfer repository data from a GitHub instance to the current snapshot
+# directory, using a previous snapshot to avoid transferring files that have
+# already been transferred. A set of rsync filter rules are provided on stdin
+# for each invocation.
 rsync_repository_data () {
     # basic arguments and args passed to us
     rsync_args=(-av --rsync-path='sudo -u git rsync')

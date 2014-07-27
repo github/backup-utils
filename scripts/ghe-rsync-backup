@@ -20,6 +20,7 @@ sync_in_progress_file="$GHE_REMOTE_DATA_DIR/.sync_in_progress"
 # List of auxiliary git repository files. These are transferred before all refs,
 # reflogs, and object data.
 repository_auxiliary_files="
+    COMMIT_EDITMSG
     HEAD
     audit_log
     config

@@ -19,4 +19,4 @@ fi
 
 # Change into test dir and run command
 cd "$(dirname "$0")"/..
-exec "$@"
+exec /bin/sh -c "$@"

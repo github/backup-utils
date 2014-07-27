@@ -35,6 +35,7 @@ echo "fake ghe-export-redis data" > "$GHE_DATA_DIR/current/redis.rdb"
 echo "fake ghe-export-authorized-keys data" > "$GHE_DATA_DIR/current/authorized-keys.json"
 echo "fake ghe-export-es-indices data" > "$GHE_DATA_DIR/current/es-indices.tar"
 echo "fake ghe-export-ssh-host-keys data" > "$GHE_DATA_DIR/current/ssh-host-keys.tar"
+echo "fake ghe-export-repositories data" > "$GHE_DATA_DIR/current/repositories.tar"
 
 begin_test "ghe-restore"
 (
@@ -81,6 +82,20 @@ begin_test "ghe-restore with host arg"
 
     # verify repository data was transferred to the restore location
     diff -ru "$GHE_DATA_DIR/current/repositories" "$GHE_REMOTE_DATA_DIR"
+)
+end_test
+
+begin_test "ghe-restore with tarball strategy"
+(
+    set -e
+    rm -rf "$GHE_REMOTE_DATA_DIR"
+    mkdir -p "$GHE_REMOTE_DATA_DIR"
+
+    # run it
+    output=$(/usr/bin/env GHE_BACKUP_STRATEGY="tarball" ghe-restore localhost)
+
+    # verify ghe-import-repositories was run on remote side with fake tarball
+    echo "$output" | grep -q 'fake ghe-export-repositories data'
 )
 end_test
 

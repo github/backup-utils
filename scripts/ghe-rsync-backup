@@ -163,4 +163,5 @@ rsync_repository_data <<RULES
 - /__nodeload_archives__/
 - /__gitmon__/
 + /__*__/
++ /__*__/**
 RULES

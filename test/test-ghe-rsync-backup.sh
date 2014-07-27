@@ -97,7 +97,7 @@ begin_test "ghe-rsync-backup subsequent snapshot"
 end_test
 
 
-begin_test "ghe-rsync-backup excludes __special__ data dirs"
+begin_test "ghe-rsync-backup handles __special__ data dirs"
 (
     set -e
 
@@ -105,9 +105,15 @@ begin_test "ghe-rsync-backup excludes __special__ data dirs"
     GHE_SNAPSHOT_TIMESTAMP=3
     export GHE_SNAPSHOT_TIMESTAMP
 
-    # create the __nodeload_archives__ dir on the remote side
+    # create the excluded __nodeload_archives__ dir on the remote side
     mkdir "$GHE_REMOTE_DATA_DIR/__nodeload_archives__"
     touch "$GHE_REMOTE_DATA_DIR/__nodeload_archives__/something.tar.gz"
+
+    # create the included __purgatory__ dir on the remote side
+    mkdir -p "$GHE_REMOTE_DATA_DIR/__purgatory__/123.git"
+    git init --bare -q "$GHE_REMOTE_DATA_DIR/__purgatory__/123.git"
+    git --git-dir="$GHE_REMOTE_DATA_DIR/__purgatory__/123.git" --work-tree=. \
+        commit --allow-empty -m 'test commit'
 
     # run it
     ghe-rsync-backup
@@ -116,11 +122,19 @@ begin_test "ghe-rsync-backup excludes __special__ data dirs"
     snapshot="$GHE_DATA_DIR/3/repositories"
     [ -d "$snapshot" ]
 
-    # check that special dir was not transferred
+    # check that excluded special dir was not transferred
     [ ! -d "$snapshot/__nodeload_archives__" ]
+
+    # check that included special dir was not transferred
+    [ -d "$snapshot/__purgatory__" ]
+
+    # check that all files were transferred under included dir
+    [ -f "$snapshot/__purgatory__/123.git/description" ]
+
+    # fsck the repo to make sure everything was transferred
+    git --git-dir="$snapshot/__purgatory__/123.git" fsck
 )
 end_test
-
 
 begin_test "ghe-rsync-backup excludes tmp packs and objects"
 (

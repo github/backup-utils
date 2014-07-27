@@ -23,6 +23,7 @@ repository_auxiliary_files="
     COMMIT_EDITMSG
     HEAD
     audit_log
+    branches
     config
     description
     git-daemon-export-ok

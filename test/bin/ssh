@@ -1,6 +1,8 @@
 #!/bin/sh
 # Usage: ssh [-o opt=val]... <host> <command>...
-# Fake ssh command that executes <command> locally.
+# Fake ssh command that executes <command> locally. This is placed on PATH
+# during tests to fake out a remote host. Both normal ssh invocations and rsync
+# commands work fine through this emulation layer.
 set -e
 
 # Shift off -l <user> and -o opt=val arguments.

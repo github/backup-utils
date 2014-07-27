@@ -38,7 +38,7 @@ fi
 
 # Check that the data directory is set and create it if it doesn't exist.
 if [ ! -d "$GHE_DATA_DIR" ]; then
-    echo "Creating the backup data directory ..." 1>&2
+    echo "Creating the backup data directory ..."
     mkdir -p "$GHE_DATA_DIR"
 fi
 

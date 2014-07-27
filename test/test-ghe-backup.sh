@@ -112,3 +112,25 @@ begin_test "ghe-backup subsequent snapshot"
     diff -ru "$GHE_REMOTE_DATA_DIR" "$GHE_DATA_DIR/current/repositories"
 )
 end_test
+
+
+begin_test "ghe-backup tarball strategy"
+(
+    set -e
+
+    # wait a second for snapshot timestamp
+    sleep 1
+
+    # run backup with tarball strategy
+    GHE_BACKUP_STRATEGY="tarball" ghe-backup
+
+    # check that repositories tarball exists
+    [ -f "$GHE_DATA_DIR/current/repositories.tar" ]
+
+    # check repositories tarball data
+    [ "$(cat $GHE_DATA_DIR/current/repositories.tar)" = "fake ghe-export-repositories data" ]
+
+    # check that repositories directory doesn't exist
+    [ ! -d "$GHE_DATA_DIR/current/repositories" ]
+)
+end_test

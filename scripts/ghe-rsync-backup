@@ -17,33 +17,6 @@ backup_current="$GHE_DATA_DIR/current/repositories"
 # Remote file locations
 sync_in_progress_file="$GHE_REMOTE_DATA_DIR/.sync_in_progress"
 
-# List of auxiliary git repository files. These are transferred before all refs,
-# reflogs, and object data.
-repository_auxiliary_files="
-    COMMIT_EDITMSG
-    HEAD
-    audit_log
-    branches
-    config
-    description
-    git-daemon-export-ok
-    hooks
-    info
-    svn.history.msgpack
-    svn_data
-"
-
-# List of special directories under the remote /data/repositories directory.
-# These contain non-repository data and must be treated specially.
-special_data_dirs="
-    __alambic_assets__
-    __gitmon__
-    __hookshot__
-    __nodeload_archives__
-    __purgatory__
-    __render__
-"
-
 # Verify rsync is available
 if ! rsync --version 1>/dev/null 2>&1; then
     echo "Error: rsync not found." 1>&2
@@ -91,23 +64,16 @@ ssh "$host" -- "
 # required. Each invocation provides a list of --include arguments for the
 # specific files to be transferred in the run, which are combined with
 # general arguments and exclude rules.
-rsync_repository_data() {
-    rsync_args=(-a --verbose --rsync-path='sudo -u git rsync')
+rsync_repository_data () {
+    # basic arguments and args passed to us
+    rsync_args=(-av --rsync-path='sudo -u git rsync')
+    rsync_args+=(--include-from=- --exclude=\*)
+    rsync_args+=("$@")
 
     # use previous snapshot when present for incremental backup
     if [ -d "$backup_current" ]; then
         rsync_args+=(--link-dest="../../current/repositories")
     fi
-
-    # add provided include rules and other arguments
-    rsync_args+=("$@")
-
-    # exclude all __special__ dirs
-    rsync_args+=(--exclude='/*/*.git/*')
-    for dir in $special_data_dirs; do
-        rsync_args+=(--exclude="/$dir")
-    done
-    rsync_args+=(--exclude="/$(basename "$sync_in_progress_file")")
 
     # write into new snapshot directory
     rsync_args+=("$host:$GHE_REMOTE_DATA_DIR/" "$backup_dir")
@@ -116,18 +82,49 @@ rsync_repository_data() {
     rsync "${rsync_args[@]}"
 }
 
-# Sync auxiliary repository data.
-auxiliary_include_args=()
-for f in $repository_auxiliary_files; do
-    auxiliary_include_args+=(--include="/*/*.git/$f")
-done
-rsync_repository_data -z "${auxiliary_include_args[@]}"
 
-# Sync packed refs files
-rsync_repository_data -z --include='/*/*.git/packed-refs'
+# Sync all auxiliary repository data. This includes files and directories like
+# HEAD, audit_log, config, description, info/, etc. No refs or object data
+# should be transferred here.
+rsync_repository_data -z <<RULES
+- /__*__/
++ /*/
++ /*/*.git
+- /*/*.git/objects
+- /*/*.git/refs
+- /*/*.git/packed-refs
+- /*/*.git/logs
++ /*/*.git/**
+RULES
 
-# Sync loose refs and ref logs
-rsync_repository_data -z --include='/*/*.git/refs' --include='/*/*.git/logs'
+# Sync packed refs files. This is performed before sync'ing loose refs since
+# loose refs trump packed-refs information.
+rsync_repository_data -z <<RULES
+- /__*__/
++ /*/
++ /*/*.git
++ /*/*.git/packed-refs
+RULES
 
-# Sync loose objects and pack files
-rsync_repository_data --include='/*/*.git/objects' --exclude='tmp_*'
+# Sync loose refs and reflogs. This must be performed before object data is
+# transferred to ensure that all referenced objects are included.
+rsync_repository_data -z <<RULES
+- /__*__/
++ /*/
++ /*/*.git
++ /*/*.git/refs
++ /*/*.git/refs/**
++ /*/*.git/logs
++ /*/*.git/logs/**
+RULES
+
+# Sync git objects and pack files. Compressing is disabled during this phase
+# since these files are already well compressed.
+rsync_repository_data <<RULES
+- /__*__/
++ /*/
++ /*/*.git
++ /*/*.git/objects
+- tmp_*
++ /*/*.git/objects/**
+RULES

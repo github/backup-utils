@@ -25,6 +25,10 @@ set -e
 ROOTDIR="$(cd $(dirname "$0")/.. && pwd)"
 PATH="$ROOTDIR/test/bin:$ROOTDIR/scripts:$PATH"
 
+# Point commands at the test backup.config file
+GHE_BACKUP_CONFIG="$ROOTDIR/test/backup.config"
+export GHE_BACKUP_CONFIG
+
 # create a temporary work space
 TMPDIR="$ROOTDIR/test/tmp"
 TRASHDIR="$TMPDIR/$(basename "$0")-$$"

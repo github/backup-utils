@@ -95,3 +95,52 @@ begin_test "ghe-rsync-backup subsequent snapshot"
     diff -ru "$GHE_REMOTE_DATA_DIR" "$GHE_DATA_DIR/2/repositories"
 )
 end_test
+
+
+begin_test "ghe-rsync-backup excludes __special__ data dirs"
+(
+    set -e
+
+    # force snapshot number instead of generating a timestamp
+    GHE_SNAPSHOT_TIMESTAMP=3
+    export GHE_SNAPSHOT_TIMESTAMP
+
+    # create the __nodeload_archives__ dir on the remote side
+    mkdir "$GHE_REMOTE_DATA_DIR/__nodeload_archives__"
+    touch "$GHE_REMOTE_DATA_DIR/__nodeload_archives__/something.tar.gz"
+
+    # run it
+    ghe-rsync-backup
+
+    # check that repositories directory was created
+    snapshot="$GHE_DATA_DIR/3/repositories"
+    [ -d "$snapshot" ]
+
+    # check that special dir was not transferred
+    [ ! -d "$snapshot/__nodeload_archives__" ]
+)
+end_test
+
+
+begin_test "ghe-rsync-backup excludes tmp packs and objects"
+(
+    set -e
+
+    # force snapshot number instead of generating a timestamp
+    GHE_SNAPSHOT_TIMESTAMP=4
+    export GHE_SNAPSHOT_TIMESTAMP
+
+    # create a tmp pack to emulate a pack being written to
+    touch "$GHE_REMOTE_DATA_DIR/alice/repo1.git/objects/pack/tmp_pack_1234"
+
+    # run it
+    ghe-rsync-backup
+
+    # check that repositories directory was created
+    snapshot="$GHE_DATA_DIR/4/repositories"
+    [ -d "$snapshot" ]
+
+    # check that tmp pack was not transferred
+    [ ! -d "$snapshot/alice/repo1.git/objects/pack/tmp_pack_1234" ]
+)
+end_test

@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 #/ Usage: ghe-rsync-backup
 #/ Take an online, incremental snapshot of all Git repository data.
 #/
@@ -91,23 +91,17 @@ ssh "$host" -- "
 # already been transferred. A set of rsync filter rules are provided on stdin
 # for each invocation.
 rsync_repository_data () {
-    # basic arguments and args passed to us
-    rsync_args=(-av --rsync-path='sudo -u git rsync')
-    rsync_args+=(--include-from=- --exclude=\*)
-    rsync_args+=("$@")
-
-    # use previous snapshot when present for incremental backup
-    if [ -d "$backup_current" ]; then
-        rsync_args+=(--link-dest="../../current/repositories")
-    fi
-
-    # write into new snapshot directory
-    rsync_args+=("$host:$GHE_REMOTE_DATA_DIR/" "$backup_dir")
-
-    # run the rsync command
-    rsync "${rsync_args[@]}"
+    rsync -av $link_dest "$@" \
+        --rsync-path='sudo -u git rsync' \
+        --include-from=- --exclude=\* \
+        "$host:$GHE_REMOTE_DATA_DIR/" "$backup_dir"
 }
 
+# If we have a previous increment, avoid transferring existing files via rsync's
+# --link-dest support. This also decreases physical space usage considerably.
+if [ -d "$backup_current" ]; then
+    link_dest="--link-dest=../../current/repositories"
+fi
 
 # Sync all auxiliary repository data. This includes files and directories like
 # HEAD, audit_log, config, description, info/, etc. No refs or object data

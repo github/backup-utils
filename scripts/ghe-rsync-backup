@@ -23,9 +23,6 @@ if ! rsync --version 1>/dev/null 2>&1; then
     exit 1
 fi
 
-# Verify ssh connectivity with the GHE host.
-ghe-host-check 1>/dev/null
-
 # Make sure root backup dir exists if this is the first run
 mkdir -p "$backup_dir"
 

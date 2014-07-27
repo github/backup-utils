@@ -54,6 +54,16 @@ export GHE_SNAPSHOT_TIMESTAMP
 # all backups should be written for the current invocation.
 GHE_SNAPSHOT_DIR="$GHE_DATA_DIR"/"$GHE_SNAPSHOT_TIMESTAMP"
 
+# The location of Git repository data on the remote side. This is always
+# "/data/repositories" for GitHub instances. Use of this variable allows
+# the location to be overridden in tests.
+: ${GHE_REMOTE_DATA_DIR:="/data/repositories"}
+
+# The location of the license file on the remote side. This is always
+# "/data/enterprise/enterprise.ghl" for GitHub instances. Use of this variable
+# allows the location to be overridden in tests.
+: ${GHE_REMOTE_LICENSE_FILE:="/data/enterprise/enterprise.ghl"}
+
 ###############################################################################
 ### Utility functions
 
@@ -69,13 +79,3 @@ for a in "$@"; do
         print_usage
     fi
 done
-
-# The location of Git repository data on the remote side. This is always
-# "/data/repositories" for GitHub instances. Use of this variable allows
-# the location to be overridden in tests.
-: ${GHE_REMOTE_DATA_DIR:="/data/repositories"}
-
-# The location of the license file on the remote side. This is always
-# "/data/enterprise/enterprise.ghl" for GitHub instances. Use of this variable
-# allows the location to be overridden in tests.
-: ${GHE_REMOTE_LICENSE_FILE:="/data/enterprise/enterprise.ghl"}

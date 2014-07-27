@@ -3,9 +3,16 @@
 # Fake ssh command that executes <command> locally.
 set -e
 
-# Shift off -o opt=val arguments.
-while [ "$1" = "-o" ]; do
-    shift 2
+# Shift off -l <user> and -o opt=val arguments.
+while true; do
+    case "$1" in
+        -l|-o)
+            shift 2
+            ;;
+        *)
+            break
+            ;;
+    esac
 done
 
 # Shift off host argument

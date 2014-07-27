@@ -66,7 +66,8 @@ trap "cleanup" EXIT
 # that no objects or packs should be discarded for the duration of the backup
 # run, which is required in order to perform a consistent online backup.
 ssh "$host" -- "
-    sudo -u git -- touch '$sync_in_progress_file'
+    set -e
+    sudo -u git touch '$sync_in_progress_file'
 
     sanity=0
     while [ \$sanity -lt 60 ]; do

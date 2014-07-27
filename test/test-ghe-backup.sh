@@ -10,6 +10,12 @@ GHE_DATA_DIR="$TRASHDIR/data"
 GHE_REMOTE_DATA_DIR="$TRASHDIR/remote/repositories"
 export GHE_DATA_DIR GHE_REMOTE_DATA_DIR
 
+# Write a fake license file for backup
+GHE_REMOTE_LICENSE_FILE="$TRASHDIR/remote/enterprise.ghl"
+export GHE_REMOTE_LICENSE_FILE
+mkdir -p "$TRASHDIR/remote"
+echo "fake license data" > "$GHE_REMOTE_LICENSE_FILE"
+
 # Create the backup data dir and fake remote repositories dirs
 mkdir -p "$GHE_DATA_DIR" "$GHE_REMOTE_DATA_DIR"
 
@@ -36,6 +42,12 @@ begin_test "ghe-backup first snapshot"
 
     # check that current symlink was created
     [ -d "$GHE_DATA_DIR/current" ]
+
+    # check that settings were backed up
+    [ "$(cat $GHE_DATA_DIR/current/settings.json)" = "fake ghe-export-settings data" ]
+
+    # check that license was backed up
+    [ "$(cat $GHE_DATA_DIR/current/enterprise.ghl)" = "fake license data" ]
 
     # check that repositories directory was created
     [ -d "$GHE_DATA_DIR/current/repositories" ]
@@ -86,6 +98,12 @@ begin_test "ghe-backup subsequent snapshot"
 
     # check that current symlink was created
     [ -d "$GHE_DATA_DIR/current" ]
+
+    # check that settings were backed up
+    [ "$(cat $GHE_DATA_DIR/current/settings.json)" = "fake ghe-export-settings data" ]
+
+    # check that license was backed up
+    [ "$(cat $GHE_DATA_DIR/current/enterprise.ghl)" = "fake license data" ]
 
     # check that repositories directory was created
     [ -d "$GHE_DATA_DIR/current/repositories" ]

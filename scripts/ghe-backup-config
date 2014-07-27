@@ -74,3 +74,8 @@ done
 # "/data/repositories" for GitHub instances. Use of this variable allows
 # the location to be overridden in tests.
 : ${GHE_REMOTE_DATA_DIR:="/data/repositories"}
+
+# The location of the license file on the remote side. This is always
+# "/data/enterprise/enterprise.ghl" for GitHub instances. Use of this variable
+# allows the location to be overridden in tests.
+: ${GHE_REMOTE_LICENSE_FILE:="/data/enterprise/enterprise.ghl"}

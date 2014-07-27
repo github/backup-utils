@@ -49,10 +49,13 @@ ssh "$host" -- "
             exit 0
         fi
     done
-    exit 1
+    exit 7
 " || {
-    echo "Error: git-gc processes remain after 60 seconds. Aborting..." 1>&2
-    exit 1
+    res=$?
+    if [ $res = 7 ]; then
+        echo "Error: git-gc processes remain after 60 seconds. Aborting..." 1>&2
+    fi
+    exit $res
 }
 
 # Function to rsync repository data from a GitHub instance to the local

@@ -15,8 +15,7 @@ backup_dir="$GHE_SNAPSHOT_DIR/repositories"
 backup_current="$GHE_DATA_DIR/current/repositories"
 
 # Remote file locations
-remote_repo_path="/data/repositories"
-sync_in_progress_file="$remote_repo_path/.sync_in_progress"
+sync_in_progress_file="$GHE_REMOTE_DATA_DIR/.sync_in_progress"
 
 # List of auxiliary git repository files. These are transferred before all refs,
 # reflogs, and object data.
@@ -108,7 +107,7 @@ rsync_repository_data() {
     rsync_args+=(--exclude="/$(basename "$sync_in_progress_file")")
 
     # write into new snapshot directory
-    rsync_args+=("$host:$remote_repo_path/" "$backup_dir")
+    rsync_args+=("$host:$GHE_REMOTE_DATA_DIR/" "$backup_dir")
 
     # run the rsync command
     rsync "${rsync_args[@]}"

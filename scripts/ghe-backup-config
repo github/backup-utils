@@ -69,3 +69,8 @@ for a in "$@"; do
         print_usage
     fi
 done
+
+# The location of Git repository data on the remote side. This is always
+# "/data/repositories" for GitHub instances. Use of this variable allows
+# the location to be overridden in tests.
+: ${GHE_REMOTE_DATA_DIR:="/data/repositories"}

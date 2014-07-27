@@ -11,4 +11,4 @@ cd $(dirname "$0")/..
 . scripts/ghe-backup-config
 
 # Snapshot all Git repository data
-ssh admin@"$GHE_HOSTNAME" -- 'ghe-export-repositories' > "$GHE_DATA_DIR"/ghe-repositories.tar
+ssh admin@"$GHE_HOSTNAME" -- 'ghe-export-repositories' > "$GHE_SNAPSHOT_DIR"/repositories.tar

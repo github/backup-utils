@@ -7,20 +7,18 @@ set -e
 cd $(dirname "$0")/..
 . scripts/ghe-backup-config
 
-# Set up remote host and root backup snapshot directory based on config
-host="admin@$GHE_HOSTNAME"
-backup_dir="$GHE_DATA_DIR/ghe-repositories"
-
 # Show usage with --help
 if [ "$1" = "--help" ]; then
   grep '^#/' <"$0" | cut -c 4-
   exit 1
 fi
 
-# Local file locations
-backup_current="$backup_dir/current"
-backup_date=$(date +"%Y%m%dT%H%M%S")
-backup_named="$backup_dir/$backup_date"
+# Set up remote host and root backup snapshot directory based on config
+host="admin@$GHE_HOSTNAME"
+backup_dir="$GHE_SNAPSHOT_DIR/repositories"
+
+# Location of last good backup for rsync --link-dest
+backup_current="$GHE_DATA_DIR/current/repositories"
 
 # Remote file locations
 remote_repo_path="/data/repositories"
@@ -102,7 +100,7 @@ rsync_repository_data() {
 
     # use previous snapshot when present for incremental backup
     if [ -d "$backup_current" ]; then
-        rsync_args+=(--link-dest="../current")
+        rsync_args+=(--link-dest="../../current/repositories")
     fi
 
     # add provided include rules and other arguments
@@ -116,7 +114,7 @@ rsync_repository_data() {
     rsync_args+=(--exclude="/$(basename "$sync_in_progress_file")")
 
     # write into new snapshot directory
-    rsync_args+=("$host:$remote_repo_path/" "$backup_named")
+    rsync_args+=("$host:$remote_repo_path/" "$backup_dir")
 
     # run the rsync command
     rsync "${rsync_args[@]}"
@@ -137,7 +135,3 @@ rsync_repository_data -z --include='/*/*.git/refs' --include='/*/*.git/logs'
 
 # Sync loose objects and pack files
 rsync_repository_data --include='/*/*.git/objects' --exclude='tmp_*'
-
-# Update the current symlink
-rm -f "$backup_current"
-ln -s "$backup_date" "$backup_current"

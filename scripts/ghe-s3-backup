@@ -22,5 +22,5 @@ scripts/ghe-backup
 s3cmd mb s3://$GHE_S3_BUCKET
 
 # Upload to S3.
-cd $GHE_DATA_DIR
+cd "$GHE_DATA_DIR"/current
 s3cmd --preserve put * s3://$GHE_S3_BUCKET

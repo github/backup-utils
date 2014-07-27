@@ -1,5 +1,5 @@
 #!/bin/sh
-# Usage: ghe-backup-all
+# Usage: ghe-backup
 # Take snapshots of all GitHub Enterprise data, including the MySQL database.
 set -e
 
@@ -7,13 +7,18 @@ set -e
 cd $(dirname "$0")/..
 . scripts/ghe-backup-config
 
+echo "Starting backup of $GHE_HOSTNAME (increment $GHE_SNAPSHOT_TIMESTAMP)"
+
 # Make sure we have SSH connectivity to the GHE host
 ghe-host-check
 
+# Create the timestamped snapshot directory where files for this run will live.
+mkdir -p "$GHE_SNAPSHOT_DIR"
+
 # Save configuration settings
 echo "Backing up settings ..." 1>&2
-ssh admin@"$GHE_HOSTNAME" -- 'ghe-export-settings' > "$GHE_DATA_DIR"/ghe-settings.json
-ssh admin@"$GHE_HOSTNAME" -- 'cat /data/enterprise/enterprise.ghl' > "$GHE_DATA_DIR"/enterprise.ghl
+ssh admin@"$GHE_HOSTNAME" -- 'ghe-export-settings' > "$GHE_SNAPSHOT_DIR"/settings.json
+ssh admin@"$GHE_HOSTNAME" -- 'cat /data/enterprise/enterprise.ghl' > "$GHE_SNAPSHOT_DIR"/enterprise.ghl
 
 # Snapshot all Git repository data
 echo "Backing up Git repository data ..." 1>&2
@@ -21,26 +26,30 @@ ghe-${GHE_BACKUP_STRATEGY}-backup
 
 # Snapshot all Pages data
 echo "Backing up GitHub Pages data ..." 1>&2
-ssh admin@"$GHE_HOSTNAME" -- 'ghe-export-pages' > "$GHE_DATA_DIR"/ghe-pages-backup.tar
+ssh admin@"$GHE_HOSTNAME" -- 'ghe-export-pages' > "$GHE_SNAPSHOT_DIR"/pages.tar
 
 # Snapshot all MySQL data
 echo "Backing up MySQL data ..." 1>&2
-ssh admin@"$GHE_HOSTNAME" -- 'ghe-export-mysql | gzip' > "$GHE_DATA_DIR"/ghe-mysql-backup.sql.gz
+ssh admin@"$GHE_HOSTNAME" -- 'ghe-export-mysql | gzip' > "$GHE_SNAPSHOT_DIR"/mysql.sql.gz
 
 # Snapshot all Redis data
 echo "Backing up Redis data ..." 1>&2
-ssh admin@"$GHE_HOSTNAME" -- 'ghe-export-redis' > "$GHE_DATA_DIR"/ghe-redis-backup.rdb
+ssh admin@"$GHE_HOSTNAME" -- 'ghe-export-redis' > "$GHE_SNAPSHOT_DIR"/redis.rdb
 
 # Snapshot SSH public keys
 echo "Backing up SSH public keys ..." 1>&2
-ssh admin@"$GHE_HOSTNAME" -- 'ghe-export-authorized-keys' > "$GHE_DATA_DIR"/ghe-authorized-keys-backup.json
+ssh admin@"$GHE_HOSTNAME" -- 'ghe-export-authorized-keys' > "$GHE_SNAPSHOT_DIR"/authorized-keys.json
 
 # Snapshot SSH host keys
 echo "Backing up SSH host keys ..." 1>&2
-ssh admin@"$GHE_HOSTNAME" -- 'ghe-export-ssh-host-keys' > "$GHE_DATA_DIR"/ghe-ssh-host-keys-backup.tar
+ssh admin@"$GHE_HOSTNAME" -- 'ghe-export-ssh-host-keys' > "$GHE_SNAPSHOT_DIR"/ssh-host-keys.tar
 
 # Snapshot Elasticsearch indices
 echo "Backing up Elasticsearch indices ..." 1>&2
-ssh admin@"$GHE_HOSTNAME" -- 'ghe-export-es-indices' > "$GHE_DATA_DIR"/ghe-es-indices-backup.tar
+ssh admin@"$GHE_HOSTNAME" -- 'ghe-export-es-indices' > "$GHE_SNAPSHOT_DIR"/es-indices.tar
 
-echo "Backup completed at $(date +"%Y-%m-%dT%H:%M:%S")."
+# Update the current symlink to point to the new snapshot
+rm -f "$GHE_DATA_DIR/current"
+ln -s "$GHE_SNAPSHOT_TIMESTAMP" "$GHE_DATA_DIR/current"
+
+echo "Backup of $GHE_HOSTNAME (increment $GHE_SNAPSHOT_TIMESTAMP) completed at $(date +"%Y-%m-%dT%H:%M:%S")."

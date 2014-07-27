@@ -15,6 +15,11 @@ ghe-host-check
 # Create the timestamped snapshot directory where files for this run will live.
 mkdir -p "$GHE_SNAPSHOT_DIR"
 
+# Save configuration settings
+echo "Backing up settings ..." 1>&2
+ssh admin@"$GHE_HOSTNAME" -- 'ghe-export-settings' > "$GHE_SNAPSHOT_DIR"/settings.json
+ssh admin@"$GHE_HOSTNAME" -- 'cat /data/enterprise/enterprise.ghl' > "$GHE_SNAPSHOT_DIR"/enterprise.ghl
+
 # Snapshot all Git repository data
 echo "Backing up Git repository data ..." 1>&2
 ghe-${GHE_BACKUP_STRATEGY}-backup

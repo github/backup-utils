@@ -11,19 +11,31 @@ This repository includes backup and recovery utilities for [GitHub Enterprise][1
  - Backup and recovery across datacenters.
  - Configurable backup snapshot frequency and retention periods.
 
-### Setup for server based backups
+### Getting started
 
-Follow these instructions to configure a new backup site:
+ 1. Clone the repository to the backup host:
 
- 1. `git clone https://github.com/github/enterprise-backup-site.git ghe-backup`
- 2. Copy the `backup.config-example` file to `backup.config` and modify as needed.
- 3. Add the local user's SSH key to the GitHub Enterprise instance's `authorized keys` file.
-    See [Adding an SSH key for shell access](https://enterprise.github.com/help/articles/adding-an-ssh-key-for-shell-access)
-    for instructions.
- 4. Run `scripts/ghe-host-check` to verify connectivity with the GitHub Enterprise instance.
- 5. Run `scripts/ghe-backup` to perform the first backup.
- 6. Schedule regular invocations of `ghe-backup` via cron or other scheduling
-    facility to take incremental snapshots.
+    `git clone https://github.com/github/enterprise-backup-site.git ghe-backup`
+
+ 2. Copy the [`backup.config-example`][2] file to `backup.config` and modify as
+    necessary. The `GHE_HOSTNAME` value must be set to the GitHub Enterprise
+    host name. Additional options are available and documented in the
+    configuration file but none are required for basic backup functionality.
+
+ 3. Add the backup host's SSH key to the GitHub Enterprise instance as an
+    *Authorized SSH key*. See [Adding an SSH key for shell access][3] for
+    instructions.
+
+ 4. Run `scripts/ghe-host-check` to verify SSH connectivity with the GitHub
+    Enterprise instance.
+
+ 5. Run `scripts/ghe-backup` to perform an initial full backup.
+
+Subsequent invocations of the `ghe-backup` command create incremental snapshots
+of repository data along with full snapshots of all other pertinent data.
+Snapshots may be restored to the same or separate GitHub Enterprise instance via
+the `ghe-restore` command. See the sections on *Backup* and *Recovery* below for
+detailed information on setting up a disaster recovery plan.
 
 ### Requirements
 

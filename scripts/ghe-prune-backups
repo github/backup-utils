@@ -7,7 +7,7 @@ set -e
 cd $(dirname "$0")/..
 . scripts/ghe-backup-config
 
-backup_dir="$GHE_SNAPSHOT_DIR/repositories"
+backup_dir="$GHE_DATA_DIR"
 backups_to_keep="$GHE_NUM_BACKUPS"
 num_re="[0-9]+"
 num_of_backups=$(ls -l "$backup_dir" | wc -l) || 0

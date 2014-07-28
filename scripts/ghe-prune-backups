@@ -18,7 +18,7 @@ num_of_backups=$(ls -l "$backup_dir" | grep -v current | grep -v grep | wc -l) |
 [[ "$backups_to_keep" =~ ^[0-9]+$ ]] || { echo "GHE_NUM_BACKUPS needs to be a number"; exit 1; }
 
 # prune if we have enough backups
-if [ "$num_of_backups" > "$backups_to_keep" ]; then
+if [[ "$num_of_backups" > "$backups_to_keep" ]]; then
     echo "Pruning backups" 1>&2
     dirs_to_remove=$(ls -t | awk "NR>$backups_to_keep")
     echo "would remove $dirs_to_remove" 1>&2

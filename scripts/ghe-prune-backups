@@ -20,7 +20,7 @@ num_of_backups=$(ls -l "$backup_dir" | grep -v current | grep -v grep | wc -l) |
 # prune if we have enough backups
 if [[ "$num_of_backups" > "$backups_to_keep" ]]; then
     echo "Pruning backups" 1>&2
-    dirs_to_remove=$(ls -t | awk "NR>$backups_to_keep")
+    dirs_to_remove=$(ls -t "$backup_dir" | awk "NR>$backups_to_keep")
     echo "would remove $dirs_to_remove" 1>&2
     echo "echo $dir_to_remove | xargs rm -rf" 1>&2
 fi

@@ -24,6 +24,6 @@ GHE_S3_BUCKET="${GHE_HOSTNAME}_ghe_backups"
 GHE_RESTORE_HOST="somerestorehost.your-company.com"
 
 # The number of backup snapshots to keep
-GHE_NUM_BACKUPS=10
+GHE_NUM_SNAPSHOTS=10
 
 # vim: ft=sh

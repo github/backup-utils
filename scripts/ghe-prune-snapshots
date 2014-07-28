@@ -7,22 +7,23 @@ set -e
 cd $(dirname "$0")/..
 . scripts/ghe-backup-config
 
-backup_dir="$GHE_DATA_DIR"
-backups_to_keep="$GHE_NUM_BACKUPS"
-num_of_backups=$(ls "$backup_dir" | grep -v current | wc -l | awk '{ print $1; }') || 0
+snapshot_dir="$GHE_DATA_DIR"
+snapshots_to_keep="$GHE_NUM_SNAPSHOTS"
+num_of_snapshots=$(ls "$backup_dir" | grep -v current | wc -l | awk '{ print $1; }')
+num_of_snapshots={$num_of_snapshots:-0}
 
 # make sure the config var is defined
-[ -n "$backups_to_keep" ] || { echo "GHE_NUM_BACKUPS needs to be a number"; exit 1; }
+[ -n "$snapshots_to_keep" ] || { echo "GHE_NUM_SNAPSHOTS needs to be a number"; exit 1; }
 
 # make sure we've really got a number
-[[ "$backups_to_keep" =~ ^[0-9]+$ ]] || { echo "GHE_NUM_BACKUPS needs to be a number"; exit 1; }
+[[ "$snapshots_to_keep" =~ ^[0-9]+$ ]] || { echo "GHE_NUM_SNAPSHOTS needs to be a number"; exit 1; }
 
-# prune if we have enough backups
-if [[ "$num_of_backups" > "$backups_to_keep" ]]; then
-    echo "Pruning backups" 1>&2
-    dirs_to_remove=$(ls -t "$backup_dir" | grep -v current | awk "NR>$backups_to_keep")
+# prune if we have enough snapshots
+if [[ "$num_of_snapshots" > "$snapshots_to_keep" ]]; then
+    echo "Pruning snapshots" 1>&2
+    dirs_to_remove=$(ls -t "$snapshot_dir" | grep -v current | awk "NR>$snapshots_to_keep")
     echo "removing $dirs_to_remove" 1>&2
-    echo "$dirs_to_remove" | xargs -n1 -IDIR_TO_RM rm -rf "$backup_dir/DIR_TO_RM"
+    echo "$dirs_to_remove" | xargs -n1 -IDIR_TO_RM rm -rf "$snapshot_dir/DIR_TO_RM"
 fi
 
 exit 0

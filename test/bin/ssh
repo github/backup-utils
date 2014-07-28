@@ -1,0 +1,43 @@
+#!/bin/sh
+# Usage: ssh [-o opt=val]... <host> <command>...
+# Fake ssh command that executes <command> locally. This is placed on PATH
+# during tests to fake out a remote host. Both normal ssh invocations and rsync
+# commands work fine through this emulation layer.
+set -e
+
+# Older versions of rsync invoke ssh as 'ssh <host> -l admin' instead of the
+# more standard 'ssh -l admin <host>'. Account for this here.
+if [ "$2" = "-l" ]; then
+    host="$1"
+    shift 3
+    set -- "$host" "$@"
+fi
+
+# Shift off -l <user> and -o opt=val arguments.
+while true; do
+    case "$1" in
+        -l|-o)
+            shift 2
+            ;;
+        *)
+            break
+            ;;
+    esac
+done
+
+# Shift off host argument
+host="$1"
+shift
+
+# Shift off command separator
+if [ "$1" = "--" ]; then
+    shift
+fi
+
+# Change into test dir and run command
+cd "$(dirname "$0")"/..
+
+# Scrub sudo commands.
+sh="$(echo "$@" | sed 's/sudo -u [a-z]* //g' | sed 's/sudo //g')"
+
+exec /bin/sh -c "$sh"

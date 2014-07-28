@@ -18,14 +18,17 @@ GHE_BACKUP_ROOT="$(pwd)"
 # Add the scripts dir to PATH
 PATH="$GHE_BACKUP_ROOT/scripts:$PATH"
 
+# The backup config file. This may be set in the environment.
+: ${GHE_BACKUP_CONFIG:="$GHE_BACKUP_ROOT/backup.config"}
+
 # Check that the config file exists before we source it in.
-if [ ! -f "backup.config" ]; then
-    echo "Error: The backup.config file doesn't exist." 1>&2
+if [ ! -f "$GHE_BACKUP_CONFIG" ]; then
+    echo "Error: The backup config file ('$GHE_BACKUP_CONFIG') doesn't exist." 1>&2
     exit 2
 fi
 
 # Source in the backup config file.
-. "$GHE_BACKUP_ROOT"/backup.config
+. "$GHE_BACKUP_CONFIG"
 
 # Check that the GHE hostname is set.
 if [ -z "$GHE_HOSTNAME" ]; then
@@ -50,6 +53,16 @@ export GHE_SNAPSHOT_TIMESTAMP
 # Set the current snapshot directory to <data-dir>/<timestamp>. This is where
 # all backups should be written for the current invocation.
 GHE_SNAPSHOT_DIR="$GHE_DATA_DIR"/"$GHE_SNAPSHOT_TIMESTAMP"
+
+# The location of Git repository data on the remote side. This is always
+# "/data/repositories" for GitHub instances. Use of this variable allows
+# the location to be overridden in tests.
+: ${GHE_REMOTE_DATA_DIR:="/data/repositories"}
+
+# The location of the license file on the remote side. This is always
+# "/data/enterprise/enterprise.ghl" for GitHub instances. Use of this variable
+# allows the location to be overridden in tests.
+: ${GHE_REMOTE_LICENSE_FILE:="/data/enterprise/enterprise.ghl"}
 
 ###############################################################################
 ### Utility functions

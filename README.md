@@ -13,7 +13,7 @@ Follow these instructions to configure a new backup site:
  3. Add the local user's SSH key to the GitHub Enterprise instance's `authorized keys` file.
     See [Adding an SSH key for shell access](https://enterprise.github.com/help/articles/adding-an-ssh-key-for-shell-access)
     for instructions.
- 4. Run `scripts/ghe-host-check` to verify connectivity with the GitHub Enterprise instance.
+ 4. Run `bin/ghe-host-check` to verify connectivity with the GitHub Enterprise instance.
 
 ### Setup for S3 based backups
 
@@ -23,7 +23,7 @@ Follow these instructions to configure S3 backups:
  2. Install s3cmd
    * OSX: `brew install s3cmd`
    * Ubuntu: `apt-get install s3cmd`
- 4. Run `scripts/ghe-s3-backup-all`
+ 4. Run `bin/ghe-s3-backup-all`
 
 ### Requirements
 
@@ -58,7 +58,7 @@ Note: the `GHE_DATA_DIR` variable set in `backup.config` can be used to change t
 
 ### See Also
 
-The scripts in this repository are based on the documentation provided by the
+The utilities in this repository are based on the documentation provided by the
 GitHub Enterprise knowledge base. See the following articles for more information:
 
  - [Backing up GitHub Enterprise data](https://enterprise.github.com/help/articles/backing-up-enterprise-data)

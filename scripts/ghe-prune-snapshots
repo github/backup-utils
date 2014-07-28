@@ -10,7 +10,7 @@ cd $(dirname "$0")/..
 snapshot_dir="$GHE_DATA_DIR"
 snapshots_to_keep="$GHE_NUM_SNAPSHOTS"
 num_of_snapshots=$(ls -1d "$backup_dir" | grep -v current | wc -l | awk '{ print $1; }')
-num_of_snapshots={$num_of_snapshots:-0}
+num_of_snapshots=${num_of_snapshots:-0}
 
 # make sure the config var is defined
 [ -n "$snapshots_to_keep" ] || { echo "GHE_NUM_SNAPSHOTS needs to be a number"; exit 1; }

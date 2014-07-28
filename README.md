@@ -49,6 +49,23 @@ incremental backups are not supported. We strongly recommend upgrading to
 11.10.342 or later. Visit enterprise.github.com to [download the most recent
 version][5].
 
+### Backup
+
+TODO:
+
+ - Backup frequency and scheduling
+ - Snapshot retention policy
+ - Storage requirements
+
+### Recovery
+
+TODO:
+
+ - Cold: restore from backup snapshot into an existing or newly provisioned
+   VM at time of recovery.
+ - Warm: continuously restore each snapshot into a warm standby VM (possibly in
+   another datacenter).
+ - Talk about RPO and RTO and tradeoffs between recovery options.
 
 ### Backup file structure
 

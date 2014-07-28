@@ -1,0 +1,29 @@
+#!/bin/bash
+#/ Usage: ghe-prune-backups
+#/ Keep N latest backup snapshots.
+set -e
+
+# Bring in the backup configuration
+cd $(dirname "$0")/..
+. scripts/ghe-backup-config
+
+backup_dir="$GHE_SNAPSHOT_DIR/repositories"
+backups_to_keep="$GHE_NUM_BACKUPS"
+num_re="[0-9]+"
+num_of_backups=$(ls -l "$backup_dir" | wc -l) || 0
+
+# make sure the config var is defined
+[ -n "$backups_to_keep" ] || { echo "GHE_NUM_BACKUPS needs to be a number"; exit 1 }
+
+# make sure we've really got a number
+[ "$backups_to_keep" =~ "$num_re" ] || { echo "GHE_NUM_BACKUPS needs to be a number"; exit 1 }
+
+# prune if we have enough backups
+if [ "$num_of_backups" > "$backups_to_keep" ]; then
+    echo "Pruning backups" 1>&2
+    dirs_to_remove=$(ls -t | awk "NR>$backups_to_keep")
+    echo "would remove $dirs_to_remove" 1>&2
+    echo "echo $dir_to_remove | xargs rm -rf" 1>&2
+fi
+
+exit 0

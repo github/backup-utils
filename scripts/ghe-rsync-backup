@@ -1,7 +1,35 @@
-#!/usr/bin/env bash
+#!/bin/sh
 #/ Usage: ghe-rsync-backup
-#/ Take online, incremental snapshot of all Git repository data.
+#/ Take an online, incremental snapshot of all Git repository data.
+#/
+#/ Note: This command typically isn't called directly. It's invoked by
+#/ ghe-backup when the GHE_BACKUP_STRATEGY is set to "rsync".
 set -e
+
+# This command is designed to allow for transferring active Git repository data
+# from a GitHub instance to a backup site in a way that ensures data is
+# captured in a consistent state even when being written to.
+#
+# - All Git GC operations are disabled on the GitHub instance for the duration of
+#   the backup. This removes the possibly of objects or packs being removed
+#   while the backup is in progress.
+#
+# - In progress Git GC operations are given a cooldown window to complete. The
+#   script will sleep for up to 60 seconds waiting for GC operations to finish.
+#
+# - Git repository data is transferred in a specific order: auxiliary files,
+#   packed refs, loose refs, reflogs, and finally objects and pack files in that
+#   order. This ensures that all referenced objects are captured.
+#
+# - Git GC operations are re-enabled on the GitHub instance.
+#
+# The script uses multiple runs of rsync to transfer repository files. Each run
+# includes a list of filter rules that ensure only specific types of files are
+# transferred.
+#
+# See the "FILTER RULES" and "INCLUDE/EXCLUDE PATTERN RULES" sections of the
+# rsync(1) manual for more information:
+#      <http://rsync.samba.org/ftp/rsync/rsync.html>
 
 # Bring in the backup configuration
 cd $(dirname "$0")/..
@@ -14,58 +42,28 @@ backup_dir="$GHE_SNAPSHOT_DIR/repositories"
 # Location of last good backup for rsync --link-dest
 backup_current="$GHE_DATA_DIR/current/repositories"
 
-# Remote file locations
+# Remote sync-in-progress file location. When this file exists, Git GC
+# operations are disabled on the GitHub instance.
 sync_in_progress_file="$GHE_REMOTE_DATA_DIR/.sync_in_progress"
 
-# List of auxiliary git repository files. These are transferred before all refs,
-# reflogs, and object data.
-repository_auxiliary_files="
-    COMMIT_EDITMSG
-    HEAD
-    audit_log
-    branches
-    config
-    description
-    git-daemon-export-ok
-    hooks
-    info
-    svn.history.msgpack
-    svn_data
-"
-
-# List of special directories under the remote /data/repositories directory.
-# These contain non-repository data and must be treated specially.
-special_data_dirs="
-    __alambic_assets__
-    __gitmon__
-    __hookshot__
-    __nodeload_archives__
-    __purgatory__
-    __render__
-"
-
-# Verify rsync is available
+# Verify rsync is available.
 if ! rsync --version 1>/dev/null 2>&1; then
     echo "Error: rsync not found." 1>&2
     exit 1
 fi
 
-# Verify ssh connectivity with the GHE host.
-ghe-host-check 1>/dev/null
-
 # Make sure root backup dir exists if this is the first run
 mkdir -p "$backup_dir"
 
-# Cleans up the local rsync rules file and remote sync-in-progress file on exit.
+# Removes the remote sync-in-progress file on exit, re-enabling GC operations
+# on the remote instance.
 cleanup() {
   ssh "$host" -- "sudo rm -f '$sync_in_progress_file'"
 }
 trap "cleanup" EXIT
 
-# Touch the sync-in-progress file and wait for all active git-gc processes
-# to finish on the remote side. This signals to the git-gc machinery
-# that no objects or packs should be discarded for the duration of the backup
-# run, which is required in order to perform a consistent online backup.
+# Touch the sync-in-progress file, disabling GC operations, and wait for all
+# active GC processes to finish on the remote side.
 ssh "$host" -- "
     set -e
     sudo -u git touch '$sync_in_progress_file'
@@ -79,55 +77,86 @@ ssh "$host" -- "
             exit 0
         fi
     done
-    exit 1
+    exit 7
 " || {
-    echo "Error: git-gc processes remain after 60 seconds. Aborting..." 1>&2
-    exit 1
-}
-
-# Function to rsync repository data from a GitHub instance to the local
-# backup site. Repository data must be transfered in a specific order to
-# guarantee data is in a consistent state so multiple runs of rsync are
-# required. Each invocation provides a list of --include arguments for the
-# specific files to be transferred in the run, which are combined with
-# general arguments and exclude rules.
-rsync_repository_data() {
-    rsync_args=(-a --verbose --rsync-path='sudo -u git rsync')
-
-    # use previous snapshot when present for incremental backup
-    if [ -d "$backup_current" ]; then
-        rsync_args+=(--link-dest="../../current/repositories")
+    res=$?
+    if [ $res = 7 ]; then
+        echo "Error: git-gc processes remain after 60 seconds. Aborting..." 1>&2
     fi
-
-    # add provided include rules and other arguments
-    rsync_args+=("$@")
-
-    # exclude all __special__ dirs
-    rsync_args+=(--exclude='/*/*.git/*')
-    for dir in $special_data_dirs; do
-        rsync_args+=(--exclude="/$dir")
-    done
-    rsync_args+=(--exclude="/$(basename "$sync_in_progress_file")")
-
-    # write into new snapshot directory
-    rsync_args+=("$host:$GHE_REMOTE_DATA_DIR/" "$backup_dir")
-
-    # run the rsync command
-    rsync "${rsync_args[@]}"
+    exit $res
 }
 
-# Sync auxiliary repository data.
-auxiliary_include_args=()
-for f in $repository_auxiliary_files; do
-    auxiliary_include_args+=(--include="/*/*.git/$f")
-done
-rsync_repository_data -z "${auxiliary_include_args[@]}"
+# Transfer repository data from a GitHub instance to the current snapshot
+# directory, using a previous snapshot to avoid transferring files that have
+# already been transferred. A set of rsync filter rules are provided on stdin
+# for each invocation.
+rsync_repository_data () {
+    rsync -av $link_dest "$@" \
+        --rsync-path='sudo -u git rsync' \
+        --include-from=- --exclude=\* \
+        "$host:$GHE_REMOTE_DATA_DIR/" "$backup_dir"
+}
 
-# Sync packed refs files
-rsync_repository_data -z --include='/*/*.git/packed-refs'
+# If we have a previous increment, avoid transferring existing files via rsync's
+# --link-dest support. This also decreases physical space usage considerably.
+if [ -d "$backup_current" ]; then
+    link_dest="--link-dest=../../current/repositories"
+fi
 
-# Sync loose refs and ref logs
-rsync_repository_data -z --include='/*/*.git/refs' --include='/*/*.git/logs'
+# Sync all auxiliary repository data. This includes files and directories like
+# HEAD, audit_log, config, description, info/, etc. No refs or object data
+# should be transferred here.
+rsync_repository_data -z <<RULES
+- /__*__/
++ /*/
++ /*/*.git
+- /*/*.git/objects
+- /*/*.git/refs
+- /*/*.git/packed-refs
+- /*/*.git/logs
++ /*/*.git/**
+RULES
 
-# Sync loose objects and pack files
-rsync_repository_data --include='/*/*.git/objects' --exclude='tmp_*'
+# Sync packed refs files. This is performed before sync'ing loose refs since
+# loose refs trump packed-refs information.
+rsync_repository_data -z <<RULES
+- /__*__/
++ /*/
++ /*/*.git
++ /*/*.git/packed-refs
+RULES
+
+# Sync loose refs and reflogs. This must be performed before object data is
+# transferred to ensure that all referenced objects are included.
+rsync_repository_data -z <<RULES
+- /__*__/
++ /*/
++ /*/*.git
++ /*/*.git/refs
++ /*/*.git/refs/**
++ /*/*.git/logs
++ /*/*.git/logs/**
+RULES
+
+# Sync git objects and pack files. Compressing is disabled during this phase
+# since these files are already well compressed.
+rsync_repository_data <<RULES
+- /__*__/
++ /*/
++ /*/*.git
++ /*/*.git/objects
+- tmp_*
++ /*/*.git/objects/**
+RULES
+
+# Sync __special__ data directories, including the __alambic_assets__,
+# __hookshot__, and __purgatory__ directories. The __nodeload_archives__,
+# __gitmon__, and __render__ directories are excludes since they act only as
+# caches.
+rsync_repository_data <<RULES
+- /__nodeload_archives__/
+- /__gitmon__/
+- /__render__/
++ /__*__/
++ /__*__/**
+RULES

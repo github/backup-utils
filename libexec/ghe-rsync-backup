@@ -33,7 +33,7 @@ set -e
 
 # Bring in the backup configuration
 cd $(dirname "$0")/..
-. scripts/ghe-backup-config
+. libexec/ghe-backup-config
 
 # Set up remote host and root backup snapshot directory based on config
 host="$GHE_HOSTNAME"

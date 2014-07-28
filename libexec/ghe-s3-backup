@@ -6,7 +6,7 @@ set -e
 
 # Bring in the backup configuration
 cd $(dirname "$0")/..
-. scripts/ghe-backup-config
+. libexec/ghe-backup-config
 
 if [ -e $HOME/.s3cfg ]; then
   echo "Using existing ~/.s3cfg ..."
@@ -16,7 +16,7 @@ else
 fi
 
 # Run the backup script.
-scripts/ghe-backup
+ghe-backup
 
 # Create the bucket if it doesn't exist.
 s3cmd mb s3://$GHE_S3_BUCKET

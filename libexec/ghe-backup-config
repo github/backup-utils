@@ -2,21 +2,21 @@
 # Usage: . ghe-backup-config
 # GitHub Enterprise backup shell configuration.
 #
-# This file is sourced by the various utilities under scripts to load
-# in backup configuration and ensure things are configured properly.
+# This file is sourced by the various utilities under bin and libexec to
+# load in backup configuration and ensure things are configured properly.
 #
-# All scripts should start with the following:
+# All commands should start with the following:
 #
 #     cd $(dirname "$0")/..
-#     . scripts/ghe-backup-config
+#     . libexec/ghe-backup-config
 #
 
 # Assume the current directory is the root. This should be fine so long as all
 # scripts source us in according to the instructions above.
 GHE_BACKUP_ROOT="$(pwd)"
 
-# Add the scripts dir to PATH
-PATH="$GHE_BACKUP_ROOT/scripts:$PATH"
+# Add the bin and libexec dirs to PATH
+PATH="$GHE_BACKUP_ROOT/bin:$GHE_BACKUP_ROOT/libexec:$PATH"
 
 # The backup config file. This may be set in the environment.
 : ${GHE_BACKUP_CONFIG:="$GHE_BACKUP_ROOT/backup.config"}
@@ -83,7 +83,7 @@ GHE_SNAPSHOT_DIR="$GHE_DATA_DIR"/"$GHE_SNAPSHOT_TIMESTAMP"
 ###############################################################################
 ### Utility functions
 
-# Function to print usage embedded in a scripts opening doc comments.
+# Function to print usage embedded in a script's opening doc comments.
 print_usage () {
     grep '^#/' <"$0" | cut -c 4-
     exit ${1:-1}

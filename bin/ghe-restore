@@ -19,7 +19,7 @@ set -e
 
 # Bring in the backup configuration.
 cd $(dirname "$0")/..
-. scripts/ghe-backup-config
+. libexec/ghe-backup-config
 
 # The snapshot directory we're restoring from. This is the 'current' snapshot
 # by default but may be overridden with the -s flag. Additional restore scripts

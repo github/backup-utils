@@ -1,5 +1,5 @@
 #!/bin/sh
-# ghe-prune-backups command tests
+# ghe-prune-snapshots command tests
 
 # Bring in testlib
 . $(dirname "$0")/testlib.sh
@@ -27,9 +27,9 @@ file_count_no_current() {
 
 generate_prune_files 3
 
-begin_test "ghe-prune-backups fails to run if isn't GHE_NUM_BACKUPS set"
+begin_test "ghe-prune-snapshots fails to run if isn't GHE_NUM_BACKUPS set"
 (
-  ghe-prune-backups
+  ghe-prune-snapshots
   res=$?
   if [ $res != 0 ]; then
     true
@@ -39,9 +39,9 @@ begin_test "ghe-prune-backups fails to run if isn't GHE_NUM_BACKUPS set"
 )
 end_test
 
-begin_test "ghe-prune-backups fails to run if GHE_NUM_BACKUPS isn't a number"
+begin_test "ghe-prune-snapshots fails to run if GHE_NUM_BACKUPS isn't a number"
 (
-  GHE_NUM_BACKUPS=toast ghe-prune-backups
+  GHE_NUM_BACKUPS=toast ghe-prune-snapshots
   res=$?
   if [ $res != 0 ]; then
     true
@@ -52,13 +52,13 @@ begin_test "ghe-prune-backups fails to run if GHE_NUM_BACKUPS isn't a number"
 end_test
 
 
-begin_test "ghe-prune-backups doesn't prune if threshold isn't reached"
+begin_test "ghe-prune-snapshots doesn't prune if threshold isn't reached"
 (
   set -e
 
   pre_num_files=$(file_count_no_current)
 
-  GHE_NUM_BACKUPS=5 ghe-prune-backups
+  GHE_NUM_BACKUPS=5 ghe-prune-snapshots
 
   post_num_files=$(file_count_no_current)
 
@@ -70,13 +70,13 @@ begin_test "ghe-prune-backups doesn't prune if threshold isn't reached"
 )
 end_test
 
-begin_test "ghe-prune-backups prunes if threshold is reached"
+begin_test "ghe-prune-snapshots prunes if threshold is reached"
 (
   set -e
 
   pre_num_files=$(file_count_no_current)
 
-  GHE_NUM_BACKUPS=2 ghe-prune-backups
+  GHE_NUM_BACKUPS=2 ghe-prune-snapshots
 
   post_num_files=$(file_count_no_current)
 

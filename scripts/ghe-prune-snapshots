@@ -1,5 +1,5 @@
 #!/bin/bash
-#/ Usage: ghe-prune-backups
+#/ Usage: ghe-prune-snapshots
 #/ Keep N latest backup snapshots.
 set -e
 

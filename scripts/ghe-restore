@@ -72,7 +72,7 @@ ssh "admin@$host" -- 'ghe-import-redis' < "$snapshot_dir/redis.rdb"
 echo "Restoring SSH public keys ..."
 ssh "admin@$host" -- 'ghe-import-authorized-keys' < "$snapshot_dir/authorized-keys.json"
 
-echo "Restoring ElasticSearch indices ..."
+echo "Restoring Elasticsearch indices ..."
 ssh "admin@$host" -- 'ghe-import-es-indices' < "$snapshot_dir/es-indices.tar"
 
 echo "Restoring SSH host keys ..."

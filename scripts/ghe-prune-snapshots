@@ -9,7 +9,7 @@ cd $(dirname "$0")/..
 
 snapshot_dir="$GHE_DATA_DIR"
 snapshots_to_keep="$GHE_NUM_SNAPSHOTS"
-num_of_snapshots=$(ls "$backup_dir" | grep -v current | wc -l | awk '{ print $1; }')
+num_of_snapshots=$(ls -1d "$backup_dir" | grep -v current | wc -l | awk '{ print $1; }')
 num_of_snapshots={$num_of_snapshots:-0}
 
 # make sure the config var is defined
@@ -21,7 +21,7 @@ num_of_snapshots={$num_of_snapshots:-0}
 # prune if we have enough snapshots
 if [[ "$num_of_snapshots" > "$snapshots_to_keep" ]]; then
     echo "Pruning snapshots" 1>&2
-    dirs_to_remove=$(ls -t "$snapshot_dir" | grep -v current | awk "NR>$snapshots_to_keep")
+    dirs_to_remove=$(ls -t1d "$snapshot_dir" | grep -v current | awk "NR>$snapshots_to_keep")
     echo "removing $dirs_to_remove" 1>&2
     echo "$dirs_to_remove" | xargs -n1 -IDIR_TO_RM rm -rf "$snapshot_dir/DIR_TO_RM"
 fi

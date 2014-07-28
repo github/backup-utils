@@ -22,7 +22,7 @@ generate_prune_files() {
 }
 
 file_count_no_current() {
-  ls $GHE_DATA_DIR | grep -v current | wc -l | awk '{ print $1; }'
+  ls -1d $GHE_DATA_DIR | grep -v current | wc -l | awk '{ print $1; }'
 }
 
 generate_prune_files 3

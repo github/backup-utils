@@ -1,5 +1,5 @@
-GitHub Enterprise Backup Utilities
-==================================
+GitHub Enterprise Backup/DR Utilities
+=====================================
 
 This repository includes backup and recovery utilities for [GitHub Enterprise][1].
 

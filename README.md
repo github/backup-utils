@@ -39,11 +39,16 @@ detailed information on setting up a disaster recovery plan.
 
 ### Requirements
 
-Backup site requirements are modest: a bash interperter and rsync v2.6.4 or greater. Any modern Linux with rsync should be fine.
+Backup site requirements are modest: Linux or other modern Unix operating system
+with [rsync][4] v2.6.4 or greater.
 
-In order to be able to start performing online backups via `ghe-rsync-backup` the GitHub Enterprise appliance needs to be running 11.10.342 or above. Offline backups via `ghe-backup` and `ghe-s3-backup` may work with older versions of GitHub Enterprise, though this is neither recommended nor supported.
+For online and incremental backup support, the GitHub Enterprise appliance must
+be running version 11.10.342 or above. Earlier versions may use the "tarball"
+backup strategy (see `backup.config` for more information) but online and
+incremental backups are not supported. We strongly recommend upgrading to
+11.10.342 or later. Visit enterprise.github.com to [download the most recent
+version][5].
 
-GitHub Enterprise's running version can be seen on http(s)://[hostname]/setup/upgrade. If you're not running on the latest release we recommend to upgrade the appliance. Please download the most recent GHP from the [GitHub Enterprise website](https://enterprise.github.com/download) and see [our guide](https://enterprise.github.com/help/articles/upgrading-to-a-newer-release) for more information on how to perform upgrades.
 
 ### Backup file structure
 

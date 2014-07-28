@@ -14,6 +14,9 @@ Follow these instructions to configure a new backup site:
     See [Adding an SSH key for shell access](https://enterprise.github.com/help/articles/adding-an-ssh-key-for-shell-access)
     for instructions.
  4. Run `scripts/ghe-host-check` to verify connectivity with the GitHub Enterprise instance.
+ 5. Run `scripts/ghe-backup` to perform the first backup.
+ 6. Schedule regular invocations of `ghe-backup` via cron or other scheduling
+    facility to take incremental snapshots.
 
 ### Setup for S3 based backups
 

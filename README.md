@@ -18,16 +18,6 @@ Follow these instructions to configure a new backup site:
  6. Schedule regular invocations of `ghe-backup` via cron or other scheduling
     facility to take incremental snapshots.
 
-### Setup for S3 based backups
-
-Follow these instructions to configure S3 backups:
-
- 1. Perform the above steps to setup a backup site.
- 2. Install s3cmd
-   * OSX: `brew install s3cmd`
-   * Ubuntu: `apt-get install s3cmd`
- 4. Run `scripts/ghe-s3-backup-all`
-
 ### Requirements
 
 Backup site requirements are modest: a bash interperter and rsync v2.6.4 or greater. Any modern Linux with rsync should be fine.

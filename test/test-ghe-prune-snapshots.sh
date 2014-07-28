@@ -58,7 +58,7 @@ begin_test "ghe-prune-snapshots doesn't prune if threshold isn't reached"
 
   pre_num_files=$(file_count_no_current)
 
-  GHE_NUM_BACKUPS=5 ghe-prune-snapshots
+  GHE_NUM_SNAPSHOTS=5 ghe-prune-snapshots
 
   post_num_files=$(file_count_no_current)
 
@@ -76,7 +76,7 @@ begin_test "ghe-prune-snapshots prunes if threshold is reached"
 
   pre_num_files=$(file_count_no_current)
 
-  GHE_NUM_BACKUPS=2 ghe-prune-snapshots
+  GHE_NUM_SNAPSHOTS=2 ghe-prune-snapshots
 
   post_num_files=$(file_count_no_current)
 

@@ -8,7 +8,7 @@ This repository includes backup and recovery utilities for [GitHub Enterprise][1
  - Online and incremental backups of Git repository data from primary GitHub
    Enterprise instance.
  - Cold or warm standby recovery options.
- - Backup and recovery across datacenters.
+ - Backup and recovery across data centers.
  - Configurable backup snapshot frequency and retention periods.
 
 ### Getting started
@@ -65,7 +65,7 @@ TODO:
    VM at time of recovery.
  - Warm: continuously restore each snapshot into a warm standby VM (possibly in
    another datacenter).
- - Talk about RPO and RTO and tradeoffs between recovery options.
+ - Talk about RPO and RTO and trade-offs between recovery options.
 
 ### Backup file structure
 

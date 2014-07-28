@@ -28,4 +28,4 @@ fi
 # instance in a single rsync invocation.
 rsync -arv --delete --rsync-path="sudo -u git rsync" \
     "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/repositories/" \
-    "$host:$GHE_REMOTE_DATA_DIR"
+    "$host:$GHE_REMOTE_DATA_DIR" 1>&3

@@ -1,6 +1,8 @@
 #!/bin/sh
-#/ Usage: ghe-backup
+#/ Usage: ghe-backup [-v]
 #/ Take snapshots of all GitHub Enterprise data, including the MySQL database.
+#/ With -v, enable verbose output and show more information about what's being
+#/ transferred.
 set -e
 
 # Bring in the backup configuration

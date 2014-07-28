@@ -21,6 +21,21 @@ PATH="$GHE_BACKUP_ROOT/scripts:$PATH"
 # The backup config file. This may be set in the environment.
 : ${GHE_BACKUP_CONFIG:="$GHE_BACKUP_ROOT/backup.config"}
 
+# Parse out -v (verbose) argument
+if [ "$1" = "-v" ]; then
+    GHE_VERBOSE=true
+    shift
+fi
+export GHE_VERBOSE
+
+# If verbose logging is enabled, redirect fd 3 to stdout; otherwise, redirect it
+# to /dev/null. Write verbose output to fd 3.
+if [ -n "$GHE_VERBOSE" ]; then
+    exec 3>&1
+else
+    exec 3>/dev/null
+fi
+
 # Check that the config file exists before we source it in.
 if [ ! -f "$GHE_BACKUP_CONFIG" ]; then
     echo "Error: The backup config file ('$GHE_BACKUP_CONFIG') doesn't exist." 1>&2

@@ -69,7 +69,9 @@ TODO:
 
 ### Backup file structure
 
-Backups are stored in rotating increment directories named after the time the snapshot was taken. Each increment directory contains a full backup snapshot of all relevant datastores.
+Backups are stored in rotating increment directories named after the time the
+snapshot was taken. Each increment directory contains a full backup snapshot of
+all relevant datastores.
 
     ./data
        |- 20140724T010000
@@ -86,21 +88,31 @@ Backups are stored in rotating increment directories named after the time the sn
           |- repositories/
        |- current -> 20140727T010000
 
-In the example above, five snapshot directories exist with the most recent successful snapshot being pointed to by the `current` symlink.
+In the example above, five snapshot directories exist with the most recent
+successful snapshot being pointed to by the `current` symlink.
 
-Note: the `GHE_DATA_DIR` variable set in `backup.config` can be used to change the location where snapshot directories are written.
+Note: the `GHE_DATA_DIR` variable set in `backup.config` can be used to change
+the location where snapshot directories are written.
 
 ### See Also
 
-The scripts in this repository are based on the documentation provided by the
-GitHub Enterprise knowledge base. See the following articles for more information:
+The utilities included in this repository are based on the documentation
+provided by the GitHub Enterprise knowledge base. See the following articles for
+more information:
 
  - [Backing up GitHub Enterprise data](https://enterprise.github.com/help/articles/backing-up-enterprise-data)
  - [Restoring GitHub Enterprise data](https://enterprise.github.com/help/articles/restoring-enterprise-data)
 
 ### Support
 
-If you have any questions about how to backup your data from the GitHub Enterprise appliance please get in touch with [GitHub Enterprise Support](https://enterprise.github.com/support/)!
+If you have any questions about how to backup your data from the GitHub
+Enterprise appliance please get in touch with [GitHub Enterprise
+Support](https://enterprise.github.com/support/)!
 
 
 [1]: https://enterprise.github.com
+[2]: https://github.com/github/enterprise-backup-site/blob/master/backup.config-example
+[3]: https://enterprise.github.com/help/articles/adding-an-ssh-key-for-shell-access
+[4]: http://rsync.samba.org/
+[5]: https://enterprise.github.com/download
+[6]: https://enterprise.github.com/help/articles/upgrading-to-a-newer-release

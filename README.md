@@ -1,8 +1,15 @@
 GitHub Enterprise Backup Utilities
 ==================================
 
-This repository includes utilities for and documentation on running a
-[GitHub Enterprise](https://enterprise.github.com) backup / DR site.
+This repository includes backup and recovery utilities for [GitHub Enterprise][1].
+
+### Features
+
+ - Online and incremental backups of Git repository data from primary GitHub
+   Enterprise instance.
+ - Cold or warm standby recovery options.
+ - Backup and recovery across datacenters.
+ - Configurable backup snapshot frequency and retention periods.
 
 ### Setup for server based backups
 
@@ -60,3 +67,6 @@ GitHub Enterprise knowledge base. See the following articles for more informatio
 ### Support
 
 If you have any questions about how to backup your data from the GitHub Enterprise appliance please get in touch with [GitHub Enterprise Support](https://enterprise.github.com/support/)!
+
+
+[1]: https://enterprise.github.com

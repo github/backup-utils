@@ -9,7 +9,7 @@ cd $(dirname "$0")/..
 
 backup_dir="$GHE_DATA_DIR"
 backups_to_keep="$GHE_NUM_BACKUPS"
-num_of_backups=$(ls -l "$backup_dir" | grep -v current | wc -l) || 0
+num_of_backups=$(ls "$backup_dir" | grep -v current | wc -l | awk '{ print $1; }') || 0
 
 # make sure the config var is defined
 [ -n "$backups_to_keep" ] || { echo "GHE_NUM_BACKUPS needs to be a number"; exit 1; }

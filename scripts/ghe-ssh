@@ -7,11 +7,31 @@ set -e
 cd $(dirname "$0")/..
 . scripts/ghe-backup-config
 
-# Grab host arg
-host="$1"
-[ -z "$host" ] && print_usage
-shift
+opts=
+while true; do
+    case "$1" in
+        -p|-l|-o)
+            opts="$opts $1 $2"
+            shift 2
+            ;;
+        *)
+            host="$1"
+            shift
+            break
+            ;;
+    esac
+done
 
-# Invoke ssh with remaining arguments
+# Show usage with no host
+[ -z "$host" ] && print_usage
+
+# Split host:port into parts
 port=${host##*:}
-exec ssh -p ${_port:-22} "admin@${host%:*}" "$@"
+if [ "$port" = "$host" ]; then
+    port=22
+else
+    host="${host%:*}"
+fi
+
+# Exec ssh command with modified host / port args
+exec ssh $opts -p $port "admin@$host" "$@"

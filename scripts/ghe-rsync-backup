@@ -36,7 +36,7 @@ cd $(dirname "$0")/..
 . scripts/ghe-backup-config
 
 # Set up remote host and root backup snapshot directory based on config
-host="admin@$GHE_HOSTNAME"
+host="$GHE_HOSTNAME"
 backup_dir="$GHE_SNAPSHOT_DIR/repositories"
 
 # Location of last good backup for rsync --link-dest

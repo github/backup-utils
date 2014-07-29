@@ -22,32 +22,22 @@ generate_prune_files() {
 }
 
 file_count_no_current() {
-  ls -1d $GHE_DATA_DIR | grep -v current | wc -l | awk '{ print $1; }'
+  ls -1d "$GHE_DATA_DIR"/[0-9]* | wc -l
 }
 
 generate_prune_files 3
 
-begin_test "ghe-prune-snapshots fails to run if isn't GHE_NUM_BACKUPS set"
+begin_test "ghe-prune-snapshots uses default when GHE_NUM_BACKUPS not set"
 (
-  ghe-prune-snapshots
-  res=$?
-  if [ $res != 0 ]; then
-    true
-  else
-    false
-  fi
+    set -e
+    ghe-prune-snapshots
 )
 end_test
 
-begin_test "ghe-prune-snapshots fails to run if GHE_NUM_BACKUPS isn't a number"
+begin_test "ghe-prune-snapshots fails if GHE_NUM_SNAPSHOTS isn't a number"
 (
-  GHE_NUM_BACKUPS=toast ghe-prune-snapshots
-  res=$?
-  if [ $res != 0 ]; then
-    true
-  else
-    false
-  fi
+  set -e
+  GHE_NUM_SNAPSHOTS=toast ghe-prune-snapshots
 )
 end_test
 

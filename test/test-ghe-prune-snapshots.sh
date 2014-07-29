@@ -52,11 +52,7 @@ begin_test "ghe-prune-snapshots doesn't prune if threshold isn't reached"
 
   post_num_files=$(file_count_no_current)
 
-  if [ "$pre_num_files" = "$post_num_files" ]; then
-    true
-  else
-    false
-  fi
+  [ "$pre_num_files" = "$post_num_files" ]
 )
 end_test
 
@@ -71,11 +67,6 @@ begin_test "ghe-prune-snapshots prunes if threshold is reached"
   post_num_files=$(file_count_no_current)
 
   # make sure we have different number of files and right file is deleted
-  if [ $pre_num_files -gt $post_num_files -a
-       ! -f "$GHE_DATA_DIR/prune_file_1" ]; then
-    true
-  else
-    false
-  fi
+  [ $pre_num_files -gt $post_num_files -a ! -f "$GHE_DATA_DIR/1" ]
 )
 end_test

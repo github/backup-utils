@@ -1,0 +1,19 @@
+#!/bin/sh
+# go to https://host/setup/settings
+set -e
+
+# Bring in the backup configuration.
+cd $(dirname "$0")/..
+. scripts/ghe-backup-config
+
+# Grab the host arg
+host="${1:-$GHE_RESTORE_HOST}"
+
+# Enter maintenance mode, import settings from snapshot, and reconfigure
+# the instance.
+echo "Moving $host to stand-by mode ..."
+ssh "admin@$host" -- "
+    ghe-maintenance -s
+    ghe-import-settings
+    sudo enterprise-configure
+"  < "$GHE_DATA_DIR/current/settings.json" 1>&3

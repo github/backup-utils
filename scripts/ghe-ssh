@@ -10,12 +10,8 @@ cd $(dirname "$0")/..
 # Grab host arg
 host="$1"
 [ -z "$host" ] && print_usage
-
-# Parse out host and port parts, default port to 22 if none specified.
-port=${host##*:}
-host=${host%:*}
-port=${port:-22}
+shift
 
 # Invoke ssh with remaining arguments
-shift
-exec ssh -p "$port" "admin@$host" "$@"
+port=${host##*:}
+exec ssh -p ${_port:-22} "admin@${host%:*}" "$@"

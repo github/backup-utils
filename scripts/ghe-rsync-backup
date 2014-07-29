@@ -58,13 +58,13 @@ mkdir -p "$backup_dir"
 # Removes the remote sync-in-progress file on exit, re-enabling GC operations
 # on the remote instance.
 cleanup() {
-  ssh "$host" -- "sudo rm -f '$sync_in_progress_file'"
+  ghe-ssh "$host" -- "sudo rm -f '$sync_in_progress_file'"
 }
 trap "cleanup" EXIT
 
 # Touch the sync-in-progress file, disabling GC operations, and wait for all
 # active GC processes to finish on the remote side.
-ssh "$host" -- "
+ghe-ssh "$host" -- "
     set -e
     sudo -u git touch '$sync_in_progress_file'
 

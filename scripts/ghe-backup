@@ -29,8 +29,8 @@ check_status "host_check"
 mkdir -p "$GHE_SNAPSHOT_DIR"
 
 echo "Backing up GitHub settings ..."
-ghe-ssh "$GHE_HOSTNAME"-- 'ghe-export-settings' > "$GHE_SNAPSHOT_DIR"/settings.json
-ghe-ssh "$GHE_HOSTNAME"-- "cat '$GHE_REMOTE_LICENSE_FILE'" > "$GHE_SNAPSHOT_DIR"/enterprise.ghl
+ghe-ssh "$GHE_HOSTNAME" -- 'ghe-export-settings' > "$GHE_SNAPSHOT_DIR"/settings.json
+ghe-ssh "$GHE_HOSTNAME" -- "cat '$GHE_REMOTE_LICENSE_FILE'" > "$GHE_SNAPSHOT_DIR"/enterprise.ghl
 check_status "settings"
 
 echo "Backing up Git repositories ..."
@@ -38,27 +38,27 @@ ghe-${GHE_BACKUP_STRATEGY}-backup
 check_status "git_repos"
 
 echo "Backing up GitHub Pages ..."
-ghe-ssh "$GHE_HOSTNAME"-- 'ghe-export-pages' > "$GHE_SNAPSHOT_DIR"/pages.tar
+ghe-ssh "$GHE_HOSTNAME" -- 'ghe-export-pages' > "$GHE_SNAPSHOT_DIR"/pages.tar
 check_status "pages"
 
 echo "Backing up MySQL database ..."
-ghe-ssh "$GHE_HOSTNAME"-- 'ghe-export-mysql | gzip' > "$GHE_SNAPSHOT_DIR"/mysql.sql.gz
+ghe-ssh "$GHE_HOSTNAME" -- 'ghe-export-mysql | gzip' > "$GHE_SNAPSHOT_DIR"/mysql.sql.gz
 check_status "mysql"
 
 echo "Backing up Redis database ..."
-ghe-ssh "$GHE_HOSTNAME"-- 'ghe-export-redis' > "$GHE_SNAPSHOT_DIR"/redis.rdb
+ghe-ssh "$GHE_HOSTNAME" -- 'ghe-export-redis' > "$GHE_SNAPSHOT_DIR"/redis.rdb
 check_status "redis"
 
 echo "Backing up SSH public keys ..."
-ghe-ssh "$GHE_HOSTNAME"-- 'ghe-export-authorized-keys' > "$GHE_SNAPSHOT_DIR"/authorized-keys.json
+ghe-ssh "$GHE_HOSTNAME" -- 'ghe-export-authorized-keys' > "$GHE_SNAPSHOT_DIR"/authorized-keys.json
 check_status "public_keys"
 
 echo "Backing up SSH host keys ..."
-ghe-ssh "$GHE_HOSTNAME"-- 'ghe-export-ssh-host-keys' > "$GHE_SNAPSHOT_DIR"/ssh-host-keys.tar
+ghe-ssh "$GHE_HOSTNAME" -- 'ghe-export-ssh-host-keys' > "$GHE_SNAPSHOT_DIR"/ssh-host-keys.tar
 check_status "host_keys"
 
 echo "Backing up Elasticsearch indices ..."
-ghe-ssh "$GHE_HOSTNAME"-- 'ghe-export-es-indices' > "$GHE_SNAPSHOT_DIR"/es-indices.tar
+ghe-ssh "$GHE_HOSTNAME" -- 'ghe-export-es-indices' > "$GHE_SNAPSHOT_DIR"/es-indices.tar
 check_status "elastic_search"
 
 # Update the current symlink to point to the new snapshot

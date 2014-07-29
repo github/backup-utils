@@ -33,5 +33,9 @@ else
     host="${host%:*}"
 fi
 
+# Make sure host has admin@ prefix if no user specified
+user="${host%@*}"
+[ "$user" = "$host" ] && user="admin"
+
 # Exec ssh command with modified host / port args
-exec ssh $opts -p $port "admin@$host" "$@"
+exec ssh $opts -p "$port" -l "$user" "$host" "$@"

@@ -11,10 +11,10 @@ cd $(dirname "$0")/..
 host="$1"
 [ -z "$host" ] && print_usage
 
-# Parse port
-port=$(echo "$host" | sed 's/.*:\([0-9]*\)$/\1/g')
-host=$(echo "$host" | cut -d: -f1)
-[ "$port" = "$host" ] && port=22
+# Parse out host and port parts, default port to 22 if none specified.
+port=${host##*:}
+host=${host%:*}
+port=${port:-22}
 
 # Invoke ssh with remaining arguments
 shift

@@ -48,4 +48,7 @@ ssh admin@"$GHE_HOSTNAME" -- 'ghe-export-es-indices' > "$GHE_SNAPSHOT_DIR"/es-in
 rm -f "$GHE_DATA_DIR/current"
 ln -s "$GHE_SNAPSHOT_TIMESTAMP" "$GHE_DATA_DIR/current"
 
+# Prune expired snapshots
+ghe-prune-snapshots
+
 echo "Completed backup of $GHE_HOSTNAME in snapshot $GHE_SNAPSHOT_TIMESTAMP at $(date +"%H:%M:%S")"

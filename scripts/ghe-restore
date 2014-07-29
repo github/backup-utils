@@ -61,21 +61,21 @@ echo "Restoring Git repositories ..."
 ghe-${GHE_BACKUP_STRATEGY}-restore "$host"
 
 echo "Restoring GitHub Pages ..."
-ghe-ssh $host -- 'ghe-import-pages' < "$snapshot_dir/pages.tar"
+ghe-ssh "$host" -- 'ghe-import-pages' < "$snapshot_dir/pages.tar"
 
 echo "Restoring MySQL database ..."
-gzip -dc "$snapshot_dir/mysql.sql.gz" | ghe-ssh $host -- 'ghe-import-mysql'
+gzip -dc "$snapshot_dir/mysql.sql.gz" | ghe-ssh "$host" -- 'ghe-import-mysql'
 
 echo "Restoring Redis database ..."
-ghe-ssh $host -- 'ghe-import-redis' < "$snapshot_dir/redis.rdb"
+ghe-ssh "$host" -- 'ghe-import-redis' < "$snapshot_dir/redis.rdb"
 
 echo "Restoring SSH public keys ..."
-ghe-ssh $host -- 'ghe-import-authorized-keys' < "$snapshot_dir/authorized-keys.json"
+ghe-ssh "$host" -- 'ghe-import-authorized-keys' < "$snapshot_dir/authorized-keys.json"
 
 echo "Restoring Elasticsearch indices ..."
-ghe-ssh $host -- 'ghe-import-es-indices' < "$snapshot_dir/es-indices.tar"
+ghe-ssh "$host" -- 'ghe-import-es-indices' < "$snapshot_dir/es-indices.tar"
 
 echo "Restoring SSH host keys ..."
-ghe-ssh $host -- 'ghe-import-ssh-host-keys' < "$snapshot_dir/ssh-host-keys.tar"
+ghe-ssh "$host" -- 'ghe-import-ssh-host-keys' < "$snapshot_dir/ssh-host-keys.tar"
 
 echo "Completed restore of $host from snapshot $GHE_RESTORE_SNAPSHOT"

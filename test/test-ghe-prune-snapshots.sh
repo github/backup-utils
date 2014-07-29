@@ -15,8 +15,6 @@ generate_prune_files() {
   prune_file_num=${1:-10}
   for i in $(seq 1 $prune_file_num); do
     mkdir -p "$GHE_DATA_DIR/$i"
-    # space creates apart because we only get seconds resolution
-    sleep 1
   done
   ln -sf "$prune_file_num" "$GHE_DATA_DIR/current"
 }

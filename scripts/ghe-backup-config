@@ -90,7 +90,7 @@ print_usage () {
 
 # Check for a "--help" arg and show usage
 for a in "$@"; do
-    if [ "$a" == "--help" ]; then
+    if [ "$a" = "--help" ]; then
         print_usage
     fi
 done

@@ -1,51 +1,76 @@
-#!/bin/sh
+#!/bin/bash
 #/ Usage: ghe-backup [-v]
 #/ Take snapshots of all GitHub Enterprise data, including Git repository data,
 #/ the MySQL database, instance settings, GitHub Pages data, etc.
 #/
 #/ With -v, enable verbose output and show more information about what's being
 #/ transferred.
-set -e
+#set -e
 
 # Bring in the backup configuration
 cd $(dirname "$0")/..
 . scripts/ghe-backup-config
 
+FAILED_BACKUP_STEPS=
+
+check_status () {
+  if [ $? -gt 0 ]; then
+    FAILED_BACKUP_STEPS=(${FAILED_BACKUP_STEPS[@]} $1)
+  fi
+}
+
 echo "Starting backup of $GHE_HOSTNAME in snapshot $GHE_SNAPSHOT_TIMESTAMP"
 
 # Make sure we have SSH connectivity to the GHE host
 ghe-host-check
+check_status "host_check"
 
 # Create the timestamped snapshot directory where files for this run will live.
 mkdir -p "$GHE_SNAPSHOT_DIR"
 
 echo "Backing up GitHub settings ..."
-ghe-ssh "$GHE_HOSTNAME" -- 'ghe-export-settings' > "$GHE_SNAPSHOT_DIR"/settings.json
-ghe-ssh "$GHE_HOSTNAME" -- "cat '$GHE_REMOTE_LICENSE_FILE'" > "$GHE_SNAPSHOT_DIR"/enterprise.ghl
+ssh admin@"$GHE_HOSTNAME" -- 'ghe-export-settings' > "$GHE_SNAPSHOT_DIR"/settings.json
+ssh admin@"$GHE_HOSTNAME" -- "cat '$GHE_REMOTE_LICENSE_FILE'" > "$GHE_SNAPSHOT_DIR"/enterprise.ghl
+check_status "settings"
 
 echo "Backing up Git repositories ..."
 ghe-${GHE_BACKUP_STRATEGY}-backup
+check_status "git_repos"
 
 echo "Backing up GitHub Pages ..."
-ghe-ssh "$GHE_HOSTNAME" -- 'ghe-export-pages' > "$GHE_SNAPSHOT_DIR"/pages.tar
+ssh admin@"$GHE_HOSTNAME" -- 'ghe-export-pages' > "$GHE_SNAPSHOT_DIR"/pages.tar
+check_status "pages"
 
 echo "Backing up MySQL database ..."
-ghe-ssh "$GHE_HOSTNAME" -- 'ghe-export-mysql | gzip' > "$GHE_SNAPSHOT_DIR"/mysql.sql.gz
+ssh admin@"$GHE_HOSTNAME" -- 'ghe-export-mysql | gzip' > "$GHE_SNAPSHOT_DIR"/mysql.sql.gz
+check_status "mysql"
 
 echo "Backing up Redis database ..."
-ghe-ssh "$GHE_HOSTNAME" -- 'ghe-export-redis' > "$GHE_SNAPSHOT_DIR"/redis.rdb
+ssh admin@"$GHE_HOSTNAME" -- 'ghe-export-redis' > "$GHE_SNAPSHOT_DIR"/redis.rdb
+check_status "redis"
 
 echo "Backing up SSH public keys ..."
-ghe-ssh "$GHE_HOSTNAME" -- 'ghe-export-authorized-keys' > "$GHE_SNAPSHOT_DIR"/authorized-keys.json
+ssh admin@"$GHE_HOSTNAME" -- 'ghe-export-authorized-keys' > "$GHE_SNAPSHOT_DIR"/authorized-keys.json
+check_status "public_keys"
 
 echo "Backing up SSH host keys ..."
-ghe-ssh "$GHE_HOSTNAME" -- 'ghe-export-ssh-host-keys' > "$GHE_SNAPSHOT_DIR"/ssh-host-keys.tar
+ssh admin@"$GHE_HOSTNAME" -- 'ghe-export-ssh-host-keys' > "$GHE_SNAPSHOT_DIR"/ssh-host-keys.tar
+check_status "host_keys"
 
 echo "Backing up Elasticsearch indices ..."
-ghe-ssh "$GHE_HOSTNAME" -- 'ghe-export-es-indices' > "$GHE_SNAPSHOT_DIR"/es-indices.tar
+ssh admin@"$GHE_HOSTNAME" -- 'ghe-export-es-indices' > "$GHE_SNAPSHOT_DIR"/es-indices.tar
+check_status "elastic_search"
 
 # Update the current symlink to point to the new snapshot
 rm -f "$GHE_DATA_DIR/current"
 ln -s "$GHE_SNAPSHOT_TIMESTAMP" "$GHE_DATA_DIR/current"
 
 echo "Completed backup of $GHE_HOSTNAME in snapshot $GHE_SNAPSHOT_TIMESTAMP at $(date +"%H:%M:%S")"
+
+if [ -n ${FAILED_BACKUP_STEPS[@]} ]; then
+  echo "The backup completed but with possible errors in the following steps:"
+
+  for e in "${FAILED_BACKUP_STEPS[@]}"; do
+    echo "* $e"
+  done
+fi

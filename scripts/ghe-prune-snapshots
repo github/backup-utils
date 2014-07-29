@@ -12,7 +12,7 @@ snapshot_count=$(ls -1d "$GHE_DATA_DIR"/[0-9]* 2>/dev/null | wc -l)
 
 # Prune if we have enough snapshots
 if [ "$snapshot_count" -gt "$GHE_NUM_SNAPSHOTS" ]; then
-    prune_dirs="$(ls -t1d "$GHE_DATA_DIR"/[0-9]* | awk "NR>$GHE_NUM_SNAPSHOTS")"
+    prune_dirs="$(ls -1d "$GHE_DATA_DIR"/[0-9]* | sort | awk "NR>$GHE_NUM_SNAPSHOTS")"
     prune_num=$(echo "$prune_dirs" | wc -l)
     echo Pruning $prune_num "snapshot(s)"
     echo "$prune_dirs" | xargs rm -rf

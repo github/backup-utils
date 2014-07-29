@@ -20,7 +20,7 @@ ghe-host-check
 mkdir -p "$GHE_SNAPSHOT_DIR"
 
 # Mark the snapshot as incomplete
-cat </dev/null >"$GHE_SNAPSHOT_DIR/incomplete"
+touch "$GHE_SNAPSHOT_DIR/incomplete"
 
 echo "Backing up GitHub settings ..."
 ssh admin@"$GHE_HOSTNAME" -- 'ghe-export-settings' > "$GHE_SNAPSHOT_DIR"/settings.json

@@ -13,26 +13,26 @@ if [ "$2" = "-l" ]; then
     set -- "$host" "$@"
 fi
 
-# Shift off -l <user> and -o opt=val arguments.
+# Shift off remote option arguments from before host arg.
+# These are: -l <user> and -o opt=val and -p <port>.
 while true; do
     case "$1" in
-        -l|-o)
+        -l|-o|-p)
             shift 2
             ;;
+        --)
+            shift
+            break
+            ;;
         *)
+            host="$1"
+            shift
+            ;;
+        '')
             break
             ;;
     esac
 done
-
-# Shift off host argument
-host="$1"
-shift
-
-# Shift off command separator
-if [ "$1" = "--" ]; then
-    shift
-fi
 
 # Change into test dir and run command
 cd "$(dirname "$0")"/..

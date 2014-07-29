@@ -1,0 +1,41 @@
+#!/bin/sh
+#/ Usage: ghe-ssh [<host>] [<ssh_option>+]
+#/ Helper to ssh into a GitHub Enteprise host with the right user and port.
+set -e
+
+# Bring in the backup configuration
+cd $(dirname "$0")/..
+. scripts/ghe-backup-config
+
+opts=
+while true; do
+    case "$1" in
+        -p|-l|-o)
+            opts="$opts $1 $2"
+            shift 2
+            ;;
+        *)
+            host="$1"
+            shift
+            break
+            ;;
+    esac
+done
+
+# Show usage with no host
+[ -z "$host" ] && print_usage
+
+# Split host:port into parts
+port=${host##*:}
+if [ "$port" = "$host" ]; then
+    port=22
+else
+    host="${host%:*}"
+fi
+
+# Make sure host has admin@ prefix if no user specified
+user="${host%@*}"
+[ "$user" = "$host" ] && user="admin"
+
+# Exec ssh command with modified host / port args
+exec ssh $opts -p "$port" -l "$user" "$host" "$@"

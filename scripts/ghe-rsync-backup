@@ -36,7 +36,7 @@ cd $(dirname "$0")/..
 . scripts/ghe-backup-config
 
 # Set up remote host and root backup snapshot directory based on config
-host="admin@$GHE_HOSTNAME"
+host="$GHE_HOSTNAME"
 backup_dir="$GHE_SNAPSHOT_DIR/repositories"
 
 # Location of last good backup for rsync --link-dest
@@ -58,13 +58,13 @@ mkdir -p "$backup_dir"
 # Removes the remote sync-in-progress file on exit, re-enabling GC operations
 # on the remote instance.
 cleanup() {
-  ssh "$host" -- "sudo rm -f '$sync_in_progress_file'"
+  ghe-ssh "$host" -- "sudo rm -f '$sync_in_progress_file'"
 }
 trap "cleanup" EXIT
 
 # Touch the sync-in-progress file, disabling GC operations, and wait for all
 # active GC processes to finish on the remote side.
-ssh "$host" -- "
+ghe-ssh "$host" -- "
     set -e
     sudo -u git touch '$sync_in_progress_file'
 
@@ -91,10 +91,10 @@ ssh "$host" -- "
 # already been transferred. A set of rsync filter rules are provided on stdin
 # for each invocation.
 rsync_repository_data () {
-    rsync -av $link_dest "$@" \
+    rsync -av -e ghe-ssh $link_dest "$@" \
         --rsync-path='sudo -u git rsync' \
         --include-from=- --exclude=\* \
-        "$host:$GHE_REMOTE_DATA_DIR/" "$backup_dir" 1>&3
+        "${host%:*}:$GHE_REMOTE_DATA_DIR/" "$backup_dir" 1>&3
 }
 
 # If we have a previous increment, avoid transferring existing files via rsync's

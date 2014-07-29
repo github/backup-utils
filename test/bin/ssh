@@ -5,34 +5,27 @@
 # commands work fine through this emulation layer.
 set -e
 
-# Older versions of rsync invoke ssh as 'ssh <host> -l admin' instead of the
-# more standard 'ssh -l admin <host>'. Account for this here.
-if [ "$2" = "-l" ]; then
-    host="$1"
-    shift 3
-    set -- "$host" "$@"
-fi
-
-# Shift off -l <user> and -o opt=val arguments.
+# Shift off remote option arguments from before host arg.
+# These are: -l <user> and -o opt=val and -p <port>.
 while true; do
     case "$1" in
-        -l|-o)
+        -l|-o|-p)
             shift 2
             ;;
+        --)
+            shift
+            break
+            ;;
         *)
+            [ -n "$host" ] && break # second non-opt arg
+            host="$1"
+            shift
+            ;;
+        '')
             break
             ;;
     esac
 done
-
-# Shift off host argument
-host="$1"
-shift
-
-# Shift off command separator
-if [ "$1" = "--" ]; then
-    shift
-fi
 
 # Change into test dir and run command
 cd "$(dirname "$0")"/..

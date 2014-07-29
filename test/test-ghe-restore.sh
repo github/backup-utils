@@ -42,14 +42,14 @@ begin_test "ghe-restore"
     set -e
 
     # set restore host environ var
-    GHE_RESTORE_HOST=admin@127.0.0.1
+    GHE_RESTORE_HOST=127.0.0.1
     export GHE_RESTORE_HOST
 
     # run it
     output="$(ghe-restore)" || false
 
     # verify connect to right host
-    echo "$output" | grep -q 'Connect admin@127.0.0.1 OK'
+    echo "$output" | grep -q 'Connect 127.0.0.1 OK'
 
     # verify all import scripts were run
     echo "$output" | grep -q 'fake ghe-export-pages data'
@@ -71,7 +71,7 @@ begin_test "ghe-restore with host arg"
     mkdir -p "$GHE_REMOTE_DATA_DIR"
 
     # set restore host environ var
-    GHE_RESTORE_HOST=admin@127.0.0.1
+    GHE_RESTORE_HOST=127.0.0.1
     export GHE_RESTORE_HOST
 
     # run it

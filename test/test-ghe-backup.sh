@@ -8,7 +8,8 @@
 # the per-test temp space.
 GHE_DATA_DIR="$TRASHDIR/data"
 GHE_REMOTE_DATA_DIR="$TRASHDIR/remote/repositories"
-export GHE_DATA_DIR GHE_REMOTE_DATA_DIR
+GHE_REMOTE_PAGES_DIR="$TRASHDIR/remote/pages"
+export GHE_DATA_DIR GHE_REMOTE_DATA_DIR GHE_REMOTE_PAGES_DIR
 
 # Write a fake license file for backup
 GHE_REMOTE_LICENSE_FILE="$TRASHDIR/remote/enterprise.ghl"
@@ -18,6 +19,12 @@ echo "fake license data" > "$GHE_REMOTE_LICENSE_FILE"
 
 # Create the backup data dir and fake remote repositories dirs
 mkdir -p "$GHE_DATA_DIR" "$GHE_REMOTE_DATA_DIR"
+
+# Create some fake pages data in the snapshot
+mkdir -p "$GHE_REMOTE_PAGES_DIR"
+cd "$GHE_REMOTE_PAGES_DIR"
+mkdir -p alice bob
+touch alice/index.html bob/index.html
 
 # Create some test repositories in the remote repositories dir
 cd "$GHE_REMOTE_DATA_DIR"
@@ -51,6 +58,9 @@ begin_test "ghe-backup first snapshot"
 
     # check that repositories directory was created
     [ -d "$GHE_DATA_DIR/current/repositories" ]
+
+    # check that pages data was backed up
+    [ -f "$GHE_DATA_DIR/current/pages/alice/index.html" ]
 
     # check that mysql data was backed up
     [ "$(gzip -dc < "$GHE_DATA_DIR/current/mysql.sql.gz")" = "fake ghe-export-mysql data" ]
@@ -104,6 +114,9 @@ begin_test "ghe-backup subsequent snapshot"
 
     # check that repositories directory was created
     [ -d "$GHE_DATA_DIR/current/repositories" ]
+
+    # check that pages data was backed up
+    [ -f "$GHE_DATA_DIR/current/pages/alice/index.html" ]
 
     # check that mysql data was backed up
     [ "$(gzip -dc < "$GHE_DATA_DIR/current/mysql.sql.gz")" = "fake ghe-export-mysql data" ]

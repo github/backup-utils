@@ -8,10 +8,17 @@
 # the per-test temp space.
 GHE_DATA_DIR="$TRASHDIR/data"
 GHE_REMOTE_DATA_DIR="$TRASHDIR/remote/repositories"
-export GHE_DATA_DIR GHE_REMOTE_DATA_DIR
+GHE_REMOTE_PAGES_DIR="$TRASHDIR/remote/pages"
+export GHE_DATA_DIR GHE_REMOTE_DATA_DIR GHE_REMOTE_PAGES_DIR
 
 # Create the backup data dir and fake remote repositories dirs
 mkdir -p "$GHE_DATA_DIR" "$GHE_REMOTE_DATA_DIR"
+
+# Create some fake pages data in the snapshot
+mkdir -p "$GHE_DATA_DIR/1/pages"
+cd "$GHE_DATA_DIR/1/pages"
+mkdir -p alice bob
+touch alice/index.html bob/index.html
 
 # Create a snapshot and add some repositories
 mkdir -p "$GHE_DATA_DIR/1/repositories"
@@ -52,7 +59,7 @@ begin_test "ghe-restore"
     echo "$output" | grep -q 'Connect 127.0.0.1 OK'
 
     # verify all import scripts were run
-    echo "$output" | grep -q 'fake ghe-export-pages data'
+    echo "$output" | grep -q 'alice/index.html'
     echo "$output" | grep -q 'fake ghe-export-mysql data'
     echo "$output" | grep -q 'fake ghe-export-redis data'
     echo "$output" | grep -q 'fake ghe-export-authorized-keys data'

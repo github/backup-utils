@@ -28,6 +28,9 @@ check_status "host_check"
 # Create the timestamped snapshot directory where files for this run will live.
 mkdir -p "$GHE_SNAPSHOT_DIR"
 
+# Mark the snapshot as incomplete
+touch "$GHE_SNAPSHOT_DIR/incomplete"
+
 echo "Backing up GitHub settings ..."
 ghe-ssh "$GHE_HOSTNAME" -- 'ghe-export-settings' > "$GHE_SNAPSHOT_DIR"/settings.json
 ghe-ssh "$GHE_HOSTNAME" -- "cat '$GHE_REMOTE_LICENSE_FILE'" > "$GHE_SNAPSHOT_DIR"/enterprise.ghl
@@ -61,9 +64,15 @@ echo "Backing up Elasticsearch indices ..."
 ghe-ssh "$GHE_HOSTNAME" -- 'ghe-export-es-indices' > "$GHE_SNAPSHOT_DIR"/es-indices.tar
 check_status "elastic_search"
 
+# Remove the incomplete file to mark the snapshot as finished
+rm "$GHE_SNAPSHOT_DIR/incomplete"
+
 # Update the current symlink to point to the new snapshot
 rm -f "$GHE_DATA_DIR/current"
 ln -s "$GHE_SNAPSHOT_TIMESTAMP" "$GHE_DATA_DIR/current"
+
+# Prune expired snapshots
+ghe-prune-snapshots
 
 echo "Completed backup of $GHE_HOSTNAME in snapshot $GHE_SNAPSHOT_TIMESTAMP at $(date +"%H:%M:%S")"
 

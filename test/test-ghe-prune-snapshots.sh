@@ -26,7 +26,7 @@ file_count_no_current() {
 
 generate_prune_files 3
 
-begin_test "ghe-prune-snapshots uses default when GHE_NUM_BACKUPS not set"
+begin_test "ghe-prune-snapshots using default GHE_NUM_SNAPSHOTS"
 (
     set -e
     generate_prune_files 12
@@ -36,7 +36,7 @@ begin_test "ghe-prune-snapshots uses default when GHE_NUM_BACKUPS not set"
 )
 end_test
 
-begin_test "ghe-prune-snapshots fails if GHE_NUM_SNAPSHOTS isn't a number"
+begin_test "ghe-prune-snapshots non-numeric GHE_NUM_SNAPSHOTS"
 (
   set -e
   GHE_NUM_SNAPSHOTS=toast ghe-prune-snapshots
@@ -44,7 +44,7 @@ begin_test "ghe-prune-snapshots fails if GHE_NUM_SNAPSHOTS isn't a number"
 end_test
 
 
-begin_test "ghe-prune-snapshots doesn't prune if threshold isn't reached"
+begin_test "ghe-prune-snapshots with no expired snapshots"
 (
   set -e
 
@@ -60,7 +60,7 @@ begin_test "ghe-prune-snapshots doesn't prune if threshold isn't reached"
 )
 end_test
 
-begin_test "ghe-prune-snapshots prunes if threshold is reached"
+begin_test "ghe-prune-snapshots with expired snapshots"
 (
   set -e
 
@@ -78,7 +78,7 @@ begin_test "ghe-prune-snapshots prunes if threshold is reached"
 end_test
 
 
-begin_test "ghe-prune-snapshots prunes incomplete snapshots"
+begin_test "ghe-prune-snapshots incomplete snapshot pruning"
 (
     set -e
 

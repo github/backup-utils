@@ -5,7 +5,7 @@ set -e
 
 # Bring in the backup configuration
 cd $(dirname "$0")/..
-. scripts/ghe-backup-config
+. libexec/ghe-backup-config
 
 # First prune all incomplete / failed snapshot directories
 prune_dirs="$(ls -1 "$GHE_DATA_DIR"/[0-9]*/incomplete 2>/dev/null || true)"

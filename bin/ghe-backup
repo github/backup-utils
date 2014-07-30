@@ -9,7 +9,7 @@ set -e
 
 # Bring in the backup configuration
 cd $(dirname "$0")/..
-. scripts/ghe-backup-config
+. libexec/ghe-backup-config
 
 # Host we're backing up
 host="$GHE_HOSTNAME"

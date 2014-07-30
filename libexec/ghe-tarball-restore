@@ -8,7 +8,7 @@ set -e
 
 # Bring in the backup configuration
 cd $(dirname "$0")/..
-. scripts/ghe-backup-config
+. libexec/ghe-backup-config
 
 # Grab the host arg
 host="$1"

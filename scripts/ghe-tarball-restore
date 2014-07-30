@@ -21,4 +21,5 @@ host="$1"
 : ${GHE_RESTORE_SNAPSHOT:=current}
 
 # Restore Git repository data from tarball snapshot.
-ghe-ssh "$1" -- 'ghe-import-repositories' < "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/repositories.tar"
+ghe-ssh "$1" -- 'ghe-import-repositories' \
+    < "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/repositories.tar" 1>&3

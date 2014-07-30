@@ -46,7 +46,7 @@ begin_test "ghe-restore"
     export GHE_RESTORE_HOST
 
     # run it
-    output="$(ghe-restore)" || false
+    output="$(ghe-restore -v)" || false
 
     # verify connect to right host
     echo "$output" | grep -q 'Connect 127.0.0.1 OK'
@@ -92,7 +92,7 @@ begin_test "ghe-restore with tarball strategy"
     mkdir -p "$GHE_REMOTE_DATA_DIR"
 
     # run it
-    output=$(/usr/bin/env GHE_BACKUP_STRATEGY="tarball" ghe-restore localhost)
+    output=$(/usr/bin/env GHE_BACKUP_STRATEGY="tarball" ghe-restore -v localhost)
 
     # verify ghe-import-repositories was run on remote side with fake tarball
     echo "$output" | grep -q 'fake ghe-export-repositories data'

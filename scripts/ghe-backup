@@ -22,8 +22,7 @@ check_status () {
 echo "Starting backup of $GHE_HOSTNAME in snapshot $GHE_SNAPSHOT_TIMESTAMP"
 
 # Make sure we have SSH connectivity to the GHE host
-ghe-host-check
-check_status "host_check"
+ghe-host-check || exit 1
 
 # Create the timestamped snapshot directory where files for this run will live.
 mkdir -p "$GHE_SNAPSHOT_DIR"

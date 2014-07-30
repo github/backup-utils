@@ -1,5 +1,5 @@
 #!/bin/sh
-#/ Usage: ghe-rsync-backup
+#/ Usage: ghe-backup-repositories-rsync
 #/ Take an online, incremental snapshot of all Git repository data.
 #/
 #/ Note: This command typically isn't called directly. It's invoked by

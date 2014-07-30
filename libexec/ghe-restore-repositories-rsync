@@ -1,5 +1,5 @@
 #!/bin/sh
-#/ Usage: ghe-rsync-restore <host>
+#/ Usage: ghe-restore-repositories-rsync <host>
 #/ Restore an rsync snapshot of all Git repository data to a GitHub instance.
 #/
 #/ Note: This script typically isn't called directly. It's invoked by the

@@ -75,6 +75,11 @@ GHE_SNAPSHOT_DIR="$GHE_DATA_DIR"/"$GHE_SNAPSHOT_TIMESTAMP"
 # the location to be overridden in tests.
 : ${GHE_REMOTE_DATA_DIR:="/data/repositories"}
 
+# The location of Pages data on the remote side. This is always "/data/pages"
+# for GitHub instances. Use of this variable allows the location to be overridden
+# in tests.
+: ${GHE_REMOTE_PAGES_DIR:="/data/pages"}
+
 # The location of the license file on the remote side. This is always
 # "/data/enterprise/enterprise.ghl" for GitHub instances. Use of this variable
 # allows the location to be overridden in tests.

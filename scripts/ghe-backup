@@ -11,25 +11,29 @@ set -e
 cd $(dirname "$0")/..
 . scripts/ghe-backup-config
 
+# Host we're backing up
+host="$GHE_HOSTNAME"
+
 # Used to record failed backup steps
 failures=
 
-echo "Starting backup of $GHE_HOSTNAME in snapshot $GHE_SNAPSHOT_TIMESTAMP"
+echo "Starting backup of $host in snapshot $GHE_SNAPSHOT_TIMESTAMP"
 
 # Make sure we have SSH connectivity to the GHE host
 ghe-host-check || exit 1
 
 # Create the timestamped snapshot directory where files for this run will live.
 mkdir -p "$GHE_SNAPSHOT_DIR"
+cd "$GHE_SNAPSHOT_DIR"
 
 # Mark the snapshot as incomplete
-touch "$GHE_SNAPSHOT_DIR/incomplete"
+touch "incomplete"
 
 echo "Backing up GitHub settings ..."
-ghe-ssh "$GHE_HOSTNAME" -- 'ghe-export-settings' > "$GHE_SNAPSHOT_DIR"/settings.json ||
+ghe-ssh "$host" -- 'ghe-export-settings' > settings.json ||
 failures="$failures settings"
 
-ghe-ssh "$GHE_HOSTNAME" -- "cat '$GHE_REMOTE_LICENSE_FILE'" > "$GHE_SNAPSHOT_DIR"/enterprise.ghl ||
+ghe-ssh "$host" -- "cat '$GHE_REMOTE_LICENSE_FILE'" > enterprise.ghl ||
 failures="$failures license"
 
 echo "Backing up Git repositories ..."
@@ -37,48 +41,48 @@ ghe-${GHE_BACKUP_STRATEGY}-backup ||
 failures="$failures repositories"
 
 echo "Backing up GitHub Pages ..."
-ghe-ssh "$GHE_HOSTNAME" -- "
+ghe-ssh "$host" -- "
     if [ -d /data/pages ]; then
         ghe-export-pages
     else
         tar cvf - --files-from /dev/null
     fi
-" > "$GHE_SNAPSHOT_DIR"/pages.tar ||
+" > pages.tar ||
 failures="$failures pages"
 
 echo "Backing up MySQL database ..."
-ghe-ssh "$GHE_HOSTNAME" -- 'ghe-export-mysql | gzip' > "$GHE_SNAPSHOT_DIR"/mysql.sql.gz ||
+ghe-ssh "$host" -- 'ghe-export-mysql | gzip' > mysql.sql.gz ||
 failures="$failures mysql"
 
 echo "Backing up Redis database ..."
-ghe-ssh "$GHE_HOSTNAME" -- 'ghe-export-redis' > "$GHE_SNAPSHOT_DIR"/redis.rdb ||
+ghe-ssh "$host" -- 'ghe-export-redis' > redis.rdb ||
 failures="$failures redis"
 
 echo "Backing up SSH public keys ..."
-ghe-ssh "$GHE_HOSTNAME" -- 'ghe-export-authorized-keys' > "$GHE_SNAPSHOT_DIR"/authorized-keys.json ||
+ghe-ssh "$host" -- 'ghe-export-authorized-keys' > authorized-keys.json ||
 failures="$failures authorized-keys"
 
 echo "Backing up SSH host keys ..."
-ghe-ssh "$GHE_HOSTNAME" -- 'ghe-export-ssh-host-keys' > "$GHE_SNAPSHOT_DIR"/ssh-host-keys.tar ||
+ghe-ssh "$host" -- 'ghe-export-ssh-host-keys' > ssh-host-keys.tar ||
 failures="$failures ssh-host-keys"
 
 echo "Backing up Elasticsearch indices ..."
-ghe-ssh "$GHE_HOSTNAME" -- 'ghe-export-es-indices' > "$GHE_SNAPSHOT_DIR"/es-indices.tar ||
+ghe-ssh "$host" -- 'ghe-export-es-indices' > es-indices.tar ||
 failures="$failures ssh-host-keys"
 
 # If everything was successful, mark the snapshot as complete, update the
 # current symlink to point to the new snapshot and prune expired and failed
 # snapshots.
 if [ -z "$failures" ]; then
-    rm "$GHE_SNAPSHOT_DIR/incomplete"
+    rm "incomplete"
 
-    rm -f "$GHE_DATA_DIR/current"
-    ln -s "$GHE_SNAPSHOT_TIMESTAMP" "$GHE_DATA_DIR/current"
+    rm -f "../current"
+    ln -s "$GHE_SNAPSHOT_TIMESTAMP" "../current"
 
     ghe-prune-snapshots
 fi
 
-echo "Completed backup of $GHE_HOSTNAME in snapshot $GHE_SNAPSHOT_TIMESTAMP at $(date +"%H:%M:%S")"
+echo "Completed backup of $host in snapshot $GHE_SNAPSHOT_TIMESTAMP at $(date +"%H:%M:%S")"
 
 # Exit non-zero and list the steps that failed.
 if [ -n "$failures" ]; then

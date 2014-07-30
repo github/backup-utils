@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 #/ Usage: ghe-backup [-v]
 #/ Take snapshots of all GitHub Enterprise data, including Git repository data,
 #/ the MySQL database, instance settings, GitHub Pages data, etc.
@@ -14,9 +14,9 @@ cd $(dirname "$0")/..
 FAILED_BACKUP_STEPS=
 
 check_status () {
-  if [ $? -gt 0 ]; then
-    FAILED_BACKUP_STEPS=(${FAILED_BACKUP_STEPS[@]} $1)
-  fi
+    if [ $? -gt 0 ]; then
+        FAILED_BACKUP_STEPS="$FAILED_BACKUP_STEPS $1"
+    fi
 }
 
 echo "Starting backup of $GHE_HOSTNAME in snapshot $GHE_SNAPSHOT_TIMESTAMP"
@@ -76,10 +76,12 @@ ghe-prune-snapshots
 
 echo "Completed backup of $GHE_HOSTNAME in snapshot $GHE_SNAPSHOT_TIMESTAMP at $(date +"%H:%M:%S")"
 
-if [ -n ${FAILED_BACKUP_STEPS[@]} ]; then
-  echo "The backup completed but with possible errors in the following steps:"
-
-  for e in "${FAILED_BACKUP_STEPS[@]}"; do
-    echo "* $e"
-  done
+# Exit non-zero and list the steps that failed.
+if [ -n "$FAILED_BACKUP_STEPS" ]; then
+    steps="$(echo $FAILED_BACKUP_STEPS | sed 's/ /, /g')"
+    echo "Error: Snapshot incomplete. Some steps failed: ${steps}. "
+    exit 1
 fi
+
+# Make sure we exit zero after the conditional
+true

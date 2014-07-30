@@ -37,7 +37,7 @@ ghe-ssh "$host" -- "cat '$GHE_REMOTE_LICENSE_FILE'" > enterprise.ghl ||
 failures="$failures license"
 
 echo "Backing up Git repositories ..."
-ghe-${GHE_BACKUP_STRATEGY}-backup ||
+ghe-backup-repositories-${GHE_BACKUP_STRATEGY} ||
 failures="$failures repositories"
 
 echo "Backing up GitHub Pages ..."

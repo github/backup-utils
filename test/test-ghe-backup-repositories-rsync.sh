@@ -1,5 +1,5 @@
 #!/bin/sh
-# ghe-rsync-backup command tests
+# ghe-backup-repositories-rsync command tests
 
 # Bring in testlib
 . $(dirname "$0")/testlib.sh
@@ -38,7 +38,7 @@ echo "fake svn history data" > bob/repo3.git/svn.history.msgpack
 mkdir bob/repo3.git/svn_data
 echo "fake property history data" > bob/repo3.git/svn_data/property_history.msgpack
 
-begin_test "ghe-rsync-backup first snapshot"
+begin_test "ghe-backup-repositories-rsync first snapshot"
 (
     set -e
 
@@ -47,7 +47,7 @@ begin_test "ghe-rsync-backup first snapshot"
     export GHE_SNAPSHOT_TIMESTAMP
 
     # run it
-    ghe-rsync-backup
+    ghe-backup-repositories-rsync
 
     # check that repositories directory was created
     [ -d "$GHE_DATA_DIR/1/repositories" ]
@@ -68,7 +68,7 @@ begin_test "ghe-rsync-backup first snapshot"
 end_test
 
 
-begin_test "ghe-rsync-backup subsequent snapshot"
+begin_test "ghe-backup-repositories-rsync subsequent snapshot"
 (
     set -e
 
@@ -80,7 +80,7 @@ begin_test "ghe-rsync-backup subsequent snapshot"
     ln -s 1 "$GHE_DATA_DIR/current"
 
     # run it
-    ghe-rsync-backup
+    ghe-backup-repositories-rsync
 
     # check that repositories directory was created
     snapshot="$GHE_DATA_DIR/2/repositories"
@@ -97,7 +97,7 @@ begin_test "ghe-rsync-backup subsequent snapshot"
 end_test
 
 
-begin_test "ghe-rsync-backup handles __special__ data dirs"
+begin_test "ghe-backup-repositories-rsync handles __special__ data dirs"
 (
     set -e
 
@@ -116,7 +116,7 @@ begin_test "ghe-rsync-backup handles __special__ data dirs"
         commit --allow-empty -m 'test commit'
 
     # run it
-    ghe-rsync-backup
+    ghe-backup-repositories-rsync
 
     # check that repositories directory was created
     snapshot="$GHE_DATA_DIR/3/repositories"
@@ -136,7 +136,7 @@ begin_test "ghe-rsync-backup handles __special__ data dirs"
 )
 end_test
 
-begin_test "ghe-rsync-backup excludes tmp packs and objects"
+begin_test "ghe-backup-repositories-rsync excludes tmp packs and objects"
 (
     set -e
 
@@ -148,7 +148,7 @@ begin_test "ghe-rsync-backup excludes tmp packs and objects"
     touch "$GHE_REMOTE_DATA_DIR/alice/repo1.git/objects/pack/tmp_pack_1234"
 
     # run it
-    ghe-rsync-backup
+    ghe-backup-repositories-rsync
 
     # check that repositories directory was created
     snapshot="$GHE_DATA_DIR/4/repositories"

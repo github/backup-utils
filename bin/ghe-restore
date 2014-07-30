@@ -58,7 +58,7 @@ echo "Starting restore of $host from snapshot $GHE_RESTORE_SNAPSHOT"
 ghe-host-check "$host"
 
 echo "Restoring Git repositories ..."
-ghe-${GHE_BACKUP_STRATEGY}-restore "$host" 1>&3
+ghe-restore-repositories-${GHE_BACKUP_STRATEGY} "$host" 1>&3
 
 echo "Restoring GitHub Pages ..."
 ghe-ssh "$host" -- 'ghe-import-pages' < "$snapshot_dir/pages.tar" 1>&3

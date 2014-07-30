@@ -38,4 +38,4 @@ user="${host%@*}"
 [ "$user" = "$host" ] && user="admin"
 
 # Exec ssh command with modified host / port args
-exec ssh $opts -p "$port" -l "$user" "$host" "$@"
+exec ssh $opts -p "$port" -l "$user" "$host" "$GHE_NICE $GHE_IONICE $@"

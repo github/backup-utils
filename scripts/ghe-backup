@@ -63,15 +63,17 @@ echo "Backing up Elasticsearch indices ..."
 ghe-ssh "$GHE_HOSTNAME" -- 'ghe-export-es-indices' > "$GHE_SNAPSHOT_DIR"/es-indices.tar
 check_status "es-indices"
 
-# Remove the incomplete file to mark the snapshot as finished
-rm "$GHE_SNAPSHOT_DIR/incomplete"
+# If everything was successful, mark the snapshot as complete, update the
+# current symlink to point to the new snapshot and prune expired and failed
+# snapshots.
+if [ -z "$FAILED_BACKUP_STEPS" ]; then
+    rm "$GHE_SNAPSHOT_DIR/incomplete"
 
-# Update the current symlink to point to the new snapshot
-rm -f "$GHE_DATA_DIR/current"
-ln -s "$GHE_SNAPSHOT_TIMESTAMP" "$GHE_DATA_DIR/current"
+    rm -f "$GHE_DATA_DIR/current"
+    ln -s "$GHE_SNAPSHOT_TIMESTAMP" "$GHE_DATA_DIR/current"
 
-# Prune expired snapshots
-ghe-prune-snapshots
+    ghe-prune-snapshots
+fi
 
 echo "Completed backup of $GHE_HOSTNAME in snapshot $GHE_SNAPSHOT_TIMESTAMP at $(date +"%H:%M:%S")"
 

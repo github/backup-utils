@@ -37,7 +37,7 @@ check_status "settings"
 
 echo "Backing up Git repositories ..."
 ghe-${GHE_BACKUP_STRATEGY}-backup
-check_status "git_repos"
+check_status "repositories"
 
 echo "Backing up GitHub Pages ..."
 ghe-ssh "$GHE_HOSTNAME" -- 'ghe-export-pages' > "$GHE_SNAPSHOT_DIR"/pages.tar
@@ -53,15 +53,15 @@ check_status "redis"
 
 echo "Backing up SSH public keys ..."
 ghe-ssh "$GHE_HOSTNAME" -- 'ghe-export-authorized-keys' > "$GHE_SNAPSHOT_DIR"/authorized-keys.json
-check_status "public_keys"
+check_status "authorized-keys"
 
 echo "Backing up SSH host keys ..."
 ghe-ssh "$GHE_HOSTNAME" -- 'ghe-export-ssh-host-keys' > "$GHE_SNAPSHOT_DIR"/ssh-host-keys.tar
-check_status "host_keys"
+check_status "ssh-host-keys"
 
 echo "Backing up Elasticsearch indices ..."
 ghe-ssh "$GHE_HOSTNAME" -- 'ghe-export-es-indices' > "$GHE_SNAPSHOT_DIR"/es-indices.tar
-check_status "elastic_search"
+check_status "es-indices"
 
 # Remove the incomplete file to mark the snapshot as finished
 rm "$GHE_SNAPSHOT_DIR/incomplete"

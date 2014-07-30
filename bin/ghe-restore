@@ -61,7 +61,7 @@ echo "Restoring Git repositories ..."
 ghe-restore-repositories-${GHE_BACKUP_STRATEGY} "$host" 1>&3
 
 echo "Restoring GitHub Pages ..."
-ghe-ssh "$host" -- 'ghe-import-pages' < "$snapshot_dir/pages.tar" 1>&3
+ghe-restore-pages-${GHE_BACKUP_STRATEGY} "$host" 1>&3
 
 echo "Restoring MySQL database ..."
 gzip -dc "$snapshot_dir/mysql.sql.gz" | ghe-ssh "$host" -- 'ghe-import-mysql' 1>&3

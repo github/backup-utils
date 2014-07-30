@@ -41,13 +41,7 @@ ghe-backup-repositories-${GHE_BACKUP_STRATEGY} ||
 failures="$failures repositories"
 
 echo "Backing up GitHub Pages ..."
-ghe-ssh "$host" -- "
-    if [ -d /data/pages ]; then
-        ghe-export-pages
-    else
-        tar cvf - --files-from /dev/null
-    fi
-" > pages.tar ||
+ghe-backup-pages-${GHE_BACKUP_STRATEGY} ||
 failures="$failures pages"
 
 echo "Backing up MySQL database ..."

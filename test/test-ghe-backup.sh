@@ -52,9 +52,6 @@ begin_test "ghe-backup first snapshot"
     # check that repositories directory was created
     [ -d "$GHE_DATA_DIR/current/repositories" ]
 
-    # check that pages data was backed up
-    [ "$(cat "$GHE_DATA_DIR/current/pages.tar")" = "fake ghe-export-pages data" ]
-
     # check that mysql data was backed up
     [ "$(gzip -dc < "$GHE_DATA_DIR/current/mysql.sql.gz")" = "fake ghe-export-mysql data" ]
 
@@ -107,9 +104,6 @@ begin_test "ghe-backup subsequent snapshot"
 
     # check that repositories directory was created
     [ -d "$GHE_DATA_DIR/current/repositories" ]
-
-    # check that pages data was backed up
-    [ "$(cat "$GHE_DATA_DIR/current/pages.tar")" = "fake ghe-export-pages data" ]
 
     # check that mysql data was backed up
     [ "$(gzip -dc < "$GHE_DATA_DIR/current/mysql.sql.gz")" = "fake ghe-export-mysql data" ]

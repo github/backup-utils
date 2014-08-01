@@ -154,11 +154,12 @@ based on the frequency of backups. The ten most recent snapshots are retained by
 default. The number should be adjusted based on backup frequency and available
 storage.
 
-### Backup file structure
+### Backup snapshot file structure
 
-Backups are stored in rotating increment directories named after the time the
-snapshot was taken. Each increment directory contains a full backup snapshot of
-all relevant data stores.
+Backup snapshots are stored in rotating increment directories named after the
+date and time the snapshot was taken. Each snapshot directory contains a full
+backup snapshot of all relevant data stores. The following example shows a
+snapshot file hierarchy for hourly
 
     ./data
        |- 20140724T010000

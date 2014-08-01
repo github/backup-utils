@@ -9,7 +9,7 @@ The backup utilities are based on the server-side [backup][8] and [restore][9]
 capabilities built in to GitHub Enterprise but implement a number of advanced
 features for backup hosts.
 
- - Complete GitHub Enterprise backup and restore system via two simple utilities:
+ - Complete GitHub Enterprise backup and restore system via two simple utilities:<br>
    `ghe-backup` and `ghe-restore`.
  - Online backups. The GitHub appliance need not be put in maintenance
    mode for the duration of the backup run.

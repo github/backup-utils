@@ -48,10 +48,10 @@ information.
  3. Add the backup host's SSH key to the GitHub appliance as an *Authorized SSH
     key*. See [Adding an SSH key for shell access][3] for instructions.
 
- 4. Run `scripts/ghe-host-check` to verify SSH connectivity with the GitHub
+ 4. Run `bin/ghe-host-check` to verify SSH connectivity with the GitHub
     appliance.
 
- 5. Run `scripts/ghe-backup` to perform an initial full backup.
+ 5. Run `bin/ghe-backup` to perform an initial full backup.
 
 Subsequent invocations of the `ghe-backup` command will create incremental
 snapshots of repository data along with full snapshots of all other pertinent

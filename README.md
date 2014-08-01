@@ -5,16 +5,24 @@ This repository includes backup and recovery utilities for [GitHub Enterprise][1
 
 ### Features
 
+The backup utilities are based on the server-side [backup][8] and [restore][9]
+capabilities built in to GitHub Enterprise but implement a number of advanced
+features for backup hosts.
+
  - Complete GitHub Enterprise backup and restore system via two simple utilities:
    `ghe-backup` and `ghe-restore`.
- - Incremental backup of Git repository data. Only changes since last backup run
-   are transfered.
- - Online backups (i.e., no maintenance mode requirement).
+ - Online backups. The GitHub appliance need not be put in maintenance
+   mode for the duration of the backup run.
+ - Incremental backup of Git repository data. Only changes since the last
+   snapshot are transferred, leading to faster backup runs and lower network
+   bandwidth and machine utilization.
  - Multiple backup snapshots with configurable retention periods.
- - Efficient snapshot storage -- only data added since the previous snapshot
-   consumes new space.
+ - Efficient snapshot storage. Only data added since the previous snapshot
+   consumes new space on the backup host.
+ - Backup commands run under the lowest CPU/IO priority on the GitHub appliance,
+   reducing performance impact while backups are in progress.
  - Runs under most Linux/Unix environments.
- - MIT licensed open source software maintained by GitHub, Inc.
+ - MIT licensed, open source software maintained by GitHub, Inc.
 
 ### Getting started
 
@@ -147,8 +155,8 @@ the disk location where snapshots are written.
 The GitHub Enterprise knowledge base includes additional information on backup
 and recovery. See the following for more:
 
- - [Backing up GitHub Enterprise data](https://enterprise.github.com/help/articles/backing-up-enterprise-data)
- - [Restoring GitHub Enterprise data](https://enterprise.github.com/help/articles/restoring-enterprise-data)
+ - [Backing up GitHub Enterprise data][8]
+ - [Restoring GitHub Enterprise data][9]
 
 ### Support
 
@@ -162,3 +170,5 @@ Enterprise appliance please get in touch with [GitHub Support][7]!
 [5]: https://enterprise.github.com/download
 [6]: https://enterprise.github.com/help/articles/upgrading-to-a-newer-release
 [7]: https://enterprise.github.com/support/
+[8]: https://enterprise.github.com/help/articles/backing-up-enterprise-data
+[9]: https://enterprise.github.com/help/articles/restoring-enterprise-data

@@ -47,7 +47,7 @@ information.
 
 Subsequent invocations of the `ghe-backup` command will create incremental
 snapshots of repository data along with full snapshots of all other pertinent
-datastores. Snapshots may be restored to the same or separate GitHub appliance
+data stores. Snapshots may be restored to the same or separate GitHub appliance
 via the `ghe-restore` command. See the *Example usage* section below for more
 detailed information.
 
@@ -78,7 +78,7 @@ recent GitHub Enterprise version][5].
 ### Example usage
 
 
-The following assumes that`GHE_HOSTNAME` is set to "github.example.com"` in
+The following assumes that`GHE_HOSTNAME` is set to "github.example.com" in
 `backup.config`.
 
 Creating a backup snapshot:
@@ -119,7 +119,7 @@ enable when output is logged to a file.
 
 Backups are stored in rotating increment directories named after the time the
 snapshot was taken. Each increment directory contains a full backup snapshot of
-all relevant datastores.
+all relevant data stores.
 
     ./data
        |- 20140724T010000

@@ -77,10 +77,10 @@ over time is recommended.
 ##### GitHub Enterprise version requirements
 
 For online and incremental backup support, the GitHub Enterprise instance must
-be running version 11.10.342 or above. Earlier versions may use the "tarball"
+be running version 11.10.343 or above. Earlier versions may use the "tarball"
 backup strategy (see `backup.config` for more information) but online and
 incremental backups are not supported. We strongly recommend upgrading to
-version 11.10.342 or later. Visit enterprise.github.com to [download the most
+version 11.10.343 or later. Visit enterprise.github.com to [download the most
 recent GitHub Enterprise version][5].
 
 ### Example usage

@@ -182,18 +182,12 @@ successful snapshot being pointed to by the `current` symlink.
 Note: the `GHE_DATA_DIR` variable set in `backup.config` can be used to change
 the disk location where snapshots are written.
 
-### See Also
-
-The GitHub Enterprise knowledge base includes additional information on backup
-and recovery. See the following for more:
-
- - [Backing up GitHub Enterprise data][8]
- - [Restoring GitHub Enterprise data][9]
-
 ### Support
 
-If you have any questions about how to backup your data from the GitHub
-Enterprise appliance please get in touch with [GitHub Support][7]!
+If you find a bug or would like to request a feature in backup-utils, please
+open an issue or pull request on this repository. If you have a question related
+to your specific GitHub Enterprise setup or would like assistance with backup
+site setup or recovery, please contact [GitHub Support][7] instead.
 
 [1]: https://enterprise.github.com
 [2]: https://github.com/github/enterprise-backup-site/blob/master/backup.config-example

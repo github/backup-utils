@@ -33,6 +33,6 @@ fi
 # directory, using a previous snapshot to avoid transferring files that have
 # already been transferred. A set of rsync filter rules are provided on stdin
 # for each invocation.
-rsync -av -e ghe-ssh $link_dest \
+rsync -avz -e ghe-ssh $link_dest \
     --rsync-path='sudo -u git rsync' \
     "${host%:*}:$GHE_REMOTE_DATA_DIR/pages/" "$GHE_SNAPSHOT_DIR/pages" 1>&3

@@ -86,7 +86,7 @@ recent GitHub Enterprise version][5].
 ### Example usage
 
 
-The following assumes that`GHE_HOSTNAME` is set to "github.example.com" in
+The following assumes that `GHE_HOSTNAME` is set to "github.example.com" in
 `backup.config`.
 
 Creating a backup snapshot:

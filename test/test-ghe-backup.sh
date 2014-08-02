@@ -25,6 +25,14 @@ cd "$GHE_REMOTE_DATA_DIR/pages"
 mkdir -p alice bob
 touch alice/index.html bob/index.html
 
+# Create some fake elasticsearch data in the snapshot
+mkdir -p "$GHE_REMOTE_DATA_DIR/elasticsearch"
+cd "$GHE_REMOTE_DATA_DIR/elasticsearch"
+echo "fake ES yml file" > elasticsearch.yml
+mkdir -p gh-enterprise-es/node/0
+touch gh-enterprise-es/node/0/stuff1
+touch gh-enterprise-es/node/0/stuff2
+
 # Create some test repositories in the remote repositories dir
 mkdir "$GHE_REMOTE_DATA_DIR/repositories"
 cd "$GHE_REMOTE_DATA_DIR/repositories"
@@ -45,7 +53,7 @@ begin_test "ghe-backup first snapshot"
     [ ! -d "$GHE_DATA_DIR/current" ]
 
     # run it
-    ghe-backup
+    ghe-backup -v
 
     # check that current symlink was created
     [ -d "$GHE_DATA_DIR/current" ]
@@ -74,11 +82,14 @@ begin_test "ghe-backup first snapshot"
     # check that ssh host key was backed up
     [ "$(cat "$GHE_DATA_DIR/current/ssh-host-keys.tar")" = "fake ghe-export-ssh-host-keys data" ]
 
-    # check that ES indices were backed up
-    [ "$(cat "$GHE_DATA_DIR/current/es-indices.tar")" = "fake ghe-export-es-indices data" ]
-
     # verify all repository data was transferred
     diff -ru "$GHE_REMOTE_DATA_DIR/repositories" "$GHE_DATA_DIR/current/repositories"
+
+    # verify all pages data was transferred
+    diff -ru "$GHE_REMOTE_DATA_DIR/pages" "$GHE_DATA_DIR/current/pages"
+
+    # verify all ES data was transferred
+    diff -ru "$GHE_REMOTE_DATA_DIR/elasticsearch" "$GHE_DATA_DIR/current/elasticsearch"
 )
 end_test
 
@@ -130,11 +141,14 @@ begin_test "ghe-backup subsequent snapshot"
     # check that ssh host key was backed up
     [ "$(cat "$GHE_DATA_DIR/current/ssh-host-keys.tar")" = "fake ghe-export-ssh-host-keys data" ]
 
-    # check that ES indices were backed up
-    [ "$(cat "$GHE_DATA_DIR/current/es-indices.tar")" = "fake ghe-export-es-indices data" ]
-
     # verify all repository data was transferred
     diff -ru "$GHE_REMOTE_DATA_DIR/repositories" "$GHE_DATA_DIR/current/repositories"
+
+    # verify all pages data was transferred
+    diff -ru "$GHE_REMOTE_DATA_DIR/pages" "$GHE_DATA_DIR/current/pages"
+
+    # verify all ES data was transferred
+    diff -ru "$GHE_REMOTE_DATA_DIR/elasticsearch" "$GHE_DATA_DIR/current/elasticsearch"
 )
 end_test
 
@@ -155,7 +169,11 @@ begin_test "ghe-backup tarball strategy"
     # check repositories tarball data
     [ "$(cat "$GHE_DATA_DIR/current/repositories.tar")" = "fake ghe-export-repositories data" ]
 
-    # check that repositories directory doesn't exist
+    # check ES tarball data
+    [ "$(cat "$GHE_DATA_DIR/current/elasticsearch.tar")" = "fake ghe-export-es-indices data" ]
+
+    # check that repositories directory doesnt exist
     [ ! -d "$GHE_DATA_DIR/current/repositories" ]
+
 )
 end_test

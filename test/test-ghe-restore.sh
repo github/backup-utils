@@ -7,9 +7,8 @@
 # Setup backup snapshot data dir and remote repositories dir locations to use
 # the per-test temp space.
 GHE_DATA_DIR="$TRASHDIR/data"
-GHE_REMOTE_DATA_DIR="$TRASHDIR/remote/repositories"
-GHE_REMOTE_PAGES_DIR="$TRASHDIR/remote/pages"
-export GHE_DATA_DIR GHE_REMOTE_DATA_DIR GHE_REMOTE_PAGES_DIR
+GHE_REMOTE_DATA_DIR="$TRASHDIR/remote/data"
+export GHE_DATA_DIR GHE_REMOTE_DATA_DIR
 
 # Create the backup data dir and fake remote repositories dirs
 mkdir -p "$GHE_DATA_DIR" "$GHE_REMOTE_DATA_DIR"
@@ -67,7 +66,7 @@ begin_test "ghe-restore"
     echo "$output" | grep -q 'fake ghe-export-ssh-host-keys data'
 
     # verify all repository data was transferred to the restore location
-    diff -ru "$GHE_DATA_DIR/current/repositories" "$GHE_REMOTE_DATA_DIR"
+    diff -ru "$GHE_DATA_DIR/current/repositories" "$GHE_REMOTE_DATA_DIR/repositories"
 )
 end_test
 
@@ -88,7 +87,7 @@ begin_test "ghe-restore with host arg"
     echo "$output" | grep -q 'Connect localhost OK'
 
     # verify repository data was transferred to the restore location
-    diff -ru "$GHE_DATA_DIR/current/repositories" "$GHE_REMOTE_DATA_DIR"
+    diff -ru "$GHE_DATA_DIR/current/repositories" "$GHE_REMOTE_DATA_DIR/repositories"
 )
 end_test
 

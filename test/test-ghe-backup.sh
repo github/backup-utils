@@ -7,9 +7,8 @@
 # Setup backup snapshot data dir and remote repositories dir locations to use
 # the per-test temp space.
 GHE_DATA_DIR="$TRASHDIR/data"
-GHE_REMOTE_DATA_DIR="$TRASHDIR/remote/repositories"
-GHE_REMOTE_PAGES_DIR="$TRASHDIR/remote/pages"
-export GHE_DATA_DIR GHE_REMOTE_DATA_DIR GHE_REMOTE_PAGES_DIR
+GHE_REMOTE_DATA_DIR="$TRASHDIR/remote"
+export GHE_DATA_DIR GHE_REMOTE_DATA_DIR
 
 # Write a fake license file for backup
 GHE_REMOTE_LICENSE_FILE="$TRASHDIR/remote/enterprise.ghl"
@@ -21,13 +20,14 @@ echo "fake license data" > "$GHE_REMOTE_LICENSE_FILE"
 mkdir -p "$GHE_DATA_DIR" "$GHE_REMOTE_DATA_DIR"
 
 # Create some fake pages data in the snapshot
-mkdir -p "$GHE_REMOTE_PAGES_DIR"
-cd "$GHE_REMOTE_PAGES_DIR"
+mkdir -p "$GHE_REMOTE_DATA_DIR/pages"
+cd "$GHE_REMOTE_DATA_DIR/pages"
 mkdir -p alice bob
 touch alice/index.html bob/index.html
 
 # Create some test repositories in the remote repositories dir
-cd "$GHE_REMOTE_DATA_DIR"
+mkdir "$GHE_REMOTE_DATA_DIR/repositories"
+cd "$GHE_REMOTE_DATA_DIR/repositories"
 mkdir alice bob
 mkdir alice/repo1.git alice/repo2.git bob/repo3.git
 
@@ -78,7 +78,7 @@ begin_test "ghe-backup first snapshot"
     [ "$(cat "$GHE_DATA_DIR/current/es-indices.tar")" = "fake ghe-export-es-indices data" ]
 
     # verify all repository data was transferred
-    diff -ru "$GHE_REMOTE_DATA_DIR" "$GHE_DATA_DIR/current/repositories"
+    diff -ru "$GHE_REMOTE_DATA_DIR/repositories" "$GHE_DATA_DIR/current/repositories"
 )
 end_test
 
@@ -134,7 +134,7 @@ begin_test "ghe-backup subsequent snapshot"
     [ "$(cat "$GHE_DATA_DIR/current/es-indices.tar")" = "fake ghe-export-es-indices data" ]
 
     # verify all repository data was transferred
-    diff -ru "$GHE_REMOTE_DATA_DIR" "$GHE_DATA_DIR/current/repositories"
+    diff -ru "$GHE_REMOTE_DATA_DIR/repositories" "$GHE_DATA_DIR/current/repositories"
 )
 end_test
 

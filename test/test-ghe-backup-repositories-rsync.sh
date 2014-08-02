@@ -7,15 +7,15 @@
 # Setup backup snapshot data dir and remote repositories dir locations to use
 # the per-test temp space.
 GHE_DATA_DIR="$TRASHDIR/data"
-GHE_REMOTE_DATA_DIR="$TRASHDIR/remote/repositories"
+GHE_REMOTE_DATA_DIR="$TRASHDIR/remote"
 export GHE_DATA_DIR GHE_REMOTE_DATA_DIR
 
 # Create the backup data dir and fake remote repositories dirs
-mkdir -p "$GHE_DATA_DIR" "$GHE_REMOTE_DATA_DIR"
+mkdir -p "$GHE_DATA_DIR" "$GHE_REMOTE_DATA_DIR/repositories"
 mkdir -p "$TRASHDIR/hooks"
 
 # Create some test repositories in the remote repositories dir
-cd "$GHE_REMOTE_DATA_DIR"
+cd "$GHE_REMOTE_DATA_DIR/repositories"
 mkdir alice bob
 mkdir alice/repo1.git alice/repo2.git bob/repo3.git
 
@@ -63,7 +63,7 @@ begin_test "ghe-backup-repositories-rsync first snapshot"
     [ -f "$GHE_DATA_DIR"/1/repositories/bob/repo3.git/svn_data/property_history.msgpack ]
 
     # verify all repository data was transferred
-    diff -ru "$GHE_REMOTE_DATA_DIR" "$GHE_DATA_DIR/1/repositories"
+    diff -ru "$GHE_REMOTE_DATA_DIR/repositories" "$GHE_DATA_DIR/1/repositories"
 )
 end_test
 
@@ -92,7 +92,7 @@ begin_test "ghe-backup-repositories-rsync subsequent snapshot"
     [ "$inode1" = "$inode2" ]
 
     # verify all repository data exists in the increment
-    diff -ru "$GHE_REMOTE_DATA_DIR" "$GHE_DATA_DIR/2/repositories"
+    diff -ru "$GHE_REMOTE_DATA_DIR/repositories" "$GHE_DATA_DIR/2/repositories"
 )
 end_test
 
@@ -106,13 +106,13 @@ begin_test "ghe-backup-repositories-rsync handles __special__ data dirs"
     export GHE_SNAPSHOT_TIMESTAMP
 
     # create the excluded __nodeload_archives__ dir on the remote side
-    mkdir "$GHE_REMOTE_DATA_DIR/__nodeload_archives__"
-    touch "$GHE_REMOTE_DATA_DIR/__nodeload_archives__/something.tar.gz"
+    mkdir "$GHE_REMOTE_DATA_DIR/repositories/__nodeload_archives__"
+    touch "$GHE_REMOTE_DATA_DIR/repositories/__nodeload_archives__/something.tar.gz"
 
     # create the included __purgatory__ dir on the remote side
-    mkdir -p "$GHE_REMOTE_DATA_DIR/__purgatory__/123.git"
-    git init --bare -q "$GHE_REMOTE_DATA_DIR/__purgatory__/123.git"
-    git --git-dir="$GHE_REMOTE_DATA_DIR/__purgatory__/123.git" --work-tree=. \
+    mkdir -p "$GHE_REMOTE_DATA_DIR/repositories/__purgatory__/123.git"
+    git init --bare -q "$GHE_REMOTE_DATA_DIR/repositories/__purgatory__/123.git"
+    git --git-dir="$GHE_REMOTE_DATA_DIR/repositories/__purgatory__/123.git" --work-tree=. \
         commit --allow-empty -m 'test commit'
 
     # run it
@@ -145,7 +145,7 @@ begin_test "ghe-backup-repositories-rsync excludes tmp packs and objects"
     export GHE_SNAPSHOT_TIMESTAMP
 
     # create a tmp pack to emulate a pack being written to
-    touch "$GHE_REMOTE_DATA_DIR/alice/repo1.git/objects/pack/tmp_pack_1234"
+    touch "$GHE_REMOTE_DATA_DIR/repositories/alice/repo1.git/objects/pack/tmp_pack_1234"
 
     # run it
     ghe-backup-repositories-rsync

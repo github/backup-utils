@@ -1,0 +1,26 @@
+#!/bin/sh
+#/ Usage: ghe-restore-es-rsync <host>
+#/ Restore an rsync snapshot of all Elasticsearch data to a GitHub instance.
+#/
+#/ Note: This script typically isn't called directly. It's invoked by the
+#/ ghe-restore command when GHE_BACKUP_STRATEGY is set to "rsync".
+set -e
+
+# Bring in the backup configuration
+cd $(dirname "$0")/..
+. libexec/ghe-backup-config
+
+# Show usage and bail with no arguments
+[ -z "$*" ] && print_usage
+
+# Grab host arg
+host="$1"
+
+# The snapshot to restore should be set by the ghe-restore command but this lets
+# us run this script directly.
+: ${GHE_RESTORE_SNAPSHOT:=current}
+
+# Transfer all ES data from the latest snapshot to the GitHub instance.
+rsync -avz --delete -e ghe-ssh --rsync-path="sudo -u git rsync" \
+    "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/elasticsearch/" \
+    "${host%:*}:$GHE_REMOTE_DATA_DIR/elasticsearch/gh-enterprise-es" 1>&3

@@ -159,3 +159,12 @@ begin_test "ghe-backup tarball strategy"
     [ ! -d "$GHE_DATA_DIR/current/repositories" ]
 )
 end_test
+
+begin_test "ghe-backup fails fast when other run in progress"
+(
+    set -e
+
+    ln -s 1 "$GHE_DATA_DIR/in-progress"
+    ! ghe-backup
+)
+end_test

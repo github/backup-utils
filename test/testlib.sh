@@ -74,7 +74,7 @@ report_failure () {
   msg=$1
   desc=$2
   failures=$(( failures + 1 ))
-  printf "test: %-60s $msg\n" "$desc ..."
+  printf "test: %-73s $msg\n" "$desc ..."
   (
       sed 's/^/    /' <"$TRASHDIR/out" |
       grep -a -v -e '^\+ end_test' -e '^+ set +x' <"$TRASHDIR/out" |

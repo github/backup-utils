@@ -17,17 +17,40 @@ host="$GHE_HOSTNAME"
 # Used to record failed backup steps
 failures=
 
+# Create the timestamped snapshot directory where files for this run will live,
+# change into it, and mark the snapshot as incomplete by touching the
+# 'incomplete' file. If the backup succeeds, this file will be removed
+# signifying that the snapshot is complete.
+mkdir -p "$GHE_SNAPSHOT_DIR"
+cd "$GHE_SNAPSHOT_DIR"
+touch "incomplete"
+
+# To prevent multiple backup runs happening at the same time, we create a
+# in-progress symlink pointing to the snapshot directory. This will fail if
+# another backup is already in progress, giving us a form of locking.
+#
+# Set up a trap to remove the in-progress symlink if we exit for any reason but
+# verify that we own the in-progress symlink before doing so.
+cleanup () {
+    if [ $(readlink ../in-progress) = "$GHE_SNAPSHOT_TIMESTAMP" ]; then
+        unlink ../in-progress
+    fi
+}
+trap cleanup EXIT
+
+# Mark the snapshot as in-progress by creating the symlink. If this fails, it
+# means another ghe-backup run is already in progress and we should exit.
+# NOTE: The -n argument to ln is non-POSIX but widely supported.
+if ! ln -sn "$GHE_SNAPSHOT_TIMESTAMP" ../in-progress 2>/dev/null; then
+    snapshot="$(readlink ../in-progress)"
+    echo "Error: backup of $host already in progress in snapshot $snapshot. Aborting." 1>&2
+    exit 1
+fi
+
 echo "Starting backup of $host in snapshot $GHE_SNAPSHOT_TIMESTAMP"
 
 # Make sure we have SSH connectivity to the GHE host
 ghe-host-check || exit 1
-
-# Create the timestamped snapshot directory where files for this run will live.
-mkdir -p "$GHE_SNAPSHOT_DIR"
-cd "$GHE_SNAPSHOT_DIR"
-
-# Mark the snapshot as incomplete
-touch "incomplete"
 
 echo "Backing up GitHub settings ..."
 ghe-ssh "$host" -- 'ghe-export-settings' > settings.json ||

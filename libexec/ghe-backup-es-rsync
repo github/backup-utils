@@ -22,9 +22,14 @@ fi
 # Make sure root backup dir exists if this is the first run
 mkdir -p "$GHE_SNAPSHOT_DIR/elasticsearch"
 
-# Verify that the /data/pages directory exists. It won't if no pages sites have
-# been published under some versions.
+# Verify that the /data/elasticsearch directory exists.
 ghe-ssh "$host" -- "[ -d '$GHE_REMOTE_DATA_DIR/elasticsearch' ]" || exit 0
+
+# Grab the elasticsearch.yml file which is root owned and mode -rw------- so
+# can't be read via rsync.
+ghe-ssh "$host" -- "sudo cat '$GHE_REMOTE_DATA_DIR/elasticsearch/elasticsearch.yml'" \
+    > "$GHE_SNAPSHOT_DIR/elasticsearch/elasticsearch.yml"
+chmod 0600 "$GHE_SNAPSHOT_DIR/elasticsearch/elasticsearch.yml"
 
 # If we have a previous increment, avoid transferring existing files via rsync's
 # --link-dest support. This also decreases physical space usage considerably.

@@ -61,8 +61,8 @@ ghe-ssh "$host" -- 'ghe-export-ssh-host-keys' > ssh-host-keys.tar ||
 failures="$failures ssh-host-keys"
 
 echo "Backing up Elasticsearch indices ..."
-ghe-ssh "$host" -- 'ghe-export-es-indices' > es-indices.tar ||
-failures="$failures ssh-host-keys"
+ghe-backup-es-${GHE_BACKUP_STRATEGY} ||
+failures="$failures elasticsearch"
 
 # If everything was successful, mark the snapshot as complete, update the
 # current symlink to point to the new snapshot and prune expired and failed

@@ -1,0 +1,41 @@
+#!/bin/sh
+#/ Usage: ghe-backup-es-rsync
+#/ Take an online, incremental snapshot of Elasticsearch indices.
+#/
+#/ Note: This command typically isn't called directly. It's invoked by
+#/ ghe-backup when the GHE_BACKUP_STRATEGY is set to "rsync".
+set -e
+
+# Bring in the backup configuration
+cd $(dirname "$0")/..
+. libexec/ghe-backup-config
+
+# Set up remote host and root elastic backup directory based on config
+host="$GHE_HOSTNAME"
+
+# Verify rsync is available.
+if ! rsync --version 1>/dev/null 2>&1; then
+    echo "Error: rsync not found." 1>&2
+    exit 1
+fi
+
+# Make sure root backup dir exists if this is the first run
+mkdir -p "$GHE_SNAPSHOT_DIR/elasticsearch"
+
+# Verify that the /data/pages directory exists. It won't if no pages sites have
+# been published under some versions.
+ghe-ssh "$host" -- "[ -d '$GHE_REMOTE_DATA_DIR/elasticsearch' ]" || exit 0
+
+# If we have a previous increment, avoid transferring existing files via rsync's
+# --link-dest support. This also decreases physical space usage considerably.
+if [ -d "$GHE_DATA_DIR/current/elasticsearch" ]; then
+    link_dest="--link-dest=../../current/elasticsearch"
+fi
+
+# Transfer ES indices from a GitHub instance to the current snapshot
+# directory, using a previous snapshot to avoid transferring files that have
+# already been transferred. A set of rsync filter rules are provided on stdin
+# for each invocation.
+rsync -avz -e ghe-ssh $link_dest \
+    --rsync-path='sudo -u git rsync' \
+    "${host%:*}:$GHE_REMOTE_DATA_DIR/elasticsearch/" "$GHE_SNAPSHOT_DIR/elasticsearch" 1>&3

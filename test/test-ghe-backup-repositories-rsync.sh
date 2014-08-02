@@ -97,7 +97,7 @@ begin_test "ghe-backup-repositories-rsync subsequent snapshot"
 end_test
 
 
-begin_test "ghe-backup-repositories-rsync handles __special__ data dirs"
+begin_test "ghe-backup-repositories-rsync __special__ dirs"
 (
     set -e
 
@@ -136,7 +136,7 @@ begin_test "ghe-backup-repositories-rsync handles __special__ data dirs"
 )
 end_test
 
-begin_test "ghe-backup-repositories-rsync excludes tmp packs and objects"
+begin_test "ghe-backup-repositories-rsync temp files"
 (
     set -e
 

@@ -64,8 +64,7 @@ begin_test () {
 
     exec 3>&1 4>&2
     out="$TRASHDIR/out"
-    err="$TRASHDIR/err"
-    exec 1>"$out" 2>"$err"
+    exec 1>"$out" 2>&1
 
     # allow the subshell to exit non-zero without exiting this process
     set -x +e
@@ -77,10 +76,8 @@ report_failure () {
   failures=$(( failures + 1 ))
   printf "test: %-60s $msg\n" "$desc ..."
   (
-      echo "-- stdout --"
-      sed 's/^/    /' <"$TRASHDIR/out"
-      echo "-- stderr --"
-      grep -a -v -e '^\+ end_test' -e '^+ set +x' <"$TRASHDIR/err" |
+      sed 's/^/    /' <"$TRASHDIR/out" |
+      grep -a -v -e '^\+ end_test' -e '^+ set +x' <"$TRASHDIR/out" |
           sed 's/^/    /'
   ) 1>&2
 }
@@ -88,27 +85,13 @@ report_failure () {
 # Mark the end of a test.
 end_test () {
     test_status="${1:-$?}"
-    ex_fail="${2:-0}"
     set +x -e
     exec 1>&3 2>&4
 
     if [ "$test_status" -eq 0 ]; then
-      if [ "$ex_fail" -eq 0 ]; then
-        printf "test: %-60s OK\n" "$test_description ..."
-      else
-        report_failure "OK (unexpected)" "$test_description ..."
-      fi
+      printf "test: %-60s OK\n" "$test_description ..."
     else
-      if [ "$ex_fail" -eq 0 ]; then
-        report_failure "FAILED" "$test_description ..."
-      else
-        printf "test: %-60s FAILED (expected)\n" "$test_description ..."
-      fi
+      report_failure "FAILED" "$test_description ..."
     fi
     unset test_description
-}
-
-# Mark the end of a test that is expected to fail.
-end_test_exfail () {
-  end_test $? 1
 }

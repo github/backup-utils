@@ -60,7 +60,8 @@ mkdir -p "$backup_dir"
 cleanup() {
   ghe-ssh "$host" -- "sudo rm -f '$sync_in_progress_file'"
 }
-trap "cleanup" EXIT
+trap 'cleanup' EXIT
+trap 'exit $?' INT # ^C always terminate
 
 # Touch the sync-in-progress file, disabling GC operations, and wait for all
 # active GC processes to finish on the remote side.

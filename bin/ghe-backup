@@ -36,7 +36,8 @@ cleanup () {
         unlink ../in-progress
     fi
 }
-trap cleanup EXIT
+trap 'cleanup' EXIT
+trap 'exit $?' INT # ^C always terminate
 
 # Mark the snapshot as in-progress by creating the symlink. If this fails, it
 # means another ghe-backup run is already in progress and we should exit.

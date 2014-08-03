@@ -60,13 +60,13 @@ failures="$failures settings"
 ghe-ssh "$host" -- "cat '$GHE_REMOTE_LICENSE_FILE'" > enterprise.ghl ||
 failures="$failures license"
 
-echo "Backing up Git repositories ..."
-ghe-backup-repositories-${GHE_BACKUP_STRATEGY} ||
-failures="$failures repositories"
+echo "Backing up SSH public keys ..."
+ghe-ssh "$host" -- 'ghe-export-authorized-keys' > authorized-keys.json ||
+failures="$failures authorized-keys"
 
-echo "Backing up GitHub Pages ..."
-ghe-backup-pages-${GHE_BACKUP_STRATEGY} ||
-failures="$failures pages"
+echo "Backing up SSH host keys ..."
+ghe-ssh "$host" -- 'ghe-export-ssh-host-keys' > ssh-host-keys.tar ||
+failures="$failures ssh-host-keys"
 
 echo "Backing up MySQL database ..."
 ghe-ssh "$host" -- 'ghe-export-mysql | gzip' > mysql.sql.gz ||
@@ -76,13 +76,13 @@ echo "Backing up Redis database ..."
 ghe-ssh "$host" -- 'ghe-export-redis' > redis.rdb ||
 failures="$failures redis"
 
-echo "Backing up SSH public keys ..."
-ghe-ssh "$host" -- 'ghe-export-authorized-keys' > authorized-keys.json ||
-failures="$failures authorized-keys"
+echo "Backing up Git repositories ..."
+ghe-backup-repositories-${GHE_BACKUP_STRATEGY} ||
+failures="$failures repositories"
 
-echo "Backing up SSH host keys ..."
-ghe-ssh "$host" -- 'ghe-export-ssh-host-keys' > ssh-host-keys.tar ||
-failures="$failures ssh-host-keys"
+echo "Backing up GitHub Pages ..."
+ghe-backup-pages-${GHE_BACKUP_STRATEGY} ||
+failures="$failures pages"
 
 echo "Backing up Elasticsearch indices ..."
 ghe-backup-es-${GHE_BACKUP_STRATEGY} ||

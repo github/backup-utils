@@ -42,7 +42,7 @@ host="${1:-$GHE_RESTORE_HOST}"
 # Resolve the snapshot id if we're restoring from current. This is mostly
 # just for logging.
 if [ "$GHE_RESTORE_SNAPSHOT" = "current" ]; then
-    GHE_RESTORE_SNAPSHOT=$(ls -ld "$GHE_DATA_DIR"/current 2>/dev/null | sed 's/.*-> //')
+    GHE_RESTORE_SNAPSHOT=$(readlink "$GHE_DATA_DIR"/current || true)
 fi
 
 # Bail out if we don't have a good snapshot.

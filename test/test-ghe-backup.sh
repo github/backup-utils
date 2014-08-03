@@ -155,7 +155,16 @@ begin_test "ghe-backup tarball strategy"
     # check repositories tarball data
     [ "$(cat "$GHE_DATA_DIR/current/repositories.tar")" = "fake ghe-export-repositories data" ]
 
-    # check that repositories directory doesn't exist
+    # check that repositories directory doesnt exist
     [ ! -d "$GHE_DATA_DIR/current/repositories" ]
+)
+end_test
+
+begin_test "ghe-backup fails fast when other run in progress"
+(
+    set -e
+
+    ln -s 1 "$GHE_DATA_DIR/in-progress"
+    ! ghe-backup
 )
 end_test

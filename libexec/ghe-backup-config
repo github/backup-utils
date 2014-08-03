@@ -99,3 +99,14 @@ for a in "$@"; do
         print_usage
     fi
 done
+
+# If we don't have a readlink command, parse ls -l output.
+if ! type readlink 1>/dev/null 2>&1; then
+    readlink () {
+        if [ -x "$1" ]; then
+            ls -ld "$1" | sed 's/.*-> //'
+        else
+            return 1
+        fi
+    }
+fi

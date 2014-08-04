@@ -31,9 +31,9 @@ storage and must have network connectivity with the GitHub Enterprise appliance.
 See the section below on *Backup host and storage requirements* for more
 information.
 
- 1. [Download the latest release](need this url) and extract:
+ 1. [Download the latest release][release] and extract:
 
-    `curl <release-url> | gzip -dc | tar xvf -`
+    `curl -L <release-url> | gzip -dc | tar xvf -`
 
     Tip: You can also use Git to obtain the utilities instead, which may make
     upgrading to future backup-utils releases easier:
@@ -58,6 +58,8 @@ snapshots of repository data along with full snapshots of all other pertinent
 data stores. Snapshots may be restored to the same or separate GitHub appliance
 via the `ghe-restore` command. See the *Example usage* section below for more
 detailed information.
+
+[release]: https://github.com/github/backup-utils/releases/download/v0.9.0/github-backup-utils-v0.9.0.tar.gz
 
 ### Requirements
 

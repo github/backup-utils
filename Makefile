@@ -13,4 +13,7 @@ info:
 dist:
 	@script/package-tarball
 
-.PHONY: test info dist
+clean:
+	rm -rf dist
+
+.PHONY: test info dist clean

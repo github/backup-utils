@@ -69,7 +69,7 @@ gzip -dc "$snapshot_dir/mysql.sql.gz" | ghe-ssh "$host" -- 'ghe-import-mysql' 1>
 echo "Restoring Redis database ..."
 ghe-ssh "$host" -- 'ghe-import-redis' < "$snapshot_dir/redis.rdb" 1>&3
 
-echo "Restoring SSH public keys ..."
+echo "Restoring SSH authorized keys ..."
 ghe-ssh "$host" -- 'ghe-import-authorized-keys' < "$snapshot_dir/authorized-keys.json" 1>&3
 
 echo "Restoring Elasticsearch indices ..."

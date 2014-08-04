@@ -60,7 +60,7 @@ failures="$failures settings"
 ghe-ssh "$host" -- "cat '$GHE_REMOTE_LICENSE_FILE'" > enterprise.ghl ||
 failures="$failures license"
 
-echo "Backing up SSH public keys ..."
+echo "Backing up SSH authorized keys ..."
 ghe-ssh "$host" -- 'ghe-export-authorized-keys' > authorized-keys.json ||
 failures="$failures authorized-keys"
 

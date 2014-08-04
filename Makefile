@@ -10,4 +10,7 @@ info:
 	@rsync --version | head -1
 	@echo
 
-.PHONY: test info
+dist:
+	@script/package-tarball
+
+.PHONY: test info dist

@@ -14,6 +14,10 @@ while true; do
             opts="$opts $1 $2"
             shift 2
             ;;
+        --)
+            echo "Error: illegal '--' in ssh invocation"
+            exit 1
+            ;;
         *)
             host="$1"
             shift
@@ -24,6 +28,11 @@ done
 
 # Show usage with no host
 [ -z "$host" ] && print_usage
+
+# Shift off '--' if given immediately after host.
+if [ "$1" = "--" ]; then
+    shift
+fi
 
 # Split host:port into parts
 port=${host##*:}

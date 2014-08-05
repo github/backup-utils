@@ -1,6 +1,9 @@
 #!/bin/sh
-#/ Usage: ghe-ssh [<host>] [<ssh_option>+]
-#/ Helper to ssh into a GitHub Enteprise host with the right user and port.
+#/ Usage: ghe-ssh [<option>...] <host> [<simple-command>...]
+#/        echo <complex-command>... | ghe-ssh [<option>...] <host> /bin/sh
+#/ Helper to ssh into a GitHub instance with the right user and port. The first
+#/ form should be used for simple commands; the second form should be used for
+#/ complex commands that include pipelines or multiple commands.
 set -e
 
 # Bring in the backup configuration
@@ -45,6 +48,14 @@ fi
 # Make sure host has admin@ prefix if no user specified
 user="${host%@*}"
 [ "$user" = "$host" ] && user="admin"
+
+# Bail out with error if the simple command form is used with complex commands.
+# Complex
+if echo "$*" | grep -q "[|;]" || [ $(echo "$*" | wc -l) -gt 1 ]; then
+    echo "fatal: ghe-ssh: Attempt to invoke complex command with simple command form." 1>&2
+    echo "See ghe-ssh --help for more on correcting." 1>&2
+    exit 1
+fi
 
 # Exec ssh command with modified host / port args
 exec ssh $opts -p "$port" -l "$user" "$host" -- $GHE_NICE $GHE_IONICE "$@"

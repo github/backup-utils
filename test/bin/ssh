@@ -30,7 +30,13 @@ done
 # Change into test dir and run command
 cd "$(dirname "$0")"/..
 
-# Scrub sudo commands.
+# Scrub sudo commands from command arguments.
 sh="$(echo "$@" | sed 's/sudo -u [a-z]* //g' | sed 's/sudo //g')"
 
-exec /bin/sh -c "$sh"
+# Also scrub sudo commands from stdin if just executing /bin/sh and
+# piping commands in on standard input.
+if echo "$*" | grep -q "/bin/sh$"; then
+    sed 's/sudo -u [a-z]* //g' | sed 's/sudo //g' | /bin/sh -c "$sh"
+else
+    /bin/sh -c "$sh"
+fi

@@ -69,7 +69,8 @@ ghe-ssh "$host" -- 'ghe-export-ssh-host-keys' > ssh-host-keys.tar ||
 failures="$failures ssh-host-keys"
 
 echo "Backing up MySQL database ..."
-ghe-ssh "$host" -- 'ghe-export-mysql | gzip' > mysql.sql.gz ||
+echo 'ghe-export-mysql | gzip' |
+ghe-ssh "$host" -- /bin/sh > mysql.sql.gz ||
 failures="$failures mysql"
 
 echo "Backing up Redis database ..."

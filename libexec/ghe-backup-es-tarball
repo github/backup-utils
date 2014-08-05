@@ -12,10 +12,10 @@ cd $(dirname "$0")/..
 
 # Snapshot all Elasticsearch data or fake it when no /data/elasticsearch
 # directory exists.
-ghe-ssh "$GHE_HOSTNAME" -- "
+echo "
     if [ -d '$GHE_REMOTE_DATA_DIR/elasticsearch' ]; then
         ghe-export-es-indices
     else
         tar cvf - --files-from /dev/null
     fi
-" > "$GHE_SNAPSHOT_DIR"/elasticsearch.tar
+" | ghe-ssh "$GHE_HOSTNAME" /bin/sh > "$GHE_SNAPSHOT_DIR"/elasticsearch.tar

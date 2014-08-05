@@ -11,10 +11,10 @@ cd $(dirname "$0")/..
 . libexec/ghe-backup-config
 
 # Snapshot all Pages data or fake it when no /data/pages directory exists.
-ghe-ssh "$GHE_HOSTNAME" -- '
+echo '
     if [ -d /data/pages ]; then
         ghe-export-pages
     else
         tar cvf - --files-from /dev/null
     fi
-' > "$GHE_SNAPSHOT_DIR"/pages.tar
+' | ghe-ssh "$GHE_HOSTNAME" /bin/sh > "$GHE_SNAPSHOT_DIR"/pages.tar

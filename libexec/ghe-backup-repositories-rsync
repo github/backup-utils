@@ -65,7 +65,7 @@ trap 'exit $?' INT # ^C always terminate
 
 # Touch the sync-in-progress file, disabling GC operations, and wait for all
 # active GC processes to finish on the remote side.
-ghe-ssh "$host" -- "
+echo "
     set -e
     sudo -u git touch '$sync_in_progress_file'
 
@@ -79,7 +79,7 @@ ghe-ssh "$host" -- "
         fi
     done
     exit 7
-" || {
+" | ghe-ssh "$host" -- /bin/sh || {
     res=$?
     if [ $res = 7 ]; then
         echo "Error: git-gc processes remain after 60 seconds. Aborting..." 1>&2

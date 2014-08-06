@@ -110,3 +110,17 @@ if ! type readlink 1>/dev/null 2>&1; then
         fi
     }
 fi
+
+# Run ghe-host-check and establish the version of the remote GitHub instance in
+# the exported GHE_REMOTE_VERSION variable. If the remote version has already
+# been established then don't perform the host check again. Scripts that need
+# the remote version should use this function instead of calling ghe-host-check
+# directly to reduce ssh roundtrips.
+ghe_remote_version_required () {
+    if [ -z "$GHE_REMOTE_VERSION" ]; then
+        out=$(ghe-host-check "$@")
+        GHE_REMOTE_VERSION=$(echo "$out" | sed 's/.*(\(.*\))/\1/')
+        export GHE_REMOTE_VERSION
+        echo "$out"
+    fi
+}

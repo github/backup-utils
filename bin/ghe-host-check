@@ -27,4 +27,5 @@ if ! ghe-ssh $options "$host" -- "true"; then
     exit 2
 fi
 
-echo "Connect $host OK"
+version=$(ghe-ssh $options "$host" -- "cat /data/enterprise/chef_metadata.json" | grep version | cut -d'"' -f4)
+echo "Connect $host OK (v$version)"

@@ -54,8 +54,9 @@ fi
 snapshot_dir="$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT"
 echo "Starting restore of $host from snapshot $GHE_RESTORE_SNAPSHOT"
 
-# Make sure we have SSH connectivity to the restore host
-ghe-host-check "$host"
+
+# Perform a host-check and establish the remote version in GHE_REMOTE_VERSION.
+ghe_remote_version_required "$host"
 
 echo "Restoring Git repositories ..."
 ghe-restore-repositories-${GHE_BACKUP_STRATEGY} "$host" 1>&3

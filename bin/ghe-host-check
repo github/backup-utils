@@ -24,7 +24,7 @@ metadata_file="$GHE_REMOTE_DATA_DIR/enterprise/chef_metadata.json"
 
 # SSH to the GHE host and grab metadata file to check SSH connectivity
 if ! metadata="$(ghe-ssh $options "$host" -- "cat '$metadata_file'")"; then
-    echo "Error: ssh to '$host' failed." 1>&2
+    echo "Error: ssh to '$host' failed or this isn't a GitHub appliance." 1>&2
     echo "Note that your SSH key needs to be setup on $host as described in:" 1>&2
     echo "* https://enterprise.github.com/help/articles/adding-an-ssh-key-for-shell-access" 1>&2
     exit 2

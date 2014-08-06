@@ -53,14 +53,15 @@ trap "atexit" EXIT
 mkdir -p "$TRASHDIR" "$GHE_DATA_DIR" "$GHE_REMOTE_DATA_DIR"
 cd "$TRASHDIR"
 
-# put remote metadata file in place for ghe-host-check which runs with pretty
-# much everything.
+# Put remote metadata file in place for ghe-host-check which runs with pretty
+# much everything. You can pass a version number in the first argument to test
+# with different remote versions.
 setup_remote_metadata () {
     mkdir -p "$GHE_REMOTE_DATA_DIR/enterprise"
     echo '
     {
       "timestamp": "Wed Jul 30 13:48:52 +0000 2014",
-      "version": "11.10.343"
+      "version": "'${1:-11.10.343}'"
     }
     ' > "$GHE_REMOTE_DATA_DIR/enterprise/chef_metadata.json"
 }

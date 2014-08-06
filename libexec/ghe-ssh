@@ -57,5 +57,8 @@ if echo "$*" | grep -q "[|;]" || [ $(echo "$*" | wc -l) -gt 1 ]; then
     exit 1
 fi
 
+# Turn on verbose SSH logging if needed
+$GHE_VERBOSE_SSH && set -x
+
 # Exec ssh command with modified host / port args and add nice to command.
 exec ssh $opts "$host" -- $GHE_NICE $GHE_IONICE "$@"

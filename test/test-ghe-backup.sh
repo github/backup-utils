@@ -4,12 +4,6 @@
 # Bring in testlib
 . $(dirname "$0")/testlib.sh
 
-# Setup backup snapshot data dir and remote repositories dir locations to use
-# the per-test temp space.
-GHE_DATA_DIR="$TRASHDIR/data"
-GHE_REMOTE_DATA_DIR="$TRASHDIR/remote"
-export GHE_DATA_DIR GHE_REMOTE_DATA_DIR
-
 # Write a fake license file for backup
 GHE_REMOTE_LICENSE_FILE="$TRASHDIR/remote/enterprise.ghl"
 export GHE_REMOTE_LICENSE_FILE

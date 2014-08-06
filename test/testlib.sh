@@ -32,7 +32,8 @@ TRASHDIR="$TMPDIR/$(basename "$0")-$$"
 # Point commands at the test backup.config file
 GHE_BACKUP_CONFIG="$ROOTDIR/test/backup.config"
 GHE_DATA_DIR="$TRASHDIR/data"
-export GHE_BACKUP_CONFIG GHE_DATA_DIR
+GHE_REMOTE_DATA_DIR="$TRASHDIR/remote"
+export GHE_BACKUP_CONFIG GHE_DATA_DIR GHE_REMOTE_DATA_DIR
 
 # keep track of num tests and failures
 tests=0
@@ -47,10 +48,23 @@ atexit () {
     fi
 }
 
-# create the trash dir
+# create the trash dir and data dirs
 trap "atexit" EXIT
-mkdir -p "$TRASHDIR"
+mkdir -p "$TRASHDIR" "$GHE_DATA_DIR" "$GHE_REMOTE_DATA_DIR"
 cd "$TRASHDIR"
+
+# put remote metadata file in place for ghe-host-check which runs with pretty
+# much everything.
+setup_remote_metadata () {
+    mkdir -p "$GHE_REMOTE_DATA_DIR/enterprise"
+    echo '
+    {
+      "timestamp": "Wed Jul 30 13:48:52 +0000 2014",
+      "version": "11.10.343"
+    }
+    ' > "$GHE_REMOTE_DATA_DIR/enterprise/chef_metadata.json"
+}
+setup_remote_metadata
 
 # Mark the beginning of a test. A subshell should immediately follow this
 # statement.

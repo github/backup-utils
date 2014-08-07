@@ -199,7 +199,7 @@ the disk location where snapshots are written.
 If you find a bug or would like to request a feature in backup-utils, please
 open an issue or pull request on this repository. If you have a question related
 to your specific GitHub Enterprise setup or would like assistance with backup
-site setup or recovery, please contact [GitHub Support][7] instead.
+site setup or recovery, please contact our [Enterprise support team][7] instead.
 
 [1]: https://enterprise.github.com
 [2]: https://github.com/github/enterprise-backup-site/blob/master/backup.config-example

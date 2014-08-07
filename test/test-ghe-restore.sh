@@ -4,15 +4,6 @@
 # Bring in testlib
 . $(dirname "$0")/testlib.sh
 
-# Setup backup snapshot data dir and remote repositories dir locations to use
-# the per-test temp space.
-GHE_DATA_DIR="$TRASHDIR/data"
-GHE_REMOTE_DATA_DIR="$TRASHDIR/remote/data"
-export GHE_DATA_DIR GHE_REMOTE_DATA_DIR
-
-# Create the backup data dir and fake remote repositories dirs
-mkdir -p "$GHE_DATA_DIR" "$GHE_REMOTE_DATA_DIR"
-
 # Add some fake pages data to the snapshot
 mkdir -p "$GHE_DATA_DIR/1/pages"
 cd "$GHE_DATA_DIR/1/pages"
@@ -54,6 +45,8 @@ echo "fake ghe-export-repositories data" > "$GHE_DATA_DIR/current/repositories.t
 begin_test "ghe-restore"
 (
     set -e
+    rm -rf "$GHE_REMOTE_DATA_DIR"
+    setup_remote_metadata
 
     # set restore host environ var
     GHE_RESTORE_HOST=127.0.0.1
@@ -85,7 +78,7 @@ begin_test "ghe-restore with host arg"
 (
     set -e
     rm -rf "$GHE_REMOTE_DATA_DIR"
-    mkdir -p "$GHE_REMOTE_DATA_DIR"
+    setup_remote_metadata
 
     # set restore host environ var
     GHE_RESTORE_HOST=127.0.0.1
@@ -109,7 +102,7 @@ begin_test "ghe-restore with tarball strategy"
 (
     set -e
     rm -rf "$GHE_REMOTE_DATA_DIR"
-    mkdir -p "$GHE_REMOTE_DATA_DIR"
+    setup_remote_metadata
 
     # run it
     output=$(/usr/bin/env GHE_BACKUP_STRATEGY="tarball" ghe-restore -v localhost)
@@ -122,6 +115,8 @@ end_test
 begin_test "ghe-restore no host arg or configured restore host"
 (
     set -e
+    rm -rf "$GHE_REMOTE_DATA_DIR"
+    setup_remote_metadata
 
     # unset configured restore host
     unset GHE_RESTORE_HOST

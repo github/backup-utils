@@ -50,8 +50,8 @@ fi
 
 echo "Starting backup of $host in snapshot $GHE_SNAPSHOT_TIMESTAMP"
 
-# Make sure we have SSH connectivity to the GHE host
-ghe-host-check || exit 1
+# Perform a host-check and establish the remote version in GHE_REMOTE_VERSION.
+ghe_remote_version_required
 
 echo "Backing up GitHub settings ..."
 ghe-ssh "$host" -- 'ghe-export-settings' > settings.json ||

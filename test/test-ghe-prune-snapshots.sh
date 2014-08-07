@@ -4,12 +4,6 @@
 # Bring in testlib
 . $(dirname "$0")/testlib.sh
 
-# Setup backup snapshot data dir to use the per-test temp space.
-GHE_DATA_DIR="$TRASHDIR/data"
-
-# Create the backup data dir
-mkdir -p "$GHE_DATA_DIR"
-
 # helper for generating dirs to clean up
 generate_prune_files() {
   rm -rf "$GHE_DATA_DIR"/*

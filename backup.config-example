@@ -12,7 +12,7 @@ GHE_DATA_DIR="data"
 # The Git repository backup strategy. This may be set to either "rsync"
 # (default) or "tarball". The rsync backup strategy takes online and
 # incremental backups and is highly recommended for GitHub Enterprise versions
-# 11.10.340 or greater. The "tarball" strategy takes full backups on each run
+# 11.10.343 or greater. The "tarball" strategy takes full backups on each run
 # and requires the GitHub instance be put in maintenance mode for the duration
 # of the backup. It's provided for older versions.
 GHE_BACKUP_STRATEGY="rsync"

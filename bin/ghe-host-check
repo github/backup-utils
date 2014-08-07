@@ -42,7 +42,7 @@ fi
 
 version=$(echo "$metadata" | grep version | cut -d'"' -f4)
 if [ -z "$version" ]; then
-    echo "Error: failed to version from $metadata_file on '$host' or this isn't a GitHub appliance." 1>&2
+    echo "Error: failed to parse version from $metadata_file on '$host' or this isn't a GitHub appliance." 1>&2
     exit 2
 fi
 

@@ -3,6 +3,16 @@ GitHub Enterprise Backup Utilities
 
 This repository includes backup and recovery utilities for [GitHub Enterprise][1].
 
+- **[Features](#features)**
+- **[Getting started](#getting-started)**
+- **[Requirements](#requirements)**
+  - **[Backup host and storage requirements](#backup-host-and-storage-requirements)**
+  - **[GitHub Enterprise version requirements](#github-enterprise-version-requirements)**
+- **[Example usage](#example-usage)**
+- **[Scheduling](#scheduling)**
+- **[Backup snapshot file structure](#backup-snapshot-file-structure)**
+- **[Support](#support)**
+
 ### Features
 
 The backup utilities are based on the server-side [backup][8] and [restore][9]

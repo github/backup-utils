@@ -22,13 +22,28 @@ options="
 # The location of metadata file on the remote side.
 metadata_file="$GHE_REMOTE_DATA_DIR/enterprise/chef_metadata.json"
 
-# SSH to the GHE host and grab metadata file to check SSH connectivity
-if ! metadata="$(ghe-ssh $options "$host" -- "cat '$metadata_file'")"; then
-    echo "Error: ssh to '$host' failed or this isn't a GitHub appliance." 1>&2
+if ! ghe-ssh $options "$host" -- true; then
+    echo "Error: ssh to '$host' failed" 1>&2
     echo "Note that your SSH key needs to be setup on $host as described in:" 1>&2
     echo "* https://enterprise.github.com/help/articles/adding-an-ssh-key-for-shell-access" 1>&2
+  exit 2
+fi
+
+if ! ghe-ssh $options "$host" -- test -f "$metadata_file"; then
+  echo "Error: $metadata on '$host' doesn't exist, maybe this isn't a GitHub appliance?" 1>&2
+  exit 2
+fi
+
+# SSH to the GHE host and grab metadata file to check SSH connectivity
+if ! metadata="$(ghe-ssh $options "$host" -- "cat '$metadata_file'")"; then
+    echo "Error: failed to read $metadata_file on '$host'. Maybe this isn't a GitHub appliance?" 1>&2
     exit 2
 fi
 
 version=$(echo "$metadata" | grep version | cut -d'"' -f4)
+if [ -z "$version" ]; then
+    echo "Error: failed to version from $metadata_file on '$host'. Maybe this isn't a GitHub appliance?" 1>&2
+    exit 2
+fi
+
 echo "Connect $host OK (v$version)"

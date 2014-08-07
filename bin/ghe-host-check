@@ -30,7 +30,7 @@ if ! ghe-ssh $options "$host" -- true; then
 fi
 
 if ! ghe-ssh $options "$host" -- test -f "$metadata_file"; then
-    echo "Error: $metadata on '$host' doesn't exist or this isn't a GitHub appliance." 1>&2
+    echo "Error: $metadata_file on '$host' doesn't exist or this isn't a GitHub appliance." 1>&2
     exit 2
 fi
 

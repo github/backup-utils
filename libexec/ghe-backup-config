@@ -84,6 +84,9 @@ GHE_SNAPSHOT_DIR="$GHE_DATA_DIR"/"$GHE_SNAPSHOT_TIMESTAMP"
 : ${GHE_NICE:="nice -n 19"}
 : ${GHE_IONICE:="ionice -c 3"}
 
+# Set "true" to get verbose logging of all ssh commands on stderr
+: ${GHE_VERBOSE_SSH:=false}
+
 ###############################################################################
 ### Utility functions
 
@@ -110,3 +113,17 @@ if ! type readlink 1>/dev/null 2>&1; then
         fi
     }
 fi
+
+# Parses the <host> part out of a "<host>:<port>" or just "<host>" string.
+# This is used primarily to break hostspecs with non-standard ports down for
+# rsync commands.
+ssh_host_part () {
+    [ "${1##*:}" = "$1" ] && echo "$1" || echo "${1%:*}"
+}
+
+# Parses the <port> part out of a "<host>:<port>" or just "<host>" string.
+# This is used primarily to break hostspecs with non-standard ports down for
+# rsync commands.
+ssh_port_part () {
+    [ "${1##*:}" = "$1" ] && echo 22 || echo "${1##*:}"
+}

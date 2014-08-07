@@ -45,10 +45,12 @@ fi
 # directory, using a previous snapshot to avoid transferring files that have
 # already been transferred.
 echo "* Performing initial sync of ES indices ..." 1>&3
-rsync -avz -e ghe-ssh $link_dest \
+rsync -avz \
+    -e "ghe-ssh -p $(ssh_port_part "$host")" \
     --rsync-path='sudo -u git rsync' \
+    $link_dest \
     --exclude='elasticsearch.yml' \
-    "${host%:*}:$GHE_REMOTE_DATA_DIR/elasticsearch/" \
+    "$(ssh_host_part "$host"):$GHE_REMOTE_DATA_DIR/elasticsearch/" \
     "$GHE_SNAPSHOT_DIR/elasticsearch" 1>&3
 
 # Set up a trap to re-enable flushing on exit
@@ -68,8 +70,10 @@ ghe-ssh "$host" -- curl -s -XPOST "localhost:9200/_flush" >/dev/null
 
 # Transfer all ES indices again
 echo "* Performing follow-up sync of ES indices ..." 1>&3
-rsync -avz -e ghe-ssh $link_dest \
+rsync -avz \
+    -e "ghe-ssh -p $(ssh_port_part "$host")" \
     --rsync-path='sudo -u git rsync' \
+    $link_dest \
     --exclude='elasticsearch.yml' \
-    "${host%:*}:$GHE_REMOTE_DATA_DIR/elasticsearch/" \
+    "$(ssh_host_part "$host"):$GHE_REMOTE_DATA_DIR/elasticsearch/" \
     "$GHE_SNAPSHOT_DIR/elasticsearch" 1>&3

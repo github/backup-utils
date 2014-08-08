@@ -22,22 +22,29 @@ options="
 # The location of metadata file on the remote side.
 metadata_file="$GHE_REMOTE_DATA_DIR/enterprise/chef_metadata.json"
 
-if ! ghe-ssh $options "$host" -- true; then
-    echo "Error: ssh to '$host' failed" 1>&2
-    echo "Note that your SSH key needs to be setup on $host as described in:" 1>&2
-    echo "* https://enterprise.github.com/help/articles/adding-an-ssh-key-for-shell-access" 1>&2
-  exit 2
-fi
-
-if ! ghe-ssh $options "$host" -- test -f "$metadata_file"; then
-    echo "Error: $metadata_file on '$host' doesn't exist or this isn't a GitHub appliance." 1>&2
-    exit 2
-fi
-
-# SSH to the GHE host and grab metadata file to check SSH connectivity
-if ! metadata="$(ghe-ssh $options "$host" -- "cat '$metadata_file'")"; then
-    echo "Error: failed to read $metadata_file on '$host' or this isn't a GitHub appliance." 1>&2
-    exit 2
+metadata_commands="
+    [ -f '$metadata_file' ] || exit 101
+    cat '$metadata_file' || exit 102
+"
+if ! metadata=$(echo "$metadata_commands" | ghe-ssh $options $host -- /bin/sh); then
+    rc=$?
+    case $rc in
+        255)
+            echo "Error: ssh to '$host' failed" 1>&2
+            echo "Note that your SSH key needs to be setup on $host as described in:" 1>&2
+            echo "* https://enterprise.github.com/help/articles/adding-an-ssh-key-for-shell-access" 1>&2
+            ;;
+        101)
+            echo "Error: missing Enterprise fingerprint on '$host' or this isn't a GitHub appliance." 1>&2
+            ;;
+        102)
+            echo "Error: couldn't read Enterprise fingerprint on '$host'" 1>&2
+            ;;
+        *)
+            echo "Error: unexpected problem verifying Enterprise fingerprint on '$host'" 1>&2
+            ;;
+    esac
+    exit $rc
 fi
 
 version=$(echo "$metadata" | grep version | cut -d'"' -f4)

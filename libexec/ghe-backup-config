@@ -80,6 +80,11 @@ GHE_SNAPSHOT_DIR="$GHE_DATA_DIR"/"$GHE_SNAPSHOT_TIMESTAMP"
 # allows the location to be overridden in tests.
 : ${GHE_REMOTE_LICENSE_FILE:="/data/enterprise/enterprise.ghl"}
 
+# The location of the metadata file on the remote side. This is always
+# "/data/enterprise/chef_metadata.json" for GitHub instances. Use of this variable
+# allows the location to be overridden in tests.
+: ${GHE_REMOTE_METADATA_FILE:="$GHE_REMOTE_DATA_DIR/enterprise/chef_metadata.json"}
+
 # CPU and IO throttling to keep backups and restores from thrashing around.
 : ${GHE_NICE:="nice -n 19"}
 : ${GHE_IONICE:="ionice -c 3"}

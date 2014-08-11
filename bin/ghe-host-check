@@ -22,10 +22,10 @@ options="
 # The location of metadata file on the remote side.
 metadata_file="$GHE_REMOTE_DATA_DIR/enterprise/chef_metadata.json"
 
-set +x
-metadata=$(echo "cat \"$metadata\" 2>/dev/null || exit 101" | ghe-ssh $options $host -- /bin/sh)
+set +e
+metadata=$(echo "cat \"$metadata_file\" 2>/dev/null || exit 101" | ghe-ssh $options $host -- /bin/sh)
 rc=$?
-set -x
+set -e
 
 if [ $rc -ne 0 ]; then
     case $rc in

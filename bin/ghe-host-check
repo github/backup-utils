@@ -19,13 +19,29 @@ options="
     -o ConnectionAttempts=1
 "
 
-# SSH to the GHE host and grab metadata file to check SSH connectivity
-if ! metadata="$(ghe-ssh $options "$host" -- "cat '$GHE_REMOTE_METADATA_FILE'")"; then
-    echo "Error: ssh to '$host' failed or this isn't a GitHub appliance." 1>&2
-    echo "Note that your SSH key needs to be setup on $host as described in:" 1>&2
-    echo "* https://enterprise.github.com/help/articles/adding-an-ssh-key-for-shell-access" 1>&2
-    exit 2
+set +e
+metadata=$(echo "cat \"$GHE_REMOTE_METADATA_FILE\" 2>/dev/null || exit 101" | ghe-ssh $options $host -- /bin/sh)
+rc=$?
+set -e
+
+if [ $rc -ne 0 ]; then
+    case $rc in
+        255)
+            echo "Error: ssh to '$host' failed" 1>&2
+            echo "Note that your SSH key needs to be setup on $host as described in:" 1>&2
+            echo "* https://enterprise.github.com/help/articles/adding-an-ssh-key-for-shell-access" 1>&2
+            ;;
+        101)
+            echo "Error: couldn't read Enterprise fingerprint on '$host' or this isn't a GitHub appliance." 1>&2
+            ;;
+    esac
+    exit $rc
 fi
 
 version=$(echo "$metadata" | grep version | cut -d'"' -f4)
+if [ -z "$version" ]; then
+    echo "Error: failed to parse version from $GHE_REMOTE_METADATA_FILE on '$host' or this isn't a GitHub appliance." 1>&2
+    exit 2
+fi
+
 echo "Connect $host OK (v$version)"

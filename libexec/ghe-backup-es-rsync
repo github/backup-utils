@@ -29,9 +29,12 @@ if ! ghe-ssh "$host" -- "[ -d '$GHE_REMOTE_DATA_DIR/elasticsearch' ]"; then
 fi
 
 # Grab the elasticsearch.yml file which is root owned and mode -rw------- so
-# can't be read via rsync.
+# can't be read via rsync or cat. We use the root allowed grep -F as a cat
+# replacement.
+# XXX This should be fixed on the appliance side but will need to be maintained
+# for versions up to at least 11.10.343.
 echo "* Retrieving elasticsearch.yml config file ..." 1>&3
-ghe-ssh "$host" -- "sudo cat '$GHE_REMOTE_DATA_DIR/elasticsearch/elasticsearch.yml'" \
+ghe-ssh "$host" -- "sudo grep -F '' '$GHE_REMOTE_DATA_DIR/elasticsearch/elasticsearch.yml'" \
     > "$GHE_SNAPSHOT_DIR/elasticsearch/elasticsearch.yml"
 chmod 0600 "$GHE_SNAPSHOT_DIR/elasticsearch/elasticsearch.yml"
 

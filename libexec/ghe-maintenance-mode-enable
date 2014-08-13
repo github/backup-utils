@@ -1,0 +1,18 @@
+#!/bin/sh
+#/ Usage: ghe-maintenance-mode-enable <host>
+#/ Enable maintenance mode on GitHub appliance at <host>. This locks down all
+#/ access to the appliance to prevent writes to datastores.
+set -e
+
+# Bring in the backup configuration
+cd $(dirname "$0")/..
+. libexec/ghe-backup-config
+
+# Show usage and bail with no arguments
+[ -z "$*" ] && print_usage
+
+# Grab host arg
+host="$1"
+
+# SSH to the appliance and run the remote maintenance mode enable command
+ghe-ssh "$host" -- "ghe-maintenance -s"

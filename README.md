@@ -21,16 +21,16 @@ features for backup hosts:
 
  - Complete GitHub Enterprise backup and restore system via two simple utilities:<br>
    `ghe-backup` and `ghe-restore`.
- - Online backups. The GitHub appliance need not be put in maintenance
+ - Online backups **("rsync" strategy only)**. The GitHub appliance need not be put in maintenance
    mode for the duration of the backup run.
- - Incremental backup of Git repository data. Only changes since the last
+ - Incremental backup of Git repository data **("rsync" strategy only)**. Only changes since the last
    snapshot are transferred, leading to faster backup runs and lower network
    bandwidth and machine utilization.
  - Multiple backup snapshots with configurable retention periods.
- - Efficient snapshot storage. Only data added since the previous snapshot
+ - Efficient snapshot storage **("rsync" strategy only)**. Only data added since the previous snapshot
    consumes new space on the backup host.
  - Backup commands run under the lowest CPU/IO priority on the GitHub appliance,
-   reducing performance impact while backups are in progress.
+   reducing performance impact while backups are in progress **("rsync" strategy only)**.
  - Runs under most Linux/Unix environments.
  - MIT licensed, open source software maintained by GitHub, Inc.
 

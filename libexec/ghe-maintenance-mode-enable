@@ -1,7 +1,8 @@
 #!/bin/sh
 #/ Usage: ghe-maintenance-mode-enable <host>
 #/ Enable maintenance mode on GitHub appliance at <host>. This locks down all
-#/ access to the appliance to prevent writes to datastores.
+#/ access to the appliance to prevent writes to datastores and waits for all
+#/ currently running processes to bleed out.
 set -e
 
 # Bring in the backup configuration
@@ -15,4 +16,38 @@ cd $(dirname "$0")/..
 host="$1"
 
 # SSH to the appliance and run the remote maintenance mode enable command
+echo "Enabling maintenance mode on $host ..."
 ghe-ssh "$host" -- "ghe-maintenance -s"
+
+# Wait for all writing processes to complete
+ghe-ssh "$host" -- /bin/sh <<EOF
+    set -e
+
+    # determine local admin auth token
+    token=\$(md5sum /data/enterprise/enterprise.ghl | cut -f 1 -d ' ')
+
+    # use http or https based on appliance version
+    protocol=http
+    curl -s -X HEAD http://127.0.0.1:1337/setup/api?license_md5=\$token ||
+    protocol='--insecure https'
+
+    # poll maintenance status admin API until all procs bleed out
+    while true; do
+        proc_counts=\$(
+            curl -s \$protocol://127.0.0.1:1337/setup/api/maintenance?license_md5=\$token |
+            python -mjson.tool |
+            grep number |
+            sed 's/[^0-9]//g'
+        )
+
+        total=0
+        for n in \$proc_counts; do total=\$(( total + n )); done
+
+        if [ \$total -gt 0 ]; then
+            echo "Waiting for \$total active processes to finish ..."
+            sleep 5
+        else
+            break
+        fi
+    done
+EOF

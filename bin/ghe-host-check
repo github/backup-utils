@@ -19,11 +19,8 @@ options="
     -o ConnectionAttempts=1
 "
 
-# The location of metadata file on the remote side.
-metadata_file="$GHE_REMOTE_DATA_DIR/enterprise/chef_metadata.json"
-
 set +e
-metadata=$(echo "cat \"$metadata_file\" 2>/dev/null || exit 101" | ghe-ssh $options $host -- /bin/sh)
+metadata=$(echo "cat \"$GHE_REMOTE_METADATA_FILE\" 2>/dev/null || exit 101" | ghe-ssh $options $host -- /bin/sh)
 rc=$?
 set -e
 
@@ -43,7 +40,7 @@ fi
 
 version=$(echo "$metadata" | grep version | cut -d'"' -f4)
 if [ -z "$version" ]; then
-    echo "Error: failed to parse version from $metadata_file on '$host' or this isn't a GitHub appliance." 1>&2
+    echo "Error: failed to parse version from $GHE_REMOTE_METADATA_FILE on '$host' or this isn't a GitHub appliance." 1>&2
     exit 2
 fi
 

@@ -1,0 +1,47 @@
+#!/bin/sh
+#/ Usage: ghe-host-check [<host>]
+#/ Verify connectivity with the GitHub Enterprise host. When no <host> is
+#/ provided, the $GHE_HOSTNAME configured in backup.config is assumed.
+set -e
+
+# Bring in the backup configuration.
+cd $(dirname "$0")/..
+. libexec/ghe-backup-config
+
+# Use the host provided on the command line if provided, or fallback on the
+# $GHE_HOSTNAME configured in backup.config when not present.
+host="${1:-$GHE_HOSTNAME}"
+
+# Options to pass to SSH during connection check
+options="
+    -o PasswordAuthentication=no
+    -o ConnectTimeout=5
+    -o ConnectionAttempts=1
+"
+
+set +e
+metadata=$(echo "cat \"$GHE_REMOTE_METADATA_FILE\" 2>/dev/null || exit 101" | ghe-ssh $options $host -- /bin/sh)
+rc=$?
+set -e
+
+if [ $rc -ne 0 ]; then
+    case $rc in
+        255)
+            echo "Error: ssh to '$host' failed" 1>&2
+            echo "Note that your SSH key needs to be setup on $host as described in:" 1>&2
+            echo "* https://enterprise.github.com/help/articles/adding-an-ssh-key-for-shell-access" 1>&2
+            ;;
+        101)
+            echo "Error: couldn't read Enterprise fingerprint on '$host' or this isn't a GitHub appliance." 1>&2
+            ;;
+    esac
+    exit $rc
+fi
+
+version=$(echo "$metadata" | grep version | cut -d'"' -f4)
+if [ -z "$version" ]; then
+    echo "Error: failed to parse version from $GHE_REMOTE_METADATA_FILE on '$host' or this isn't a GitHub appliance." 1>&2
+    exit 2
+fi
+
+echo "Connect $host OK (v$version)"

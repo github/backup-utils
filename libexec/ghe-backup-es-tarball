@@ -1,0 +1,21 @@
+#!/bin/sh
+#/ Usage: ghe-backup-es-tarball
+#/ Take a tarball snapshot of all Elasticsearch data.
+#/
+#/ Note: This script typically isn't called directly. It's invoked by the
+#/ ghe-backup command when the GHE_BACKUP_STRATEGY is set to "tarball".
+set -e
+
+# Bring in the backup configuration
+cd $(dirname "$0")/..
+. libexec/ghe-backup-config
+
+# Snapshot all Elasticsearch data or fake it when no /data/elasticsearch
+# directory exists.
+echo "
+    if [ -d '$GHE_REMOTE_DATA_DIR/elasticsearch' ]; then
+        ghe-export-es-indices
+    else
+        tar cvf - --files-from /dev/null
+    fi
+" | ghe-ssh "$GHE_HOSTNAME" /bin/sh > "$GHE_SNAPSHOT_DIR"/elasticsearch.tar

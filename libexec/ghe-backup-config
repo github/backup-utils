@@ -1,0 +1,149 @@
+#!/bin/sh
+# Usage: . ghe-backup-config
+# GitHub Enterprise backup shell configuration.
+#
+# This file is sourced by the various utilities under bin and libexec to
+# load in backup configuration and ensure things are configured properly.
+#
+# All commands should start with the following:
+#
+#     cd $(dirname "$0")/..
+#     . libexec/ghe-backup-config
+#
+
+# Assume the current directory is the root. This should be fine so long as all
+# scripts source us in according to the instructions above.
+GHE_BACKUP_ROOT="$(pwd)"
+
+# Add the bin and libexec dirs to PATH
+PATH="$GHE_BACKUP_ROOT/bin:$GHE_BACKUP_ROOT/libexec:$PATH"
+
+# The backup config file. This may be set in the environment.
+: ${GHE_BACKUP_CONFIG:="$GHE_BACKUP_ROOT/backup.config"}
+
+# Parse out -v (verbose) argument
+if [ "$1" = "-v" ]; then
+    GHE_VERBOSE=true
+    shift
+fi
+export GHE_VERBOSE
+
+# If verbose logging is enabled, redirect fd 3 to stdout; otherwise, redirect it
+# to /dev/null. Write verbose output to fd 3.
+if [ -n "$GHE_VERBOSE" ]; then
+    exec 3>&1
+else
+    exec 3>/dev/null
+fi
+
+# Check that the config file exists before we source it in.
+if [ ! -f "$GHE_BACKUP_CONFIG" ]; then
+    echo "Error: The backup config file ('$GHE_BACKUP_CONFIG') doesn't exist." 1>&2
+    exit 2
+fi
+
+# Source in the backup config file.
+. "$GHE_BACKUP_CONFIG"
+
+# Check that the GHE hostname is set.
+if [ -z "$GHE_HOSTNAME" ]; then
+    echo "Error: GHE_HOSTNAME not set in config file." 1>&2
+    exit 2
+fi
+
+# Check that the data directory is set and create it if it doesn't exist.
+if [ ! -d "$GHE_DATA_DIR" ]; then
+    echo "Creating the backup data directory ..." 1>&3
+    mkdir -p "$GHE_DATA_DIR"
+fi
+
+# Set some defaults if needed
+: ${GHE_BACKUP_STRATEGY:=rsync}
+: ${GHE_NUM_SNAPSHOTS:=10}
+
+# Generate a backup timestamp if one has not already been generated.
+# We export the variable so the process group shares the same value.
+: ${GHE_SNAPSHOT_TIMESTAMP:=$(date +"%Y%m%dT%H%M%S")}
+export GHE_SNAPSHOT_TIMESTAMP
+
+# Set the current snapshot directory to <data-dir>/<timestamp>. This is where
+# all backups should be written for the current invocation.
+GHE_SNAPSHOT_DIR="$GHE_DATA_DIR"/"$GHE_SNAPSHOT_TIMESTAMP"
+
+# The root location of all persistent data stores on the remote side. This is
+# always "/data" for GitHub instances. Use of this variable allows
+# the location to be overridden in tests.
+: ${GHE_REMOTE_DATA_DIR:="/data"}
+
+# The location of the license file on the remote side. This is always
+# "/data/enterprise/enterprise.ghl" for GitHub instances. Use of this variable
+# allows the location to be overridden in tests.
+: ${GHE_REMOTE_LICENSE_FILE:="/data/enterprise/enterprise.ghl"}
+
+# The location of the metadata file on the remote side. This is always
+# "/data/enterprise/chef_metadata.json" for GitHub instances. Use of this variable
+# allows the location to be overridden in tests.
+: ${GHE_REMOTE_METADATA_FILE:="/data/enterprise/chef_metadata.json"}
+
+# CPU and IO throttling to keep backups and restores from thrashing around.
+: ${GHE_NICE:="nice -n 19"}
+: ${GHE_IONICE:="ionice -c 3"}
+
+# Set "true" to get verbose logging of all ssh commands on stderr
+: ${GHE_VERBOSE_SSH:=false}
+
+###############################################################################
+### Utility functions
+
+# Function to print usage embedded in a script's opening doc comments.
+print_usage () {
+    grep '^#/' <"$0" | cut -c 4-
+    exit ${1:-1}
+}
+
+# Check for a "--help" arg and show usage
+for a in "$@"; do
+    if [ "$a" = "--help" ]; then
+        print_usage
+    fi
+done
+
+# If we don't have a readlink command, parse ls -l output.
+if ! type readlink 1>/dev/null 2>&1; then
+    readlink () {
+        if [ -x "$1" ]; then
+            ls -ld "$1" | sed 's/.*-> //'
+        else
+            return 1
+        fi
+    }
+fi
+
+# Run ghe-host-check and establish the version of the remote GitHub instance in
+# the exported GHE_REMOTE_VERSION variable. If the remote version has already
+# been established then don't perform the host check again. Utilities in libexec
+# that need the remote version should use this function instead of calling
+# ghe-host-check directly to reduce ssh roundtrips. The top-level ghe-backup and
+# ghe-restore commands establish the version for all subcommands.
+ghe_remote_version_required () {
+    if [ -z "$GHE_REMOTE_VERSION" ]; then
+        _out=$(ghe-host-check "$@")
+        GHE_REMOTE_VERSION=$(echo "$_out" | sed 's/.*(\(.*\))/\1/')
+        export GHE_REMOTE_VERSION
+        echo "$_out"
+    fi
+}
+
+# Parses the <host> part out of a "<host>:<port>" or just "<host>" string.
+# This is used primarily to break hostspecs with non-standard ports down for
+# rsync commands.
+ssh_host_part () {
+    [ "${1##*:}" = "$1" ] && echo "$1" || echo "${1%:*}"
+}
+
+# Parses the <port> part out of a "<host>:<port>" or just "<host>" string.
+# This is used primarily to break hostspecs with non-standard ports down for
+# rsync commands.
+ssh_port_part () {
+    [ "${1##*:}" = "$1" ] && echo 22 || echo "${1##*:}"
+}

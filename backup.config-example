@@ -1,21 +1,32 @@
-# GitHub Enterprise backup site configuration file
+# GitHub Enterprise backup configuration file
 
-# The hostname of the GitHub Enterprise instance. The host must be reachable via
-# SSH from the backup site location.
-GHE_HOSTNAME="enterprise.your-company.com"
+# The hostname of the GitHub Enterprise appliance to back up. The host
+# must be reachable via SSH from the backup host.
+GHE_HOSTNAME="github.example.com"
 
-# Where backup data should be stored. By default this is the "data" directory
-# relative to this directory but can be set to an absolute path elsewhere.
+# Path to where backup data is stored. By default this is the "data"
+# directory next to this file but can be set to an absolute path
+# elsewhere for backing up to a separate partition / mount point.
 GHE_DATA_DIR="data"
 
-# The S3 bucket where your backup files get uploaded should you choose to use S3.
-GHE_S3_BUCKET="${GHE_HOSTNAME}_ghe_backups"
+# The Git repository backup strategy. This may be set to either "rsync"
+# (default) or "tarball". The rsync backup strategy takes online and
+# incremental backups and is highly recommended for GitHub Enterprise versions
+# 11.10.343 or greater. The "tarball" strategy takes full backups on each run
+# and requires the GitHub instance be put in maintenance mode for the duration
+# of the backup. It's provided for older versions.
+GHE_BACKUP_STRATEGY="rsync"
 
-# The hostname of the machine you are wanting to restore from backups.
-GHE_RESTORE_HOST="somerestorehost.your-company.com"
+# The number of backup snapshots to retain. Old snapshots are pruned after each
+# successful ghe-backup run. This option should be tuned based on the frequency
+# of scheduled backup runs. If backups are scheduled hourly, snapshots will be
+# available for the past N hours; if backups are scheduled daily, snapshots will
+# be available for the past N days ...
+GHE_NUM_SNAPSHOTS=10
 
-# Maintenance mode is enabled by default. Set to `0` if you want to backup your
-# data without maintenance mode being turned on.
-MAINTENANCE_MODE=1
-
-# vim: ft=sh
+# The hostname of the GitHub appliance to restore. If you've set up a separate
+# GitHub appliance to act as a standby for recovery, specify its IP or hostname
+# here. The host to restore to may also be specified directly when running
+# ghe-restore so use of this variable isn't strictly required.
+#
+#GHE_RESTORE_HOST="github-standby.example.com"

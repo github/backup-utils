@@ -1,0 +1,22 @@
+#!/bin/sh
+#/ Usage: ghe-s3-restore
+#/ Restores backup files from S3.
+set -e
+
+# Bring in the backup configuration.
+cd $(dirname "$0")/..
+. libexec/ghe-backup-config
+
+if [ -e $HOME/.s3cfg ]; then
+  echo "Using existing ~/.s3cfg ..."
+else
+  # Configure s3cmd if there isn't a config file already.
+  s3cmd --configure
+fi
+
+# Restore from S3 into a new snapshot directory.
+mkdir -p "$GHE_SNAPSHOT_DIR"
+s3cmd --preserve get s3://$GHE_S3_BUCKET/* "$GHE_SNAPSHOT_DIR"
+
+# Run the restore script.
+ghe-restore -s "$GHE_SNAPSHOT_DIR"

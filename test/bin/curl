@@ -1,0 +1,14 @@
+#!/bin/sh
+# Usage: curl ...
+# Fake curl command stub for tests.
+set -e
+
+# Write args to stdout
+echo "$@"
+
+# Read from stdin and write to stdout when "-d @-" given.
+for a in "$@"; do
+    if [ "$1" = "@-" ]; then
+        cat
+    fi
+done

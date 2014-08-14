@@ -1,5 +1,5 @@
 #!/bin/sh
-#/ Usage: ghe-maintenance-mode-enable <host>
+#/ Usage: ghe-maintenance-mode-enable [-w] <host>
 #/ Enable maintenance mode on GitHub appliance at <host>. This locks down all
 #/ access to the appliance to prevent writes to datastores and waits for all
 #/ currently running processes to bleed out.
@@ -8,6 +8,24 @@ set -e
 # Bring in the backup configuration
 cd $(dirname "$0")/..
 . libexec/ghe-backup-config
+
+# Parse args
+wait_procs=true
+while true; do
+    case "$1" in
+        -n|--no-wait)
+            wait_procs=false
+            shift
+            ;;
+        -*)
+            echo "ghe-maintenance-mode-enable: illegal argument: $1" 1>&2
+            exit 1
+            ;;
+        *)
+            break
+            ;;
+    esac
+done
 
 # Show usage and bail with no arguments
 [ -z "$*" ] && print_usage
@@ -18,6 +36,9 @@ host="$1"
 # SSH to the appliance and run the remote maintenance mode enable command
 echo "Enabling maintenance mode on $host ..."
 ghe-ssh "$host" -- "ghe-maintenance -s"
+
+# Bail out early if --no-wait was given.
+$wait_procs || exit 0
 
 # Wait for all writing processes to complete
 ghe-ssh "$host" -- /bin/sh <<EOF

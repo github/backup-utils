@@ -45,7 +45,7 @@ cleanup () {
     fi
 
     if $GHE_MAINTENANCE_MODE_ENABLED; then
-        ghe-maintenance-mode-disable
+        ghe-maintenance-mode-disable "$host"
     fi
 }
 
@@ -70,7 +70,7 @@ ghe_remote_version_required
 # If we're using the tarball backup strategy, put the appliance in maintenance
 # mode and wait for all writing processes to bleed out.
 if [ "$GHE_BACKUP_STRATEGY" = "tarball" ]; then
-    ghe-maintenance-mode-enable
+    ghe-maintenance-mode-enable "$host"
     GHE_MAINTENANCE_MODE_ENABLED=true
 fi
 
@@ -113,7 +113,7 @@ failures="$failures elasticsearch"
 # If we're using the tarball backup strategy, bring the appliance out of
 # maintenance mode now instead of waiting until after pruning stale snapshots.
 if $GHE_MAINTENANCE_MODE_ENABLED; then
-    ghe-maintenance-mode-disable ||
+    ghe-maintenance-mode-disable "$host" ||
         echo "Warning: Disabling maintenance mode on $host failed."
     GHE_MAINTENANCE_MODE_ENABLED=false
 fi

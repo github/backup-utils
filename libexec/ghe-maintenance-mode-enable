@@ -45,7 +45,7 @@ ghe-ssh "$host" -- /bin/sh <<EOF
     set -e
 
     # determine local admin auth token
-    token=\$(md5sum /data/enterprise/enterprise.ghl | cut -f 1 -d ' ')
+    token=\$(md5sum "$GHE_REMOTE_LICENSE_FILE" | cut -f 1 -d ' ')
 
     # use http or https based on appliance version
     protocol=http

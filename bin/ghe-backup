@@ -74,7 +74,7 @@ ghe-ssh "$host" -- /bin/sh > mysql.sql.gz ||
 failures="$failures mysql"
 
 echo "Backing up Redis database ..."
-ghe-ssh "$host" -- 'ghe-export-redis' > redis.rdb ||
+ghe-backup-redis > redis.rdb ||
 failures="$failures redis"
 
 echo "Backing up Git repositories ..."

@@ -15,4 +15,5 @@ cd $(dirname "$0")/..
 host="$1"
 
 # SSH to the appliance and run the remote maintenance mode enable command
+echo "Disabling maintenance mode on $host ..."
 ghe-ssh "$host" -- "ghe-maintenance -u"

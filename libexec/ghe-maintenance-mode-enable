@@ -54,18 +54,15 @@ ghe-ssh "$host" -- /bin/sh <<EOF
 
     # poll maintenance status admin API until all procs bleed out
     while true; do
-        proc_counts=\$(
+        count=\$(
             curl -s \$protocol://127.0.0.1:1337/setup/api/maintenance?license_md5=\$token |
-            python -mjson.tool |
-            grep number |
-            sed 's/[^0-9]//g'
+            python -c "import json, sys; \
+                obj = json.load(sys.stdin); \
+                print sum(int(s['number']) for s in obj['connection_services'])"
         )
 
-        total=0
-        for n in \$proc_counts; do total=\$(( total + n )); done
-
-        if [ \$total -gt 0 ]; then
-            echo "Waiting for \$total active processes to finish ..."
+        if [ \$count -gt 0 ]; then
+            echo "Waiting for \$count active processes to finish ..."
             sleep 5
         else
             break

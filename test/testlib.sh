@@ -42,9 +42,12 @@ failures=0
 
 # this runs at process exit
 atexit () {
+    res=$?
     [ -z "$KEEPTRASH" ] && rm -rf "$TRASHDIR"
     if [ $failures -gt 0 ]
     then exit 1
+    elif [ $res -ne 0 ]
+    then exit $res
     else exit 0
     fi
 }

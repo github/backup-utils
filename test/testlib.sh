@@ -34,7 +34,7 @@ GHE_BACKUP_CONFIG="$ROOTDIR/test/backup.config"
 GHE_DATA_DIR="$TRASHDIR/data"
 GHE_REMOTE_DATA_DIR="$TRASHDIR/remote"
 GHE_REMOTE_METADATA_FILE="$GHE_REMOTE_DATA_DIR/enterprise/chef_metadata.json"
-export GHE_BACKUP_CONFIG GHE_DATA_DIR GHE_REMOTE_DATA_DIR
+export GHE_BACKUP_CONFIG GHE_DATA_DIR GHE_REMOTE_DATA_DIR GHE_REMOTE_METADATA_FILE
 
 # keep track of num tests and failures
 tests=0
@@ -42,9 +42,12 @@ failures=0
 
 # this runs at process exit
 atexit () {
+    res=$?
     [ -z "$KEEPTRASH" ] && rm -rf "$TRASHDIR"
     if [ $failures -gt 0 ]
     then exit 1
+    elif [ $res -ne 0 ]
+    then exit $res
     else exit 0
     fi
 }
@@ -58,7 +61,7 @@ cd "$TRASHDIR"
 # much everything. You can pass a version number in the first argument to test
 # with different remote versions.
 setup_remote_metadata () {
-    mkdir -p `dirname "$GHE_REMOTE_DATA_DIR"`
+    mkdir -p "$(dirname "$GHE_REMOTE_METADATA_FILE")"
     echo '
     {
       "timestamp": "Wed Jul 30 13:48:52 +0000 2014",

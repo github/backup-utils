@@ -83,3 +83,4 @@ echo "Restoring SSH host keys ..."
 ghe-ssh "$host" -- 'ghe-import-ssh-host-keys' < "$snapshot_dir/ssh-host-keys.tar" 1>&3
 
 echo "Completed restore of $host from snapshot $GHE_RESTORE_SNAPSHOT"
+echo "Visit https://$(echo "$host" | cut -f 1 -d :)/setup/settings to configure the recovered appliance."

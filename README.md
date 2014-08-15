@@ -15,22 +15,22 @@ This repository includes backup and recovery utilities for [GitHub Enterprise][1
 
 ### Features
 
-The backup utilities are based on the server-side [backup][8] and [restore][9]
-capabilities built in to GitHub Enterprise but implement a number of advanced
-features for backup hosts:
+The backup utilities are based on the backup and restore capabilities built
+in to GitHub Enterprise but implement a number of advanced features for
+backup hosts:
 
- - Complete GitHub Enterprise backup and restore system via two simple utilities:<br>
+ - Complete GitHub Enterprise backup and recovery system via two simple utilities:<br>
    `ghe-backup` and `ghe-restore`.
- - Online backups **("rsync" strategy only)**. The GitHub appliance need not be put in maintenance
-   mode for the duration of the backup run.
- - Incremental backup of Git repository data **("rsync" strategy only)**. Only changes since the last
+ - Online backups. The GitHub appliance need not be put in maintenance mode for
+   the duration of the backup run.
+ - Incremental backup of Git repository data. Only changes since the last
    snapshot are transferred, leading to faster backup runs and lower network
    bandwidth and machine utilization.
- - Multiple backup snapshots with configurable retention periods.
- - Efficient snapshot storage **("rsync" strategy only)**. Only data added since the previous snapshot
+ - Efficient snapshot storage. Only data added since the previous snapshot
    consumes new space on the backup host.
+ - Multiple backup snapshots with configurable retention periods.
  - Backup commands run under the lowest CPU/IO priority on the GitHub appliance,
-   reducing performance impact while backups are in progress **("rsync" strategy only)**.
+   reducing performance impact while backups are in progress.
  - Runs under most Linux/Unix environments.
  - MIT licensed, open source software maintained by GitHub, Inc.
 
@@ -89,11 +89,10 @@ over time is recommended.
 ##### GitHub Enterprise version requirements
 
 For online and incremental backup support, the GitHub Enterprise instance must
-be running version 11.10.343 or above. Earlier versions may use the "tarball"
-backup strategy (see `backup.config` for more information) but online and
-incremental backups are not supported. We strongly recommend upgrading to
-version 11.10.343 or later. Visit enterprise.github.com to [download the most
-recent GitHub Enterprise version][5].
+be running version 11.10.343 or above. Earlier versions are supported by the
+backup utilities but online and incremental backups are not supported. We
+strongly recommend upgrading to version 11.10.343 or later. Visit
+https://enterprise.github.com to [download the most recent GitHub Enterprise version][5].
 
 ### Example usage
 
@@ -138,10 +137,15 @@ enable when output is logged to a file.
 ### Scheduling
 
 Regular backups should be scheduled using `cron(8)` or similar command
-scheduling service on the backup host. We recommend a backup frequency of hourly
-for the (default) rsync backup strategy, or daily for the more intense tarball
-backup strategy. The backup frequency will dictate the worst case recovery
-point objective (RPO) in your backup plan.
+scheduling service on the backup host.
+
+We recommend a backup frequency of hourly for GitHub Enterprise versions
+11.10.343 or greater, and daily for versions prior to 11.10.342. The more
+frequent schedule is possible on newer versions because of the improved online
+and incremental backup support.
+
+The backup frequency will dictate the worst case recovery point objective (RPO)
+in your backup plan.
 
 The following examples assume the backup utilities are installed under
 `/opt/backup-utils`. The crontab entry should be made under the same user that

@@ -13,7 +13,7 @@ case "$1" in
         ;;
     BGSAVE)
         mkdir -p "$GHE_REMOTE_DATA_DIR/redis"
-        echo "fake redis data" > "$GHE_REMOTE_DATA_DIR/redis/redis.rdb"
+        echo "fake redis data" > "$GHE_REMOTE_DATA_DIR/redis/dump.rdb"
         ;;
     *)
         echo "unexpected redis-cli command: $1" 1>&2

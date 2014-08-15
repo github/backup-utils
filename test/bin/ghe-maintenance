@@ -1,0 +1,4 @@
+#!/bin/sh
+# Emulates a remote GitHub ghe-maintenance command. Tests use this to assert
+# that a command was executed.
+true

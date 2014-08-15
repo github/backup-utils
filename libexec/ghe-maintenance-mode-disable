@@ -1,0 +1,19 @@
+#!/bin/sh
+#/ Usage: ghe-maintenance-mode-disable <host>
+#/ Disable maintenance mode on GitHub appliance at <host>. This opens up access
+#/ to the appliance.
+set -e
+
+# Bring in the backup configuration
+cd $(dirname "$0")/..
+. libexec/ghe-backup-config
+
+# Show usage and bail with no arguments
+[ -z "$*" ] && print_usage
+
+# Grab host arg
+host="$1"
+
+# SSH to the appliance and run the remote maintenance mode enable command
+echo "Disabling maintenance mode on $host ..."
+ghe-ssh "$host" -- "ghe-maintenance -u"

@@ -4,12 +4,6 @@
 # Bring in testlib
 . $(dirname "$0")/testlib.sh
 
-# Write a fake license file for backup
-GHE_REMOTE_LICENSE_FILE="$TRASHDIR/remote/enterprise.ghl"
-export GHE_REMOTE_LICENSE_FILE
-mkdir -p "$TRASHDIR/remote"
-echo "fake license data" > "$GHE_REMOTE_LICENSE_FILE"
-
 # Create the backup data dir and fake remote repositories dirs
 mkdir -p "$GHE_DATA_DIR" "$GHE_REMOTE_DATA_DIR"
 

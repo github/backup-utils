@@ -32,9 +32,13 @@ TRASHDIR="$TMPDIR/$(basename "$0")-$$"
 # Point commands at the test backup.config file
 GHE_BACKUP_CONFIG="$ROOTDIR/test/backup.config"
 GHE_DATA_DIR="$TRASHDIR/data"
+export GHE_BACKUP_CONFIG GHE_DATA_DIR
+
+# Point remote path locations to trashdir for test process
 GHE_REMOTE_DATA_DIR="$TRASHDIR/remote"
 GHE_REMOTE_METADATA_FILE="$GHE_REMOTE_DATA_DIR/enterprise/chef_metadata.json"
-export GHE_BACKUP_CONFIG GHE_DATA_DIR GHE_REMOTE_DATA_DIR GHE_REMOTE_METADATA_FILE
+GHE_REMOTE_LICENSE_FILE="$GHE_REMOTE_DATA_DIR/enterprise/enterprise.ghl"
+export GHE_REMOTE_DATA_DIR GHE_REMOTE_METADATA_FILE GHE_REMOTE_LICENSE_FILE
 
 # keep track of num tests and failures
 tests=0
@@ -70,6 +74,13 @@ setup_remote_metadata () {
     ' > "$GHE_REMOTE_METADATA_FILE"
 }
 setup_remote_metadata
+
+setup_remote_license () {
+    mkdir -p "$(dirname "$GHE_REMOTE_LICENSE_FILE")"
+    echo "fake license data" > "$GHE_REMOTE_LICENSE_FILE"
+}
+setup_remote_license
+
 
 # Mark the beginning of a test. A subshell should immediately follow this
 # statement.

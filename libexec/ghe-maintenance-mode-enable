@@ -1,0 +1,73 @@
+#!/bin/sh
+#/ Usage: ghe-maintenance-mode-enable [-w] <host>
+#/ Enable maintenance mode on GitHub appliance at <host>. This locks down all
+#/ access to the appliance to prevent writes to datastores and waits for all
+#/ currently running processes to bleed out.
+set -e
+
+# Bring in the backup configuration
+cd $(dirname "$0")/..
+. libexec/ghe-backup-config
+
+# Parse args
+wait_procs=true
+while true; do
+    case "$1" in
+        -n|--no-wait)
+            wait_procs=false
+            shift
+            ;;
+        -*)
+            echo "ghe-maintenance-mode-enable: illegal argument: $1" 1>&2
+            exit 1
+            ;;
+        *)
+            break
+            ;;
+    esac
+done
+
+# Show usage and bail with no arguments
+[ -z "$*" ] && print_usage
+
+# Grab host arg
+host="$1"
+
+# SSH to the appliance and run the remote maintenance mode enable command
+echo "Enabling maintenance mode on $host ..."
+ghe-ssh "$host" -- "ghe-maintenance -s"
+
+# Bail out early if --no-wait was given.
+$wait_procs || exit 0
+
+# Wait for all writing processes to complete
+ghe-ssh "$host" -- /bin/sh <<EOF
+    set -e
+
+    # determine local admin auth token
+    token=\$(md5sum "$GHE_REMOTE_LICENSE_FILE" | cut -f 1 -d ' ')
+
+    # use http or https based on appliance version
+    protocol=http
+    curl -s -X HEAD http://127.0.0.1:1337/setup/api?license_md5=\$token ||
+    protocol='--insecure https'
+
+    # poll maintenance status admin API until all procs bleed out
+    while true; do
+        count=\$(
+            curl -s \$protocol://127.0.0.1:1337/setup/api/maintenance?license_md5=\$token |
+            python -c "import json, sys; \
+                obj = json.load(sys.stdin); \
+                print sum(int(s['number']) for s in obj['connection_services'])"
+        )
+
+        if [ \$count -gt 0 ]; then
+            echo "Waiting for \$count active processes to finish ..."
+            sleep 5
+        else
+            break
+        fi
+    done
+
+    true
+EOF

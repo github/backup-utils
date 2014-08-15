@@ -25,17 +25,31 @@ mkdir -p "$GHE_SNAPSHOT_DIR"
 cd "$GHE_SNAPSHOT_DIR"
 touch "incomplete"
 
+# This is toggled true once we've successfully re-enabled maintenance mode
+# on the remote appliance. This is used to avoid trying to re-enable in the exit
+# trap again on successful backup runs.
+GHE_MAINTENANCE_MODE_ENABLED=false
+
 # To prevent multiple backup runs happening at the same time, we create a
 # in-progress symlink pointing to the snapshot directory. This will fail if
 # another backup is already in progress, giving us a form of locking.
 #
 # Set up a trap to remove the in-progress symlink if we exit for any reason but
 # verify that we own the in-progress symlink before doing so.
+#
+# The cleanup trap also handles disabling maintenance mode on the appliance if
+# it was automatically enabled.
 cleanup () {
     if [ $(readlink ../in-progress) = "$GHE_SNAPSHOT_TIMESTAMP" ]; then
         unlink ../in-progress
     fi
+
+    if $GHE_MAINTENANCE_MODE_ENABLED; then
+        ghe-maintenance-mode-disable "$host"
+    fi
 }
+
+# Setup exit traps
 trap 'cleanup' EXIT
 trap 'exit $?' INT # ^C always terminate
 
@@ -52,6 +66,13 @@ echo "Starting backup of $host in snapshot $GHE_SNAPSHOT_TIMESTAMP"
 
 # Perform a host-check and establish the remote version in GHE_REMOTE_VERSION.
 ghe_remote_version_required
+
+# If we're using the tarball backup strategy, put the appliance in maintenance
+# mode and wait for all writing processes to bleed out.
+if [ "$GHE_BACKUP_STRATEGY" = "tarball" ]; then
+    ghe-maintenance-mode-enable "$host"
+    GHE_MAINTENANCE_MODE_ENABLED=true
+fi
 
 echo "Backing up GitHub settings ..."
 ghe-ssh "$host" -- 'ghe-export-settings' > settings.json ||
@@ -88,6 +109,14 @@ failures="$failures pages"
 echo "Backing up Elasticsearch indices ..."
 ghe-backup-es-${GHE_BACKUP_STRATEGY} ||
 failures="$failures elasticsearch"
+
+# If we're using the tarball backup strategy, bring the appliance out of
+# maintenance mode now instead of waiting until after pruning stale snapshots.
+if $GHE_MAINTENANCE_MODE_ENABLED; then
+    ghe-maintenance-mode-disable "$host" ||
+        echo "Warning: Disabling maintenance mode on $host failed."
+    GHE_MAINTENANCE_MODE_ENABLED=false
+fi
 
 # If everything was successful, mark the snapshot as complete, update the
 # current symlink to point to the new snapshot and prune expired and failed

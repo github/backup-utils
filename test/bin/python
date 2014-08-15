@@ -1,0 +1,24 @@
+#!/bin/sh
+# Usage: python -c '...'
+# Fake python command stub for tests. Python is used on the remote side
+# only to parse JSON data retreived from the maintenance status API and produce
+# a number of active writing processes. Verify that python code passes syntax
+# checks and fake a 0 process count.
+set -e
+
+# make sure we have a -c arg
+if [ "$1" != '-c' ]; then
+    echo "unexpected invocation: python -c '...' expected." 1>&2
+    exit 1
+fi
+
+# read in fake data from stdin
+cat >/dev/null
+
+# verify the python compiles at least. if this fails then the python code passed
+# to -c failed basic syntax checks.
+echo "$2" |
+/usr/bin/python -c "import sys; __import__('compiler').parse(sys.stdin.read())"
+
+# pretend we found zero processes.
+echo 0

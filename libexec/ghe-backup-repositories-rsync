@@ -70,7 +70,7 @@ echo "
     sudo -u git touch '$sync_in_progress_file'
 
     sanity=0
-    while [ \$sanity -lt 60 ]; do
+    while [ \$sanity -lt $GHE_GIT_COOLDOWN_PERIOD ]; do
         if ps axo pid,args | grep -q git.g[c]; then
             sleep 1
             sanity=\$(( sanity + 1 ))

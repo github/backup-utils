@@ -89,6 +89,11 @@ GHE_SNAPSHOT_DIR="$GHE_DATA_DIR"/"$GHE_SNAPSHOT_TIMESTAMP"
 : ${GHE_NICE:="nice -n 19"}
 : ${GHE_IONICE:="ionice -c 3"}
 
+# The number of seconds to wait for in progress git-gc processes to complete
+# before starting the sync of git data. See libexec/ghe-backup-repositories-rsync
+# for more information. Default: 10 minutes.
+: ${GHE_GIT_COOLDOWN_PERIOD:=600}
+
 # Set "true" to get verbose logging of all ssh commands on stderr
 : ${GHE_VERBOSE_SSH:=false}
 

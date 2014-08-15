@@ -1,0 +1,24 @@
+#!/bin/sh
+#/ Usage: ghe-backup-redis
+#/ Take a snapshot of all Redis data. This is needed because older versions of
+#/ the remote side ghe-export-redis command use a blocking SAVE instead of a
+#/ non-blocking BGSAVE.
+#/
+#/ Note: This script typically isn't called directly. It's invoked by the
+#/ ghe-backup command.
+set -e
+
+# Bring in the backup configuration
+cd $(dirname "$0")/..
+. libexec/ghe-backup-config
+
+# Force a redis BGSAVE, and wait for it to complete.
+ghe-ssh "$GHE_HOSTNAME" /bin/sh <<EOF
+    set -e
+    timestamp=\$(redis-cli LASTSAVE)
+    redis-cli BGSAVE 1>/dev/null
+    while [ \$(redis-cli LASTSAVE) -eq \$timestamp ]; do
+        sleep 1
+    done
+    cat '$GHE_REMOTE_DATA_DIR/redis/dump.rdb'
+EOF

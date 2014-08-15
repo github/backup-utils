@@ -50,6 +50,10 @@ begin_test "ghe-backup first snapshot"
     [ -f "$GHE_DATA_DIR/current/version" ]
     [ $(cat "$GHE_DATA_DIR/current/version") = "v11.10.343" ]
 
+    # check that the strategy file was written
+    [ -f "$GHE_DATA_DIR/current/strategy" ]
+    [ $(cat "$GHE_DATA_DIR/current/strategy") = "rsync" ]
+
     # check that settings were backed up
     [ "$(cat "$GHE_DATA_DIR/current/settings.json")" = "fake ghe-export-settings data" ]
 
@@ -154,6 +158,10 @@ begin_test "ghe-backup tarball strategy"
 
     # run backup with tarball strategy
     GHE_BACKUP_STRATEGY="tarball" ghe-backup
+
+    # check that the strategy file was written
+    [ -f "$GHE_DATA_DIR/current/strategy" ]
+    [ $(cat "$GHE_DATA_DIR/current/strategy") = "tarball" ]
 
     # check that repositories tarball exists
     [ -f "$GHE_DATA_DIR/current/repositories.tar" ]

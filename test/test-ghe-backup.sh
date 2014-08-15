@@ -68,7 +68,7 @@ begin_test "ghe-backup first snapshot"
     [ "$(gzip -dc < "$GHE_DATA_DIR/current/mysql.sql.gz")" = "fake ghe-export-mysql data" ]
 
     # check that redis data was backed up
-    [ "$(cat "$GHE_DATA_DIR/current/redis.rdb")" = "fake ghe-export-redis data" ]
+    [ "$(cat "$GHE_DATA_DIR/current/redis.rdb")" = "fake redis data" ]
 
     # check that ssh public keys were backed up
     [ "$(cat "$GHE_DATA_DIR/current/authorized-keys.json")" = "fake ghe-export-authorized-keys data" ]
@@ -127,7 +127,7 @@ begin_test "ghe-backup subsequent snapshot"
     [ "$(gzip -dc < "$GHE_DATA_DIR/current/mysql.sql.gz")" = "fake ghe-export-mysql data" ]
 
     # check that redis data was backed up
-    [ "$(cat "$GHE_DATA_DIR/current/redis.rdb")" = "fake ghe-export-redis data" ]
+    [ "$(cat "$GHE_DATA_DIR/current/redis.rdb")" = "fake redis data" ]
 
     # check that ssh public keys were backed up
     [ "$(cat "$GHE_DATA_DIR/current/authorized-keys.json")" = "fake ghe-export-authorized-keys data" ]

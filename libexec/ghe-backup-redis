@@ -16,7 +16,7 @@ cd $(dirname "$0")/..
 ghe-ssh "$GHE_HOSTNAME" /bin/sh <<EOF
     set -e
     timestamp=\$(redis-cli LASTSAVE)
-    redis-cli BGSAVE 1>&2
+    redis-cli BGSAVE 1>/dev/null
     while [ \$(redis-cli LASTSAVE) -eq \$timestamp ]; do
         sleep 1
     done

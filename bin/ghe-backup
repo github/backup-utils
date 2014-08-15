@@ -64,8 +64,12 @@ fi
 
 echo "Starting backup of $host in snapshot $GHE_SNAPSHOT_TIMESTAMP"
 
-# Perform a host-check and establish the remote version in GHE_REMOTE_VERSION.
+# Perform a host connection check and establish the remote appliance version.
+# The version is available in the GHE_REMOTE_VERSION variable and also written
+# to a version file in the snapshot directory itself.
 ghe_remote_version_required
+echo "$GHE_REMOTE_VERSION" > version
+
 
 # If we're using the tarball backup strategy, put the appliance in maintenance
 # mode and wait for all writing processes to bleed out.

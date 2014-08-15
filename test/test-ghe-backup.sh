@@ -7,13 +7,13 @@
 # Create the backup data dir and fake remote repositories dirs
 mkdir -p "$GHE_DATA_DIR" "$GHE_REMOTE_DATA_DIR"
 
-# Create some fake pages data in the snapshot
+# Create some fake pages data in the remote data directory
 mkdir -p "$GHE_REMOTE_DATA_DIR/pages"
 cd "$GHE_REMOTE_DATA_DIR/pages"
 mkdir -p alice bob
 touch alice/index.html bob/index.html
 
-# Create some fake elasticsearch data in the snapshot
+# Create some fake elasticsearch data in the remote data directory
 mkdir -p "$GHE_REMOTE_DATA_DIR/elasticsearch"
 cd "$GHE_REMOTE_DATA_DIR/elasticsearch"
 echo "fake ES yml file" > elasticsearch.yml
@@ -45,6 +45,10 @@ begin_test "ghe-backup first snapshot"
 
     # check that current symlink was created
     [ -d "$GHE_DATA_DIR/current" ]
+
+    # check that the version file was written
+    [ -f "$GHE_DATA_DIR/current/version" ]
+    [ $(cat "$GHE_DATA_DIR/current/version") = "v11.10.343" ]
 
     # check that settings were backed up
     [ "$(cat "$GHE_DATA_DIR/current/settings.json")" = "fake ghe-export-settings data" ]

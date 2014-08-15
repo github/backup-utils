@@ -3,7 +3,7 @@
 #/ Take a tarball snapshot of all Elasticsearch data.
 #/
 #/ Note: This script typically isn't called directly. It's invoked by the
-#/ ghe-backup command when the GHE_BACKUP_STRATEGY is set to "tarball".
+#/ ghe-backup when the tarball backup strategy is used.
 set -e
 
 # Bring in the backup configuration

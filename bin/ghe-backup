@@ -70,6 +70,15 @@ echo "Starting backup of $host in snapshot $GHE_SNAPSHOT_TIMESTAMP"
 ghe_remote_version_required
 echo "$GHE_REMOTE_VERSION" > version
 
+# Determine whether to use the rsync or tarball backup strategy based on the
+# remote appliance version. The tarball strategy must be used with GitHub
+# Enterprise versions prior to 11.10.340 since rsync is not available.
+# The tarball strategy may be forced for newer versions by setting
+# GHE_BACKUP_STRATEGY=tarball in backup.config but this is not recommended.
+: ${GHE_BACKUP_STRATEGY:=rsync}
+if [ $GHE_VERSION_MAJOR -eq 1 -a $GHE_VERSION_PATCH -lt 340 ]; then
+    GHE_BACKUP_STRATEGY="tarball"
+fi
 
 # If we're using the tarball backup strategy, put the appliance in maintenance
 # mode and wait for all writing processes to bleed out.

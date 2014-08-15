@@ -57,8 +57,7 @@ if [ ! -d "$GHE_DATA_DIR" ]; then
     mkdir -p "$GHE_DATA_DIR"
 fi
 
-# Set some defaults if needed
-: ${GHE_BACKUP_STRATEGY:=rsync}
+# Set some defaults if needed.
 : ${GHE_NUM_SNAPSHOTS:=10}
 
 # Generate a backup timestamp if one has not already been generated.

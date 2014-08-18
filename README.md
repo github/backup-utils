@@ -15,22 +15,22 @@ This repository includes backup and recovery utilities for [GitHub Enterprise][1
 
 ### Features
 
-The backup utilities are based on the server-side [backup][8] and [restore][9]
-capabilities built in to GitHub Enterprise but implement a number of advanced
-features for backup hosts:
+The backup utilities are based on the backup and restore capabilities built
+in to GitHub Enterprise but implement a number of advanced features for
+backup hosts:
 
- - Complete GitHub Enterprise backup and restore system via two simple utilities:<br>
+ - Complete GitHub Enterprise backup and recovery system via two simple utilities:<br>
    `ghe-backup` and `ghe-restore`.
- - Online backups **("rsync" strategy only)**. The GitHub appliance need not be put in maintenance
-   mode for the duration of the backup run.
- - Incremental backup of Git repository data **("rsync" strategy only)**. Only changes since the last
+ - Online backups. The GitHub appliance need not be put in maintenance mode for
+   the duration of the backup run.
+ - Incremental backup of Git repository data. Only changes since the last
    snapshot are transferred, leading to faster backup runs and lower network
    bandwidth and machine utilization.
- - Multiple backup snapshots with configurable retention periods.
- - Efficient snapshot storage **("rsync" strategy only)**. Only data added since the previous snapshot
+ - Efficient snapshot storage. Only data added since the previous snapshot
    consumes new space on the backup host.
+ - Multiple backup snapshots with configurable retention periods.
  - Backup commands run under the lowest CPU/IO priority on the GitHub appliance,
-   reducing performance impact while backups are in progress **("rsync" strategy only)**.
+   reducing performance impact while backups are in progress.
  - Runs under most Linux/Unix environments.
  - MIT licensed, open source software maintained by GitHub, Inc.
 
@@ -89,10 +89,10 @@ over time is recommended.
 ##### GitHub Enterprise version requirements
 
 For online and incremental backup support, the GitHub Enterprise instance must
-be running version 11.10.343 or above. Earlier versions may use the "tarball"
-backup strategy (see `backup.config` for more information) but online and
-incremental backups are not supported. We strongly recommend upgrading to
-version 11.10.343 or later. Visit enterprise.github.com to [download the most
+be running version 11.10.341 or above. Earlier versions are supported by the
+backup utilities but online and incremental backups are not supported. We
+strongly recommend upgrading to the latest release if you're running a version
+prior to 11.10.341. Visit https://enterprise.github.com to [download the most
 recent GitHub Enterprise version][5].
 
 ### Example usage
@@ -105,31 +105,33 @@ Creating a backup snapshot:
 
     $ ghe-backup
     Starting backup of github.example.com in snapshot 20140727T224148
-    Connect github.example.com OK
+    Connect github.example.com OK (v11.10.343)
     Backing up GitHub settings ...
-    Backing up SSH public keys ...
+    Backing up SSH authorized keys ...
     Backing up SSH host keys ...
-    Backing up Git repositories ...
-    Backing up GitHub Pages ...
     Backing up MySQL database ...
     Backing up Redis database ...
+    Backing up Git repositories ...
+    Backing up GitHub Pages ...
     Backing up Elasticsearch indices ...
     Completed backup of github.example.com in snapshot 20140727T224148 at 23:01:58
 
-Restoring from last successful snapshot to a newly provisioned VM at IP
-"5.5.5.5":
+Restoring from last successful snapshot to a newly provisioned GitHub Enterprise
+appliance at IP "5.5.5.5":
 
     $ ghe-restore 5.5.5.5
-    Starting restore of github-standby.example.com from snapshot 20140727T224148
-    Connect github-standby.example.com OK
+    Starting rsync restore of 5.5.5.5 from snapshot 20140727T224148
+    Connect 5.5.5.5 OK (v11.10.343)
+    Enabling maintenance mode on 5.5.5.5 ...
     Restoring Git repositories ...
     Restoring GitHub Pages ...
     Restoring MySQL database ...
     Restoring Redis database ...
+    Restoring SSH authorized keys ...
     Restoring Elasticsearch indices ...
-    Restoring SSH public keys ...
     Restoring SSH host keys ...
-    Completed restore of github-standby.example.com from snapshot 20140727T224148
+    Completed restore of 5.5.5.5 from snapshot 20140817T174152
+    Visit https://5.5.5.5/setup/settings to configure the recovered appliance.
 
 The `ghe-backup` and `ghe-restore` commands also have a verbose output mode
 (`-v`) that lists files as they're being transferred. It's often useful to
@@ -138,10 +140,15 @@ enable when output is logged to a file.
 ### Scheduling
 
 Regular backups should be scheduled using `cron(8)` or similar command
-scheduling service on the backup host. We recommend a backup frequency of hourly
-for the (default) rsync backup strategy, or daily for the more intense tarball
-backup strategy. The backup frequency will dictate the worst case recovery
-point objective (RPO) in your backup plan.
+scheduling service on the backup host.
+
+We recommend a backup frequency of hourly for GitHub Enterprise versions
+11.10.341 or greater, and daily for versions prior to 11.10.341. The more
+frequent schedule is possible on newer versions because of the improved online
+and incremental backup support.
+
+The backup frequency will dictate the worst case recovery point objective (RPO)
+in your backup plan.
 
 The following examples assume the backup utilities are installed under
 `/opt/backup-utils`. The crontab entry should be made under the same user that

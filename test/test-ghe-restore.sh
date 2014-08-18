@@ -41,6 +41,7 @@ echo "fake ghe-export-authorized-keys data" > "$GHE_DATA_DIR/current/authorized-
 echo "fake ghe-export-es-indices data" > "$GHE_DATA_DIR/current/elasticsearch.tar"
 echo "fake ghe-export-ssh-host-keys data" > "$GHE_DATA_DIR/current/ssh-host-keys.tar"
 echo "fake ghe-export-repositories data" > "$GHE_DATA_DIR/current/repositories.tar"
+echo "rsync" > "$GHE_DATA_DIR/current/strategy"
 
 begin_test "ghe-restore"
 (
@@ -98,20 +99,6 @@ begin_test "ghe-restore with host arg"
 )
 end_test
 
-begin_test "ghe-restore with tarball strategy"
-(
-    set -e
-    rm -rf "$GHE_REMOTE_DATA_DIR"
-    setup_remote_metadata
-
-    # run it
-    output=$(/usr/bin/env GHE_BACKUP_STRATEGY="tarball" ghe-restore -v localhost)
-
-    # verify ghe-import-repositories was run on remote side with fake tarball
-    echo "$output" | grep -q 'fake ghe-export-repositories data'
-)
-end_test
-
 begin_test "ghe-restore no host arg or configured restore host"
 (
     set -e
@@ -123,5 +110,20 @@ begin_test "ghe-restore no host arg or configured restore host"
 
     # verify running ghe-restore fails
     ! ghe-restore
+)
+end_test
+
+begin_test "ghe-restore with tarball strategy"
+(
+    set -e
+    rm -rf "$GHE_REMOTE_DATA_DIR"
+    setup_remote_metadata
+
+    # run it
+    echo "tarball" > "$GHE_DATA_DIR/current/strategy"
+    output=$(ghe-restore -v localhost)
+
+    # verify ghe-import-repositories was run on remote side with fake tarball
+    echo "$output" | grep -q 'fake ghe-export-repositories data'
 )
 end_test

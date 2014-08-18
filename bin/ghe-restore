@@ -51,8 +51,14 @@ if [ ! -d "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT" ]; then
     exit 1
 fi
 
+# Directory location of the snapshot.
 snapshot_dir="$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT"
-echo "Starting restore of $host from snapshot $GHE_RESTORE_SNAPSHOT"
+
+# Figure out whether to use the tarball or rsync restore strategy based on the
+# strategy file written in the snapshot directory.
+GHE_BACKUP_STRATEGY=$(cat "$snapshot_dir/strategy")
+
+echo "Starting $GHE_BACKUP_STRATEGY restore of $host from snapshot $GHE_RESTORE_SNAPSHOT"
 
 # Perform a host-check and establish the remote version in GHE_REMOTE_VERSION.
 ghe_remote_version_required "$host"

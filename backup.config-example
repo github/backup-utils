@@ -9,14 +9,6 @@ GHE_HOSTNAME="github.example.com"
 # elsewhere for backing up to a separate partition / mount point.
 GHE_DATA_DIR="data"
 
-# The Git repository backup strategy. This may be set to either "rsync"
-# (default) or "tarball". The rsync backup strategy takes online and
-# incremental backups and is highly recommended for GitHub Enterprise versions
-# 11.10.343 or greater. The "tarball" strategy takes full backups on each run
-# and requires the GitHub instance be put in maintenance mode for the duration
-# of the backup. It's provided for older versions.
-GHE_BACKUP_STRATEGY="rsync"
-
 # The number of backup snapshots to retain. Old snapshots are pruned after each
 # successful ghe-backup run. This option should be tuned based on the frequency
 # of scheduled backup runs. If backups are scheduled hourly, snapshots will be

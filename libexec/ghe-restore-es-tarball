@@ -3,7 +3,7 @@
 #/ Restore a tarball snapshot of all ES data to a GitHub instance.
 #/
 #/ Note: This script typically isn't called directly. It's invoked by the
-#/ ghe-restore command when the GHE_BACKUP_STRATEGY is set to "tarball".
+#/ ghe-restore command when the tarball strategy is used.
 set -e
 
 # Bring in the backup configuration

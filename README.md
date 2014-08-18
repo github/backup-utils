@@ -15,9 +15,9 @@ This repository includes backup and recovery utilities for [GitHub Enterprise][1
 
 ### Features
 
-The backup utilities are based on the backup and restore capabilities built
-in to GitHub Enterprise but implement a number of advanced features for
-backup hosts:
+The backup utilities implement a number of advanced capabilities for backup hosts, built on top of the backup and restore features already included in GitHub Enterprise.
+
+These advanced features include:
 
  - Complete GitHub Enterprise backup and recovery system via two simple utilities:<br>
    `ghe-backup` and `ghe-restore`.

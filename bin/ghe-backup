@@ -80,7 +80,7 @@ if [ $GHE_VERSION_MAJOR -eq 1 -a $GHE_VERSION_PATCH -lt 340 ]; then
     GHE_BACKUP_STRATEGY="tarball"
 fi
 
-# Record the strategy with the snapshot so we know when we restore.
+# Record the strategy with the snapshot so we will know how to restore.
 echo "$GHE_BACKUP_STRATEGY" > strategy
 
 # If we're using the tarball backup strategy, put the appliance in maintenance

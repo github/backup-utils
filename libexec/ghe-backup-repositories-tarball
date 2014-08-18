@@ -3,7 +3,7 @@
 #/ Take a tarball snapshot of all Git repository data.
 #/
 #/ Note: This script typically isn't called directly. It's invoked by the
-#/ ghe-backup command when the tarball backup strategy is used.
+#/ ghe-backup command when the tarball strategy is used.
 set -e
 
 # Bring in the backup configuration

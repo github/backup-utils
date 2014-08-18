@@ -184,8 +184,11 @@ To schedule nightly backup snapshots instead, use:
 
 Backup snapshots are stored in rotating increment directories named after the
 date and time the snapshot was taken. Each snapshot directory contains a full
-backup snapshot of all relevant data stores. The following example shows a
-snapshot file hierarchy for hourly
+backup snapshot of all relevant data stores.
+
+The following example shows a
+snapshot file hierarchy for hourly frequency. There are five snapshot directories, with the `current` symlink pointing to the most recent
+successful snapshot:
 
     ./data
        |- 20140724T010000
@@ -201,9 +204,6 @@ snapshot file hierarchy for hourly
           |- es-indices.tar
           |- repositories/
        |- current -> 20140727T010000
-
-In the example above, five snapshot directories exist with the most recent
-successful snapshot being pointed to by the `current` symlink.
 
 Note: the `GHE_DATA_DIR` variable set in `backup.config` can be used to change
 the disk location where snapshots are written.

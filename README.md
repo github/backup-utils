@@ -51,9 +51,9 @@ GitHub appliance over SSH (port 22).
 ##### Storage
 
 Storage requirements vary based on current Git repository disk usage and growth
-patterns of the GitHub appliance. Allocating at least 5x the amount of storage
+patterns of the GitHub appliance. We recommend allocating at least 5x the amount of storage
 allocated to the primary GitHub appliance for historical snapshots and growth
-over time is recommended.
+over time.
 
 ##### GitHub Enterprise version
 

@@ -58,8 +58,10 @@ over time.
 ##### GitHub Enterprise version
 
 For online and incremental backup support, the GitHub Enterprise instance must
-be running version 11.10.341 or above. Earlier versions are supported by the
-backup utilities but online and incremental backups are not supported. We
+be running version 11.10.341 or above.
+
+Earlier versions are supported by the
+backup utilities, but online and incremental backups are not supported. We
 strongly recommend upgrading to the latest release if you're running a version
 prior to 11.10.341. Visit https://enterprise.github.com to [download the most
 recent GitHub Enterprise version][5].

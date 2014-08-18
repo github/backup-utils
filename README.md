@@ -89,10 +89,11 @@ over time is recommended.
 ##### GitHub Enterprise version requirements
 
 For online and incremental backup support, the GitHub Enterprise instance must
-be running version 11.10.343 or above. Earlier versions are supported by the
+be running version 11.10.341 or above. Earlier versions are supported by the
 backup utilities but online and incremental backups are not supported. We
-strongly recommend upgrading to version 11.10.343 or later. Visit
-https://enterprise.github.com to [download the most recent GitHub Enterprise version][5].
+strongly recommend upgrading to the latest release if you're running a version
+prior to 11.10.341. Visit https://enterprise.github.com to [download the most
+recent GitHub Enterprise version][5].
 
 ### Example usage
 
@@ -142,7 +143,7 @@ Regular backups should be scheduled using `cron(8)` or similar command
 scheduling service on the backup host.
 
 We recommend a backup frequency of hourly for GitHub Enterprise versions
-11.10.343 or greater, and daily for versions prior to 11.10.342. The more
+11.10.341 or greater, and daily for versions prior to 11.10.341. The more
 frequent schedule is possible on newer versions because of the improved online
 and incremental backup support.
 

@@ -5,8 +5,9 @@ This repository includes backup and recovery utilities for [GitHub Enterprise][1
 
 - **[Features](#features)**
 - **[Requirements](#requirements)**
-  - **[Backup host and storage requirements](#backup-host-and-storage-requirements)**
-  - **[GitHub Enterprise version requirements](#github-enterprise-version-requirements)**
+  - **[Backup host](#backup-host)**
+  - **[Storage](#storage)**
+  - **[GitHub Enterprise version](#github-enterprise-version)**
 - **[Getting started](#getting-started)**
 - **[Example usage](#example-usage)**
 - **[Scheduling](#scheduling)**
@@ -39,7 +40,7 @@ These advanced features include:
 The backup utilities should be run on a host dedicated to long-term permanent
 storage and must have network connectivity with the GitHub Enterprise appliance.
 
-##### Backup host and storage requirements
+##### Backup host
 
 Backup host software requirements are modest: Linux or other modern Unix
 operating system with [rsync][4] v2.6.4 or newer.
@@ -47,12 +48,14 @@ operating system with [rsync][4] v2.6.4 or newer.
 The backup host must be able to establish network connections outbound to the
 GitHub appliance over SSH (port 22).
 
+##### Storage
+
 Storage requirements vary based on current Git repository disk usage and growth
 patterns of the GitHub appliance. Allocating at least 5x the amount of storage
 allocated to the primary GitHub appliance for historical snapshots and growth
 over time is recommended.
 
-##### GitHub Enterprise version requirements
+##### GitHub Enterprise version
 
 For online and incremental backup support, the GitHub Enterprise instance must
 be running version 11.10.341 or above. Earlier versions are supported by the

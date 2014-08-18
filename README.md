@@ -10,8 +10,9 @@ This repository includes backup and recovery utilities for [GitHub Enterprise][1
   - **[GitHub Enterprise version](#github-enterprise-version)**
 - **[Getting started](#getting-started)**
 - **[Using the backup and restore commands](#using-the-backup-and-restore-commands)**
-  - **[Example usage](#example-usage)**
-- **[Scheduling](#scheduling)**
+  - **[Example backup and restore usage](#example-usage)**
+- **[Scheduling backups](#scheduling-backups)**
+  - **[Example scheduling usage](#example-scheduling-usage)
 - **[Backup snapshot file structure](#backup-snapshot-file-structure)**
 - **[Support](#support)**
 
@@ -102,7 +103,7 @@ snapshots of repository data, along with full snapshots of all other pertinent
 data stores.
 - The `ghe-restore` command restores snapshots to the same or separate GitHub appliance.
 
-##### Example usage
+##### Example backup and restore usage
 
 The following assumes that `GHE_HOSTNAME` is set to "github.example.com" in
 `backup.config`.
@@ -143,18 +144,18 @@ The `ghe-backup` and `ghe-restore` commands also have a verbose output mode
 (`-v`) that lists files as they're being transferred. It's often useful to
 enable when output is logged to a file.
 
-### Scheduling
+### Scheduling backups
 
 Regular backups should be scheduled using `cron(8)` or similar command
-scheduling service on the backup host.
+scheduling service on the backup host. The backup frequency will dictate the worst case recovery point objective (RPO)
+in your backup plan. We recommend the following:
 
-We recommend a backup frequency of hourly for GitHub Enterprise versions
-11.10.341 or greater, and daily for versions prior to 11.10.341. The more
-frequent schedule is possible on newer versions because of the improved online
-and incremental backup support.
+- **Hourly backup** for GitHub Enterprise versions
+11.10.341 or greater (due to improved online
+and incremental backup support)
+- **Daily backup** for versions prior to 11.10.341
 
-The backup frequency will dictate the worst case recovery point objective (RPO)
-in your backup plan.
+##### Example scheduling usage
 
 The following examples assume the backup utilities are installed under
 `/opt/backup-utils`. The crontab entry should be made under the same user that

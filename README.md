@@ -10,9 +10,7 @@ This repository includes backup and recovery utilities for [GitHub Enterprise][1
   - **[GitHub Enterprise version](#github-enterprise-version)**
 - **[Getting started](#getting-started)**
 - **[Using the backup and restore commands](#using-the-backup-and-restore-commands)**
-  - **[Example backup and restore usage](#example-usage)**
 - **[Scheduling backups](#scheduling-backups)**
-  - **[Example scheduling usage](#example-scheduling-usage)
 - **[Backup snapshot file structure](#backup-snapshot-file-structure)**
 - **[Support](#support)**
 

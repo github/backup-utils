@@ -9,7 +9,8 @@ This repository includes backup and recovery utilities for [GitHub Enterprise][1
   - **[Storage](#storage)**
   - **[GitHub Enterprise version](#github-enterprise-version)**
 - **[Getting started](#getting-started)**
-- **[Example usage](#example-usage)**
+- **[Using the backup and restore commands](#using-the-backup-and-restore-commands)**
+  - **[Example usage](#example-usage)**
 - **[Scheduling](#scheduling)**
 - **[Backup snapshot file structure](#backup-snapshot-file-structure)**
 - **[Support](#support)**
@@ -90,17 +91,18 @@ recent GitHub Enterprise version][5].
 
  5. Run `bin/ghe-backup` to perform an initial full backup.
 
-Subsequent invocations of the `ghe-backup` command will create incremental
-snapshots of repository data along with full snapshots of all other pertinent
-data stores. Snapshots may be restored to the same or separate GitHub appliance
-via the `ghe-restore` command. See the *Example usage* section below for more
-detailed information.
-
 [release]: https://github.com/github/backup-utils/releases/download/v0.9.0/github-backup-utils-v0.9.0.tar.gz
 
+### Using the backup and restore commands
 
-### Example usage
+After the initial backup, use the following commands:
 
+- The `ghe-backup` command creates incremental
+snapshots of repository data, along with full snapshots of all other pertinent
+data stores.
+- The `ghe-restore` command restores snapshots to the same or separate GitHub appliance.
+
+##### Example usage
 
 The following assumes that `GHE_HOSTNAME` is set to "github.example.com" in
 `backup.config`.

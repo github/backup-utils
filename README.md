@@ -4,10 +4,10 @@ GitHub Enterprise Backup Utilities
 This repository includes backup and recovery utilities for [GitHub Enterprise][1].
 
 - **[Features](#features)**
-- **[Getting started](#getting-started)**
 - **[Requirements](#requirements)**
   - **[Backup host and storage requirements](#backup-host-and-storage-requirements)**
   - **[GitHub Enterprise version requirements](#github-enterprise-version-requirements)**
+- **[Getting started](#getting-started)**
 - **[Example usage](#example-usage)**
 - **[Scheduling](#scheduling)**
 - **[Backup snapshot file structure](#backup-snapshot-file-structure)**
@@ -34,12 +34,34 @@ These advanced features include:
  - Runs under most Linux/Unix environments.
  - MIT licensed, open source software maintained by GitHub, Inc.
 
-### Getting started
+### Requirements
 
 The backup utilities should be run on a host dedicated to long-term permanent
 storage and must have network connectivity with the GitHub Enterprise appliance.
-See the section below on *Backup host and storage requirements* for more
-information.
+
+##### Backup host and storage requirements
+
+Backup host software requirements are modest: Linux or other modern Unix
+operating system with [rsync][4] v2.6.4 or newer.
+
+The backup host must be able to establish network connections outbound to the
+GitHub appliance over SSH (port 22).
+
+Storage requirements vary based on current Git repository disk usage and growth
+patterns of the GitHub appliance. Allocating at least 5x the amount of storage
+allocated to the primary GitHub appliance for historical snapshots and growth
+over time is recommended.
+
+##### GitHub Enterprise version requirements
+
+For online and incremental backup support, the GitHub Enterprise instance must
+be running version 11.10.341 or above. Earlier versions are supported by the
+backup utilities but online and incremental backups are not supported. We
+strongly recommend upgrading to the latest release if you're running a version
+prior to 11.10.341. Visit https://enterprise.github.com to [download the most
+recent GitHub Enterprise version][5].
+
+### Getting started
 
  1. [Download the latest release][release] and extract:
 
@@ -71,29 +93,6 @@ detailed information.
 
 [release]: https://github.com/github/backup-utils/releases/download/v0.9.0/github-backup-utils-v0.9.0.tar.gz
 
-### Requirements
-
-##### Backup host and storage requirements
-
-Backup host software requirements are modest: Linux or other modern Unix
-operating system with [rsync][4] v2.6.4 or newer.
-
-The backup host must be able to establish network connections outbound to the
-GitHub appliance over SSH (port 22).
-
-Storage requirements vary based on current Git repository disk usage and growth
-patterns of the GitHub appliance. Allocating at least 5x the amount of storage
-allocated to the primary GitHub appliance for historical snapshots and growth
-over time is recommended.
-
-##### GitHub Enterprise version requirements
-
-For online and incremental backup support, the GitHub Enterprise instance must
-be running version 11.10.341 or above. Earlier versions are supported by the
-backup utilities but online and incremental backups are not supported. We
-strongly recommend upgrading to the latest release if you're running a version
-prior to 11.10.341. Visit https://enterprise.github.com to [download the most
-recent GitHub Enterprise version][5].
 
 ### Example usage
 

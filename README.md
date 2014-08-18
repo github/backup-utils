@@ -162,6 +162,11 @@ The following examples assume the backup utilities are installed under
 manual backup/recovery commands will be issued under and must have write access
 to the configured `GHE_DATA_DIR` directory.
 
+Note that the `GHE_NUM_SNAPSHOTS` option in `backup.config` should be tuned
+based on the frequency of backups. The ten most recent snapshots are retained by
+default. The number should be adjusted based on backup frequency and available
+storage.
+
 To schedule hourly backup snapshots with verbose informational output written to
 a log file and errors generating an email:
 
@@ -174,11 +179,6 @@ To schedule nightly backup snapshots instead, use:
     MAILTO=admin@example.com
 
     0 0 * * * /opt/backup-utils/bin/ghe-backup -v 1>>/opt/backup-utils/backup.log
-
-Note that the `GHE_NUM_SNAPSHOTS` option in `backup.config` should be tuned
-based on the frequency of backups. The ten most recent snapshots are retained by
-default. The number should be adjusted based on backup frequency and available
-storage.
 
 ### Backup snapshot file structure
 

@@ -4,20 +4,23 @@ GitHub Enterprise Backup Utilities
 This repository includes backup and recovery utilities for [GitHub Enterprise][1].
 
 - **[Features](#features)**
-- **[Getting started](#getting-started)**
 - **[Requirements](#requirements)**
-  - **[Backup host and storage requirements](#backup-host-and-storage-requirements)**
-  - **[GitHub Enterprise version requirements](#github-enterprise-version-requirements)**
-- **[Example usage](#example-usage)**
-- **[Scheduling](#scheduling)**
+  - **[Backup host](#backup-host)**
+  - **[Storage](#storage)**
+  - **[GitHub Enterprise version](#github-enterprise-version)**
+- **[Getting started](#getting-started)**
+- **[Using the backup and restore commands](#using-the-backup-and-restore-commands)**
+- **[Scheduling backups](#scheduling-backups)**
 - **[Backup snapshot file structure](#backup-snapshot-file-structure)**
 - **[Support](#support)**
 
 ### Features
 
-The backup utilities are based on the backup and restore capabilities built
-in to GitHub Enterprise but implement a number of advanced features for
-backup hosts:
+The backup utilities implement a number of advanced capabilities for backup
+hosts, built on top of the backup and restore features already included in
+GitHub Enterprise.
+
+These advanced features include:
 
  - Complete GitHub Enterprise backup and recovery system via two simple utilities:<br>
    `ghe-backup` and `ghe-restore`.
@@ -34,12 +37,38 @@ backup hosts:
  - Runs under most Linux/Unix environments.
  - MIT licensed, open source software maintained by GitHub, Inc.
 
-### Getting started
+### Requirements
 
 The backup utilities should be run on a host dedicated to long-term permanent
 storage and must have network connectivity with the GitHub Enterprise appliance.
-See the section below on *Backup host and storage requirements* for more
-information.
+
+##### Backup host
+
+Backup host software requirements are modest: Linux or other modern Unix
+operating system with [rsync][4] v2.6.4 or newer.
+
+The backup host must be able to establish network connections outbound to the
+GitHub appliance over SSH (port 22).
+
+##### Storage
+
+Storage requirements vary based on current Git repository disk usage and growth
+patterns of the GitHub appliance. We recommend allocating at least 5x the amount
+of storage allocated to the primary GitHub appliance for historical snapshots
+and growth over time.
+
+##### GitHub Enterprise version
+
+For online and incremental backup support, the GitHub Enterprise instance must
+be running version 11.10.341 or above.
+
+Earlier versions are supported by the
+backup utilities, but online and incremental backups are not supported. We
+strongly recommend upgrading to the latest release if you're running a version
+prior to 11.10.341. Visit https://enterprise.github.com to [download the most
+recent GitHub Enterprise version][5].
+
+### Getting started
 
  1. [Download the latest release][release] and extract:
 
@@ -63,40 +92,18 @@ information.
 
  5. Run `bin/ghe-backup` to perform an initial full backup.
 
-Subsequent invocations of the `ghe-backup` command will create incremental
-snapshots of repository data along with full snapshots of all other pertinent
-data stores. Snapshots may be restored to the same or separate GitHub appliance
-via the `ghe-restore` command. See the *Example usage* section below for more
-detailed information.
-
 [release]: https://github.com/github/backup-utils/releases/download/v0.9.0/github-backup-utils-v0.9.0.tar.gz
 
-### Requirements
+### Using the backup and restore commands
 
-##### Backup host and storage requirements
+After the initial backup, use the following commands:
 
-Backup host software requirements are modest: Linux or other modern Unix
-operating system with [rsync][4] v2.6.4 or newer.
+ - The `ghe-backup` command creates incremental snapshots of repository data,
+   along with full snapshots of all other pertinent data stores.
+ - The `ghe-restore` command restores snapshots to the same or separate GitHub
+   appliance.
 
-The backup host must be able to establish network connections outbound to the
-GitHub appliance over SSH (port 22).
-
-Storage requirements vary based on current Git repository disk usage and growth
-patterns of the GitHub appliance. Allocating at least 5x the amount of storage
-allocated to the primary GitHub appliance for historical snapshots and growth
-over time is recommended.
-
-##### GitHub Enterprise version requirements
-
-For online and incremental backup support, the GitHub Enterprise instance must
-be running version 11.10.341 or above. Earlier versions are supported by the
-backup utilities but online and incremental backups are not supported. We
-strongly recommend upgrading to the latest release if you're running a version
-prior to 11.10.341. Visit https://enterprise.github.com to [download the most
-recent GitHub Enterprise version][5].
-
-### Example usage
-
+##### Example backup and restore usage
 
 The following assumes that `GHE_HOSTNAME` is set to "github.example.com" in
 `backup.config`.
@@ -137,23 +144,32 @@ The `ghe-backup` and `ghe-restore` commands also have a verbose output mode
 (`-v`) that lists files as they're being transferred. It's often useful to
 enable when output is logged to a file.
 
-### Scheduling
+### Scheduling backups
 
 Regular backups should be scheduled using `cron(8)` or similar command
-scheduling service on the backup host.
+scheduling service on the backup host. The backup frequency will dictate the
+worst case recovery point objective (RPO) in your backup plan. We recommend the
+following:
 
-We recommend a backup frequency of hourly for GitHub Enterprise versions
-11.10.341 or greater, and daily for versions prior to 11.10.341. The more
-frequent schedule is possible on newer versions because of the improved online
-and incremental backup support.
+ - **Hourly backups** for GitHub Enterprise versions 11.10.341 or greater (due to
+   improved online and incremental backup support)
+ - **Daily backups** for versions prior to 11.10.341.
 
-The backup frequency will dictate the worst case recovery point objective (RPO)
-in your backup plan.
+Note: the time required to do full offline backups of large datasets under
+GitHub Enterprise versions prior to 11.10.341 may prohibit the use of daily
+backups. We strongly recommend upgrading to 11.10.341 or greater in that case.
+
+##### Example scheduling usage
 
 The following examples assume the backup utilities are installed under
 `/opt/backup-utils`. The crontab entry should be made under the same user that
 manual backup/recovery commands will be issued under and must have write access
 to the configured `GHE_DATA_DIR` directory.
+
+Note that the `GHE_NUM_SNAPSHOTS` option in `backup.config` should be tuned
+based on the frequency of backups. The ten most recent snapshots are retained by
+default. The number should be adjusted based on backup frequency and available
+storage.
 
 To schedule hourly backup snapshots with verbose informational output written to
 a log file and errors generating an email:
@@ -168,17 +184,15 @@ To schedule nightly backup snapshots instead, use:
 
     0 0 * * * /opt/backup-utils/bin/ghe-backup -v 1>>/opt/backup-utils/backup.log
 
-Note that the `GHE_NUM_SNAPSHOTS` option in `backup.config` should be tuned
-based on the frequency of backups. The ten most recent snapshots are retained by
-default. The number should be adjusted based on backup frequency and available
-storage.
-
 ### Backup snapshot file structure
 
 Backup snapshots are stored in rotating increment directories named after the
 date and time the snapshot was taken. Each snapshot directory contains a full
-backup snapshot of all relevant data stores. The following example shows a
-snapshot file hierarchy for hourly
+backup snapshot of all relevant data stores.
+
+The following example shows a snapshot file hierarchy for hourly frequency.
+There are five snapshot directories, with the `current` symlink pointing to the
+most recent successful snapshot:
 
     ./data
        |- 20140724T010000
@@ -194,9 +208,6 @@ snapshot file hierarchy for hourly
           |- es-indices.tar
           |- repositories/
        |- current -> 20140727T010000
-
-In the example above, five snapshot directories exist with the most recent
-successful snapshot being pointed to by the `current` symlink.
 
 Note: the `GHE_DATA_DIR` variable set in `backup.config` can be used to change
 the disk location where snapshots are written.

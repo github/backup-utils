@@ -16,7 +16,9 @@ This repository includes backup and recovery utilities for [GitHub Enterprise][1
 
 ### Features
 
-The backup utilities implement a number of advanced capabilities for backup hosts, built on top of the backup and restore features already included in GitHub Enterprise.
+The backup utilities implement a number of advanced capabilities for backup
+hosts, built on top of the backup and restore features already included in
+GitHub Enterprise.
 
 These advanced features include:
 
@@ -51,9 +53,9 @@ GitHub appliance over SSH (port 22).
 ##### Storage
 
 Storage requirements vary based on current Git repository disk usage and growth
-patterns of the GitHub appliance. We recommend allocating at least 5x the amount of storage
-allocated to the primary GitHub appliance for historical snapshots and growth
-over time.
+patterns of the GitHub appliance. We recommend allocating at least 5x the amount
+of storage allocated to the primary GitHub appliance for historical snapshots
+and growth over time.
 
 ##### GitHub Enterprise version
 
@@ -96,10 +98,10 @@ recent GitHub Enterprise version][5].
 
 After the initial backup, use the following commands:
 
-- The `ghe-backup` command creates incremental
-snapshots of repository data, along with full snapshots of all other pertinent
-data stores.
-- The `ghe-restore` command restores snapshots to the same or separate GitHub appliance.
+ - The `ghe-backup` command creates incremental snapshots of repository data,
+   along with full snapshots of all other pertinent data stores.
+ - The `ghe-restore` command restores snapshots to the same or separate GitHub
+   appliance.
 
 ##### Example backup and restore usage
 
@@ -145,13 +147,14 @@ enable when output is logged to a file.
 ### Scheduling backups
 
 Regular backups should be scheduled using `cron(8)` or similar command
-scheduling service on the backup host. The backup frequency will dictate the worst case recovery point objective (RPO)
-in your backup plan. We recommend the following:
+scheduling service on the backup host. The backup frequency will dictate the
+worst case recovery point objective (RPO) in your backup plan. We recommend the
+following:
 
-- **Hourly backup** for GitHub Enterprise versions
-11.10.341 or greater (due to improved online
-and incremental backup support)
-- **Daily backup** for versions prior to 11.10.341
+ - **Hourly backups** for GitHub Enterprise versions 11.10.341 or greater (due to
+   improved online and incremental backup support)
+ - **Daily backups** for versions prior to 11.10.341.
+
 
 ##### Example scheduling usage
 
@@ -184,9 +187,9 @@ Backup snapshots are stored in rotating increment directories named after the
 date and time the snapshot was taken. Each snapshot directory contains a full
 backup snapshot of all relevant data stores.
 
-The following example shows a
-snapshot file hierarchy for hourly frequency. There are five snapshot directories, with the `current` symlink pointing to the most recent
-successful snapshot:
+The following example shows a snapshot file hierarchy for hourly frequency.
+There are five snapshot directories, with the `current` symlink pointing to the
+most recent successful snapshot:
 
     ./data
        |- 20140724T010000

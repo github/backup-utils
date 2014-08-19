@@ -70,14 +70,10 @@ version][5].
 
 ### Getting started
 
- 1. [Download the latest release][release] and extract:
+ 1. [Download the latest release version][release] and extract *or* clone the
+    repository using Git:
 
-    `curl -L <release-url> | gzip -dc | tar xvf -`
-
-    Tip: You can also use Git to obtain the utilities instead, which may make
-    upgrading to future backup-utils releases easier:
-
-    `git clone https://github.com/github/backup-utils.git backup-utils`
+    `git clone https://github.com/github/backup-utils.git`
 
  2. Copy the [`backup.config-example`][2] file to `backup.config` and modify as
     necessary. The `GHE_HOSTNAME` value must be set to the GitHub Enterprise
@@ -92,7 +88,7 @@ version][5].
 
  5. Run `bin/ghe-backup` to perform an initial full backup.
 
-[release]: https://github.com/github/backup-utils/releases/download/v0.9.0/github-backup-utils-v0.9.0.tar.gz
+[release]: https://github.com/github/backup-utils/releases
 
 ### Using the backup and restore commands
 

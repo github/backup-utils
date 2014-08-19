@@ -155,6 +155,9 @@ following:
    improved online and incremental backup support)
  - **Daily backups** for versions prior to 11.10.341.
 
+Note: the time required to do full offline backups of large datasets under
+GitHub Enterprise versions prior to 11.10.341 may prohibit the use of daily
+backups. We strongly recommend upgrading to 11.10.341 or greater in that case.
 
 ##### Example scheduling usage
 

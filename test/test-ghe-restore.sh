@@ -113,6 +113,20 @@ begin_test "ghe-restore no host arg or configured restore host"
 )
 end_test
 
+begin_test "ghe-restore with no pages backup"
+(
+    set -e
+    rm -rf "$GHE_REMOTE_DATA_DIR"
+    setup_remote_metadata
+
+    # remove pages data
+    rm -rf "$GHE_DATA_DIR/1/pages"
+
+    # run it
+    ghe-restore -v localhost
+)
+end_test
+
 begin_test "ghe-restore with tarball strategy"
 (
     set -e

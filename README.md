@@ -73,7 +73,7 @@ version][5].
  1. [Download the latest release version][release] and extract *or* clone the
     repository using Git:
 
-    `git clone https://github.com/github/backup-utils.git`
+    `git clone -b stable https://github.com/github/backup-utils.git`
 
  2. Copy the [`backup.config-example`][2] file to `backup.config` and modify as
     necessary. The `GHE_HOSTNAME` value must be set to the GitHub Enterprise

@@ -63,7 +63,7 @@ echo "Starting $GHE_BACKUP_STRATEGY restore of $host from snapshot $GHE_RESTORE_
 # Perform a host-check and establish the remote version in GHE_REMOTE_VERSION.
 ghe_remote_version_required "$host"
 
-if [ "$GHE_VERSION_MAJOR" -gt 1 ] && [ "$GHE_DATA_DIR" = /data ]; then
+if [ "$GHE_VERSION_MAJOR" -gt 1 ] && [ "$GHE_REMOTE_DATA_DIR" = /data ]; then
     export GHE_REMOTE_DATA_DIR=/data/user
 fi
 

@@ -16,6 +16,13 @@ cd $(dirname "$0")/..
 # Grab host arg
 host="$1"
 
+# Perform a host-check and establish the remote version in GHE_REMOTE_VERSION.
+ghe_remote_version_required "$host"
+
+if [ "$GHE_VERSION_MAJOR" -gt 1 ]; then
+   excludes="--exclude __hookshot__ --exclude __alambic_assets__"
+fi
+
 # The snapshot to restore should be set by the ghe-restore command but this lets
 # us run this script directly.
 : ${GHE_RESTORE_SNAPSHOT:=current}
@@ -26,4 +33,5 @@ rsync -av --delete \
     -e "ghe-ssh -p $(ssh_port_part "$host")" \
     --rsync-path="sudo -u git rsync" \
     "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/repositories/" \
+    $excludes \
     "$(ssh_host_part "$host"):$GHE_REMOTE_DATA_DIR/repositories" 1>&3

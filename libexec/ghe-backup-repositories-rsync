@@ -92,7 +92,7 @@ echo "
 # already been transferred. A set of rsync filter rules are provided on stdin
 # for each invocation.
 rsync_repository_data () {
-    rsync -av \
+    ghe-rsync -av \
         -e "ghe-ssh -p $(ssh_port_part "$host")" \
         $link_dest "$@" \
         --rsync-path='sudo -u git rsync' \

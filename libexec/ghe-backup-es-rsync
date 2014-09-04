@@ -48,7 +48,7 @@ fi
 # directory, using a previous snapshot to avoid transferring files that have
 # already been transferred.
 echo "* Performing initial sync of ES indices ..." 1>&3
-rsync -avz \
+ghe-rsync -avz \
     -e "ghe-ssh -p $(ssh_port_part "$host")" \
     --rsync-path='sudo -u git rsync' \
     $link_dest \
@@ -73,7 +73,7 @@ ghe-ssh "$host" -- curl -s -XPOST "localhost:9200/_flush" >/dev/null
 
 # Transfer all ES indices again
 echo "* Performing follow-up sync of ES indices ..." 1>&3
-rsync -avz \
+ghe-rsync -avz \
     -e "ghe-ssh -p $(ssh_port_part "$host")" \
     --rsync-path='sudo -u git rsync' \
     $link_dest \

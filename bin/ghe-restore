@@ -69,6 +69,18 @@ if [ "$GHE_VERSION_MAJOR" -gt 1 ] && [ "$GHE_REMOTE_DATA_DIR" = /data ]; then
     export GHE_REMOTE_METADATA_FILE=/data/enterprise/chef_metadata.json
 fi
 
+if ! ghe-ssh "$host" -- "test -f $GHE_REMOTE_LICENSE_FILE"; then
+  echo "Restoring license ..."
+  ghe-ssh "$host" -- 'ghe-import-license' < "$snapshot_dir/enterprise.ghl" 1>&3
+fi
+
+
+if [ "$GHE_VERSION_MAJOR" -gt 1 ] && ! ghe-ssh "$host" -- 'test -f /data/user/common/manage-password'; then
+    echo "Error: $host missing passwords file. " 1>&2
+    echo "Run 'ghe-set-password' on $host to create one, and then run again." 1>&2
+    exit 1
+fi
+
 # Make sure the GitHub appliance is in maintenance mode and all writing
 # processes have bled out.
 ghe-maintenance-mode-enable "$host"

@@ -60,11 +60,11 @@ and growth over time.
 ##### GitHub Enterprise version
 
 For online and incremental backup support, the GitHub Enterprise instance must
-be running version 11.10.341 or above.
+be running version 11.10.342 or above.
 
 Earlier versions are supported by the backup utilities, but online and
 incremental backups are not supported. We strongly recommend upgrading to the
-latest release if you're running a version prior to 11.10.341. Visit
+latest release if you're running a version prior to 11.10.342. Visit
 https://enterprise.github.com to [download the most recent GitHub Enterprise
 version][5].
 
@@ -147,13 +147,13 @@ scheduling service on the backup host. The backup frequency will dictate the
 worst case recovery point objective (RPO) in your backup plan. We recommend the
 following:
 
- - **Hourly backups** for GitHub Enterprise versions 11.10.341 or greater (due to
+ - **Hourly backups** for GitHub Enterprise versions 11.10.342 or greater (due to
    improved online and incremental backup support)
- - **Daily backups** for versions prior to 11.10.341.
+ - **Daily backups** for versions prior to 11.10.342.
 
 Note: the time required to do full offline backups of large datasets under
-GitHub Enterprise versions prior to 11.10.341 may prohibit the use of daily
-backups. We strongly recommend upgrading to 11.10.341 or greater in that case.
+GitHub Enterprise versions prior to 11.10.342 may prohibit the use of daily
+backups. We strongly recommend upgrading to 11.10.342 or greater in that case.
 
 ##### Example scheduling usage
 

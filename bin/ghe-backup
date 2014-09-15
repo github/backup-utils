@@ -70,6 +70,12 @@ echo "Starting backup of $host in snapshot $GHE_SNAPSHOT_TIMESTAMP"
 ghe_remote_version_required
 echo "$GHE_REMOTE_VERSION" > version
 
+if [ "$GHE_VERSION_MAJOR" -gt 1 ] && [ "$GHE_REMOTE_DATA_DIR" = /data ]; then
+    export GHE_REMOTE_DATA_DIR=/data/user
+    export GHE_REMOTE_LICENSE_FILE=/data/enterprise/enterprise.ghl
+    export GHE_REMOTE_METADATA_FILE=/data/enterprise/chef_metadata.json
+fi
+
 # Determine whether to use the rsync or tarball backup strategy based on the
 # remote appliance version. The tarball strategy must be used with GitHub
 # Enterprise versions prior to 11.10.340 since rsync is not available.

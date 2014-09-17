@@ -24,13 +24,14 @@ cd $(dirname "$0")/..
 # The snapshot directory we're restoring from. This is the 'current' snapshot
 # by default but may be overridden with the -s flag. Additional restore scripts
 # spawned must abide by this variable as well.
-GHE_RESTORE_SNAPSHOT="current"
 export GHE_RESTORE_SNAPSHOT
 
 # Parse snapshot argument if provided
 if [ "$1" = "-s" ]; then
-    GHE_RESTORE_SNAPSHOT="$(basename "$2")"
-    shift 2
+  GHE_RESTORE_SNAPSHOT="$(basename "$2")"
+  shift 2
+else
+  GHE_RESTORE_SNAPSHOT="current"
 fi
 
 # Grab the host arg
@@ -39,24 +40,14 @@ host="${1:-$GHE_RESTORE_HOST}"
 # Show usage with no <host>
 [ -z "$host" ] && print_usage
 
-# Resolve the snapshot id if we're restoring from current. This is mostly
-# just for logging.
-if [ "$GHE_RESTORE_SNAPSHOT" = "current" ]; then
-    GHE_RESTORE_SNAPSHOT=$(readlink "$GHE_DATA_DIR"/current || true)
-fi
-
-# Bail out if we don't have a good snapshot.
-if [ ! -d "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT" ]; then
-    echo "Error: Snapshot '$GHE_RESTORE_SNAPSHOT' doesn't exist." 1>&2
-    exit 1
-fi
-
-# Directory location of the snapshot.
-snapshot_dir="$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT"
+# ghe-restore-snapshot-path validates it exists, determines what current is,
+# and if there's any problem, exit for us
+GHE_RESTORE_SNAPSHOT_PATH="$(ghe-restore-snapshot-path "$GHE_RESTORE_SNAPSHOT_PATH")"
+GHE_RESTORE_SNAPSHOT=$(basename "$GHE_RESTORE_SNAPSHOT_PATH")
 
 # Figure out whether to use the tarball or rsync restore strategy based on the
 # strategy file written in the snapshot directory.
-GHE_BACKUP_STRATEGY=$(cat "$snapshot_dir/strategy")
+GHE_BACKUP_STRATEGY=$(cat "$GHE_RESTORE_SNAPSHOT_PATH/strategy")
 
 echo "Starting $GHE_BACKUP_STRATEGY restore of $host from snapshot $GHE_RESTORE_SNAPSHOT"
 
@@ -71,7 +62,7 @@ fi
 
 if ! ghe-ssh "$host" -- "test -f $GHE_REMOTE_LICENSE_FILE"; then
   echo "Restoring license ..."
-  ghe-ssh "$host" -- 'ghe-import-license' < "$snapshot_dir/enterprise.ghl" 1>&3
+  ghe-ssh "$host" -- 'ghe-import-license' < "$GHE_RESTORE_SNAPSHOT_PATH/enterprise.ghl" 1>&3
 fi
 
 # Make sure the GitHub appliance is in maintenance mode and all writing
@@ -79,7 +70,7 @@ fi
 ghe-maintenance-mode-enable "$host"
 
 echo "Restoring settings ..."
-ghe-ssh "$host" -- 'ghe-import-settings' < "$snapshot_dir/settings.json" 1>&3
+ghe-ssh "$host" -- 'ghe-import-settings' < "$GHE_RESTORE_SNAPSHOT_PATH/settings.json" 1>&3
 
 echo "Restoring Git repositories ..."
 ghe-restore-repositories-${GHE_BACKUP_STRATEGY} "$host" 1>&3
@@ -89,21 +80,21 @@ ghe-restore-pages-${GHE_BACKUP_STRATEGY} "$host" 1>&3
 
 echo "Restoring MySQL database ..."
 ghe-ssh "$host" -- 'sudo ghe-service-ensure-mysql'  1>&3
-gzip -dc "$snapshot_dir/mysql.sql.gz" | ghe-ssh "$host" -- 'ghe-import-mysql' 1>&3
+gzip -dc "$GHE_RESTORE_SNAPSHOT_PATH/mysql.sql.gz" | ghe-ssh "$host" -- 'ghe-import-mysql' 1>&3
 
 echo "Restoring Redis database ..."
 ghe-ssh "$host" -- 'sudo ghe-service-ensure-redis'  1>&3
-ghe-ssh "$host" -- 'ghe-import-redis' < "$snapshot_dir/redis.rdb" 1>&3
+ghe-ssh "$host" -- 'ghe-import-redis' < "$GHE_RESTORE_SNAPSHOT_PATH/redis.rdb" 1>&3
 
 echo "Restoring SSH authorized keys ..."
-ghe-ssh "$host" -- 'ghe-import-authorized-keys' < "$snapshot_dir/authorized-keys.json" 1>&3
+ghe-ssh "$host" -- 'ghe-import-authorized-keys' < "$GHE_RESTORE_SNAPSHOT_PATH/authorized-keys.json" 1>&3
 
 echo "Restoring Elasticsearch indices ..."
 ghe-ssh "$host" -- 'sudo ghe-service-ensure-elasticsearch'  1>&3
 ghe-restore-es-${GHE_BACKUP_STRATEGY} "$host" 1>&3
 
 echo "Restoring SSH host keys ..."
-ghe-ssh "$host" -- 'ghe-import-ssh-host-keys' < "$snapshot_dir/ssh-host-keys.tar" 1>&3
+ghe-ssh "$host" -- 'ghe-import-ssh-host-keys' < "$GHE_RESTORE_SNAPSHOT_PATH/ssh-host-keys.tar" 1>&3
 
 echo "Completed restore of $host from snapshot $GHE_RESTORE_SNAPSHOT"
 echo "Visit https://$(echo "$host" | cut -f 1 -d :)/setup/settings in a browser or run ghe-configure to configure the recovered appliance."

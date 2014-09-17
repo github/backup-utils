@@ -24,14 +24,13 @@ cd $(dirname "$0")/..
 # The snapshot directory we're restoring from. This is the 'current' snapshot
 # by default but may be overridden with the -s flag. Additional restore scripts
 # spawned must abide by this variable as well.
+GHE_RESTORE_SNAPSHOT="current"
 export GHE_RESTORE_SNAPSHOT
 
 # Parse snapshot argument if provided
 if [ "$1" = "-s" ]; then
-  GHE_RESTORE_SNAPSHOT="$(basename "$2")"
-  shift 2
-else
-  GHE_RESTORE_SNAPSHOT="current"
+    GHE_RESTORE_SNAPSHOT="$(basename "$2")"
+    shift 2
 fi
 
 # Grab the host arg
@@ -61,8 +60,8 @@ if [ "$GHE_VERSION_MAJOR" -gt 1 ] && [ "$GHE_REMOTE_DATA_DIR" = /data ]; then
 fi
 
 if ! ghe-ssh "$host" -- "test -f $GHE_REMOTE_LICENSE_FILE"; then
-  echo "Restoring license ..."
-  ghe-ssh "$host" -- 'ghe-import-license' < "$GHE_RESTORE_SNAPSHOT_PATH/enterprise.ghl" 1>&3
+    echo "Restoring license ..."
+    ghe-ssh "$host" -- 'ghe-import-license' < "$GHE_RESTORE_SNAPSHOT_PATH/enterprise.ghl" 1>&3
 fi
 
 # Make sure the GitHub appliance is in maintenance mode and all writing

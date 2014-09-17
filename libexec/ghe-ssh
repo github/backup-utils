@@ -10,7 +10,7 @@ set -e
 cd $(dirname "$0")/..
 . libexec/ghe-backup-config
 
-opts=
+opts=$GHE_EXTRA_SSH_OPTS
 while true; do
     case "$1" in
         -p|-l|-o)

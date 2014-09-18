@@ -53,6 +53,12 @@ $wait_procs || exit 0
 ghe-ssh "$host" -- /bin/sh <<EOF
     set -e
 
+    # no license file means a fresh VM and no procs to wait on.
+    # bail out in this case.
+    if [ ! -f "$GHE_REMOTE_LICENSE_FILE" ]; then
+        exit 0
+    fi
+
     # determine local admin auth token
     token=\$(md5sum "$GHE_REMOTE_LICENSE_FILE" | cut -f 1 -d ' ')
 

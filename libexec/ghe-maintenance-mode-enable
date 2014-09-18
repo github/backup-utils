@@ -33,7 +33,7 @@ done
 # Grab host arg
 host="$1"
 
-# Perform a host-check and establish the remote version in GHE_REMOTE_VERSION.
+# Perform a host-check and establish GHE_REMOTE_XXX variables.
 ghe_remote_version_required "$host"
 
 # Never wait on processes to complete under versions >= 2.x.

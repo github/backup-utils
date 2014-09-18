@@ -59,7 +59,9 @@ if [ "$GHE_VERSION_MAJOR" -gt 1 ] && [ "$GHE_REMOTE_DATA_DIR" = /data ]; then
     export GHE_REMOTE_METADATA_FILE=/data/enterprise/chef_metadata.json
 fi
 
-if ! ghe-ssh "$host" -- "test -f $GHE_REMOTE_LICENSE_FILE"; then
+# Restore license file under versions >= 2.x. This is for automated restores of
+# newly provisioned VMs in internal GitHub test environments only currently.
+if [ "$GHE_VERSION_MAJOR" -gt 1 ] && ! ghe-ssh "$host" "test -f '$GHE_REMOTE_LICENSE_FILE'"; then
     echo "Restoring license ..."
     ghe-ssh "$host" -- 'ghe-import-license' < "$GHE_RESTORE_SNAPSHOT_PATH/enterprise.ghl" 1>&3
 fi

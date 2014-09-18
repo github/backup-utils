@@ -13,7 +13,7 @@ cd $(dirname "$0")/..
 # Snapshot all Elasticsearch data or fake it when no /data/elasticsearch
 # directory exists.
 echo "
-    if [ -d '$GHE_REMOTE_DATA_DIR/elasticsearch' ]; then
+    if [ -d '$GHE_REMOTE_DATA_USER_DIR/elasticsearch' ]; then
         ghe-export-es-indices
     else
         tar cvf - --files-from /dev/null

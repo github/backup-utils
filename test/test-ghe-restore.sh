@@ -71,10 +71,10 @@ begin_test "ghe-restore"
     echo "$output" | grep -q 'ghe-import-es-indices'
 
     # verify all repository data was transferred to the restore location
-    diff -ru "$GHE_DATA_DIR/current/repositories" "$GHE_REMOTE_DATA_DIR/repositories"
+    diff -ru "$GHE_DATA_DIR/current/repositories" "$GHE_REMOTE_DATA_USER_DIR/repositories"
 
     # verify all pages data was transferred to the restore location
-    diff -ru "$GHE_DATA_DIR/current/pages" "$GHE_REMOTE_DATA_DIR/pages"
+    diff -ru "$GHE_DATA_DIR/current/pages" "$GHE_REMOTE_DATA_USER_DIR/pages"
 )
 end_test
 
@@ -95,10 +95,10 @@ begin_test "ghe-restore with host arg"
     echo "$output" | grep -q 'Connect localhost OK'
 
     # verify repository data was transferred to the restore location
-    diff -ru "$GHE_DATA_DIR/current/repositories" "$GHE_REMOTE_DATA_DIR/repositories"
+    diff -ru "$GHE_DATA_DIR/current/repositories" "$GHE_REMOTE_DATA_USER_DIR/repositories"
 
     # verify all pages data was transferred to the restore location
-    diff -ru "$GHE_DATA_DIR/current/pages" "$GHE_REMOTE_DATA_DIR/pages"
+    diff -ru "$GHE_DATA_DIR/current/pages" "$GHE_REMOTE_DATA_USER_DIR/pages"
 )
 end_test
 

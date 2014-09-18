@@ -21,7 +21,7 @@ host="$GHE_HOSTNAME"
 
 # Verify that the /data/pages directory exists. It won't if no pages sites have
 # been published under some versions.
-ghe-ssh "$host" -- "[ -d '$GHE_REMOTE_DATA_DIR/pages' ]" || exit 0
+ghe-ssh "$host" -- "[ -d '$GHE_REMOTE_DATA_USER_DIR/pages' ]" || exit 0
 
 # If we have a previous increment, avoid transferring existing files via rsync's
 # --link-dest support. This also decreases physical space usage considerably.
@@ -36,5 +36,5 @@ ghe-rsync -avz \
     -e "ghe-ssh -p $(ssh_port_part "$host")" \
     --rsync-path='sudo -u git rsync' \
     $link_dest \
-    "$(ssh_host_part "$host"):$GHE_REMOTE_DATA_DIR/pages/" \
+    "$(ssh_host_part "$host"):$GHE_REMOTE_DATA_USER_DIR/pages/" \
     "$GHE_SNAPSHOT_DIR/pages" 1>&3

@@ -33,10 +33,10 @@ fi
 
 if [ "$GHE_VERSION_MAJOR" -gt 1 ]; then
     cd "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/elasticsearch"
-    ghe-ssh "$host" -- "sudo mkdir -p $GHE_REMOTE_DATA_DIR/elasticsearch-legacy" 1>&3
+    ghe-ssh "$host" -- "sudo mkdir -p '$GHE_REMOTE_DATA_USER_DIR/elasticsearch-legacy'" 1>&3
 
     $TAR -cf - --owner=root --group=root . |
-    ghe-ssh "$host" -- "sudo tar -xf - -C $GHE_REMOTE_DATA_DIR/elasticsearch-legacy" 1>&3
+    ghe-ssh "$host" -- "sudo tar -xf - -C '$GHE_REMOTE_DATA_USER_DIR/elasticsearch-legacy'" 1>&3
 else
     cd "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT"
     $TAR -cf - --owner=root --group=root elasticsearch |

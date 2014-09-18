@@ -5,25 +5,25 @@
 . $(dirname "$0")/testlib.sh
 
 # Create the backup data dir and fake remote repositories dirs
-mkdir -p "$GHE_DATA_DIR" "$GHE_REMOTE_DATA_DIR"
+mkdir -p "$GHE_DATA_DIR" "$GHE_REMOTE_DATA_USER_DIR"
 
 # Create some fake pages data in the remote data directory
-mkdir -p "$GHE_REMOTE_DATA_DIR/pages"
-cd "$GHE_REMOTE_DATA_DIR/pages"
+mkdir -p "$GHE_REMOTE_DATA_USER_DIR/pages"
+cd "$GHE_REMOTE_DATA_USER_DIR/pages"
 mkdir -p alice bob
 touch alice/index.html bob/index.html
 
 # Create some fake elasticsearch data in the remote data directory
-mkdir -p "$GHE_REMOTE_DATA_DIR/elasticsearch"
-cd "$GHE_REMOTE_DATA_DIR/elasticsearch"
+mkdir -p "$GHE_REMOTE_DATA_USER_DIR/elasticsearch"
+cd "$GHE_REMOTE_DATA_USER_DIR/elasticsearch"
 echo "fake ES yml file" > elasticsearch.yml
 mkdir -p gh-enterprise-es/node/0
 touch gh-enterprise-es/node/0/stuff1
 touch gh-enterprise-es/node/0/stuff2
 
 # Create some test repositories in the remote repositories dir
-mkdir "$GHE_REMOTE_DATA_DIR/repositories"
-cd "$GHE_REMOTE_DATA_DIR/repositories"
+mkdir "$GHE_REMOTE_DATA_USER_DIR/repositories"
+cd "$GHE_REMOTE_DATA_USER_DIR/repositories"
 mkdir alice bob
 mkdir alice/repo1.git alice/repo2.git bob/repo3.git
 
@@ -79,13 +79,13 @@ begin_test "ghe-backup first snapshot"
     [ "$(cat "$GHE_DATA_DIR/current/ssh-host-keys.tar")" = "fake ghe-export-ssh-host-keys data" ]
 
     # verify all repository data was transferred
-    diff -ru "$GHE_REMOTE_DATA_DIR/repositories" "$GHE_DATA_DIR/current/repositories"
+    diff -ru "$GHE_REMOTE_DATA_USER_DIR/repositories" "$GHE_DATA_DIR/current/repositories"
 
     # verify all pages data was transferred
-    diff -ru "$GHE_REMOTE_DATA_DIR/pages" "$GHE_DATA_DIR/current/pages"
+    diff -ru "$GHE_REMOTE_DATA_USER_DIR/pages" "$GHE_DATA_DIR/current/pages"
 
     # verify all ES data was transferred
-    diff -ru "$GHE_REMOTE_DATA_DIR/elasticsearch" "$GHE_DATA_DIR/current/elasticsearch"
+    diff -ru "$GHE_REMOTE_DATA_USER_DIR/elasticsearch" "$GHE_DATA_DIR/current/elasticsearch"
 )
 end_test
 
@@ -138,13 +138,13 @@ begin_test "ghe-backup subsequent snapshot"
     [ "$(cat "$GHE_DATA_DIR/current/ssh-host-keys.tar")" = "fake ghe-export-ssh-host-keys data" ]
 
     # verify all repository data was transferred
-    diff -ru "$GHE_REMOTE_DATA_DIR/repositories" "$GHE_DATA_DIR/current/repositories"
+    diff -ru "$GHE_REMOTE_DATA_USER_DIR/repositories" "$GHE_DATA_DIR/current/repositories"
 
     # verify all pages data was transferred
-    diff -ru "$GHE_REMOTE_DATA_DIR/pages" "$GHE_DATA_DIR/current/pages"
+    diff -ru "$GHE_REMOTE_DATA_USER_DIR/pages" "$GHE_DATA_DIR/current/pages"
 
     # verify all ES data was transferred
-    diff -ru "$GHE_REMOTE_DATA_DIR/elasticsearch" "$GHE_DATA_DIR/current/elasticsearch"
+    diff -ru "$GHE_REMOTE_DATA_USER_DIR/elasticsearch" "$GHE_DATA_DIR/current/elasticsearch"
 )
 end_test
 

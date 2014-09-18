@@ -36,9 +36,11 @@ export GHE_BACKUP_CONFIG GHE_DATA_DIR
 
 # Point remote path locations to trashdir for test process
 GHE_REMOTE_DATA_DIR="$TRASHDIR/remote"
+GHE_REMOTE_DATA_USER_DIR="$GHE_REMOTE_DATA_DIR"
 GHE_REMOTE_METADATA_FILE="$GHE_REMOTE_DATA_DIR/enterprise/chef_metadata.json"
 GHE_REMOTE_LICENSE_FILE="$GHE_REMOTE_DATA_DIR/enterprise/enterprise.ghl"
-export GHE_REMOTE_DATA_DIR GHE_REMOTE_METADATA_FILE GHE_REMOTE_LICENSE_FILE
+export GHE_REMOTE_DATA_DIR GHE_REMOTE_DATA_USER_DIR
+export GHE_REMOTE_METADATA_FILE GHE_REMOTE_LICENSE_FILE
 
 # keep track of num tests and failures
 tests=0
@@ -58,7 +60,7 @@ atexit () {
 
 # create the trash dir and data dirs
 trap "atexit" EXIT
-mkdir -p "$TRASHDIR" "$GHE_DATA_DIR" "$GHE_REMOTE_DATA_DIR"
+mkdir -p "$TRASHDIR" "$GHE_DATA_DIR" "$GHE_REMOTE_DATA_DIR" "$GHE_REMOTE_DATA_USER_DIR"
 cd "$TRASHDIR"
 
 # Put remote metadata file in place for ghe-host-check which runs with pretty

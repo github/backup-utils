@@ -44,7 +44,7 @@ backup_current="$GHE_DATA_DIR/current/repositories"
 
 # Remote sync-in-progress file location. When this file exists, Git GC
 # operations are disabled on the GitHub instance.
-sync_in_progress_file="$GHE_REMOTE_DATA_DIR/repositories/.sync_in_progress"
+sync_in_progress_file="$GHE_REMOTE_DATA_USER_DIR/repositories/.sync_in_progress"
 
 # Verify rsync is available.
 if ! rsync --version 1>/dev/null 2>&1; then
@@ -97,7 +97,7 @@ rsync_repository_data () {
         $link_dest "$@" \
         --rsync-path='sudo -u git rsync' \
         --include-from=- --exclude=\* \
-        "$(ssh_host_part "$host"):$GHE_REMOTE_DATA_DIR/repositories/" \
+        "$(ssh_host_part "$host"):$GHE_REMOTE_DATA_USER_DIR/repositories/" \
         "$backup_dir" 1>&3
 }
 

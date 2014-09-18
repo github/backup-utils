@@ -41,6 +41,8 @@ echo "fake ghe-export-authorized-keys data" > "$GHE_DATA_DIR/current/authorized-
 echo "fake ghe-export-es-indices data" > "$GHE_DATA_DIR/current/elasticsearch.tar"
 echo "fake ghe-export-ssh-host-keys data" > "$GHE_DATA_DIR/current/ssh-host-keys.tar"
 echo "fake ghe-export-repositories data" > "$GHE_DATA_DIR/current/repositories.tar"
+echo "fake ghe-export-settings data" > "$GHE_DATA_DIR/current/settings.json"
+echo "fake license data" > "$GHE_DATA_DIR/current/enterprise.ghl"
 echo "rsync" > "$GHE_DATA_DIR/current/strategy"
 
 begin_test "ghe-restore"
@@ -65,6 +67,7 @@ begin_test "ghe-restore"
     echo "$output" | grep -q 'fake ghe-export-redis data'
     echo "$output" | grep -q 'fake ghe-export-authorized-keys data'
     echo "$output" | grep -q 'fake ghe-export-ssh-host-keys data'
+    echo "$output" | grep -q 'fake ghe-export-settings data'
     echo "$output" | grep -q 'ghe-import-es-indices'
 
     # verify all repository data was transferred to the restore location

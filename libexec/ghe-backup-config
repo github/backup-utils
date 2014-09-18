@@ -69,10 +69,18 @@ export GHE_SNAPSHOT_TIMESTAMP
 # all backups should be written for the current invocation.
 GHE_SNAPSHOT_DIR="$GHE_DATA_DIR"/"$GHE_SNAPSHOT_TIMESTAMP"
 
-# The root location of all persistent data stores on the remote side. This is
-# always "/data" for GitHub instances. Use of this variable allows
+# The root location of persistent data and applications on the remote side. This
+# is always "/data" for GitHub instances. Use of this variable allows
 # the location to be overridden in tests.
 : ${GHE_REMOTE_DATA_DIR:="/data"}
+
+# The root location of user data stores such as git repositories, pages sites,
+# elasticsearch indices, etc. This is "/data" under 1.x filesystem layouts and
+# "/data/user" under the 2.x filesystem layout. The location is adjusted
+# dynamically in ghe_remote_version_config() immediately after obtaining the
+# remote version. Utilities that transfer data in and out of the appliance
+# should use this variable to ensure proper behavior under different versions.
+: ${GHE_REMOTE_DATA_USER_DIR:="$GHE_REMOTE_DATA_DIR"}
 
 # The location of the license file on the remote side. This is always
 # "/data/enterprise/enterprise.ghl" for GitHub instances. Use of this variable
@@ -95,6 +103,21 @@ GHE_SNAPSHOT_DIR="$GHE_DATA_DIR"/"$GHE_SNAPSHOT_TIMESTAMP"
 
 # Set "true" to get verbose logging of all ssh commands on stderr
 : ${GHE_VERBOSE_SSH:=false}
+
+
+###############################################################################
+### Dynamic remote version config
+
+# Adjusts remote paths based on the version of the remote appliance. This is
+# called immediately after the remote version is obtained by
+# ghe_remote_version_required(). Child processes inherit the values set here.
+ghe_remote_version_config () {
+    if [ "$GHE_VERSION_MAJOR" -gt 1 ]; then
+        GHE_REMOTE_DATA_USER_DIR="$GHE_REMOTE_DATA_DIR/user"
+    fi
+    export GHE_REMOTE_DATA_DIR GHE_REMOTE_DATA_USER_DIR
+    export GHE_REMOTE_LICENSE_FILE GHE_REMOTE_METADATA_FILE
+}
 
 ###############################################################################
 ### Utility functions
@@ -138,6 +161,7 @@ ghe_remote_version_required () {
         export GHE_REMOTE_VERSION
 
         ghe_parse_remote_version "$GHE_REMOTE_VERSION"
+        ghe_remote_version_config "$GHE_REMOTE_VERSION"
     fi
     true
 }

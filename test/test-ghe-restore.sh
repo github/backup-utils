@@ -69,7 +69,14 @@ begin_test "ghe-restore into unconfigured vm"
     grep -q "fake ghe-export-authorized-keys data" "$TRASHDIR/restore-out"
     grep -q "fake ghe-export-ssh-host-keys data" "$TRASHDIR/restore-out"
     grep -q "fake ghe-export-settings data" "$TRASHDIR/restore-out"
-    grep -q "ghe-import-es-indices" "$TRASHDIR/restore-out"
+
+    # verify ghe-import-es-indices is run under 1.x VMs and that the
+    # elasticsearch-legacy directory was created under 2.x VMs.
+    if [ "$GHE_VERSION_MAJOR" -eq 1 ]; then
+        grep -q "ghe-import-es-indices" "$TRASHDIR/restore-out"
+    elif [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
+        test -d "$GHE_REMOTE_DATA_USER_DIR/elasticsearch-legacy"
+    fi
 
     # verify service-ensure scripts were run under versions >= v2.x
     if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
@@ -111,7 +118,6 @@ begin_test "ghe-restore into configured vm"
     grep -q "fake ghe-export-redis data" "$TRASHDIR/restore-out"
     grep -q "fake ghe-export-authorized-keys data" "$TRASHDIR/restore-out"
     grep -q "fake ghe-export-ssh-host-keys data" "$TRASHDIR/restore-out"
-    grep -q "ghe-import-es-indices" "$TRASHDIR/restore-out"
 
     # verify settings import was *not* run due to instance already being
     # configured.
@@ -151,7 +157,6 @@ begin_test "ghe-restore -c into configured vm"
     grep -q "fake ghe-export-redis data" "$TRASHDIR/restore-out"
     grep -q "fake ghe-export-authorized-keys data" "$TRASHDIR/restore-out"
     grep -q "fake ghe-export-ssh-host-keys data" "$TRASHDIR/restore-out"
-    grep -q "ghe-import-es-indices" "$TRASHDIR/restore-out"
 
     # verify settings were imported
     grep -q "fake ghe-export-settings data" "$TRASHDIR/restore-out"

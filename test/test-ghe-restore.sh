@@ -71,6 +71,12 @@ begin_test "ghe-restore into unconfigured vm"
     grep -q "fake ghe-export-settings data" "$TRASHDIR/restore-out"
     grep -q "ghe-import-es-indices" "$TRASHDIR/restore-out"
 
+    # verify service-ensure scripts were run under versions >= v2.x
+    if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
+        grep -q "ghe-service-ensure-mysql OK" "$TRASHDIR/restore-out"
+        grep -q "ghe-service-ensure-elasticsearch OK" "$TRASHDIR/restore-out"
+    fi
+
     # verify all repository data was transferred to the restore location
     diff -ru "$GHE_DATA_DIR/current/repositories" "$GHE_REMOTE_DATA_USER_DIR/repositories"
 

@@ -1,0 +1,27 @@
+#!/bin/sh
+# Usage: script/cibuild
+set -e
+
+# GHE appliance versions to run tests against. Remote metadata files are put in
+# place with this version at the beginning of each test and many commands have
+# conditional logic based on the remote version. Running the suite against
+# different major versions ensures we're covering these conditional paths.
+REMOTE_VERSIONS="
+  11.10.344
+  2.0.0
+"
+
+# Run over all remote versions and run entire test suite against each
+res=true
+for version in $REMOTE_VERSIONS
+do
+    echo "==> Running testsuite with GHE_TEST_REMOTE_VERSION=$version"
+    export GHE_TEST_REMOTE_VERSION="$version"
+    if ! ls -1 test/test-*.sh | xargs -P 4 -n 1 /bin/sh; then
+        res=false
+    fi
+    echo
+done
+
+# If any of the version tests failed, exit non-zero
+$res

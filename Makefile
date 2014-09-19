@@ -1,8 +1,7 @@
 SHELL = /bin/sh
 
 test: info
-	@echo "Running tests ..."
-	@ls -1 test/test-*.sh | xargs -P 4 -n 1 $(SHELL)
+	@script/cibuild
 
 info:
 	@echo This is github/backup-utils

@@ -56,7 +56,7 @@ begin_test "ghe-restore into unconfigured vm"
     export GHE_RESTORE_HOST
 
     # run ghe-restore and write output to file for asserting against
-    ghe-restore -v > "$TRASHDIR/restore-out"
+    ghe-restore -v > "$TRASHDIR/restore-out" 2>&1
     cat "$TRASHDIR/restore-out"
 
     # verify connect to right host
@@ -106,7 +106,7 @@ begin_test "ghe-restore into configured vm"
     export GHE_RESTORE_HOST
 
     # run ghe-restore and write output to file for asserting against
-    ghe-restore -v > "$TRASHDIR/restore-out"
+    ghe-restore -v > "$TRASHDIR/restore-out" 2>&1
     cat "$TRASHDIR/restore-out"
 
     # verify connect to right host
@@ -145,7 +145,7 @@ begin_test "ghe-restore -c into configured vm"
     export GHE_RESTORE_HOST
 
     # run ghe-restore and write output to file for asserting against
-    ghe-restore -v -c > "$TRASHDIR/restore-out"
+    ghe-restore -v -c > "$TRASHDIR/restore-out" 2>&1
     cat "$TRASHDIR/restore-out"
 
     # verify connect to right host

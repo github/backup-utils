@@ -48,7 +48,7 @@ begin_test "ghe-backup first snapshot"
 
     # check that the version file was written
     [ -f "$GHE_DATA_DIR/current/version" ]
-    [ $(cat "$GHE_DATA_DIR/current/version") = "v11.10.343" ]
+    [ $(cat "$GHE_DATA_DIR/current/version") = "v$GHE_TEST_REMOTE_VERSION" ]
 
     # check that the strategy file was written
     [ -f "$GHE_DATA_DIR/current/strategy" ]

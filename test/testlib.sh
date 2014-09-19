@@ -32,15 +32,23 @@ TRASHDIR="$TMPDIR/$(basename "$0")-$$"
 # Point commands at the test backup.config file
 GHE_BACKUP_CONFIG="$ROOTDIR/test/backup.config"
 GHE_DATA_DIR="$TRASHDIR/data"
-export GHE_BACKUP_CONFIG GHE_DATA_DIR
-
-# Point remote path locations to trashdir for test process
 GHE_REMOTE_DATA_DIR="$TRASHDIR/remote"
-GHE_REMOTE_DATA_USER_DIR="$GHE_REMOTE_DATA_DIR"
-GHE_REMOTE_METADATA_FILE="$GHE_REMOTE_DATA_DIR/enterprise/chef_metadata.json"
-GHE_REMOTE_LICENSE_FILE="$GHE_REMOTE_DATA_DIR/enterprise/enterprise.ghl"
-export GHE_REMOTE_DATA_DIR GHE_REMOTE_DATA_USER_DIR
-export GHE_REMOTE_METADATA_FILE GHE_REMOTE_LICENSE_FILE
+export GHE_BACKUP_CONFIG GHE_DATA_DIR GHE_REMOTE_DATA_DIR
+
+# The default remote appliance version. This may be set in the environment prior
+# to invoking tests to emulate a different remote vm version.
+: ${GHE_TEST_REMOTE_VERSION:=11.10.344}
+export GHE_TEST_REMOTE_VERSION
+
+# Source in the backup config and set GHE_REMOTE_XXX variables based on the
+# remote version established above or in the environment.
+. ghe-backup-config
+ghe_parse_remote_version "$GHE_TEST_REMOTE_VERSION"
+ghe_remote_version_config "$GHE_TEST_REMOTE_VERSION"
+
+# Unset special variables meant to be inherited by individual ghe-backup or
+# ghe-restore process groups
+unset GHE_SNAPSHOT_TIMESTAMP
 
 # keep track of num tests and failures
 tests=0
@@ -67,11 +75,12 @@ cd "$TRASHDIR"
 # much everything. You can pass a version number in the first argument to test
 # with different remote versions.
 setup_remote_metadata () {
+    mkdir -p "$GHE_REMOTE_DATA_DIR" "$GHE_REMOTE_DATA_USER_DIR"
     mkdir -p "$(dirname "$GHE_REMOTE_METADATA_FILE")"
     echo '
     {
       "timestamp": "Wed Jul 30 13:48:52 +0000 2014",
-      "version": "'${1:-11.10.343}'"
+      "version": "'${1:-$GHE_TEST_REMOTE_VERSION}'"
     }
     ' > "$GHE_REMOTE_METADATA_FILE"
 }

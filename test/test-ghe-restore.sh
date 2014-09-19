@@ -55,20 +55,21 @@ begin_test "ghe-restore"
     GHE_RESTORE_HOST=127.0.0.1
     export GHE_RESTORE_HOST
 
-    # run it
-    output="$(ghe-restore -v)" || false
+    # run ghe-restore and write output to file for asserting against
+    ghe-restore -v > "$TRASHDIR/restore-out"
+    cat "$TRASHDIR/restore-out"
 
     # verify connect to right host
-    echo "$output" | grep -q 'Connect 127.0.0.1 OK'
+    grep -q "Connect 127.0.0.1 OK" "$TRASHDIR/restore-out"
 
     # verify all import scripts were run
-    echo "$output" | grep -q 'alice/index.html'
-    echo "$output" | grep -q 'fake ghe-export-mysql data'
-    echo "$output" | grep -q 'fake ghe-export-redis data'
-    echo "$output" | grep -q 'fake ghe-export-authorized-keys data'
-    echo "$output" | grep -q 'fake ghe-export-ssh-host-keys data'
-    echo "$output" | grep -q 'fake ghe-export-settings data'
-    echo "$output" | grep -q 'ghe-import-es-indices'
+    grep -q "alice/index.html" "$TRASHDIR/restore-out"
+    grep -q "fake ghe-export-mysql data" "$TRASHDIR/restore-out"
+    grep -q "fake ghe-export-redis data" "$TRASHDIR/restore-out"
+    grep -q "fake ghe-export-authorized-keys data" "$TRASHDIR/restore-out"
+    grep -q "fake ghe-export-ssh-host-keys data" "$TRASHDIR/restore-out"
+    grep -q "fake ghe-export-settings data" "$TRASHDIR/restore-out"
+    grep -q "ghe-import-es-indices" "$TRASHDIR/restore-out"
 
     # verify all repository data was transferred to the restore location
     diff -ru "$GHE_DATA_DIR/current/repositories" "$GHE_REMOTE_DATA_USER_DIR/repositories"

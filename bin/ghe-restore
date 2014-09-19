@@ -80,9 +80,6 @@ fi
 gzip -dc "$GHE_RESTORE_SNAPSHOT_PATH/mysql.sql.gz" | ghe-ssh "$host" -- 'ghe-import-mysql' 1>&3
 
 echo "Restoring Redis database ..."
-if [ "$GHE_VERSION_MAJOR" -gt 1 ]; then
-    ghe-ssh "$host" -- 'sudo ghe-service-ensure-redis'  1>&3
-fi
 ghe-ssh "$host" -- 'ghe-import-redis' < "$GHE_RESTORE_SNAPSHOT_PATH/redis.rdb" 1>&3
 
 echo "Restoring SSH authorized keys ..."

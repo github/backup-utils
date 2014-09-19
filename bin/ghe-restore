@@ -5,16 +5,19 @@
 #/ the GHE_RESTORE_HOST config variable is set in backup.config. When a <host>
 #/ argument is provided, it always overrides the configured restore host.
 #/
+#/ Options:
+#/   -c                Clean restore. Restores appliance settings and license
+#/                     in addition to datastores. This is the default for
+#/                     appliances that have not yet been configured but can be
+#/                     forced by passing the argument explicitly.
+#/   -s <snapshot-id>  Restore from the snapshot with the given id. Available
+#/                     snapshots may be listed under the data directory.
+#/   -v                Enable verbose output.
+#/
 #/ Note that the host must be reachable and your SSH key must be setup as
 #/ described in the following help article:
 #/
 #/ <https://enterprise.github.com/help/articles/adding-an-ssh-key-for-shell-access>
-#/
-#/ When the -s argument is given, restore from the snapshot with the given id.
-#/ Available snapshots can be listed under the data directory.
-#/
-#/ When the -v argument is given, enable verbose output and show more information
-#/ about what's being transferred.
 set -e
 
 # Bring in the backup configuration.
@@ -27,11 +30,27 @@ cd $(dirname "$0")/..
 GHE_RESTORE_SNAPSHOT="current"
 export GHE_RESTORE_SNAPSHOT
 
-# Parse snapshot argument if provided
-if [ "$1" = "-s" ]; then
-    GHE_RESTORE_SNAPSHOT="$(basename "$2")"
-    shift 2
-fi
+# Parse arguments
+clean_restore=false
+while true; do
+    case "$1" in
+        -s)
+            GHE_RESTORE_SNAPSHOT="$(basename "$2")"
+            shift 2
+            ;;
+        -c)
+            clean_restore=true
+            shift
+            ;;
+        -*)
+            echo "Error: invalid argument: '$1'" 1>&2
+            exit 1
+            ;;
+        *)
+            break
+            ;;
+    esac
+done
 
 # Grab the host arg
 host="${1:-$GHE_RESTORE_HOST}"
@@ -53,19 +72,34 @@ echo "Starting $GHE_BACKUP_STRATEGY restore of $host from snapshot $GHE_RESTORE_
 # Perform a host-check and establish the remote version in GHE_REMOTE_VERSION.
 ghe_remote_version_required "$host"
 
-# Restore license file under versions >= 2.x. This is for automated restores of
-# newly provisioned VMs in internal GitHub test environments only currently.
-if [ "$GHE_VERSION_MAJOR" -gt 1 ] && ! ghe-ssh "$host" "test -f '$GHE_REMOTE_LICENSE_FILE'"; then
-    echo "Restoring license ..."
-    ghe-ssh "$host" -- 'ghe-import-license' < "$GHE_RESTORE_SNAPSHOT_PATH/enterprise.ghl" 1>&3
+# Figure out if host has ever been configured based on the presence of the
+# dna.json file. If not, enable restoring settings and license in addition
+# to primary datastores.
+if ! $clean_restore &&
+   ghe-ssh "! test -f '$GHE_REMOTE_DATA_DIR/enterprise/dna.json -o \
+                   -f '$GHE_REMOTE_DATA_USER_DIR/common/dna.json'"; then
+    clean_restore=true
 fi
 
 # Make sure the GitHub appliance is in maintenance mode and all writing
 # processes have bled out.
 ghe-maintenance-mode-enable "$host"
 
-echo "Restoring settings ..."
-ghe-ssh "$host" -- 'ghe-import-settings' < "$GHE_RESTORE_SNAPSHOT_PATH/settings.json" 1>&3
+# Restore settings and license if performing a clean restore.
+if $clean_restore; then
+    echo "Restoring settings ..."
+    ghe-ssh "$host" -- 'ghe-import-settings' < "$GHE_RESTORE_SNAPSHOT_PATH/settings.json" 1>&3
+
+    if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
+        echo "Restoring license ..."
+        ghe-ssh "$host" -- 'ghe-import-license' < "$GHE_RESTORE_SNAPSHOT_PATH/enterprise.ghl" 1>&3
+
+        echo "
+          sudo ghe-service-ensure-mysql &&
+          sudo ghe-service-ensure-elasticsearch
+        " | ghe-ssh "$host" -- /bin/sh 1>&3
+    fi
+fi
 
 echo "Restoring Git repositories ..."
 ghe-restore-repositories-${GHE_BACKUP_STRATEGY} "$host" 1>&3
@@ -74,9 +108,6 @@ echo "Restoring GitHub Pages ..."
 ghe-restore-pages-${GHE_BACKUP_STRATEGY} "$host" 1>&3
 
 echo "Restoring MySQL database ..."
-if [ "$GHE_VERSION_MAJOR" -gt 1 ]; then
-    ghe-ssh "$host" -- 'sudo ghe-service-ensure-mysql'  1>&3
-fi
 gzip -dc "$GHE_RESTORE_SNAPSHOT_PATH/mysql.sql.gz" | ghe-ssh "$host" -- 'ghe-import-mysql' 1>&3
 
 echo "Restoring Redis database ..."
@@ -86,9 +117,6 @@ echo "Restoring SSH authorized keys ..."
 ghe-ssh "$host" -- 'ghe-import-authorized-keys' < "$GHE_RESTORE_SNAPSHOT_PATH/authorized-keys.json" 1>&3
 
 echo "Restoring Elasticsearch indices ..."
-if [ "$GHE_VERSION_MAJOR" -gt 1 ]; then
-    ghe-ssh "$host" -- 'sudo ghe-service-ensure-elasticsearch' 1>&3
-fi
 ghe-restore-es-${GHE_BACKUP_STRATEGY} "$host" 1>&3
 
 echo "Restoring SSH host keys ..."

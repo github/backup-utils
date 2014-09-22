@@ -30,8 +30,10 @@ if ! tar --version | grep -q GNU; then
 fi
 
 # Transfer all ES data from the latest snapshot to the GitHub instance.
-
-if [ "$GHE_VERSION_MAJOR" -gt 1 ]; then
+if [ ! -d "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/elasticsearch" ]; then
+    echo "Warning: Elasticsearch backup missing. Skipping ..."
+    exit 0
+elif [ "$GHE_VERSION_MAJOR" -gt 1 ]; then
     cd "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/elasticsearch"
     ghe-ssh "$host" -- "sudo mkdir -p '$GHE_REMOTE_DATA_USER_DIR/elasticsearch-legacy'" 1>&3
 

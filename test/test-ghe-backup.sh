@@ -84,8 +84,11 @@ begin_test "ghe-backup first snapshot"
     # verify all pages data was transferred
     diff -ru "$GHE_REMOTE_DATA_USER_DIR/pages" "$GHE_DATA_DIR/current/pages"
 
-    # verify all ES data was transferred
-    diff -ru "$GHE_REMOTE_DATA_USER_DIR/elasticsearch" "$GHE_DATA_DIR/current/elasticsearch"
+    # TODO ES backup not yet supported under 2.x VM
+    if [ "$GHE_VERSION_MAJOR" -eq 1 ]; then
+        # verify all ES data was transferred
+        diff -ru "$GHE_REMOTE_DATA_USER_DIR/elasticsearch" "$GHE_DATA_DIR/current/elasticsearch"
+    fi
 )
 end_test
 
@@ -143,8 +146,11 @@ begin_test "ghe-backup subsequent snapshot"
     # verify all pages data was transferred
     diff -ru "$GHE_REMOTE_DATA_USER_DIR/pages" "$GHE_DATA_DIR/current/pages"
 
-    # verify all ES data was transferred
-    diff -ru "$GHE_REMOTE_DATA_USER_DIR/elasticsearch" "$GHE_DATA_DIR/current/elasticsearch"
+    # TODO ES backup not yet supported under 2.x VM
+    if [ "$GHE_VERSION_MAJOR" -eq 1 ]; then
+        # verify all ES data was transferred
+        diff -ru "$GHE_REMOTE_DATA_USER_DIR/elasticsearch" "$GHE_DATA_DIR/current/elasticsearch"
+    fi
 )
 end_test
 
@@ -169,8 +175,10 @@ begin_test "ghe-backup tarball strategy"
     # check repositories tarball data
     [ "$(cat "$GHE_DATA_DIR/current/repositories.tar")" = "fake ghe-export-repositories data" ]
 
-    # check ES tarball data
-    [ "$(cat "$GHE_DATA_DIR/current/elasticsearch.tar")" = "fake ghe-export-es-indices data" ]
+    # check ES tarball data. Supported under v1.x VMs only.
+    if [ "$GHE_VERSION_MAJOR" -eq 1 ]; then
+        [ "$(cat "$GHE_DATA_DIR/current/elasticsearch.tar")" = "fake ghe-export-es-indices data" ]
+    fi
 
     # check that repositories directory doesnt exist
     [ ! -d "$GHE_DATA_DIR/current/repositories" ]

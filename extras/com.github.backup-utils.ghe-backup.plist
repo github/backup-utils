@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>Label</key>
-	<string>com.github.backup-utils.launcher</string>
+	<string>com.github.backup-utils.ghe-backup</string>
 	<key>ProgramArguments</key>
 	<array>
 		<string>bin/ghe-backup</string>

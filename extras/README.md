@@ -5,7 +5,7 @@ Potentially useful extra files for backup-utils
 ### Mac OS X launchd launcher
 
 If you're using a Mac OS X system for your backup host, you can use the
-[com.github.backup-utils.launcher.plist](./com.github.backup-utils.launcher.plist)
+[com.github.backup-utils.ghe-backup.plist](./com.github.backup-utils.ghe-backup.plist)
 file to use
 [launchd](https://developer.apple.com/library/mac/documentation/macosx/conceptual/bpsystemstartup/chapters/CreatingLaunchdJobs.html)
 as the system to schedule backups.
@@ -78,10 +78,10 @@ runs the backup each weekday at 11:00AM and 6:00PM
 
 
 Once you've modified the `.plist` file for your needs, drop it into
-`~/Library/LaunchAgents`:
+`/Library/LaunchDaemons`:
 
-    sudo cp com.github.backup-utils.launcher.plist /Library/LaunchAgents/
+    sudo cp com.github.backup-utils.ghe-backup.plist /Library/LaunchDaemons/
 
 Then load this into `launchd`:
 
-    sudo launchctl load ~/Library/LaunchAgents/com.github.backup-utils.launcher.plist
+    sudo launchctl load /Library/LaunchDaemons/com.github.backup-utils.ghe-backup.plist

@@ -78,10 +78,10 @@ runs the backup each weekday at 11:00AM and 6:00PM
 
 
 Once you've modified the `.plist` file for your needs, drop it into
-`/Library/LaunchAgents`:
+`~/Library/LaunchAgents`:
 
     sudo cp com.github.backup-utils.launcher.plist /Library/LaunchAgents/
 
 Then load this into `launchd`:
 
-    sudo launchctl load /Library/LaunchAgents/com.github.backup-utils.launcher.plist
+    sudo launchctl load ~/Library/LaunchAgents/com.github.backup-utils.launcher.plist

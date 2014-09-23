@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>com.github.backup-utils.ghe-backup</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>bin/ghe-backup</string>
+		<!-- <string>-v</string> -->
+	</array>
+	<key>StartInterval</key>
+	<integer>14400</integer>
+	<!-- Uncomment if you want logging
+	<key>StandardOutPath</key>
+	<string>/var/log/stdout.log</string>
+	<key>StandardErrorPath</key>
+	<string>/var/log/stderr.log</string>
+	-->
+</dict>
+</plist>

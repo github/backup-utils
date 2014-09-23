@@ -76,8 +76,8 @@ ghe_remote_version_required "$host"
 # dna.json file. If not, enable restoring settings and license in addition
 # to primary datastores.
 if ! $clean_restore &&
-   ! ghe-ssh "$host" -- "test -f '$GHE_REMOTE_DATA_DIR/enterprise/dna.json -o \
-                   -f '$GHE_REMOTE_DATA_USER_DIR/common/dna.json'"; then
+   ! ghe-ssh "$host" -- "test -f '$GHE_REMOTE_DATA_DIR/enterprise/dna.json' -o \
+                              -f '$GHE_REMOTE_DATA_USER_DIR/common/dna.json'"; then
     clean_restore=true
 fi
 

@@ -84,4 +84,4 @@ Once you've modified the `.plist` file for your needs, drop it into
 
 Then load this into `launchd`:
 
-    sudo launchctl load /Library/LaunchDaemons/com.github.backup-utils.ghe-backup.plist
+    launchctl load /Library/LaunchDaemons/com.github.backup-utils.ghe-backup.plist

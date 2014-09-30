@@ -21,6 +21,16 @@ mkdir -p gh-enterprise-es/node/0
 touch gh-enterprise-es/node/0/stuff1
 touch gh-enterprise-es/node/0/stuff2
 
+# Create some fake elasticsearch data in the remote snapshot data directory
+if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
+    mkdir -p "$GHE_REMOTE_DATA_USER_DIR/elasticsearch-snapshots"
+    cd "$GHE_REMOTE_DATA_USER_DIR/elasticsearch-snapshots"
+    echo "fake snapshot file" > "snapshot-1"
+    echo "fake metadata file" > "metadata-1"
+    mkdir -p indices/repositories
+    echo "fake document data" > indices/repositories/dumb-file
+fi
+
 # Create some test repositories in the remote repositories dir
 mkdir "$GHE_REMOTE_DATA_USER_DIR/repositories"
 cd "$GHE_REMOTE_DATA_USER_DIR/repositories"
@@ -84,10 +94,13 @@ begin_test "ghe-backup first snapshot"
     # verify all pages data was transferred
     diff -ru "$GHE_REMOTE_DATA_USER_DIR/pages" "$GHE_DATA_DIR/current/pages"
 
-    # TODO ES backup not yet supported under 2.x VM
+    # ES backup path is different under v11.10.x and v2.x appliances
     if [ "$GHE_VERSION_MAJOR" -eq 1 ]; then
-        # verify all ES data was transferred
+        # verify all ES data was transferred from live directory
         diff -ru "$GHE_REMOTE_DATA_USER_DIR/elasticsearch" "$GHE_DATA_DIR/current/elasticsearch"
+    elif [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
+        # verify all ES data was transferred from snapshot directory
+        diff -ru "$GHE_REMOTE_DATA_USER_DIR/elasticsearch-snapshots" "$GHE_DATA_DIR/current/elasticsearch"
     fi
 )
 end_test
@@ -146,10 +159,13 @@ begin_test "ghe-backup subsequent snapshot"
     # verify all pages data was transferred
     diff -ru "$GHE_REMOTE_DATA_USER_DIR/pages" "$GHE_DATA_DIR/current/pages"
 
-    # TODO ES backup not yet supported under 2.x VM
+    # ES backup path is different under v11.10.x and v2.x appliances
     if [ "$GHE_VERSION_MAJOR" -eq 1 ]; then
-        # verify all ES data was transferred
+        # verify all ES data was transferred from live directory
         diff -ru "$GHE_REMOTE_DATA_USER_DIR/elasticsearch" "$GHE_DATA_DIR/current/elasticsearch"
+    elif [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
+        # verify all ES data was transferred from snapshot directory
+        diff -ru "$GHE_REMOTE_DATA_USER_DIR/elasticsearch-snapshots" "$GHE_DATA_DIR/current/elasticsearch"
     fi
 )
 end_test

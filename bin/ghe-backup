@@ -122,13 +122,9 @@ echo "Backing up GitHub Pages ..."
 ghe-backup-pages-${GHE_BACKUP_STRATEGY} ||
 failures="$failures pages"
 
-if [ "$GHE_VERSION_MAJOR" -lt 2 ]; then
-    echo "Backing up Elasticsearch indices ..."
-    ghe-backup-es-${GHE_BACKUP_STRATEGY} ||
-    failures="$failures elasticsearch"
-else
-    echo "Skipping Elasticsearch backup under v2.x (not yet supported)"
-fi
+echo "Backing up Elasticsearch indices ..."
+ghe-backup-es-${GHE_BACKUP_STRATEGY} ||
+failures="$failures elasticsearch"
 
 # If we're using the tarball backup strategy, bring the appliance out of
 # maintenance mode now instead of waiting until after pruning stale snapshots.

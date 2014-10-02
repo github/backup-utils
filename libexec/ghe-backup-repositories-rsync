@@ -85,7 +85,7 @@ echo "
 " | ghe-ssh "$host" -- /bin/sh || {
     res=$?
     if [ $res = 7 ]; then
-        echo "Error: git-gc processes remain after 60 seconds. Aborting..." 1>&2
+        echo "Error: git-gc processes remain after $GHE_GIT_COOLDOWN_PERIOD seconds. Aborting..." 1>&2
     fi
     exit $res
 }

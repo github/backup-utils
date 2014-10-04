@@ -99,6 +99,8 @@ if $clean_restore; then
             cat "$GHE_RESTORE_SNAPSHOT_PATH/manage-password" |
             ghe-ssh "$host" -- \
                 "sudo -u git dd of='$GHE_REMOTE_DATA_USER_DIR/common/manage-password' 2>&1"
+            ghe-ssh "$host" -- \
+                "sudo -u git chmod 0600 '$GHE_REMOTE_DATA_USER_DIR/common/manage-password'"
         fi
 
         echo "

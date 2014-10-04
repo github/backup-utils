@@ -23,6 +23,9 @@ ghe_remote_version_required "$host"
 # us run this script directly.
 : ${GHE_RESTORE_SNAPSHOT:=current}
 
+# The directory holding the snapshot to restore
+snapshot_dir="$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT"
+
 # Use GNU tar on BSDs.
 TAR=tar
 if ! tar --version | grep -q GNU; then
@@ -30,15 +33,32 @@ if ! tar --version | grep -q GNU; then
 fi
 
 # Transfer all ES data from the latest snapshot to the GitHub instance.
-if [ ! -d "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/elasticsearch" ]; then
+if [ ! -d "$snapshot_dir/elasticsearch" ]; then
     echo "Warning: Elasticsearch backup missing. Skipping ..."
     exit 0
-elif [ "$GHE_VERSION_MAJOR" -gt 1 ]; then
+
+# restoring v11.10.x ES snapshot into a v2.0 appliance
+elif [ "$GHE_VERSION_MAJOR" -gt 1 -a -f "$snapshot_dir/elasticsearch/elasticsearch.yml" ]; then
     cd "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/elasticsearch"
     ghe-ssh "$host" -- "sudo mkdir -p '$GHE_REMOTE_DATA_USER_DIR/elasticsearch-legacy'" 1>&3
 
     $TAR -cf - --owner=root --group=root . |
     ghe-ssh "$host" -- "sudo tar -xf - -C '$GHE_REMOTE_DATA_USER_DIR/elasticsearch-legacy'" 1>&3
+
+# restoring v2.0 ES snapshot into a v2.0 appliance
+elif [ "$GHE_VERSION_MAJOR" -gt 1 ]; then
+    ghe-ssh "$host" -- "sudo mkdir -p '$GHE_REMOTE_DATA_USER_DIR/elasticsearch-snapshots'" 1>&3
+    ghe-ssh "$host" -- "sudo chown elasticsearch:elasticsearch '$GHE_REMOTE_DATA_USER_DIR/elasticsearch-snapshots'" 1>&3
+
+    ghe-rsync -avz --delete \
+        -e "ghe-ssh -p $(ssh_port_part "$host")" \
+        --rsync-path="sudo -u elasticsearch rsync" \
+        "$snapshot_dir/elasticsearch/" \
+        "$(ssh_host_part "$host"):$GHE_REMOTE_DATA_USER_DIR/elasticsearch-snapshots" 1>&3
+
+    ghe-ssh "$host" -- "ghe-es-restore"
+
+# restoring v11.10.x ES snapshot into a v11.10.x appliance
 else
     cd "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT"
     $TAR -cf - --owner=root --group=root elasticsearch |

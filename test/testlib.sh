@@ -77,6 +77,11 @@ cd "$TRASHDIR"
 setup_remote_metadata () {
     mkdir -p "$GHE_REMOTE_DATA_DIR" "$GHE_REMOTE_DATA_USER_DIR"
     mkdir -p "$(dirname "$GHE_REMOTE_METADATA_FILE")"
+
+    if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
+        mkdir -p "$GHE_REMOTE_DATA_USER_DIR/common"
+    fi
+
     echo '
     {
       "timestamp": "Wed Jul 30 13:48:52 +0000 2014",

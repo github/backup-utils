@@ -43,6 +43,7 @@ echo "fake ghe-export-ssh-host-keys data" > "$GHE_DATA_DIR/current/ssh-host-keys
 echo "fake ghe-export-repositories data" > "$GHE_DATA_DIR/current/repositories.tar"
 echo "fake ghe-export-settings data" > "$GHE_DATA_DIR/current/settings.json"
 echo "fake license data" > "$GHE_DATA_DIR/current/enterprise.ghl"
+echo "fake manage password hash data" > "$GHE_DATA_DIR/current/manage-password"
 echo "rsync" > "$GHE_DATA_DIR/current/strategy"
 
 begin_test "ghe-restore into unconfigured vm"
@@ -56,8 +57,10 @@ begin_test "ghe-restore into unconfigured vm"
     export GHE_RESTORE_HOST
 
     # run ghe-restore and write output to file for asserting against
-    ghe-restore -v > "$TRASHDIR/restore-out" 2>&1
-    cat "$TRASHDIR/restore-out"
+    if ! ghe-restore -v > "$TRASHDIR/restore-out" 2>&1; then
+        cat "$TRASHDIR/restore-out"
+        false
+    fi
 
     # verify connect to right host
     grep -q "Connect 127.0.0.1 OK" "$TRASHDIR/restore-out"
@@ -76,6 +79,12 @@ begin_test "ghe-restore into unconfigured vm"
         grep -q "ghe-import-es-indices" "$TRASHDIR/restore-out"
     elif [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
         test -d "$GHE_REMOTE_DATA_USER_DIR/elasticsearch-legacy"
+    fi
+
+    # verify manage password was restored under v2.x or greater VMs
+    if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
+        test -f "$GHE_REMOTE_DATA_USER_DIR/common/manage-password"
+        [ "$(cat "$GHE_REMOTE_DATA_USER_DIR/common/manage-password")" = "fake manage password hash data" ]
     fi
 
     # verify service-ensure scripts were run under versions >= v2.x

@@ -18,6 +18,23 @@ mkdir -p gh-enterprise-es/node/0
 touch gh-enterprise-es/node/0/stuff1
 touch gh-enterprise-es/node/0/stuff2
 
+# Create some fake hookshot data in the remote data directory
+if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
+    mkdir -p "$GHE_DATA_DIR/1/hookshot"
+    cd "$GHE_DATA_DIR/1/hookshot"
+    mkdir -p repository-123 repository-456
+    touch repository-123/test.bpack repository-456/test.bpack
+fi
+
+# Create some fake alambic data in the remote data directory
+if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
+    mkdir -p "$GHE_DATA_DIR/1/alambic_assets/github-enterprise-assets/0000"
+    touch "$GHE_DATA_DIR/1/alambic_assets/github-enterprise-assets/0000/test.png"
+
+    mkdir -p "$GHE_DATA_DIR/1/alambic_assets/github-enterprise-releases/0001"
+    touch "$GHE_DATA_DIR/1/alambic_assets/github-enterprise-releases/0001/1ed78298-522b-11e3-9dc0-22eed1f8132d"
+fi
+
 # Add some fake repositories to the snapshot
 mkdir -p "$GHE_DATA_DIR/1/repositories"
 cd "$GHE_DATA_DIR/1/repositories"
@@ -89,6 +106,14 @@ begin_test "ghe-restore into unconfigured vm"
 
     # verify all pages data was transferred to the restore location
     diff -ru "$GHE_DATA_DIR/current/pages" "$GHE_REMOTE_DATA_USER_DIR/pages"
+
+    if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
+        # verify all hookshot user data was transferred
+        diff -ru "$GHE_DATA_DIR/current/hookshot" "$GHE_REMOTE_DATA_USER_DIR/hookshot"
+
+        # verify all alambic assets user data was transferred
+        diff -ru "$GHE_DATA_DIR/current/alambic_assets" "$GHE_REMOTE_DATA_USER_DIR/alambic_assets"
+    fi
 )
 end_test
 
@@ -128,6 +153,14 @@ begin_test "ghe-restore into configured vm"
 
     # verify all pages data was transferred to the restore location
     diff -ru "$GHE_DATA_DIR/current/pages" "$GHE_REMOTE_DATA_USER_DIR/pages"
+
+    if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
+        # verify all hookshot user data was transferred
+        diff -ru "$GHE_DATA_DIR/current/hookshot" "$GHE_REMOTE_DATA_USER_DIR/hookshot"
+
+        # verify all alambic assets user data was transferred
+        diff -ru "$GHE_DATA_DIR/current/alambic_assets" "$GHE_REMOTE_DATA_USER_DIR/alambic_assets"
+    fi
 )
 end_test
 
@@ -166,6 +199,14 @@ begin_test "ghe-restore -c into configured vm"
 
     # verify all pages data was transferred to the restore location
     diff -ru "$GHE_DATA_DIR/current/pages" "$GHE_REMOTE_DATA_USER_DIR/pages"
+
+    if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
+        # verify all hookshot user data was transferred
+        diff -ru "$GHE_DATA_DIR/current/hookshot" "$GHE_REMOTE_DATA_USER_DIR/hookshot"
+
+        # verify all alambic assets user data was transferred
+        diff -ru "$GHE_DATA_DIR/current/alambic_assets" "$GHE_REMOTE_DATA_USER_DIR/alambic_assets"
+    fi
 )
 end_test
 
@@ -190,6 +231,14 @@ begin_test "ghe-restore with host arg"
 
     # verify all pages data was transferred to the restore location
     diff -ru "$GHE_DATA_DIR/current/pages" "$GHE_REMOTE_DATA_USER_DIR/pages"
+
+    if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
+        # verify all hookshot user data was transferred
+        diff -ru "$GHE_DATA_DIR/current/hookshot" "$GHE_REMOTE_DATA_USER_DIR/hookshot"
+
+        # verify all alambic assets user data was transferred
+        diff -ru "$GHE_DATA_DIR/current/alambic_assets" "$GHE_REMOTE_DATA_USER_DIR/alambic_assets"
+    fi
 )
 end_test
 

@@ -13,6 +13,23 @@ cd "$GHE_REMOTE_DATA_USER_DIR/pages"
 mkdir -p alice bob
 touch alice/index.html bob/index.html
 
+# Create some fake hookshot data in the remote data directory
+if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
+    mkdir -p "$GHE_REMOTE_DATA_USER_DIR/hookshot"
+    cd "$GHE_REMOTE_DATA_USER_DIR/hookshot"
+    mkdir -p repository-123 repository-456
+    touch repository-123/test.bpack repository-456/test.bpack
+fi
+
+# Create some fake alambic data in the remote data directory
+if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
+    mkdir -p "$GHE_REMOTE_DATA_USER_DIR/alambic_assets/github-enterprise-assets/0000"
+    touch "$GHE_REMOTE_DATA_USER_DIR/alambic_assets/github-enterprise-assets/0000/test.png"
+
+    mkdir -p "$GHE_REMOTE_DATA_USER_DIR/alambic_assets/github-enterprise-releases/0001"
+    touch "$GHE_REMOTE_DATA_USER_DIR/alambic_assets/github-enterprise-releases/0001/1ed78298-522b-11e3-9dc0-22eed1f8132d"
+fi
+
 # Create some fake elasticsearch data in the remote data directory
 mkdir -p "$GHE_REMOTE_DATA_USER_DIR/elasticsearch"
 cd "$GHE_REMOTE_DATA_USER_DIR/elasticsearch"
@@ -102,6 +119,14 @@ begin_test "ghe-backup first snapshot"
         # verify all ES data was transferred from snapshot directory
         diff -ru "$GHE_REMOTE_DATA_USER_DIR/elasticsearch-snapshots" "$GHE_DATA_DIR/current/elasticsearch"
     fi
+
+    if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
+        # verify all hookshot user data was transferred
+        diff -ru "$GHE_REMOTE_DATA_USER_DIR/hookshot" "$GHE_DATA_DIR/current/hookshot"
+
+        # verify all alambic assets user data was transferred
+        diff -ru "$GHE_REMOTE_DATA_USER_DIR/alambic_assets" "$GHE_DATA_DIR/current/alambic_assets"
+    fi
 )
 end_test
 
@@ -166,6 +191,14 @@ begin_test "ghe-backup subsequent snapshot"
     elif [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
         # verify all ES data was transferred from snapshot directory
         diff -ru "$GHE_REMOTE_DATA_USER_DIR/elasticsearch-snapshots" "$GHE_DATA_DIR/current/elasticsearch"
+    fi
+
+    if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
+        # verify all hookshot user data was transferred
+        diff -ru "$GHE_REMOTE_DATA_USER_DIR/hookshot" "$GHE_DATA_DIR/current/hookshot"
+
+        # verify all alambic assets user data was transferred
+        diff -ru "$GHE_REMOTE_DATA_USER_DIR/alambic_assets" "$GHE_DATA_DIR/current/alambic_assets"
     fi
 )
 end_test

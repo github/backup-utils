@@ -107,6 +107,14 @@ ghe-restore-repositories-${GHE_BACKUP_STRATEGY} "$host" 1>&3
 echo "Restoring GitHub Pages ..."
 ghe-restore-pages-${GHE_BACKUP_STRATEGY} "$host" 1>&3
 
+if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
+    echo "Restoring asset attachments ..."
+    ghe-restore-userdata alambic_assets "$host" 1>&3
+
+    echo "Restoring hook deliveries ..."
+    ghe-restore-userdata hookshot "$host" 1>&3
+fi
+
 echo "Restoring MySQL database ..."
 gzip -dc "$GHE_RESTORE_SNAPSHOT_PATH/mysql.sql.gz" | ghe-ssh "$host" -- 'ghe-import-mysql' 1>&3
 

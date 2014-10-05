@@ -87,27 +87,12 @@ ghe-maintenance-mode-enable "$host"
 
 # Restore settings and license if performing a clean restore.
 if $clean_restore; then
-    echo "Restoring settings ..."
-    ghe-ssh "$host" -- 'ghe-import-settings' < "$GHE_RESTORE_SNAPSHOT_PATH/settings.json" 1>&3
+    ghe-restore-settings "$host"
 
-    if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
-        echo "Restoring license ..."
-        ghe-ssh "$host" -- 'ghe-import-license' < "$GHE_RESTORE_SNAPSHOT_PATH/enterprise.ghl" 1>&3
-
-        if [ -f "$GHE_RESTORE_SNAPSHOT_PATH/manage-password" ]; then
-            echo "Restoring management console password ..."
-            cat "$GHE_RESTORE_SNAPSHOT_PATH/manage-password" |
-            ghe-ssh "$host" -- \
-                "sudo -u git dd of='$GHE_REMOTE_DATA_USER_DIR/common/manage-password' 2>&1"
-            ghe-ssh "$host" -- \
-                "sudo -u git chmod 0600 '$GHE_REMOTE_DATA_USER_DIR/common/manage-password'"
-        fi
-
-        echo "
-          sudo ghe-service-ensure-mysql &&
-          sudo ghe-service-ensure-elasticsearch
-        " | ghe-ssh "$host" -- /bin/sh 1>&3
-    fi
+    # Make sure mysql and elasticsearch are setup and running since this is a
+    # fresh install which hasn't had a configure run yet.
+    echo "sudo ghe-service-ensure-mysql && sudo ghe-service-ensure-elasticsearch" |
+    ghe-ssh "$host" -- /bin/sh 1>&3
 fi
 
 echo "Restoring Git repositories ..."

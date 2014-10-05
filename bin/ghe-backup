@@ -91,27 +91,8 @@ if [ "$GHE_BACKUP_STRATEGY" = "tarball" ]; then
 fi
 
 echo "Backing up GitHub settings ..."
-ghe-ssh "$host" -- 'ghe-export-settings' > settings.json ||
+ghe-backup-settings ||
 failures="$failures settings"
-
-# transfer license file
-ghe-ssh "$host" -- "cat '$GHE_REMOTE_LICENSE_FILE'" > enterprise.ghl ||
-failures="$failures license"
-
-# transfer enterprise manage password hash if running against a v2.x instance.
-if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
-    manage_password_file="$GHE_REMOTE_DATA_USER_DIR/common/manage-password"
-    if echo "sudo cat '$manage_password_file' 2>/dev/null || true" |
-       ghe-ssh "$host" -- /bin/sh > manage-password+
-    then
-        if [ -n "$(cat manage-password+)" ]; then
-            mv manage-password+ manage-password
-        fi
-    else
-        unlink manage-password+
-        failures="$failures manage-password"
-    fi
-fi
 
 echo "Backing up SSH authorized keys ..."
 ghe-ssh "$host" -- 'ghe-export-authorized-keys' > authorized-keys.json ||

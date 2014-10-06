@@ -13,6 +13,10 @@ cd "$GHE_REMOTE_DATA_USER_DIR/pages"
 mkdir -p alice bob
 touch alice/index.html bob/index.html
 
+# Create a fake manage password file
+mkdir -p "$GHE_REMOTE_DATA_USER_DIR/common"
+echo "fake password hash data" > "$GHE_REMOTE_DATA_USER_DIR/common/manage-password"
+
 # Create some fake hookshot data in the remote data directory
 if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
     mkdir -p "$GHE_REMOTE_DATA_USER_DIR/hookshot"
@@ -120,6 +124,11 @@ begin_test "ghe-backup first snapshot"
         diff -ru "$GHE_REMOTE_DATA_USER_DIR/elasticsearch-snapshots" "$GHE_DATA_DIR/current/elasticsearch"
     fi
 
+    # verify manage-password file was backed up under v2.x VMs
+    if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
+        [ "$(cat "$GHE_DATA_DIR/current/manage-password")" = "fake password hash data" ]
+    fi
+
     if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
         # verify all hookshot user data was transferred
         diff -ru "$GHE_REMOTE_DATA_USER_DIR/hookshot" "$GHE_DATA_DIR/current/hookshot"
@@ -193,6 +202,11 @@ begin_test "ghe-backup subsequent snapshot"
         diff -ru "$GHE_REMOTE_DATA_USER_DIR/elasticsearch-snapshots" "$GHE_DATA_DIR/current/elasticsearch"
     fi
 
+    # verify manage-password file was backed up under v2.x VMs
+    if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
+        [ "$(cat "$GHE_DATA_DIR/current/manage-password")" = "fake password hash data" ]
+    fi
+
     if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
         # verify all hookshot user data was transferred
         diff -ru "$GHE_REMOTE_DATA_USER_DIR/hookshot" "$GHE_DATA_DIR/current/hookshot"
@@ -241,5 +255,18 @@ begin_test "ghe-backup fails fast when other run in progress"
 
     ln -s 1 "$GHE_DATA_DIR/in-progress"
     ! ghe-backup
+
+    unlink "$GHE_DATA_DIR/in-progress"
+)
+end_test
+
+begin_test "ghe-backup without manage-password file"
+(
+    set -e
+
+    unlink "$GHE_REMOTE_DATA_USER_DIR/common/manage-password"
+    ghe-backup
+
+    [ ! -f "$GHE_DATA_DIR/current/manage-password" ]
 )
 end_test

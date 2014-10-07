@@ -63,69 +63,6 @@ echo "fake license data" > "$GHE_DATA_DIR/current/enterprise.ghl"
 echo "fake manage password hash data" > "$GHE_DATA_DIR/current/manage-password"
 echo "rsync" > "$GHE_DATA_DIR/current/strategy"
 
-begin_test "ghe-restore into unconfigured vm"
-(
-    set -e
-    rm -rf "$GHE_REMOTE_DATA_DIR"
-    setup_remote_metadata
-
-    # set restore host environ var
-    GHE_RESTORE_HOST=127.0.0.1
-    export GHE_RESTORE_HOST
-
-    # run ghe-restore and write output to file for asserting against
-    if ! ghe-restore -v > "$TRASHDIR/restore-out" 2>&1; then
-        cat "$TRASHDIR/restore-out"
-        false
-    fi
-
-    # verify connect to right host
-    grep -q "Connect 127.0.0.1 OK" "$TRASHDIR/restore-out"
-
-    # verify all import scripts were run
-    grep -q "alice/index.html" "$TRASHDIR/restore-out"
-    grep -q "fake ghe-export-mysql data" "$TRASHDIR/restore-out"
-    grep -q "fake ghe-export-redis data" "$TRASHDIR/restore-out"
-    grep -q "fake ghe-export-authorized-keys data" "$TRASHDIR/restore-out"
-    grep -q "fake ghe-export-ssh-host-keys data" "$TRASHDIR/restore-out"
-    grep -q "fake ghe-export-settings data" "$TRASHDIR/restore-out"
-
-    # verify ghe-import-es-indices is run under 1.x VMs and that the
-    # elasticsearch-legacy directory was created under 2.x VMs.
-    if [ "$GHE_VERSION_MAJOR" -eq 1 ]; then
-        grep -q "ghe-import-es-indices" "$TRASHDIR/restore-out"
-    elif [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
-        test -d "$GHE_REMOTE_DATA_USER_DIR/elasticsearch-legacy"
-    fi
-
-    # verify manage password was restored under v2.x or greater VMs
-    if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
-        test -f "$GHE_REMOTE_DATA_USER_DIR/common/manage-password"
-        [ "$(cat "$GHE_REMOTE_DATA_USER_DIR/common/manage-password")" = "fake manage password hash data" ]
-    fi
-
-    # verify service-ensure scripts were run under versions >= v2.x
-    if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
-        grep -q "ghe-service-ensure-mysql OK" "$TRASHDIR/restore-out"
-        grep -q "ghe-service-ensure-elasticsearch OK" "$TRASHDIR/restore-out"
-    fi
-
-    # verify all repository data was transferred to the restore location
-    diff -ru "$GHE_DATA_DIR/current/repositories" "$GHE_REMOTE_DATA_USER_DIR/repositories"
-
-    # verify all pages data was transferred to the restore location
-    diff -ru "$GHE_DATA_DIR/current/pages" "$GHE_REMOTE_DATA_USER_DIR/pages"
-
-    if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
-        # verify all hookshot user data was transferred
-        diff -ru "$GHE_DATA_DIR/current/hookshot" "$GHE_REMOTE_DATA_USER_DIR/hookshot"
-
-        # verify all alambic assets user data was transferred
-        diff -ru "$GHE_DATA_DIR/current/alambic_assets" "$GHE_REMOTE_DATA_USER_DIR/alambic_assets"
-    fi
-)
-end_test
-
 begin_test "ghe-restore into configured vm"
 (
     set -e
@@ -173,14 +110,11 @@ begin_test "ghe-restore into configured vm"
 )
 end_test
 
-begin_test "ghe-restore -c into configured vm"
+begin_test "ghe-restore -c into unconfigured vm"
 (
     set -e
     rm -rf "$GHE_REMOTE_DATA_DIR"
     setup_remote_metadata
-
-    # create settings file -- used to determine if instance has been configured.
-    touch "$GHE_REMOTE_DATA_DIR/enterprise/dna.json"
 
     # set restore host environ var
     GHE_RESTORE_HOST=127.0.0.1
@@ -219,11 +153,33 @@ begin_test "ghe-restore -c into configured vm"
 )
 end_test
 
+begin_test "ghe-restore into unconfigured vm"
+(
+    set -e
+    rm -rf "$GHE_REMOTE_DATA_DIR"
+    setup_remote_metadata
+
+    # set restore host environ var
+    GHE_RESTORE_HOST=127.0.0.1
+    export GHE_RESTORE_HOST
+
+    # run ghe-restore and write output to file for asserting against
+    # this should fail due to the appliance being in an unconfigured state
+    ! ghe-restore -v > "$TRASHDIR/restore-out" 2>&1
+
+    # verify that ghe-restore failed due to the appliance not being configured
+    grep -q -e "Error: $GHE_RESTORE_HOST not configured" "$TRASHDIR/restore-out"
+)
+end_test
+
 begin_test "ghe-restore with host arg"
 (
     set -e
     rm -rf "$GHE_REMOTE_DATA_DIR"
     setup_remote_metadata
+
+    # create settings file -- used to determine if instance has been configured.
+    touch "$GHE_REMOTE_DATA_DIR/enterprise/dna.json"
 
     # set restore host environ var
     GHE_RESTORE_HOST=127.0.0.1
@@ -257,6 +213,9 @@ begin_test "ghe-restore no host arg or configured restore host"
     rm -rf "$GHE_REMOTE_DATA_DIR"
     setup_remote_metadata
 
+    # create settings file -- used to determine if instance has been configured.
+    touch "$GHE_REMOTE_DATA_DIR/enterprise/dna.json"
+
     # unset configured restore host
     unset GHE_RESTORE_HOST
 
@@ -271,6 +230,9 @@ begin_test "ghe-restore with no pages backup"
     rm -rf "$GHE_REMOTE_DATA_DIR"
     setup_remote_metadata
 
+    # create settings file -- used to determine if instance has been configured.
+    touch "$GHE_REMOTE_DATA_DIR/enterprise/dna.json"
+
     # remove pages data
     rm -rf "$GHE_DATA_DIR/1/pages"
 
@@ -284,6 +246,9 @@ begin_test "ghe-restore with tarball strategy"
     set -e
     rm -rf "$GHE_REMOTE_DATA_DIR"
     setup_remote_metadata
+
+    # create settings file -- used to determine if instance has been configured.
+    touch "$GHE_REMOTE_DATA_DIR/enterprise/dna.json"
 
     # run it
     echo "tarball" > "$GHE_DATA_DIR/current/strategy"

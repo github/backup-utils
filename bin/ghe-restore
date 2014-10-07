@@ -6,10 +6,10 @@
 #/ argument is provided, it always overrides the configured restore host.
 #/
 #/ Options:
-#/   -c                Clean restore. Restores appliance settings and license
-#/                     in addition to datastores. This is the default for
-#/                     appliances that have not yet been configured but can be
-#/                     forced by passing the argument explicitly.
+#/   -c                Restore appliance settings and license in addition to
+#/                     datastores. Settings are not restored by default to
+#/                     prevent overwriting different configuration on the
+#/                     restore host.
 #/   -s <snapshot-id>  Restore from the snapshot with the given id. Available
 #/                     snapshots may be listed under the data directory.
 #/   -v                Enable verbose output.
@@ -31,7 +31,7 @@ GHE_RESTORE_SNAPSHOT="current"
 export GHE_RESTORE_SNAPSHOT
 
 # Parse arguments
-clean_restore=false
+restore_settings=false
 while true; do
     case "$1" in
         -s)
@@ -39,7 +39,7 @@ while true; do
             shift 2
             ;;
         -c)
-            clean_restore=true
+            restore_settings=true
             shift
             ;;
         -*)
@@ -54,6 +54,9 @@ done
 
 # Grab the host arg
 host="${1:-$GHE_RESTORE_HOST}"
+
+# Hostname without any port suffix
+hostname=$(echo "$host" | cut -f 1 -d :)
 
 # Show usage with no <host>
 [ -z "$host" ] && print_usage
@@ -72,25 +75,29 @@ echo "Starting $GHE_BACKUP_STRATEGY restore of $host from snapshot $GHE_RESTORE_
 # Perform a host-check and establish the remote version in GHE_REMOTE_VERSION.
 ghe_remote_version_required "$host"
 
-# Figure out if host has ever been configured based on the presence of the
-# dna.json file. If not, enable restoring settings and license in addition
-# to primary datastores.
-if ! $clean_restore &&
+# Verify the host has been fully configured at least once unless the -c
+# argument was provided.
+if ! $restore_settings &&
    ! ghe-ssh "$host" -- "test -f '$GHE_REMOTE_DATA_DIR/enterprise/dna.json' -o \
                               -f '$GHE_REMOTE_DATA_USER_DIR/common/dna.json'"; then
-    clean_restore=true
+    echo "Error: $hostname not configured." 1>&2
+    echo "Please visit https://$hostname/setup/settings to configure base appliance settings before continuing." 1>&2
+    exit 1
 fi
 
 # Make sure the GitHub appliance is in maintenance mode and all writing
 # processes have bled out.
 ghe-maintenance-mode-enable "$host"
 
-# Restore settings and license if performing a clean restore.
-if $clean_restore; then
+# Restore settings and license if requested.
+if $restore_settings; then
     ghe-restore-settings "$host"
+fi
 
-    # Make sure mysql and elasticsearch are setup and running since this is a
-    # fresh install which hasn't had a configure run yet.
+# Make sure mysql and elasticsearch are prep'd and running before restoring into
+# appliances v2.x or greater. These services will not have been started on appliances
+# that have not been configured yet.
+if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
     echo "sudo ghe-service-ensure-mysql && sudo ghe-service-ensure-elasticsearch" |
     ghe-ssh "$host" -- /bin/sh 1>&3
 fi
@@ -132,4 +139,4 @@ echo "Restoring SSH host keys ..."
 ghe-ssh "$host" -- 'ghe-import-ssh-host-keys' < "$GHE_RESTORE_SNAPSHOT_PATH/ssh-host-keys.tar" 1>&3
 
 echo "Completed restore of $host from snapshot $GHE_RESTORE_SNAPSHOT"
-echo "Visit https://$(echo "$host" | cut -f 1 -d :)/setup/settings in a browser to configure the recovered appliance."
+echo "Visit https://$hostname/setup/settings to configure the recovered appliance."

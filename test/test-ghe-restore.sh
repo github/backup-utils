@@ -110,6 +110,50 @@ begin_test "ghe-restore into configured vm"
 )
 end_test
 
+begin_test "ghe-restore aborts without user verification"
+(
+    set -e
+    rm -rf "$GHE_REMOTE_DATA_DIR"
+    setup_remote_metadata
+
+    # create settings file -- used to determine if instance has been configured.
+    touch "$GHE_REMOTE_DATA_DIR/enterprise/dna.json"
+
+    # set restore host environ var
+    GHE_RESTORE_HOST=127.0.0.1
+    export GHE_RESTORE_HOST
+
+    # run ghe-restore and write output to file for asserting against
+    if echo "no" | ghe-restore -v > "$TRASHDIR/restore-out" 2>&1; then
+        cat "$TRASHDIR/restore-out"
+        false # ghe-restore should have exited non-zero
+    fi
+
+    grep -q "Restore aborted" "$TRASHDIR/restore-out"
+)
+end_test
+
+begin_test "ghe-restore accepts user verification"
+(
+    set -e
+    rm -rf "$GHE_REMOTE_DATA_DIR"
+    setup_remote_metadata
+
+    # create settings file -- used to determine if instance has been configured.
+    touch "$GHE_REMOTE_DATA_DIR/enterprise/dna.json"
+
+    # set restore host environ var
+    GHE_RESTORE_HOST=127.0.0.1
+    export GHE_RESTORE_HOST
+
+    # run ghe-restore and write output to file for asserting against
+    if ! echo "yes" | ghe-restore -v > "$TRASHDIR/restore-out" 2>&1; then
+        cat "$TRASHDIR/restore-out"
+        false # ghe-restore should have accepted the input
+    fi
+)
+end_test
+
 begin_test "ghe-restore -c into unconfigured vm"
 (
     set -e

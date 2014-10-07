@@ -6,6 +6,7 @@
 #/ argument is provided, it always overrides the configured restore host.
 #/
 #/ Options:
+#/   -f                Don't prompt for confirmation before restoring.
 #/   -c                Restore appliance settings and license in addition to
 #/                     datastores. Settings are not restored by default to
 #/                     prevent overwriting different configuration on the
@@ -32,8 +33,13 @@ export GHE_RESTORE_SNAPSHOT
 
 # Parse arguments
 restore_settings=false
+force=false
 while true; do
     case "$1" in
+        -f|--force)
+            force=true
+            shift
+            ;;
         -s)
             GHE_RESTORE_SNAPSHOT="$(basename "$2")"
             shift 2
@@ -70,10 +76,38 @@ GHE_RESTORE_SNAPSHOT=$(basename "$GHE_RESTORE_SNAPSHOT_PATH")
 # strategy file written in the snapshot directory.
 GHE_BACKUP_STRATEGY=$(cat "$GHE_RESTORE_SNAPSHOT_PATH/strategy")
 
-echo "Starting $GHE_BACKUP_STRATEGY restore of $host from snapshot $GHE_RESTORE_SNAPSHOT"
-
 # Perform a host-check and establish the remote version in GHE_REMOTE_VERSION.
 ghe_remote_version_required "$host"
+
+# Prompt to verify the restore host given is correct. Restoring overwrites
+# important data on the destination appliance that cannot be recovered. This is
+# mostly to prevent accidents where the backup host is given to restore instead
+# of a separate restore host since they're used in such close proximity.
+if ! $force; then
+    echo
+    echo "WARNING: All data on GitHub Enterprise appliance $hostname ($GHE_REMOTE_VERSION)"
+    echo "         will be overwritten with data from snapshot ${GHE_RESTORE_SNAPSHOT}."
+    echo "Please verify that this is the correct restore host before continuing."
+    printf "Type 'yes' to continue: "
+
+    while read -r response; do
+        case $response in
+            yes|Yes|YES)
+                break
+                ;;
+            '')
+                printf "Type 'yes' to continue: "
+                ;;
+            *)
+                echo "Restore aborted." 1>&2
+                exit 1
+                ;;
+        esac
+    done
+    echo
+fi
+
+echo "Starting $GHE_BACKUP_STRATEGY restore of $host from snapshot $GHE_RESTORE_SNAPSHOT"
 
 # Verify the host has been fully configured at least once unless the -c
 # argument was provided.

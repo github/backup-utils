@@ -77,7 +77,7 @@ begin_test "ghe-restore into configured vm"
     export GHE_RESTORE_HOST
 
     # run ghe-restore and write output to file for asserting against
-    ghe-restore -v > "$TRASHDIR/restore-out" 2>&1
+    ghe-restore -v -f > "$TRASHDIR/restore-out" 2>&1
     cat "$TRASHDIR/restore-out"
 
     # verify connect to right host
@@ -110,6 +110,50 @@ begin_test "ghe-restore into configured vm"
 )
 end_test
 
+begin_test "ghe-restore aborts without user verification"
+(
+    set -e
+    rm -rf "$GHE_REMOTE_DATA_DIR"
+    setup_remote_metadata
+
+    # create settings file -- used to determine if instance has been configured.
+    touch "$GHE_REMOTE_DATA_DIR/enterprise/dna.json"
+
+    # set restore host environ var
+    GHE_RESTORE_HOST=127.0.0.1
+    export GHE_RESTORE_HOST
+
+    # run ghe-restore and write output to file for asserting against
+    if echo "no" | ghe-restore -v > "$TRASHDIR/restore-out" 2>&1; then
+        cat "$TRASHDIR/restore-out"
+        false # ghe-restore should have exited non-zero
+    fi
+
+    grep -q "Restore aborted" "$TRASHDIR/restore-out"
+)
+end_test
+
+begin_test "ghe-restore accepts user verification"
+(
+    set -e
+    rm -rf "$GHE_REMOTE_DATA_DIR"
+    setup_remote_metadata
+
+    # create settings file -- used to determine if instance has been configured.
+    touch "$GHE_REMOTE_DATA_DIR/enterprise/dna.json"
+
+    # set restore host environ var
+    GHE_RESTORE_HOST=127.0.0.1
+    export GHE_RESTORE_HOST
+
+    # run ghe-restore and write output to file for asserting against
+    if ! echo "yes" | ghe-restore -v > "$TRASHDIR/restore-out" 2>&1; then
+        cat "$TRASHDIR/restore-out"
+        false # ghe-restore should have accepted the input
+    fi
+)
+end_test
+
 begin_test "ghe-restore -c into unconfigured vm"
 (
     set -e
@@ -121,7 +165,7 @@ begin_test "ghe-restore -c into unconfigured vm"
     export GHE_RESTORE_HOST
 
     # run ghe-restore and write output to file for asserting against
-    ghe-restore -v -c > "$TRASHDIR/restore-out" 2>&1
+    ghe-restore -v -f -c > "$TRASHDIR/restore-out" 2>&1
     cat "$TRASHDIR/restore-out"
 
     # verify connect to right host
@@ -165,7 +209,7 @@ begin_test "ghe-restore into unconfigured vm"
 
     # run ghe-restore and write output to file for asserting against
     # this should fail due to the appliance being in an unconfigured state
-    ! ghe-restore -v > "$TRASHDIR/restore-out" 2>&1
+    ! ghe-restore -v -f > "$TRASHDIR/restore-out" 2>&1
 
     # verify that ghe-restore failed due to the appliance not being configured
     grep -q -e "Error: $GHE_RESTORE_HOST not configured" "$TRASHDIR/restore-out"
@@ -186,7 +230,7 @@ begin_test "ghe-restore with host arg"
     export GHE_RESTORE_HOST
 
     # run it
-    output="$(ghe-restore localhost)" || false
+    output="$(ghe-restore -f localhost)" || false
 
     # verify host arg overrides configured restore host
     echo "$output" | grep -q 'Connect localhost OK'
@@ -220,7 +264,7 @@ begin_test "ghe-restore no host arg or configured restore host"
     unset GHE_RESTORE_HOST
 
     # verify running ghe-restore fails
-    ! ghe-restore
+    ! ghe-restore -f
 )
 end_test
 
@@ -237,7 +281,7 @@ begin_test "ghe-restore with no pages backup"
     rm -rf "$GHE_DATA_DIR/1/pages"
 
     # run it
-    ghe-restore -v localhost
+    ghe-restore -v -f localhost
 )
 end_test
 
@@ -252,7 +296,7 @@ begin_test "ghe-restore with tarball strategy"
 
     # run it
     echo "tarball" > "$GHE_DATA_DIR/current/strategy"
-    output=$(ghe-restore -v localhost)
+    output=$(ghe-restore -v -f localhost)
 
     # verify ghe-import-repositories was run on remote side with fake tarball
     echo "$output" | grep -q 'fake ghe-export-repositories data'

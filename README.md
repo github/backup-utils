@@ -184,7 +184,8 @@ To schedule nightly backup snapshots instead, use:
 
 Backup snapshots are stored in rotating increment directories named after the
 date and time the snapshot was taken. Each snapshot directory contains a full
-backup snapshot of all relevant data stores.
+backup snapshot of all relevant data stores. Repository, Search, and Pages data
+is stored efficiently via hard links.
 
 The following example shows a snapshot file hierarchy for hourly frequency.
 There are five snapshot directories, with the `current` symlink pointing to the
@@ -196,13 +197,17 @@ most recent successful snapshot:
        |- 20140726T010000
        |- 20140727T010000
        |- 20140728T010000
-          |- pages.tar
-          |- mysql.sql.gz
-          |- redis.rdb
           |- authorized-keys.json
-          |- ssh-host-keys.tar
-          |- es-indices.tar
+          |- elasticsearch/
+          |- enterprise.ghl
+          |- mysql.sql.gz
+          |- pages/
+          |- redis.rdb
           |- repositories/
+          |- settings.json
+          |- ssh-host-keys.tar
+          |- strategy
+          |- version
        |- current -> 20140727T010000
 
 Note: the `GHE_DATA_DIR` variable set in `backup.config` can be used to change

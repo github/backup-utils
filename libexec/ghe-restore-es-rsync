@@ -50,16 +50,14 @@ elif [ "$GHE_VERSION_MAJOR" -gt 1 -a -f "$snapshot_dir/elasticsearch/elasticsear
 
 # restoring v2.0 ES snapshot into a v2.0 appliance
 elif [ "$GHE_VERSION_MAJOR" -gt 1 ]; then
-    ghe-ssh "$host" -- "sudo mkdir -p '$GHE_REMOTE_DATA_USER_DIR/elasticsearch-snapshots'" 1>&3
-    ghe-ssh "$host" -- "sudo chown elasticsearch:elasticsearch '$GHE_REMOTE_DATA_USER_DIR/elasticsearch-snapshots'" 1>&3
+    ghe-ssh "$host" -- "sudo mkdir -p '$GHE_REMOTE_DATA_USER_DIR/elasticsearch-restore'" 1>&3
+    ghe-ssh "$host" -- "sudo chown elasticsearch:elasticsearch '$GHE_REMOTE_DATA_USER_DIR/elasticsearch-restore'" 1>&3
 
     ghe-rsync -avz --delete \
         -e "ghe-ssh -p $(ssh_port_part "$host")" \
         --rsync-path="sudo -u elasticsearch rsync" \
         "$snapshot_dir/elasticsearch/" \
-        "$(ssh_host_part "$host"):$GHE_REMOTE_DATA_USER_DIR/elasticsearch-snapshots" 1>&3
-
-    ghe-ssh "$host" -- "ghe-es-restore"
+        "$(ssh_host_part "$host"):$GHE_REMOTE_DATA_USER_DIR/elasticsearch-restore" 1>&3
 
 # restoring v11.10.x ES snapshot into a v11.10.x appliance
 else

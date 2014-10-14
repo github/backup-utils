@@ -77,7 +77,13 @@ begin_test "ghe-restore into configured vm"
     export GHE_RESTORE_HOST
 
     # run ghe-restore and write output to file for asserting against
-    ghe-restore -v -f > "$TRASHDIR/restore-out" 2>&1
+    if ! ghe-restore -v -f > "$TRASHDIR/restore-out" 2>&1; then
+        cat "$TRASHDIR/restore-out"
+        : ghe-restore should have exited non-zero
+        false
+    fi
+
+    # for debugging
     cat "$TRASHDIR/restore-out"
 
     # verify connect to right host

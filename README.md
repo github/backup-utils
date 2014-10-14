@@ -45,7 +45,8 @@ storage and must have network connectivity with the GitHub Enterprise appliance.
 ##### Backup host
 
 Backup host software requirements are modest: Linux or other modern Unix
-operating system with [rsync][4] v2.6.4 or newer.
+operating system with [rsync][4] v2.6.4 or newer. GNU tar (installed as
+'tar' or 'gtar') is required.
 
 The backup host must be able to establish network connections outbound to the
 GitHub appliance over SSH (port 22).

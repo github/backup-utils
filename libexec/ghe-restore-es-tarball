@@ -20,6 +20,6 @@ host="$1"
 # us run this script directly.
 : ${GHE_RESTORE_SNAPSHOT:=current}
 
-# Restore Pages data from tarball snapshot.
+# Restore ElasticSearch indexes from tarball snapshot.
 ghe-ssh "$host" -- 'ghe-import-es-indices' \
     < "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/elasticsearch.tar" 1>&3

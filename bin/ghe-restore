@@ -119,6 +119,16 @@ if ! $restore_settings &&
     exit 1
 fi
 
+# Restoring Elasticsearch to 11.10.3x via rsync requires GNU tar
+if [ "$GHE_VERSION_MAJOR.$GHE_VERSION_MINOR" = "1.0" ] && [ "$GHE_BACKUP_STRATEGY" = "rsync" ]; then
+    if ! tar --version | grep -q GNU; then
+        if ! command -v gtar >/dev/null 2>&1; then
+            echo "GNU tar is required.  Aborting." >&2
+            exit 1
+        fi
+    fi
+fi
+
 # Make sure the GitHub appliance is in maintenance mode and all writing
 # processes have bled out.
 ghe-maintenance-mode-enable "$host"

@@ -74,7 +74,9 @@ echo "
 
     sanity=0
     while [ \$sanity -lt $GHE_GIT_COOLDOWN_PERIOD ]; do
-        if ps axo pid,args | grep -q git.g[c]; then
+        # note: the bracket synta[x] below is to prevent matches against the
+        # grep process itself.
+        if ps axo pid,args | grep -q -e 'git.*nw-repac[k]' -e 'git.*g[c]'; then
             sleep 1
             sanity=\$(( sanity + 1 ))
         else
@@ -85,7 +87,7 @@ echo "
 " | ghe-ssh "$host" -- /bin/sh || {
     res=$?
     if [ $res = 7 ]; then
-        echo "Error: git-gc processes remain after 60 seconds. Aborting..." 1>&2
+        echo "Error: Git GC processes remain after $GHE_GIT_COOLDOWN_PERIOD seconds. Aborting..." 1>&2
     fi
     exit $res
 }

@@ -4,8 +4,8 @@
 set -e
 
 # Bring in the backup configuration.
-cd $(dirname "$0")/..
-. libexec/ghe-backup-config
+cd $(dirname "$0")/../..
+. share/github-backup-utils/ghe-backup-config
 
 if [ -e $HOME/.s3cfg ]; then
   echo "Using existing ~/.s3cfg ..."

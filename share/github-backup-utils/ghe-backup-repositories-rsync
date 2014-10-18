@@ -32,8 +32,8 @@ set -e
 #      <http://rsync.samba.org/ftp/rsync/rsync.html>
 
 # Bring in the backup configuration
-cd $(dirname "$0")/..
-. libexec/ghe-backup-config
+cd $(dirname "$0")/../..
+. share/github-backup-utils/ghe-backup-config
 
 # Set up remote host and root backup snapshot directory based on config
 host="$GHE_HOSTNAME"

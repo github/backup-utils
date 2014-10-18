@@ -23,7 +23,7 @@ set -e
 
 # Setting basic paths
 ROOTDIR="$(cd $(dirname "$0")/.. && pwd)"
-PATH="$ROOTDIR/test/bin:$ROOTDIR/bin:$ROOTDIR/libexec:$PATH"
+PATH="$ROOTDIR/test/bin:$ROOTDIR/bin:$ROOTDIR/share/github-backup-utils:$PATH"
 
 # create a temporary work space
 TMPDIR="$ROOTDIR/test/tmp"

@@ -25,7 +25,7 @@ ghe_remote_version_required "$host"
 
 # Transfer all git repository data from the latest snapshot to the GitHub
 # instance in a single rsync invocation.
-ghe-rsync -av --delete \
+ghe-rsync -avH --delete \
     -e "ghe-ssh -p $(ssh_port_part "$host")" \
     --rsync-path="sudo -u git rsync" \
     "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/repositories/" \

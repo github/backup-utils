@@ -60,10 +60,10 @@ elif [ "$GHE_VERSION_MAJOR" -gt 1 ]; then
 
 # restoring v11.10.x ES snapshot into a v11.10.x appliance
 else
-	# Remove old es indices backup
-	ghe-ssh "$host" -- 'rm -rf /home/admin/elasticsearch-indices.*' 1>&3
-	
-	# proceed with actual backup
+    # Remove old es indices backup
+    ghe-ssh "$host" -- 'rm -rf /home/admin/elasticsearch-indices.*' 1>&3
+    
+    # proceed with actual backup
     cd "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT"
     $TAR -cf - --owner=root --group=root elasticsearch |
     ghe-ssh "$host" -- 'ghe-import-es-indices' 1>&3

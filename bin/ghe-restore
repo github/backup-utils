@@ -79,6 +79,22 @@ GHE_BACKUP_STRATEGY=$(cat "$GHE_RESTORE_SNAPSHOT_PATH/strategy")
 # Perform a host-check and establish the remote version in GHE_REMOTE_VERSION.
 ghe_remote_version_required "$host"
 
+
+# Have a way to keep other processes, such as enterprise manage in the loop about the restore status
+#
+# Other processes will look for these states:
+# "restoring" - restore is currently in progress
+# "failed"    - restore has failed
+# "complete"  - restore has completed successfully
+update_restore_status () {
+    if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
+      echo "$1" |
+      ghe-ssh "$host" -- "sudo dd of='$GHE_REMOTE_DATA_USER_DIR/common/ghe-restore-status' 2>/dev/null"
+    fi
+}
+
+
+
 # Prompt to verify the restore host given is correct. Restoring overwrites
 # important data on the destination appliance that cannot be recovered. This is
 # mostly to prevent accidents where the backup host is given to restore instead
@@ -108,6 +124,8 @@ if ! $force; then
 fi
 
 echo "Starting $GHE_BACKUP_STRATEGY restore of $host from snapshot $GHE_RESTORE_SNAPSHOT"
+trap "update_restore_status failed" EXIT
+update_restore_status "restoring"
 
 # Verify the host has been fully configured at least once unless the -c
 # argument was provided.
@@ -182,5 +200,7 @@ fi
 echo "Restoring SSH host keys ..."
 ghe-ssh "$host" -- 'ghe-import-ssh-host-keys' < "$GHE_RESTORE_SNAPSHOT_PATH/ssh-host-keys.tar" 1>&3
 
+trap "" EXIT
+update_restore_status "complete"
 echo "Completed restore of $host from snapshot $GHE_RESTORE_SNAPSHOT"
 echo "Visit https://$hostname/setup/settings to review appliance configuration and disable maintenance mode."

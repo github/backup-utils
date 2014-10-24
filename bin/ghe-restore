@@ -88,7 +88,7 @@ ghe_remote_version_required "$host"
 # "complete"  - restore has completed successfully
 update_restore_status () {
     echo "$1" |
-    ghe-ssh "$host" -- "dd of='/tmp/ghe-restore-status'"
+    ghe-ssh "$host" -- "dd of='/tmp/ghe-restore-status' 2>/dev/null"
 }
 
 

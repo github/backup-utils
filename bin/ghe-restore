@@ -25,12 +25,6 @@ set -e
 cd $(dirname "$0")/..
 . libexec/ghe-backup-config
 
-# The snapshot directory we're restoring from. This is the 'current' snapshot
-# by default but may be overridden with the -s flag. Additional restore scripts
-# spawned must abide by this variable as well.
-GHE_RESTORE_SNAPSHOT="current"
-export GHE_RESTORE_SNAPSHOT
-
 # Parse arguments
 restore_settings=false
 force=false
@@ -41,7 +35,7 @@ while true; do
             shift
             ;;
         -s)
-            GHE_RESTORE_SNAPSHOT="$(basename "$2")"
+            snapshot_id="$(basename "$2")"
             shift 2
             ;;
         -c)
@@ -69,8 +63,9 @@ hostname=$(echo "$host" | cut -f 1 -d :)
 
 # ghe-restore-snapshot-path validates it exists, determines what current is,
 # and if there's any problem, exit for us
-GHE_RESTORE_SNAPSHOT_PATH="$(ghe-restore-snapshot-path "$GHE_RESTORE_SNAPSHOT_PATH")"
+GHE_RESTORE_SNAPSHOT_PATH="$(ghe-restore-snapshot-path "$snapshot_id")"
 GHE_RESTORE_SNAPSHOT=$(basename "$GHE_RESTORE_SNAPSHOT_PATH")
+export GHE_RESTORE_SNAPSHOT
 
 # Figure out whether to use the tarball or rsync restore strategy based on the
 # strategy file written in the snapshot directory.

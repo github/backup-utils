@@ -41,7 +41,7 @@ while true; do
             shift
             ;;
         -s)
-            GHE_RESTORE_SNAPSHOT="$(basename "$2")"
+            snapshot_id="$(basename "$2")"
             shift 2
             ;;
         -c)
@@ -69,7 +69,7 @@ hostname=$(echo "$host" | cut -f 1 -d :)
 
 # ghe-restore-snapshot-path validates it exists, determines what current is,
 # and if there's any problem, exit for us
-GHE_RESTORE_SNAPSHOT_PATH="$(ghe-restore-snapshot-path "$GHE_RESTORE_SNAPSHOT_PATH")"
+GHE_RESTORE_SNAPSHOT_PATH="$(ghe-restore-snapshot-path "$snapshot_id")"
 GHE_RESTORE_SNAPSHOT=$(basename "$GHE_RESTORE_SNAPSHOT_PATH")
 
 # Figure out whether to use the tarball or rsync restore strategy based on the

@@ -137,6 +137,8 @@ appliance at IP "5.5.5.5":
     Restoring SSH host keys ...
     Completed restore of 5.5.5.5 from snapshot 20140817T174152
     Visit https://5.5.5.5/setup/settings to configure the recovered appliance.
+    
+Any backup can be applied using the `-s` argument and the datestamp-named directory from the backup location.
 
 The `ghe-backup` and `ghe-restore` commands also have a verbose output mode
 (`-v`) that lists files as they're being transferred. It's often useful to

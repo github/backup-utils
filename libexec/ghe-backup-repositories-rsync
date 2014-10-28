@@ -157,7 +157,7 @@ RULES
 # since these files are already well compressed.
 echo 1>&3
 echo "* Transferring objects and packs ..." 1>&3
-rsync_repository_data <<RULES
+rsync_repository_data -H <<RULES
 - /__*__/
 + /*/
 + /*/*.git

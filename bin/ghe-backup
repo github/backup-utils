@@ -11,9 +11,6 @@ set -e
 cd $(dirname "$0")/..
 . libexec/ghe-backup-config
 
-# Host we're backing up
-host="$GHE_HOSTNAME"
-
 # Used to record failed backup steps
 failures=
 
@@ -45,7 +42,7 @@ cleanup () {
     fi
 
     if $GHE_MAINTENANCE_MODE_ENABLED; then
-        ghe-maintenance-mode-disable "$host"
+        ghe-maintenance-mode-disable "$GHE_HOSTNAME"
     fi
 }
 
@@ -58,11 +55,11 @@ trap 'exit $?' INT # ^C always terminate
 # NOTE: The -n argument to ln is non-POSIX but widely supported.
 if ! ln -sn "$GHE_SNAPSHOT_TIMESTAMP" ../in-progress 2>/dev/null; then
     snapshot="$(readlink ../in-progress)"
-    echo "Error: backup of $host already in progress in snapshot $snapshot. Aborting." 1>&2
+    echo "Error: backup of $GHE_HOSTNAME already in progress in snapshot $snapshot. Aborting." 1>&2
     exit 1
 fi
 
-echo "Starting backup of $host in snapshot $GHE_SNAPSHOT_TIMESTAMP"
+echo "Starting backup of $GHE_HOSTNAME in snapshot $GHE_SNAPSHOT_TIMESTAMP"
 
 # Perform a host connection check and establish the remote appliance version.
 # The version is available in the GHE_REMOTE_VERSION variable and also written
@@ -86,7 +83,7 @@ echo "$GHE_BACKUP_STRATEGY" > strategy
 # If we're using the tarball backup strategy, put the appliance in maintenance
 # mode and wait for all writing processes to bleed out.
 if [ "$GHE_BACKUP_STRATEGY" = "tarball" ]; then
-    ghe-maintenance-mode-enable "$host"
+    ghe-maintenance-mode-enable "$GHE_HOSTNAME"
     GHE_MAINTENANCE_MODE_ENABLED=true
 fi
 
@@ -95,16 +92,16 @@ ghe-backup-settings ||
 failures="$failures settings"
 
 echo "Backing up SSH authorized keys ..."
-ghe-ssh "$host" -- 'ghe-export-authorized-keys' > authorized-keys.json ||
+ghe-ssh "$GHE_HOSTNAME" -- 'ghe-export-authorized-keys' > authorized-keys.json ||
 failures="$failures authorized-keys"
 
 echo "Backing up SSH host keys ..."
-ghe-ssh "$host" -- 'ghe-export-ssh-host-keys' > ssh-host-keys.tar ||
+ghe-ssh "$GHE_HOSTNAME" -- 'ghe-export-ssh-host-keys' > ssh-host-keys.tar ||
 failures="$failures ssh-host-keys"
 
 echo "Backing up MySQL database ..."
 echo 'ghe-export-mysql | gzip' |
-ghe-ssh "$host" -- /bin/sh > mysql.sql.gz ||
+ghe-ssh "$GHE_HOSTNAME" -- /bin/sh > mysql.sql.gz ||
 failures="$failures mysql"
 
 echo "Backing up Redis database ..."
@@ -136,8 +133,8 @@ failures="$failures elasticsearch"
 # If we're using the tarball backup strategy, bring the appliance out of
 # maintenance mode now instead of waiting until after pruning stale snapshots.
 if $GHE_MAINTENANCE_MODE_ENABLED; then
-    ghe-maintenance-mode-disable "$host" ||
-        echo "Warning: Disabling maintenance mode on $host failed."
+    ghe-maintenance-mode-disable "$GHE_HOSTNAME" ||
+        echo "Warning: Disabling maintenance mode on $GHE_HOSTNAME failed."
     GHE_MAINTENANCE_MODE_ENABLED=false
 fi
 
@@ -153,7 +150,7 @@ if [ -z "$failures" ]; then
     ghe-prune-snapshots
 fi
 
-echo "Completed backup of $host in snapshot $GHE_SNAPSHOT_TIMESTAMP at $(date +"%H:%M:%S")"
+echo "Completed backup of $GHE_HOSTNAME in snapshot $GHE_SNAPSHOT_TIMESTAMP at $(date +"%H:%M:%S")"
 
 # Exit non-zero and list the steps that failed.
 if [ -n "$failures" ]; then

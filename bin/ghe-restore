@@ -149,7 +149,9 @@ fi
 
 # Make sure the GitHub appliance is in maintenance mode and all writing
 # processes have bled out.
-ghe-maintenance-mode-enable "$GHE_HOSTNAME"
+if $instance_configured; then
+    ghe-maintenance-mode-enable "$GHE_HOSTNAME"
+fi
 
 # Restore settings and license if restoring to an unconfigured appliance or when
 # specified manually.

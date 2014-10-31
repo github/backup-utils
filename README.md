@@ -5,9 +5,9 @@ This repository includes backup and recovery utilities for [GitHub Enterprise][1
 
 - **[Features](#features)**
 - **[Requirements](#requirements)**
-  - **[Backup host](#backup-host)**
-  - **[Storage](#storage)**
-  - **[GitHub Enterprise version](#github-enterprise-version)**
+  - **[Backup host requirements](#backup-host-requirements)**
+  - **[Storage requirements](#storage-requirements)**
+  - **[GitHub Enterprise version requirements](#github-enterprise-version-requirements)**
 - **[Getting started](#getting-started)**
 - **[Using the backup and restore commands](#using-the-backup-and-restore-commands)**
 - **[Scheduling backups](#scheduling-backups)**
@@ -19,8 +19,6 @@ This repository includes backup and recovery utilities for [GitHub Enterprise][1
 The backup utilities implement a number of advanced capabilities for backup
 hosts, built on top of the backup and restore features already included in
 GitHub Enterprise.
-
-These advanced features include:
 
  - Complete GitHub Enterprise backup and recovery system via two simple utilities:<br>
    `ghe-backup` and `ghe-restore`.
@@ -42,7 +40,7 @@ These advanced features include:
 The backup utilities should be run on a host dedicated to long-term permanent
 storage and must have network connectivity with the GitHub Enterprise appliance.
 
-##### Backup host
+##### Backup host requirements
 
 Backup host software requirements are modest: Linux or other modern Unix
 operating system with [rsync][4] v2.6.4 or newer.
@@ -50,23 +48,22 @@ operating system with [rsync][4] v2.6.4 or newer.
 The backup host must be able to establish network connections outbound to the
 GitHub appliance over SSH (port 22).
 
-##### Storage
+##### Storage requirements
 
 Storage requirements vary based on current Git repository disk usage and growth
 patterns of the GitHub appliance. We recommend allocating at least 5x the amount
 of storage allocated to the primary GitHub appliance for historical snapshots
 and growth over time.
 
-##### GitHub Enterprise version
+##### GitHub Enterprise version requirements
 
 For online and incremental backup support, the GitHub Enterprise instance must
 be running version 11.10.342 or above.
 
-Earlier versions are supported by the backup utilities, but online and
-incremental backups are not supported. We strongly recommend upgrading to the
-latest release if you're running a version prior to 11.10.342. Visit
-https://enterprise.github.com to [download the most recent GitHub Enterprise
-version][5].
+Earlier versions are supported, but online and incremental backups are not
+supported. We strongly recommend upgrading to the latest release if you're
+running a version prior to 11.10.342. Visit [enterprise.github.com][5] to
+download the most recent GitHub Enterprise version.
 
 ### Getting started
 
@@ -98,8 +95,7 @@ After the initial backup, use the following commands:
    along with full snapshots of all other pertinent data stores.
  - The `ghe-restore` command restores snapshots to the same or separate GitHub
    Enterprise appliance. If you are restoring to a separate appliance, follow
-   the steps in 
-   [Migrating GitHub Enterprise](https://enterprise.github.com/help/articles/migrating-github-enterprise).
+   the steps in [Migrating GitHub Enterprise][10].
 
 ##### Example backup and restore usage
 
@@ -233,3 +229,4 @@ site setup or recovery, please contact our [Enterprise support team][7] instead.
 [7]: https://enterprise.github.com/support/
 [8]: https://enterprise.github.com/help/articles/backing-up-enterprise-data
 [9]: https://enterprise.github.com/help/articles/restoring-enterprise-data
+[10]: https://enterprise.github.com/help/articles/migrating-github-enterprise

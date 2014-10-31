@@ -93,6 +93,8 @@ if ghe-ssh "$GHE_HOSTNAME" -- \
     "[ -f '$GHE_REMOTE_DATA_DIR/enterprise/dna.json' -o \
        -f '/etc/github/configured' ]"; then
     instance_configured=true
+else
+    restore_settings=true
 fi
 
 # Prompt to verify the restore host given is correct. Restoring overwrites
@@ -149,7 +151,8 @@ fi
 # processes have bled out.
 ghe-maintenance-mode-enable "$GHE_HOSTNAME"
 
-# Restore settings and license if requested.
+# Restore settings and license if restoring to an unconfigured appliance or when
+# specified manually.
 if $restore_settings; then
     ghe-restore-settings "$GHE_HOSTNAME"
 fi

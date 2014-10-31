@@ -87,6 +87,14 @@ update_restore_status () {
     fi
 }
 
+# Figure out if this instance has been configured or is entirely new.
+instance_configured=false
+if ghe-ssh "$GHE_HOSTNAME" -- \
+    "[ -f '$GHE_REMOTE_DATA_DIR/enterprise/dna.json' -o \
+       -f '/etc/github/configured' ]"; then
+    instance_configured=true
+fi
+
 # Prompt to verify the restore host given is correct. Restoring overwrites
 # important data on the destination appliance that cannot be recovered. This is
 # mostly to prevent accidents where the backup host is given to restore instead
@@ -119,11 +127,9 @@ echo "Starting $GHE_BACKUP_STRATEGY restore of $GHE_HOSTNAME from snapshot $GHE_
 trap "update_restore_status failed" EXIT
 update_restore_status "restoring"
 
-# Verify the host has been fully configured at least once unless the -c
-# argument was provided.
-if ! $restore_settings &&
-   ! ghe-ssh "$GHE_HOSTNAME" -- "test -f '$GHE_REMOTE_DATA_DIR/enterprise/dna.json' -o \
-                              -f '$GHE_REMOTE_DATA_USER_DIR/common/dna.json'"; then
+# Verify the host has been fully configured at least once if when running
+# against v11.10.x appliances and the -c option wasn't specified.
+if [ "$GHE_VERSION_MAJOR" -le 1 ] && ! $restore_settings && ! $instance_configured; then
     echo "Error: $hostname not configured." 1>&2
     echo "Please visit https://$hostname/setup/settings to configure base appliance settings before continuing." 1>&2
     exit 1

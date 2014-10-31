@@ -183,8 +183,10 @@ begin_test "ghe-restore -c into unconfigured vm"
     export GHE_RESTORE_HOST
 
     # run ghe-restore and write output to file for asserting against
-    ghe-restore -v -f -c > "$TRASHDIR/restore-out" 2>&1
-    cat "$TRASHDIR/restore-out"
+    if ! ghe-restore -v -f -c > "$TRASHDIR/restore-out" 2>&1; then
+        cat "$TRASHDIR/restore-out"
+        false
+    fi
 
     # verify connect to right host
     grep -q "Connect 127.0.0.1:22 OK" "$TRASHDIR/restore-out"

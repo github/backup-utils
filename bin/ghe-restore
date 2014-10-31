@@ -91,7 +91,7 @@ update_restore_status () {
 instance_configured=false
 if ghe-ssh "$GHE_HOSTNAME" -- \
     "[ -f '$GHE_REMOTE_DATA_DIR/enterprise/dna.json' -o \
-       -f '/etc/github/configured' ]"; then
+       -f '$GHE_REMOTE_ROOT_DIR/etc/github/configured' ]"; then
     instance_configured=true
 else
     restore_settings=true

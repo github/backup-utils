@@ -42,8 +42,15 @@ if [ ! -f "$GHE_BACKUP_CONFIG" ]; then
     exit 2
 fi
 
+# Save off GHE_HOSTNAME from the environment since we want it to override the
+# backup.config value when set.
+GHE_HOSTNAME_PRESERVE="$GHE_HOSTNAME"
+
 # Source in the backup config file.
 . "$GHE_BACKUP_CONFIG"
+
+# Restore saved of hostname.
+[ -n "$GHE_HOSTNAME_PRESERVE" ] && GHE_HOSTNAME="$GHE_HOSTNAME_PRESERVE"
 
 # Check that the GHE hostname is set.
 if [ -z "$GHE_HOSTNAME" ]; then

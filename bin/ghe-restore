@@ -193,9 +193,9 @@ ghe-ssh "$GHE_HOSTNAME" -- 'ghe-import-authorized-keys' < "$GHE_RESTORE_SNAPSHOT
 echo "Restoring Elasticsearch indices ..."
 ghe-restore-es-${GHE_BACKUP_STRATEGY} "$GHE_HOSTNAME" 1>&3
 
-# Perform a config run after restoring against v2.x vms. This ensures DB
-# migrations are run and v1.x -> v2.x fs adjustments are made.
-if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
+# When restoring to a 2.x host that has already been configured, kick off a
+# config run to perform data migrations.
+if [ "$GHE_VERSION_MAJOR" -ge 2 ] && $instance_configured; then
     echo "Configuring storage ..."
     ghe-ssh "$GHE_HOSTNAME" -- "sudo ghe-config-apply" 1>&3
 fi

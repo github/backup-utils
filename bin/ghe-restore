@@ -101,7 +101,7 @@ fi
 # important data on the destination appliance that cannot be recovered. This is
 # mostly to prevent accidents where the backup host is given to restore instead
 # of a separate restore host since they're used in such close proximity.
-if ! $force; then
+if $instance_configured && ! $force; then
     echo
     echo "WARNING: All data on GitHub Enterprise appliance $hostname ($GHE_REMOTE_VERSION)"
     echo "         will be overwritten with data from snapshot ${GHE_RESTORE_SNAPSHOT}."

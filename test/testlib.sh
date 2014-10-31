@@ -33,7 +33,8 @@ TRASHDIR="$TMPDIR/$(basename "$0")-$$"
 GHE_BACKUP_CONFIG="$ROOTDIR/test/backup.config"
 GHE_DATA_DIR="$TRASHDIR/data"
 GHE_REMOTE_DATA_DIR="$TRASHDIR/remote"
-export GHE_BACKUP_CONFIG GHE_DATA_DIR GHE_REMOTE_DATA_DIR
+GHE_REMOTE_ROOT_DIR="$TRASHDIR/root"
+export GHE_BACKUP_CONFIG GHE_DATA_DIR GHE_REMOTE_DATA_DIR GHE_REMOTE_ROOT_DIR
 
 # The default remote appliance version. This may be set in the environment prior
 # to invoking tests to emulate a different remote vm version.
@@ -80,6 +81,7 @@ setup_remote_metadata () {
 
     if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
         mkdir -p "$GHE_REMOTE_DATA_USER_DIR/common"
+        mkdir -p "$GHE_REMOTE_ROOT_DIR/etc/github"
     fi
 
     echo '

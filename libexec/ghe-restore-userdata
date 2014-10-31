@@ -14,7 +14,7 @@ cd $(dirname "$0")/..
 
 # Grab userdata directory name and host args
 dirname="$1"
-host="$2"
+GHE_HOSTNAME="$2"
 
 # Verify rsync is available.
 if ! rsync --version 1>/dev/null 2>&1; then
@@ -23,7 +23,7 @@ if ! rsync --version 1>/dev/null 2>&1; then
 fi
 
 # Perform a host-check and establish GHE_REMOTE_XXX variables.
-ghe_remote_version_required "$host"
+ghe_remote_version_required "$GHE_HOSTNAME"
 
 # The snapshot to restore should be set by the ghe-restore command but this lets
 # us run this script directly.
@@ -33,8 +33,8 @@ ghe_remote_version_required "$host"
 # rsync invocation.
 if [ -d "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/$dirname" ]; then
   ghe-rsync -avz --delete \
-      -e "ghe-ssh -p $(ssh_port_part "$host")" \
+      -e "ghe-ssh -p $(ssh_port_part "$GHE_HOSTNAME")" \
       --rsync-path="sudo -u git rsync" \
       "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/$dirname/" \
-      "$(ssh_host_part "$host"):$GHE_REMOTE_DATA_USER_DIR/$dirname" 1>&3
+      "$(ssh_host_part "$GHE_HOSTNAME"):$GHE_REMOTE_DATA_USER_DIR/$dirname" 1>&3
 fi

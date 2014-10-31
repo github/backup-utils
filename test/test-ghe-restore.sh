@@ -87,7 +87,7 @@ begin_test "ghe-restore into configured vm"
     cat "$TRASHDIR/restore-out"
 
     # verify connect to right host
-    grep -q "Connect 127.0.0.1 OK" "$TRASHDIR/restore-out"
+    grep -q "Connect 127.0.0.1:22 OK" "$TRASHDIR/restore-out"
 
     # verify all import scripts were run
     grep -q "alice/index.html" "$TRASHDIR/restore-out"
@@ -175,7 +175,7 @@ begin_test "ghe-restore -c into unconfigured vm"
     cat "$TRASHDIR/restore-out"
 
     # verify connect to right host
-    grep -q "Connect 127.0.0.1 OK" "$TRASHDIR/restore-out"
+    grep -q "Connect 127.0.0.1:22 OK" "$TRASHDIR/restore-out"
 
     # verify all import scripts were run
     grep -q "alice/index.html" "$TRASHDIR/restore-out"
@@ -239,7 +239,7 @@ begin_test "ghe-restore with host arg"
     output="$(ghe-restore -f localhost)" || false
 
     # verify host arg overrides configured restore host
-    echo "$output" | grep -q 'Connect localhost OK'
+    echo "$output" | grep -q 'Connect localhost:22 OK'
 
     # verify repository data was transferred to the restore location
     diff -ru "$GHE_DATA_DIR/current/repositories" "$GHE_REMOTE_DATA_USER_DIR/repositories"

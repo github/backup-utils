@@ -42,8 +42,15 @@ if [ ! -f "$GHE_BACKUP_CONFIG" ]; then
     exit 2
 fi
 
+# Save off GHE_HOSTNAME from the environment since we want it to override the
+# backup.config value when set.
+GHE_HOSTNAME_PRESERVE="$GHE_HOSTNAME"
+
 # Source in the backup config file.
 . "$GHE_BACKUP_CONFIG"
+
+# Restore saved of hostname.
+[ -n "$GHE_HOSTNAME_PRESERVE" ] && GHE_HOSTNAME="$GHE_HOSTNAME_PRESERVE"
 
 # Check that the GHE hostname is set.
 if [ -z "$GHE_HOSTNAME" ]; then
@@ -156,6 +163,11 @@ ghe_remote_version_required () {
     if [ -z "$GHE_REMOTE_VERSION" ]; then
         _out=$(ghe-host-check "$@")
         echo "$_out"
+
+        # override hostname w/ ghe-host-check output because the port could have
+        # been autodetected to 122.
+        GHE_HOSTNAME=$(echo "$_out" | sed 's/Connect \(.*:[0-9]*\) OK.*/\1/')
+        export GHE_HOSTNAME
 
         GHE_REMOTE_VERSION=$(echo "$_out" | sed 's/.*(\(.*\))/\1/')
         export GHE_REMOTE_VERSION

@@ -39,8 +39,5 @@ ghe-ssh "$GHE_HOSTNAME" -- 'ghe-import-license' < "$GHE_RESTORE_SNAPSHOT_PATH/en
 if [ -f "$GHE_RESTORE_SNAPSHOT_PATH/manage-password" ]; then
     echo "Restoring management console password ..."
     cat "$GHE_RESTORE_SNAPSHOT_PATH/manage-password" |
-    ghe-ssh "$GHE_HOSTNAME" -- \
-        "sudo -u git dd of='$GHE_REMOTE_DATA_USER_DIR/common/manage-password' 2>&1"
-    ghe-ssh "$GHE_HOSTNAME" -- \
-        "sudo -u git chmod 0600 '$GHE_REMOTE_DATA_USER_DIR/common/manage-password'"
+    ghe-ssh "$GHE_HOSTNAME" -- "ghe-import-passwords"
 fi

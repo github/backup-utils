@@ -76,6 +76,10 @@ export GHE_SNAPSHOT_TIMESTAMP
 # all backups should be written for the current invocation.
 GHE_SNAPSHOT_DIR="$GHE_DATA_DIR"/"$GHE_SNAPSHOT_TIMESTAMP"
 
+# The root filesystem location. This must be used so that tests can override
+# the root as a local directory location.
+: ${GHE_REMOTE_ROOT_DIR:=""}
+
 # The root location of persistent data and applications on the remote side. This
 # is always "/data" for GitHub instances. Use of this variable allows
 # the location to be overridden in tests.

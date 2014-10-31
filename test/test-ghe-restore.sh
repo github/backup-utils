@@ -69,8 +69,12 @@ begin_test "ghe-restore into configured vm"
     rm -rf "$GHE_REMOTE_DATA_DIR"
     setup_remote_metadata
 
-    # create settings file -- used to determine if instance has been configured.
-    touch "$GHE_REMOTE_DATA_DIR/enterprise/dna.json"
+    # create file used to determine if instance has been configured.
+    if [ "$GHE_VERSION_MAJOR" -le 1 ]; then
+        touch "$GHE_REMOTE_DATA_DIR/enterprise/dna.json"
+    else
+        touch "$GHE_REMOTE_ROOT_DIR/etc/github/configured"
+    fi
 
     # set restore host environ var
     GHE_RESTORE_HOST=127.0.0.1
@@ -122,8 +126,12 @@ begin_test "ghe-restore aborts without user verification"
     rm -rf "$GHE_REMOTE_DATA_DIR"
     setup_remote_metadata
 
-    # create settings file -- used to determine if instance has been configured.
-    touch "$GHE_REMOTE_DATA_DIR/enterprise/dna.json"
+    # create file used to determine if instance has been configured.
+    if [ "$GHE_VERSION_MAJOR" -le 1 ]; then
+        touch "$GHE_REMOTE_DATA_DIR/enterprise/dna.json"
+    else
+        touch "$GHE_REMOTE_ROOT_DIR/etc/github/configured"
+    fi
 
     # set restore host environ var
     GHE_RESTORE_HOST=127.0.0.1
@@ -145,8 +153,12 @@ begin_test "ghe-restore accepts user verification"
     rm -rf "$GHE_REMOTE_DATA_DIR"
     setup_remote_metadata
 
-    # create settings file -- used to determine if instance has been configured.
-    touch "$GHE_REMOTE_DATA_DIR/enterprise/dna.json"
+    # create file used to determine if instance has been configured.
+    if [ "$GHE_VERSION_MAJOR" -le 1 ]; then
+        touch "$GHE_REMOTE_DATA_DIR/enterprise/dna.json"
+    else
+        touch "$GHE_REMOTE_ROOT_DIR/etc/github/configured"
+    fi
 
     # set restore host environ var
     GHE_RESTORE_HOST=127.0.0.1
@@ -171,8 +183,10 @@ begin_test "ghe-restore -c into unconfigured vm"
     export GHE_RESTORE_HOST
 
     # run ghe-restore and write output to file for asserting against
-    ghe-restore -v -f -c > "$TRASHDIR/restore-out" 2>&1
-    cat "$TRASHDIR/restore-out"
+    if ! ghe-restore -v -f -c > "$TRASHDIR/restore-out" 2>&1; then
+        cat "$TRASHDIR/restore-out"
+        false
+    fi
 
     # verify connect to right host
     grep -q "Connect 127.0.0.1:22 OK" "$TRASHDIR/restore-out"
@@ -213,14 +227,51 @@ begin_test "ghe-restore into unconfigured vm"
     GHE_RESTORE_HOST=127.0.0.1
     export GHE_RESTORE_HOST
 
-    # run ghe-restore and write output to file for asserting against
-    # this should fail due to the appliance being in an unconfigured state
-    ! ghe-restore -v -f > "$TRASHDIR/restore-out" 2>&1
+    if [ "$GHE_VERSION_MAJOR" -le 1 ]; then
+        # run ghe-restore and write output to file for asserting against
+        # this should fail due to the appliance being in an unconfigured state
+        ! ghe-restore -v > "$TRASHDIR/restore-out" 2>&1
 
-    # verify that ghe-restore failed due to the appliance not being configured
-    grep -q -e "Error: $GHE_RESTORE_HOST not configured" "$TRASHDIR/restore-out"
+        cat $TRASHDIR/restore-out
+
+        # verify that ghe-restore failed due to the appliance not being configured
+        grep -q -e "Error: $GHE_RESTORE_HOST not configured" "$TRASHDIR/restore-out"
+    else
+        # under version >= 2.0, ghe-restore into an unconfigured vm implies -c
+        ghe-restore -v -f -c > "$TRASHDIR/restore-out" 2>&1
+        cat "$TRASHDIR/restore-out"
+
+        # verify connect to right host
+        grep -q "Connect 127.0.0.1:22 OK" "$TRASHDIR/restore-out"
+
+        # verify all import scripts were run
+        grep -q "alice/index.html" "$TRASHDIR/restore-out"
+        grep -q "fake ghe-export-mysql data" "$TRASHDIR/restore-out"
+        grep -q "fake ghe-export-redis data" "$TRASHDIR/restore-out"
+        grep -q "fake ghe-export-authorized-keys data" "$TRASHDIR/restore-out"
+        grep -q "fake ghe-export-ssh-host-keys data" "$TRASHDIR/restore-out"
+
+        # verify settings were imported
+        grep -q "fake ghe-export-settings data" "$TRASHDIR/restore-out"
+
+        # verify all repository data was transferred to the restore location
+        diff -ru "$GHE_DATA_DIR/current/repositories" "$GHE_REMOTE_DATA_USER_DIR/repositories"
+
+        # verify all pages data was transferred to the restore location
+        diff -ru "$GHE_DATA_DIR/current/pages" "$GHE_REMOTE_DATA_USER_DIR/pages"
+
+        if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
+            # verify all hookshot user data was transferred
+            diff -ru "$GHE_DATA_DIR/current/hookshot" "$GHE_REMOTE_DATA_USER_DIR/hookshot"
+
+            # verify all alambic assets user data was transferred
+            diff -ru "$GHE_DATA_DIR/current/alambic_assets" "$GHE_REMOTE_DATA_USER_DIR/alambic_assets"
+        fi
+    fi
 )
 end_test
+
+echo here
 
 begin_test "ghe-restore with host arg"
 (
@@ -228,8 +279,12 @@ begin_test "ghe-restore with host arg"
     rm -rf "$GHE_REMOTE_DATA_DIR"
     setup_remote_metadata
 
-    # create settings file -- used to determine if instance has been configured.
-    touch "$GHE_REMOTE_DATA_DIR/enterprise/dna.json"
+    # create file used to determine if instance has been configured.
+    if [ "$GHE_VERSION_MAJOR" -le 1 ]; then
+        touch "$GHE_REMOTE_DATA_DIR/enterprise/dna.json"
+    else
+        touch "$GHE_REMOTE_ROOT_DIR/etc/github/configured"
+    fi
 
     # set restore host environ var
     GHE_RESTORE_HOST=127.0.0.1
@@ -263,8 +318,12 @@ begin_test "ghe-restore no host arg or configured restore host"
     rm -rf "$GHE_REMOTE_DATA_DIR"
     setup_remote_metadata
 
-    # create settings file -- used to determine if instance has been configured.
-    touch "$GHE_REMOTE_DATA_DIR/enterprise/dna.json"
+    # create file used to determine if instance has been configured.
+    if [ "$GHE_VERSION_MAJOR" -le 1 ]; then
+        touch "$GHE_REMOTE_DATA_DIR/enterprise/dna.json"
+    else
+        touch "$GHE_REMOTE_ROOT_DIR/etc/github/configured"
+    fi
 
     # unset configured restore host
     unset GHE_RESTORE_HOST
@@ -280,8 +339,12 @@ begin_test "ghe-restore with no pages backup"
     rm -rf "$GHE_REMOTE_DATA_DIR"
     setup_remote_metadata
 
-    # create settings file -- used to determine if instance has been configured.
-    touch "$GHE_REMOTE_DATA_DIR/enterprise/dna.json"
+    # create file used to determine if instance has been configured.
+    if [ "$GHE_VERSION_MAJOR" -le 1 ]; then
+        touch "$GHE_REMOTE_DATA_DIR/enterprise/dna.json"
+    else
+        touch "$GHE_REMOTE_ROOT_DIR/etc/github/configured"
+    fi
 
     # remove pages data
     rm -rf "$GHE_DATA_DIR/1/pages"
@@ -297,8 +360,12 @@ begin_test "ghe-restore with tarball strategy"
     rm -rf "$GHE_REMOTE_DATA_DIR"
     setup_remote_metadata
 
-    # create settings file -- used to determine if instance has been configured.
-    touch "$GHE_REMOTE_DATA_DIR/enterprise/dna.json"
+    # create file used to determine if instance has been configured.
+    if [ "$GHE_VERSION_MAJOR" -le 1 ]; then
+        touch "$GHE_REMOTE_DATA_DIR/enterprise/dna.json"
+    else
+        touch "$GHE_REMOTE_ROOT_DIR/etc/github/configured"
+    fi
 
     # run it
     echo "tarball" > "$GHE_DATA_DIR/current/strategy"

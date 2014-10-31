@@ -74,7 +74,7 @@ GHE_BACKUP_STRATEGY=$(cat "$GHE_RESTORE_SNAPSHOT_PATH/strategy")
 # Perform a host-check and establish the remote version in GHE_REMOTE_VERSION.
 ghe_remote_version_required "$GHE_HOSTNAME"
 
-# Have a way to keep other processes, such as enterprise manage in the loop about the restore status
+# Keep other processes on the VM in the loop about the restore status.
 #
 # Other processes will look for these states:
 # "restoring" - restore is currently in progress
@@ -82,12 +82,10 @@ ghe_remote_version_required "$GHE_HOSTNAME"
 # "complete"  - restore has completed successfully
 update_restore_status () {
     if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
-      echo "$1" |
-      ghe-ssh "$GHE_HOSTNAME" -- "sudo dd of='$GHE_REMOTE_DATA_USER_DIR/common/ghe-restore-status' 2>/dev/null"
+        echo "$1" |
+        ghe-ssh "$GHE_HOSTNAME" -- "sudo dd of='$GHE_REMOTE_DATA_USER_DIR/common/ghe-restore-status' 2>/dev/null"
     fi
 }
-
-
 
 # Prompt to verify the restore host given is correct. Restoring overwrites
 # important data on the destination appliance that cannot be recovered. This is

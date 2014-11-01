@@ -93,7 +93,7 @@ if ghe-ssh "$GHE_HOSTNAME" -- \
     "[ -f '$GHE_REMOTE_DATA_DIR/enterprise/dna.json' -o \
        -f '$GHE_REMOTE_ROOT_DIR/etc/github/configured' ]"; then
     instance_configured=true
-elif [ "$GHE_REMOTE_VERSION" -ge 2 ]; then
+elif [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
     restore_settings=true
 fi
 

@@ -125,7 +125,7 @@ if $instance_configured && ! $force; then
     echo
 fi
 
-echo "Starting $GHE_BACKUP_STRATEGY restore of $GHE_HOSTNAME from snapshot $GHE_RESTORE_SNAPSHOT"
+echo "Starting restore of $GHE_HOSTNAME from snapshot $GHE_RESTORE_SNAPSHOT"
 trap "update_restore_status failed" EXIT
 update_restore_status "restoring"
 

@@ -1,0 +1,32 @@
+Source: github-backup-utils
+Maintainer: Twan Wolthof <xeago@spotify.com>
+Section: misc
+Priority: optional
+Standards-Version: 3.9.2
+Build-Depends: debhelper (>= 9), git
+
+Package: github-backup-utils
+Architecture: any
+Depends: ${misc:Depends}, rsync (>= 2.6.4)
+Description: Backup and recovery utilities for GitHub Enterprise
+ The backup utilities implement a number of advanced capabilities for backup
+ hosts, built on top of the backup and restore features already included in
+ GitHub Enterprise.
+ .
+ These advanced features include:
+ .
+ Complete GitHub Enterprise backup and recovery system via two simple utilities:
+ `ghe-backup` and `ghe-restore`.
+ Online backups. The GitHub appliance need not be put in maintenance mode for
+ the duration of the backup run.
+ Incremental backup of Git repository data. Only changes since the last
+ snapshot are transferred, leading to faster backup runs and lower network
+ bandwidth and machine utilization.
+ Efficient snapshot storage. Only data added since the previous snapshot
+ consumes new space on the backup host.
+ Multiple backup snapshots with configurable retention periods.
+ Backup commands run under the lowest CPU/IO priority on the GitHub appliance,
+ reducing performance impact while backups are in progress.
+ Runs under most Linux/Unix environments.
+ MIT licensed, open source software maintained by GitHub, Inc.
+

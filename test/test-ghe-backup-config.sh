@@ -12,7 +12,7 @@ GHE_REMOTE_DATA_DIR="$TRASHDIR/remote"
 export GHE_DATA_DIR GHE_REMOTE_DATA_DIR
 
 # Source in the config script
-. "$ROOTDIR/libexec/ghe-backup-config"
+. "$ROOTDIR/share/github-backup-utils/ghe-backup-config"
 
 begin_test "ghe-backup-config ssh_host_part"
 (

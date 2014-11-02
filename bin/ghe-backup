@@ -9,7 +9,7 @@ set -e
 
 # Bring in the backup configuration
 cd $(dirname "$0")/..
-. libexec/ghe-backup-config
+. share/github-backup-utils/ghe-backup-config
 
 # Host we're backing up
 host="$GHE_HOSTNAME"

@@ -23,11 +23,15 @@ set -e
 
 # Setting basic paths
 ROOTDIR="$(cd $(dirname "$0")/.. && pwd)"
-PATH="$ROOTDIR/test/bin:$ROOTDIR/bin:$ROOTDIR/libexec:$PATH"
+PATH="$ROOTDIR/test/bin:$ROOTDIR/bin:$ROOTDIR/share/github-backup-utils:$PATH"
 
 # create a temporary work space
 TMPDIR="$ROOTDIR/test/tmp"
 TRASHDIR="$TMPDIR/$(basename "$0")-$$"
+
+# Set GIT_{AUTHOR,COMMITTER}_{NAME,EMAIL}
+# This removes the assumption that a git config that specifies these is present.
+export GIT_AUTHOR_NAME=make GIT_AUTHOR_EMAIL=make GIT_COMMITTER_NAME=make GIT_COMMITTER_EMAIL=make
 
 # Point commands at the test backup.config file
 GHE_BACKUP_CONFIG="$ROOTDIR/test/backup.config"

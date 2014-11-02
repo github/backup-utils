@@ -7,8 +7,8 @@
 set -e
 
 # Bring in the backup configuration
-cd $(dirname "$0")/..
-. libexec/ghe-backup-config
+cd $(dirname "$0")/../..
+. share/github-backup-utils/ghe-backup-config
 
 # Show usage and bail with no arguments
 [ -z "$*" ] && print_usage

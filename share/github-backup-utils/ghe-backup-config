@@ -2,21 +2,21 @@
 # Usage: . ghe-backup-config
 # GitHub Enterprise backup shell configuration.
 #
-# This file is sourced by the various utilities under bin and libexec to
+# This file is sourced by the various utilities under bin and share/github-backup-utils to
 # load in backup configuration and ensure things are configured properly.
 #
 # All commands should start with the following:
 #
-#     cd $(dirname "$0")/..
-#     . libexec/ghe-backup-config
+#     cd $(dirname "$0")/../..
+#     . share/github-backup-utils/ghe-backup-config
 #
 
 # Assume the current directory is the root. This should be fine so long as all
 # scripts source us in according to the instructions above.
 GHE_BACKUP_ROOT="$(pwd)"
 
-# Add the bin and libexec dirs to PATH
-PATH="$GHE_BACKUP_ROOT/bin:$GHE_BACKUP_ROOT/libexec:$PATH"
+# Add the bin and share/github-backup-utils dirs to PATH
+PATH="$GHE_BACKUP_ROOT/bin:$GHE_BACKUP_ROOT/share/github-backup-utils:$PATH"
 
 # The backup config file. This may be set in the environment.
 : ${GHE_BACKUP_CONFIG:="$GHE_BACKUP_ROOT/backup.config"}
@@ -97,7 +97,7 @@ GHE_SNAPSHOT_DIR="$GHE_DATA_DIR"/"$GHE_SNAPSHOT_TIMESTAMP"
 : ${GHE_IONICE:="ionice -c 3"}
 
 # The number of seconds to wait for in progress git-gc processes to complete
-# before starting the sync of git data. See libexec/ghe-backup-repositories-rsync
+# before starting the sync of git data. See share/github-backup-utils/ghe-backup-repositories-rsync
 # for more information. Default: 10 minutes.
 : ${GHE_GIT_COOLDOWN_PERIOD:=600}
 
@@ -148,7 +148,7 @@ fi
 
 # Run ghe-host-check and establish the version of the remote GitHub instance in
 # the exported GHE_REMOTE_VERSION variable. If the remote version has already
-# been established then don't perform the host check again. Utilities in libexec
+# been established then don't perform the host check again. Utilities in share/github-backup-utils
 # that need the remote version should use this function instead of calling
 # ghe-host-check directly to reduce ssh roundtrips. The top-level ghe-backup and
 # ghe-restore commands establish the version for all subcommands.

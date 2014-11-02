@@ -1,0 +1,22 @@
+github-backup-utils (1.1.0) UNRELEASED; urgency=medium
+
+  * Updated documentation on minimum GitHub Enterprise version requirements for
+    online and incremental backups from v11.10.341 to at least v11.10.342.
+  * The ghe-restore command now prompts for confirmation of the host to restore to
+    before performing any destructive operation. This is to reduce the chances of
+    restoring to the wrong host. The prompt may be bypassed in automated scenarios
+    by providing the --force option.
+  * Added a -c option to ghe-restore for restoring base appliance settings in
+    addition to primary datastores. See ghe-restore --help for more information.
+  * Added a note about disabling maintenance mode on the appliance after a
+    successful ghe-restore operation.
+  * Added support for filesystem layout changes and upgraded server components in
+  * future versions of GitHub Enterprise.
+
+ -- Twan Wolthof <xeago@spotify.com>  Sat, 18 Oct 2014 19:14:47 +0000
+
+github-backup-utils (1.0.1) UNRELEASED; urgency=medium
+
+  * Initial release.
+
+ -- Twan Wolthof <xeago@spotify.com>  Tue, 23 Sep 2014 08:34:55 +0000

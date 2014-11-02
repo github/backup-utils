@@ -7,8 +7,8 @@
 set -e
 
 # Bring in the backup configuration
-cd $(dirname "$0")/..
-. libexec/ghe-backup-config
+cd $(dirname "$0")/../..
+. share/github-backup-utils/ghe-backup-config
 
 # Use the common user data rsync backup utility.
 ghe-backup-userdata pages

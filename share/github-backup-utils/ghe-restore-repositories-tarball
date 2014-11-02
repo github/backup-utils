@@ -1,14 +1,14 @@
 #!/bin/sh
-#/ Usage: ghe-restore-pages-tarball <host>
-#/ Restore a tarball snapshot of all Pages data to a GitHub instance.
+#/ Usage: ghe-restore-repositories-tarball <host>
+#/ Restore a tarball snapshot of all Git repository data to a GitHub instance.
 #/
 #/ Note: This script typically isn't called directly. It's invoked by the
 #/ ghe-restore command when the tarball strategy is used.
 set -e
 
 # Bring in the backup configuration
-cd $(dirname "$0")/..
-. libexec/ghe-backup-config
+cd $(dirname "$0")/../..
+. share/github-backup-utils/ghe-backup-config
 
 # Grab the host arg
 GHE_HOSTNAME="$1"
@@ -20,6 +20,6 @@ GHE_HOSTNAME="$1"
 # us run this script directly.
 : ${GHE_RESTORE_SNAPSHOT:=current}
 
-# Restore Pages data from tarball snapshot.
-ghe-ssh "$GHE_HOSTNAME" -- 'ghe-import-pages' \
-    < "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/pages.tar" 1>&3
+# Restore Git repository data from tarball snapshot.
+ghe-ssh "$GHE_HOSTNAME" -- 'ghe-import-repositories' \
+    < "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/repositories.tar" 1>&3

@@ -271,8 +271,6 @@ begin_test "ghe-restore into unconfigured vm"
 )
 end_test
 
-echo here
-
 begin_test "ghe-restore with host arg"
 (
     set -e

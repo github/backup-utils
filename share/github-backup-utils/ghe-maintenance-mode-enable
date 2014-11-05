@@ -44,7 +44,7 @@ fi
 
 # SSH to the appliance and run the remote maintenance mode enable command
 echo "Enabling maintenance mode on $host ..."
-ghe-ssh "$host" -- "ghe-maintenance -s"
+ghe-ssh "$host" -- "/usr/bin/env GHEBUVER=2 ghe-maintenance -s"
 
 # Bail out early if --no-wait was given.
 $wait_procs || exit 0

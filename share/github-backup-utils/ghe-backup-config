@@ -18,7 +18,17 @@ GHE_BACKUP_ROOT="$(pwd)"
 # Add the bin and share/github-backup-utils dirs to PATH
 PATH="$GHE_BACKUP_ROOT/bin:$GHE_BACKUP_ROOT/share/github-backup-utils:$PATH"
 
-# The backup config file. This may be set in the environment.
+# The backup config file. This may be set in the environment or
+# specified with the -b flag. Note: this has to be the first argument.
+if [ "$1" = "-b" ]; then
+    if [ -r "$2" ] && [ "$#" -ge 2 ]; then
+        GHE_BACKUP_CONFIG=$2
+        shift; shift;
+    else
+      echo "Error: can't read config file ($2)."
+      exit 2
+    fi
+fi
 : ${GHE_BACKUP_CONFIG:="$GHE_BACKUP_ROOT/backup.config"}
 if [ ! -f $GHE_BACKUP_CONFIG ]; then
     GHE_BACKUP_CONFIG="/etc/github-backup-utils/backup.config"

@@ -24,7 +24,7 @@ port=$(ssh_port_part "$host")
 hostname=$(ssh_host_part "$host")
 
 set +e
-output=$(echo "cat \"$GHE_REMOTE_METADATA_FILE\" 2>/dev/null || exit 101" | ghe-ssh -o 'BatchMode no' $options $host -- /bin/sh)
+output=$(echo "cat \"$GHE_REMOTE_METADATA_FILE\" 2>/dev/null || exit 101" | ghe-ssh -o 'BatchMode no' $options $host -- /bin/sh 2>&1)
 rc=$?
 set -e
 

@@ -76,7 +76,7 @@ echo "
     while [ \$sanity -lt $GHE_GIT_COOLDOWN_PERIOD ]; do
         # note: the bracket synta[x] below is to prevent matches against the
         # grep process itself.
-        if ps axo pid,args | grep -q -e 'git[ -].*nw-repac[k]' -e 'git[ -].*g[c]'; then
+        if ps axo args | grep -q -E -e '^git( -.*)? nw-repac[k]( |$)' -e '^git( -.*)? g[c]( |$)'; then
             sleep 1
             sanity=\$(( sanity + 1 ))
         else

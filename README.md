@@ -9,6 +9,7 @@ This repository includes backup and recovery utilities for [GitHub Enterprise][1
   - **[Storage requirements](#storage-requirements)**
   - **[GitHub Enterprise version requirements](#github-enterprise-version-requirements)**
 - **[Getting started](#getting-started)**
+- **[Migrating from GitHub Enterprise v11.10.34x to v2.0](#migrating-from-github-enterprise-v111034x-to-v20)**
 - **[Using the backup and restore commands](#using-the-backup-and-restore-commands)**
 - **[Scheduling backups](#scheduling-backups)**
 - **[Backup snapshot file structure](#backup-snapshot-file-structure)**
@@ -57,8 +58,12 @@ and growth over time.
 
 ##### GitHub Enterprise version requirements
 
-For online and incremental backup support, the GitHub Enterprise instance must
-be running version 11.10.342 or above.
+The backup utilities are fully supported under GitHub Enterprise 2.0 or
+greater.
+
+The previous release series (11.10.34x) is also supported but must meet minimum
+version requirements. For online and incremental backup support, the GitHub
+Enterprise instance must be running version 11.10.342 or above.
 
 Earlier versions are supported, but online and incremental backups are not
 supported. We strongly recommend upgrading to the latest release if you're
@@ -87,6 +92,14 @@ download the most recent GitHub Enterprise version.
 
 [release]: https://github.com/github/backup-utils/releases
 
+### Migrating from GitHub Enterprise v11.10.34x to v2.0
+
+If you are migrating from GitHub Enterprise version 11.10.34x to 2.0 or greater,
+please see the [Migrating from GitHub Enterprise v11.10.34x][10] documentation
+in the [GitHub Enterprise System Administrator's Guide][11]. It includes
+important information on using the backup utilities to migrate data from your
+v11.10.34x instance to v2.0.
+
 ### Using the backup and restore commands
 
 After the initial backup, use the following commands:
@@ -94,8 +107,7 @@ After the initial backup, use the following commands:
  - The `ghe-backup` command creates incremental snapshots of repository data,
    along with full snapshots of all other pertinent data stores.
  - The `ghe-restore` command restores snapshots to the same or separate GitHub
-   Enterprise appliance. If you are restoring to a separate appliance, follow
-   the steps in [Migrating GitHub Enterprise][10].
+   Enterprise appliance.
 
 ##### Example backup and restore usage
 
@@ -133,8 +145,9 @@ appliance at IP "5.5.5.5":
     Restoring SSH host keys ...
     Completed restore of 5.5.5.5 from snapshot 20140817T174152
     Visit https://5.5.5.5/setup/settings to configure the recovered appliance.
-    
-Any backup can be applied using the `-s` argument and the datestamp-named directory from the backup location.
+
+A different backup snapshot may be selected by passing the `-s` argument and the
+datestamp-named directory from the backup location.
 
 The `ghe-backup` and `ghe-restore` commands also have a verbose output mode
 (`-v`) that lists files as they're being transferred. It's often useful to
@@ -229,4 +242,5 @@ site setup or recovery, please contact our [Enterprise support team][7] instead.
 [7]: https://enterprise.github.com/support/
 [8]: https://enterprise.github.com/help/articles/backing-up-enterprise-data
 [9]: https://enterprise.github.com/help/articles/restoring-enterprise-data
-[10]: https://enterprise.github.com/help/articles/migrating-github-enterprise
+[10]: https://help.github.com/enterprise/2.0/admin-guide/migrating/
+[11]: https://help.github.com/enterprise/2.0/admin-guide/

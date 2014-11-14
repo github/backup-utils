@@ -9,6 +9,7 @@ This repository includes backup and recovery utilities for [GitHub Enterprise][1
   - **[Storage requirements](#storage-requirements)**
   - **[GitHub Enterprise version requirements](#github-enterprise-version-requirements)**
 - **[Getting started](#getting-started)**
+- **[Migrating from GitHub Enterprise v11.10.34x to v2.0](#migrating-from-github-enterprise-v111034x-to-v20)**
 - **[Using the backup and restore commands](#using-the-backup-and-restore-commands)**
 - **[Scheduling backups](#scheduling-backups)**
 - **[Backup snapshot file structure](#backup-snapshot-file-structure)**
@@ -87,6 +88,14 @@ download the most recent GitHub Enterprise version.
 
 [release]: https://github.com/github/backup-utils/releases
 
+### Migrating from GitHub Enterprise v11.10.34x to v2.0
+
+If you are migrating from GitHub Enterprise version 11.10.34x to 2.0 or greater,
+please see the [Migrating from GitHub Enterprise v11.10.34x][10] documentation
+in the [GitHub Enterprise System Administrator's Guide][11]. It includes
+important information on using the backup utilities to migrate data from your
+v11.10.34x instance to v2.0.
+
 ### Using the backup and restore commands
 
 After the initial backup, use the following commands:
@@ -94,8 +103,7 @@ After the initial backup, use the following commands:
  - The `ghe-backup` command creates incremental snapshots of repository data,
    along with full snapshots of all other pertinent data stores.
  - The `ghe-restore` command restores snapshots to the same or separate GitHub
-   Enterprise appliance. If you are restoring to a separate appliance, follow
-   the steps in [Migrating GitHub Enterprise][10].
+   Enterprise appliance.
 
 ##### Example backup and restore usage
 
@@ -229,4 +237,5 @@ site setup or recovery, please contact our [Enterprise support team][7] instead.
 [7]: https://enterprise.github.com/support/
 [8]: https://enterprise.github.com/help/articles/backing-up-enterprise-data
 [9]: https://enterprise.github.com/help/articles/restoring-enterprise-data
-[10]: https://enterprise.github.com/help/articles/migrating-github-enterprise
+[10]: https://help.github.com/enterprise/2.0/admin-guide/migrating/
+[11]: https://help.github.com/enterprise/2.0/admin-guide/

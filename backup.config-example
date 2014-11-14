@@ -22,3 +22,7 @@ GHE_NUM_SNAPSHOTS=10
 # ghe-restore so use of this variable isn't strictly required.
 #
 #GHE_RESTORE_HOST="github-standby.example.com"
+
+# Any extra options passed to the SSH command.  Nothing required by default
+#
+#GHE_EXTRA_SSH_OPTS=""

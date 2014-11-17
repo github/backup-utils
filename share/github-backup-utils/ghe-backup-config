@@ -20,9 +20,6 @@ PATH="$GHE_BACKUP_ROOT/bin:$GHE_BACKUP_ROOT/share/github-backup-utils:$PATH"
 
 # The backup config file. This may be set in the environment.
 : ${GHE_BACKUP_CONFIG:="$GHE_BACKUP_ROOT/backup.config"}
-if [ ! -f $GHE_BACKUP_CONFIG ]; then
-    GHE_BACKUP_CONFIG="/etc/github-backup-utils/backup.config"
-fi
 
 # Parse out -v (verbose) argument
 if [ "$1" = "-v" ]; then
@@ -39,20 +36,29 @@ else
     exec 3>/dev/null
 fi
 
-# Check that the config file exists before we source it in.
-if [ ! -f "$GHE_BACKUP_CONFIG" ]; then
-    echo "Error: No backup configuration file found. Tried:"
-    echo " - $GHE_BACKUP_ROOT/backup.config"
-    echo " - /etc/github-backup-utils/backup.config"
-    exit 2
-fi
-
 # Save off GHE_HOSTNAME from the environment since we want it to override the
 # backup.config value when set.
 GHE_HOSTNAME_PRESERVE="$GHE_HOSTNAME"
 
-# Source in the backup config file.
-. "$GHE_BACKUP_CONFIG"
+# Source in the backup config file from the local working copy location first
+# and then falling back to the system location.
+config_found=false
+for f in "$GHE_BACKUP_CONFIG" "/etc/github-backup-utils/backup.config"; do
+    if [ -f "$f" ]; then
+        GHE_BACKUP_CONFIG="$f"
+        . "$GHE_BACKUP_CONFIG"
+        config_found=true
+        break
+    fi
+done
+
+# Check that the config file exists before we source it in.
+if ! $config_found; then
+    echo "Error: No backup configuration file found. Tried:" 1>&2
+    echo " - $GHE_BACKUP_CONFIG" 1>&2
+    echo " - /etc/github-backup-utils/backup.config" 1>&2
+    exit 2
+fi
 
 # Restore saved of hostname.
 [ -n "$GHE_HOSTNAME_PRESERVE" ] && GHE_HOSTNAME="$GHE_HOSTNAME_PRESERVE"

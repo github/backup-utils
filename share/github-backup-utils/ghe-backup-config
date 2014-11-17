@@ -60,7 +60,7 @@ if ! $config_found; then
     exit 2
 fi
 
-# Restore saved of hostname.
+# Restore saved off hostname.
 [ -n "$GHE_HOSTNAME_PRESERVE" ] && GHE_HOSTNAME="$GHE_HOSTNAME_PRESERVE"
 
 # Check that the GHE hostname is set.

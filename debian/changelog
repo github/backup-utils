@@ -1,3 +1,19 @@
+github-backup-utils (2.0.1) UNRELEASED; urgency=medium
+
+  * Adds /etc/github-backup-utils/backup.config as a default config file search
+    location for deb / system installs.
+  * Enables SSH BatchMode for all remote command invocation except initial host
+    check / version identification.
+  * Fixes a bug in ghe-backup where Git GC process detection would misclassify
+    long-running server processes matching /git.*gc/, causing the backup operation
+    to timeout.
+  * Adds a note and link to the Migrating from GitHub Enterprise v11.10.34x to
+    v2.0 documentation in the README.
+  * Adds example / documentation for the GHE_EXTRA_SSH_OPTS config value to the
+    backup.config-example file.
+
+ -- Ryan Tomayko <ryan@github.com>  Mon, 17 Nov 2014 12:47:22 +0000
+
 github-backup-utils (2.0.0) UNRELEASED; urgency=medium
 
   * Support for GitHub Enterprise 2.0.

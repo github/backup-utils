@@ -1,3 +1,17 @@
+github-backup-utils (2.0.0) UNRELEASED; urgency=medium
+
+  * Support for GitHub Enterprise 2.0.
+  * Support for migrating from GitHub Enterprise 11.10.34x to 2.0 (including from
+    VMware to AWS).
+  * ghe-backup retains hardlinks present on VM in backup snapshots, saving space.
+  * ghe-restore retains hardlinks present in backup snapshot when restoring to VM.
+  * backup-utils now includes debian packaging support.
+  * Fixes an issue with ghe-restore -s not using the snapshot specified.
+  * Fixes an issue with ghe-backup not waiting for nw-repack processes to finish
+    in some instances.
+
+ -- Ryan Tomayko <ryan@github.com>  Mon, 10 Nov 2014 10:48:36 +0000
+
 github-backup-utils (1.1.0) UNRELEASED; urgency=medium
 
   * Updated documentation on minimum GitHub Enterprise version requirements for

@@ -27,4 +27,4 @@ done
 host="$1"
 
 # Check if the maintenance page is present
-ghe-ssh "$host" -- test -e $GHE_REMOTE_DATA_DIR/github/current/public/system/maintenance.html
+ghe-ssh "$host" -- test -e "$GHE_REMOTE_DATA_DIR/github/current/public/system/maintenance.html"

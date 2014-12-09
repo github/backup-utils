@@ -147,10 +147,12 @@ if [ "$GHE_VERSION_MAJOR" -le 1 ] && [ "$GHE_BACKUP_STRATEGY" = "rsync" ]; then
     fi
 fi
 
-# Make sure the GitHub appliance is in maintenance mode and all writing
-# processes have bled out.
+# Make sure the GitHub appliance is in maintenance mode.
 if $instance_configured; then
-    ghe-maintenance-mode-enable "$GHE_HOSTNAME"
+    if ! ghe-maintenance-mode-status "$GHE_HOSTNAME"; then
+        echo "Error: $GHE_HOSTNAME must be put in maintenance mode before restoring. Aborting." 1>&2
+        exit 1
+    fi
 fi
 
 # Restore settings and license if restoring to an unconfigured appliance or when

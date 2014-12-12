@@ -51,7 +51,7 @@ opts="-l $user $opts"
 
 # Bail out with error if the simple command form is used with complex commands.
 # Complex
-if echo "$*" | grep -q "[|;]" || [ $(echo "$*" | wc -l) -gt 1 ]; then
+if echo "$*" | grep "[|;]" >/dev/null || [ $(echo "$*" | wc -l) -gt 1 ]; then
     echo "fatal: ghe-ssh: Attempt to invoke complex command with simple command form." 1>&2
     echo "See ghe-ssh --help for more on correcting." 1>&2
     exit 1

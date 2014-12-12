@@ -57,7 +57,7 @@ elif [ "$GHE_VERSION_MAJOR" -gt 1 ]; then
 else
     # Use GNU tar on BSDs.
     TAR=tar
-    if ! tar --version | grep -q GNU; then
+    if ! tar --version | grep GNU >/dev/null; then
             TAR=gtar
     fi
     cd "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT"

@@ -31,7 +31,7 @@ set -e
 if [ $rc -ne 0 ]; then
     case $rc in
         255)
-            if echo "$output" | grep -i -q "port 22: connection refused"; then
+            if echo "$output" | grep -i "port 22: connection refused" >/dev/null; then
                 exec "$0" "$hostname:122"
             fi
 
@@ -44,7 +44,7 @@ if [ $rc -ne 0 ]; then
             echo "Error: couldn't read GitHub Enterprise fingerprint on '$host' or this isn't a GitHub appliance." 1>&2
             ;;
         1)
-            if [ "${port:-22}" -eq 22 ] && echo "$output" | grep -q "use port 122"; then
+            if [ "${port:-22}" -eq 22 ] && echo "$output" | grep "use port 122" >/dev/null; then
                 exec "$0" "$hostname:122"
             else
                 echo "$output" 1>&2

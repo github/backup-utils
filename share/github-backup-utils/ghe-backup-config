@@ -15,9 +15,8 @@
 # scripts source us in according to the instructions above.
 GHE_BACKUP_ROOT="$(pwd)"
 
-# Get the version from the last tag with the 'v' removed from the front.
-BACKUP_UTILS_VERSION="$(cat $GHE_BACKUP_ROOT/.version 2>/dev/null || git describe --tags)"
-BACKUP_UTILS_VERSION="$(echo $BACKUP_UTILS_VERSION | sed -e 's/^v//')"
+# Get the version from the version file.
+BACKUP_UTILS_VERSION="$(cat share/github-backup-utils/version | sed 's/^v//')"
 
 # Add the bin and share/github-backup-utils dirs to PATH
 PATH="$GHE_BACKUP_ROOT/bin:$GHE_BACKUP_ROOT/share/github-backup-utils:$PATH"

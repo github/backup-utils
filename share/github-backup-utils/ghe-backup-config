@@ -15,6 +15,10 @@
 # scripts source us in according to the instructions above.
 GHE_BACKUP_ROOT="$(pwd)"
 
+# Get the version from the last tag with the 'v' removed from the front.
+BACKUP_UTILS_VERSION="$(cat $GHE_BACKUP_ROOT/.version 2>/dev/null || git describe --tags)"
+BACKUP_UTILS_VERSION="$(echo $BACKUP_UTILS_VERSION | sed -e 's/^v//')"
+
 # Add the bin and share/github-backup-utils dirs to PATH
 PATH="$GHE_BACKUP_ROOT/bin:$GHE_BACKUP_ROOT/share/github-backup-utils:$PATH"
 
@@ -109,7 +113,8 @@ GHE_SNAPSHOT_DIR="$GHE_DATA_DIR"/"$GHE_SNAPSHOT_TIMESTAMP"
 # allows the location to be overridden in tests.
 : ${GHE_REMOTE_LICENSE_FILE:="$GHE_REMOTE_DATA_DIR/enterprise/enterprise.ghl"}
 
-# The location of the metadata file on the remote side. This is always
+# The legacy location of the metadata file on the remote side. Only used if
+# the newer "ghe-negotiate-version" script cannot be found or fails. This was
 # "/data/enterprise/metadata.json" for GitHub instances. Use of this variable
 # allows the location to be overridden in tests.
 : ${GHE_REMOTE_METADATA_FILE:="$GHE_REMOTE_DATA_DIR/enterprise/metadata.json"}

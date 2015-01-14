@@ -24,8 +24,13 @@ port=$(ssh_port_part "$host")
 hostname=$(ssh_host_part "$host")
 
 set +e
-output=$(echo "cat \"$GHE_REMOTE_METADATA_FILE\" 2>/dev/null || exit 101" | ghe-ssh -o BatchMode=no $options $host -- /bin/sh 2>&1)
+output=$(echo "(which ghe-negotiate-version || exit 127) && ghe-negotiate-version backup-utils $BACKUP_UTILS_VERSION" | ghe-ssh -o BatchMode=no $options $host -- /bin/sh 2>&1)
 rc=$?
+if [ $rc = 127 ]; then
+  legacy_version_output="1"
+  output=$(echo "cat \"$GHE_REMOTE_METADATA_FILE\" 2>/dev/null || exit 101" | ghe-ssh -o BatchMode=no $options $host -- /bin/sh 2>&1)
+  rc=$?
+fi
 set -e
 
 if [ $rc -ne 0 ]; then
@@ -47,6 +52,9 @@ if [ $rc -ne 0 ]; then
             if [ "${port:-22}" -eq 22 ] && echo "$output" | grep "use port 122" >/dev/null; then
                 exec "$0" "$hostname:122"
             else
+                if [ -z "$legacy_version_output" ]; then
+                  echo "Error: $host does not support backup-utils $BACKUP_UTILS_VERSION." 1>&2
+                fi
                 echo "$output" 1>&2
             fi
             ;;
@@ -55,9 +63,14 @@ if [ $rc -ne 0 ]; then
     exit $rc
 fi
 
-version=$(echo "$output" | grep version | cut -d'"' -f4)
+if [ -z "$legacy_version_output" ]; then
+  version=$(echo "$output" | grep "GitHub Enterprise version" | grep -o "[0-9]*\.[0-9]*\.[0-9]*")
+else
+  version=$(echo "$output" | grep version | cut -d'"' -f4)
+fi
+
 if [ -z "$version" ]; then
-    echo "Error: failed to parse version from $GHE_REMOTE_METADATA_FILE on '$host' or this isn't a GitHub appliance." 1>&2
+    echo "Error: failed to parse version on '$host' or this isn't a GitHub appliance." 1>&2
     exit 2
 fi
 

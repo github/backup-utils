@@ -27,6 +27,7 @@ set +e
 output=$(echo "ghe-negotiate-version backup-utils $BACKUP_UTILS_VERSION" | ghe-ssh -o BatchMode=no $options $host -- /bin/sh 2>&1)
 rc=$?
 if [ $rc = 127 ]; then
+  # ghe-negotiate-version not found, fallback to reading version file
   legacy_version_output="1"
   output=$(echo "cat \"$GHE_REMOTE_METADATA_FILE\" 2>/dev/null || exit 101" | ghe-ssh -o BatchMode=no $options $host -- /bin/sh 2>&1)
   rc=$?

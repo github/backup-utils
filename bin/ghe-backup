@@ -100,8 +100,8 @@ ghe-ssh "$GHE_HOSTNAME" -- 'ghe-export-ssh-host-keys' > ssh-host-keys.tar ||
 failures="$failures ssh-host-keys"
 
 echo "Backing up MySQL database ..."
-echo 'ghe-export-mysql | gzip' |
-ghe-ssh "$GHE_HOSTNAME" -- /bin/sh > mysql.sql.gz ||
+echo 'set -o pipefail; ghe-export-mysql | gzip' |
+ghe-ssh "$GHE_HOSTNAME" -- /bin/bash > mysql.sql.gz ||
 failures="$failures mysql"
 
 echo "Backing up Redis database ..."

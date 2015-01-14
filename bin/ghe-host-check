@@ -62,7 +62,7 @@ if [ $rc -ne 0 ]; then
 fi
 
 if [ -z "$legacy_version_output" ]; then
-  version=$(echo "$output" | grep "GitHub Enterprise version" | grep -o "[0-9]*\.[0-9]*\.[0-9]*")
+  version=$(echo "$output" | sed -n 's/GitHub Enterprise version \(.*\)/\1/p')
 else
   version=$(echo "$output" | grep version | cut -d'"' -f4)
 fi

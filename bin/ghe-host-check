@@ -24,7 +24,7 @@ port=$(ssh_port_part "$host")
 hostname=$(ssh_host_part "$host")
 
 set +e
-output=$(echo "(which ghe-negotiate-version || exit 127) && ghe-negotiate-version backup-utils $BACKUP_UTILS_VERSION" | ghe-ssh -o BatchMode=no $options $host -- /bin/sh 2>&1)
+output=$(echo "ghe-negotiate-version backup-utils $BACKUP_UTILS_VERSION" | ghe-ssh -o BatchMode=no $options $host -- /bin/sh 2>&1)
 rc=$?
 if [ $rc = 127 ]; then
   legacy_version_output="1"

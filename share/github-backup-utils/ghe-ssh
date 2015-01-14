@@ -1,6 +1,6 @@
 #!/bin/sh
 #/ Usage: ghe-ssh [<option>...] <host> [<simple-command>...]
-#/        echo <complex-command>... | ghe-ssh [<option>...] <host> /bin/sh
+#/        echo 'set -o pipefail; <complex-command>...' | ghe-ssh [<option>...] <host> /bin/bash
 #/ Helper to ssh into a GitHub instance with the right user and port. The first
 #/ form should be used for simple commands; the second form should be used for
 #/ complex commands that include pipelines or multiple commands.

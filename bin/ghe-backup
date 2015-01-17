@@ -37,7 +37,7 @@ GHE_MAINTENANCE_MODE_ENABLED=false
 # The cleanup trap also handles disabling maintenance mode on the appliance if
 # it was automatically enabled.
 cleanup () {
-    if [ $(readlink ../in-progress) = "$GHE_SNAPSHOT_TIMESTAMP" ]; then
+    if [ "$(readlink ../in-progress)" = "$GHE_SNAPSHOT_TIMESTAMP" ]; then
         unlink ../in-progress
     fi
 

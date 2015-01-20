@@ -1,3 +1,19 @@
+github-backup-utils (2.0.2) UNRELEASED; urgency=medium
+
+  * ghe-restore now requires that an already-configured appliance be put into
+    maintenance mode manually. This is a safeguard against accidentally
+    overwriting data on the wrong instance. #62, #84
+  * ghe-backup and ghe-restore now run a ghe-negotiate-version program on the
+    appliance to determine whether the backup-utils and GHE versions are
+    compatible. #91
+  * Various portability fixes for problems surfaced when running on Solaris
+    and FreeBSD. #86, #87
+  * Fixes an issue in ghe-backup where mysqldump failures weren't being
+    reported properly. #90
+  * Automated builds are now run on Travis CI. #77
+
+ -- Ryan Tomayko <ryan@github.com>  Tue, 20 Jan 2015 16:00:00 +0000
+
 github-backup-utils (2.0.1) UNRELEASED; urgency=medium
 
   * Adds /etc/github-backup-utils/backup.config as a default config file search

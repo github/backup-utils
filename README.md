@@ -153,6 +153,8 @@ The `ghe-backup` and `ghe-restore` commands also have a verbose output mode
 (`-v`) that lists files as they're being transferred. It's often useful to
 enable when output is logged to a file.
 
+The settings and license are not restored by default to prevent overwriting different configuration on the restore host. Restore appliance settings and license in addition to datastores by passing the `-c` argument to `ghe-restore`
+
 ### Scheduling backups
 
 Regular backups should be scheduled using `cron(8)` or similar command

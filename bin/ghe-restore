@@ -203,7 +203,7 @@ if [ $instance_configured ]; then
     ghe-ssh "$GHE_HOSTNAME" -- "/usr/local/share/enterprise/ghe-storage-prepare" 1>&3 2>&3
   else
     echo "   This will take several minutes to complete..."
-    ghe-ssh "$GHE_HOSTNAME" -- "sudo /usr/sbin/enterprise-configure" 1>&3 2>&3
+    ghe-ssh "$GHE_HOSTNAME" -- "sudo enterprise-configure" 1>&3 2>&3
   fi
 fi
 

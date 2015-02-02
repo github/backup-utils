@@ -33,9 +33,6 @@ cd "$(dirname "$0")"/..
 # Scrub sudo commands from command arguments.
 sh="$(echo "$@" | sed 's/sudo -u [a-z]* //g' | sed 's/sudo //g')"
 
-# Scrub /usr/local/share/enterprise/ from commands
-sh="$(echo "$sh" | sed 's|/usr/local/share/enterprise/||g')"
-
 # Also scrub sudo commands from stdin if just executing /bin/sh and
 # piping commands in on standard input.
 if echo "$*" | grep -q "/bin/sh$"; then

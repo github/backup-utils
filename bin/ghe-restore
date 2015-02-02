@@ -200,7 +200,7 @@ ghe-restore-es-${GHE_BACKUP_STRATEGY} "$GHE_HOSTNAME" 1>&3
 if [ $instance_configured ]; then
   echo "Configuring storage ..."
   if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
-    ghe-ssh "$GHE_HOSTNAME" -- "/usr/local/share/enterprise/ghe-storage-prepare" 1>&3 2>&3
+    ghe-ssh "$GHE_HOSTNAME" -- "sudo ghe-config-apply" 1>&3
   else
     echo "   This will take several minutes to complete..."
     ghe-ssh "$GHE_HOSTNAME" -- "sudo enterprise-configure" 1>&3 2>&3

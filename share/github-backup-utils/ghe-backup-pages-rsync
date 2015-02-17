@@ -10,5 +10,8 @@ set -e
 cd $(dirname "$0")/../..
 . share/github-backup-utils/ghe-backup-config
 
+# Make sure root backup dir exists if this is the first run
+mkdir -p "$GHE_SNAPSHOT_DIR/pages"
+
 # Use the common user data rsync backup utility.
 ghe-backup-userdata pages

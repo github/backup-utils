@@ -197,7 +197,7 @@ ghe-restore-es-${GHE_BACKUP_STRATEGY} "$GHE_HOSTNAME" 1>&3
 
 # When restoring to a host that has already been configured, kick off a
 # config run to perform data migrations.
-if [ $instance_configured ]; then
+if $instance_configured; then
   echo "Configuring storage ..."
   if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
     ghe-ssh "$GHE_HOSTNAME" -- "sudo ghe-config-apply --full" 1>&3

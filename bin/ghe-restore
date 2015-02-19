@@ -195,11 +195,16 @@ ghe-ssh "$GHE_HOSTNAME" -- 'ghe-import-authorized-keys' < "$GHE_RESTORE_SNAPSHOT
 echo "Restoring Elasticsearch indices ..."
 ghe-restore-es-${GHE_BACKUP_STRATEGY} "$GHE_HOSTNAME" 1>&3
 
-# When restoring to a 2.x host that has already been configured, kick off a
+# When restoring to a host that has already been configured, kick off a
 # config run to perform data migrations.
-if [ "$GHE_VERSION_MAJOR" -ge 2 ] && $instance_configured; then
-    echo "Configuring storage ..."
-    ghe-ssh "$GHE_HOSTNAME" -- "sudo ghe-config-apply" 1>&3
+if $instance_configured; then
+  echo "Configuring storage ..."
+  if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
+    ghe-ssh "$GHE_HOSTNAME" -- "sudo ghe-config-apply --full" 1>&3
+  else
+    echo "   This will take several minutes to complete..."
+    ghe-ssh "$GHE_HOSTNAME" -- "sudo enterprise-configure" 1>&3 2>&3
+  fi
 fi
 
 # Update the remote status to "complete". This has to happen before importing

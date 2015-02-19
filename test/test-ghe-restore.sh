@@ -280,13 +280,14 @@ begin_test "ghe-restore into unconfigured vm"
         # verify all pages data was transferred to the restore location
         diff -ru "$GHE_DATA_DIR/current/pages" "$GHE_REMOTE_DATA_USER_DIR/pages"
 
-        if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
-            # verify all hookshot user data was transferred
-            diff -ru "$GHE_DATA_DIR/current/hookshot" "$GHE_REMOTE_DATA_USER_DIR/hookshot"
+        # verify all hookshot user data was transferred
+        diff -ru "$GHE_DATA_DIR/current/hookshot" "$GHE_REMOTE_DATA_USER_DIR/hookshot"
 
-            # verify all alambic assets user data was transferred
-            diff -ru "$GHE_DATA_DIR/current/alambic_assets" "$GHE_REMOTE_DATA_USER_DIR/alambic_assets"
-        fi
+        # verify all alambic assets user data was transferred
+        diff -ru "$GHE_DATA_DIR/current/alambic_assets" "$GHE_REMOTE_DATA_USER_DIR/alambic_assets"
+
+        # verify no config run after restore on unconfigured instance
+        ! grep -q "ghe-config-apply OK" "$TRASHDIR/restore-out"
     fi
 )
 end_test

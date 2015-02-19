@@ -258,7 +258,7 @@ begin_test "ghe-restore into unconfigured vm"
         grep -q -e "Error: $GHE_RESTORE_HOST not configured" "$TRASHDIR/restore-out"
     else
         # under version >= 2.0, ghe-restore into an unconfigured vm implies -c
-        ghe-restore -v -f -c > "$TRASHDIR/restore-out" 2>&1
+        ghe-restore -v -f > "$TRASHDIR/restore-out" 2>&1
         cat "$TRASHDIR/restore-out"
 
         # verify connect to right host

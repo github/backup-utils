@@ -66,7 +66,7 @@ echo "rsync" > "$GHE_DATA_DIR/current/strategy"
 begin_test "ghe-restore into configured vm"
 (
     set -e
-    rm -rf "$GHE_REMOTE_DATA_DIR"
+    rm -rf "$GHE_REMOTE_ROOT_DIR"
     setup_remote_metadata
 
     # create file used to determine if instance has been configured.
@@ -127,7 +127,7 @@ end_test
 begin_test "ghe-restore aborts without user verification"
 (
     set -e
-    rm -rf "$GHE_REMOTE_DATA_DIR"
+    rm -rf "$GHE_REMOTE_ROOT_DIR"
     setup_remote_metadata
 
     # create file used to determine if instance has been configured.
@@ -158,7 +158,7 @@ end_test
 begin_test "ghe-restore accepts user verification"
 (
     set -e
-    rm -rf "$GHE_REMOTE_DATA_DIR"
+    rm -rf "$GHE_REMOTE_ROOT_DIR"
     setup_remote_metadata
 
     # create file used to determine if instance has been configured.
@@ -187,7 +187,7 @@ end_test
 begin_test "ghe-restore -c into unconfigured vm"
 (
     set -e
-    rm -rf "$GHE_REMOTE_DATA_DIR"
+    rm -rf "$GHE_REMOTE_ROOT_DIR"
     setup_remote_metadata
 
     # set restore host environ var
@@ -236,7 +236,7 @@ end_test
 begin_test "ghe-restore into unconfigured vm"
 (
     set -e
-    rm -rf "$GHE_REMOTE_DATA_DIR"
+    rm -rf "$GHE_REMOTE_ROOT_DIR"
     setup_remote_metadata
 
     # set restore host environ var
@@ -294,7 +294,7 @@ end_test
 begin_test "ghe-restore with host arg"
 (
     set -e
-    rm -rf "$GHE_REMOTE_DATA_DIR"
+    rm -rf "$GHE_REMOTE_ROOT_DIR"
     setup_remote_metadata
 
     # create file used to determine if instance has been configured.
@@ -337,7 +337,7 @@ end_test
 begin_test "ghe-restore no host arg or configured restore host"
 (
     set -e
-    rm -rf "$GHE_REMOTE_DATA_DIR"
+    rm -rf "$GHE_REMOTE_ROOT_DIR"
     setup_remote_metadata
 
     # create file used to determine if instance has been configured.
@@ -362,7 +362,7 @@ end_test
 begin_test "ghe-restore with no pages backup"
 (
     set -e
-    rm -rf "$GHE_REMOTE_DATA_DIR"
+    rm -rf "$GHE_REMOTE_ROOT_DIR"
     setup_remote_metadata
 
     # create file used to determine if instance has been configured.
@@ -387,7 +387,7 @@ end_test
 begin_test "ghe-restore with tarball strategy"
 (
     set -e
-    rm -rf "$GHE_REMOTE_DATA_DIR"
+    rm -rf "$GHE_REMOTE_ROOT_DIR"
     setup_remote_metadata
 
     # create file used to determine if instance has been configured.

@@ -36,8 +36,8 @@ export GIT_AUTHOR_NAME=make GIT_AUTHOR_EMAIL=make GIT_COMMITTER_NAME=make GIT_CO
 # Point commands at the test backup.config file
 GHE_BACKUP_CONFIG="$ROOTDIR/test/backup.config"
 GHE_DATA_DIR="$TRASHDIR/data"
-GHE_REMOTE_DATA_DIR="$TRASHDIR/remote"
-GHE_REMOTE_ROOT_DIR="$TRASHDIR/root"
+GHE_REMOTE_DATA_DIR="$TRASHDIR/remote/data"
+GHE_REMOTE_ROOT_DIR="$TRASHDIR/remote"
 export GHE_BACKUP_CONFIG GHE_DATA_DIR GHE_REMOTE_DATA_DIR GHE_REMOTE_ROOT_DIR
 
 # The default remote appliance version. This may be set in the environment prior

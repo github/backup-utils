@@ -97,9 +97,9 @@ elif [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
     restore_settings=true
 fi
 
-# If you restore to a server in a replication pair
+# Figure out if this instance is in a replication pair
 if ghe-ssh "$GHE_HOSTNAME" -- "ghe-repl-status -r 2>/dev/null" \
-  | grep -E "replica|primary"; then
+  | grep -Eq "replica|primary"; then
   instance_configured=true
   echo "WARNING: Restoring to a server with replication enabled interrupts replication."
   echo "You will need to reconfigure replication after the restore completes."

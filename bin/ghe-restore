@@ -97,6 +97,14 @@ elif [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
     restore_settings=true
 fi
 
+# If you restore to a server in a replication pair
+if ghe-ssh "$GHE_HOSTNAME" -- "ghe-repl-status -r 2>/dev/null" \
+  | grep -E "replica|primary"; then
+  instance_configured=true
+  echo "WARNING: Restoring to a server with replication enabled interrupts replication."
+  echo "You will need to reconfigure replication after the restore completes."
+fi
+
 # Prompt to verify the restore host given is correct. Restoring overwrites
 # important data on the destination appliance that cannot be recovered. This is
 # mostly to prevent accidents where the backup host is given to restore instead

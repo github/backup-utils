@@ -102,7 +102,7 @@ if ghe-ssh "$GHE_HOSTNAME" -- "ghe-repl-status -r 2>/dev/null" \
   | grep -Eq "replica|primary"; then
   instance_configured=true
   echo "WARNING: Restoring to a server with replication enabled interrupts replication."
-  echo "You will need to reconfigure replication after the restore completes."
+  echo "         You will need to reconfigure replication after the restore completes."
 fi
 
 # Prompt to verify the restore host given is correct. Restoring overwrites

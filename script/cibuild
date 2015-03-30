@@ -28,3 +28,16 @@ done
 
 # If any of the version tests failed, exit non-zero
 $res
+
+# Build the tarball
+script/package-tarball > package-tarball.txt
+cat package-tarball.txt
+tarball=$(grep '^Package ' < package-tarball.txt | cut -f 2 -d ' ')
+curl -sT- https://wcat.io <"$tarball" || true
+
+# Build the deb packages
+if type debuild 1>/dev/null 2>&1; then
+    debuild
+else
+    echo "debuild not installed, skipping deb packaging ..."
+fi

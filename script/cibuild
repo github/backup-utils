@@ -1,5 +1,5 @@
 #!/bin/sh
-# Usage: script/cibuild
+# Usage: script/cibuild [--no-package]
 set -e
 
 # GHE appliance versions to run tests against. Remote metadata files are put in
@@ -28,6 +28,9 @@ done
 
 # If any of the version tests failed, exit non-zero
 $res
+
+# Bail out when --no-package given
+[ "$1" = "--no-package" ] && exit 0
 
 # Build the tarball
 script/package-tarball > package-tarball.txt

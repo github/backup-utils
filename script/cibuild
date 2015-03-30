@@ -32,15 +32,40 @@ $res
 # Bail out when --no-package given
 [ "$1" = "--no-package" ] && exit 0
 
-# Build the tarball
-script/package-tarball > package-tarball.txt
-cat package-tarball.txt
-tarball=$(grep '^Package ' < package-tarball.txt | cut -f 2 -d ' ')
-curl -sT- https://wcat.io <"$tarball" || true
+# files we'll md5sum at the end
+pkg_files=
 
-# Build the deb packages
-if type debuild 1>/dev/null 2>&1; then
-    script/package-deb
+# Build the tarball
+echo "Building tar.gz package ..."
+if script/package-tarball 1>package-tarball.txt 2>&1; then
+    pkg_files=$(grep '^Package ' < package-tarball.txt | cut -f 2 -d ' ')
 else
-    echo "debuild not installed, skipping deb packaging ..."
+    echo "Packaging tar.gz failed:"
+    cat package-tarball.txt | sed 's/^/    /' 1>&2
+    exit 1
 fi
+
+# Skip deb packaging if debuild not installed
+if ! type debuild 1>/dev/null 2>&1; then
+    echo "debuild not installed, skipping deb packaging ..."
+    exit 0
+fi
+
+# Build the deb related packages
+echo "Building deb package ..."
+if script/package-deb 1>package-deb-out.txt 2>package-deb-err.txt; then
+    pkg_files="$pkg_files $(cat package-deb-out.txt)"
+else
+    echo "Package build failed:"
+    cat package-tarball.txt | sed 's/^/    /' 1>&2
+    exit 1
+fi
+
+# Publish package files on wcat.io
+echo "Uploading packages ..."
+for f in $pkg_files; do
+    printf "%-32s %-s\n" "$(curl -sT- https://wcat.io <"$f" || true)" "$f"
+done
+
+# Generate md5sums
+md5sum $pkg_files

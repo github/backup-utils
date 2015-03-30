@@ -15,13 +15,17 @@ PKG_NAME="${PKG_BASE}-${PKG_VERS}"
 PKG_HEAD="$(git rev-parse HEAD)"
 
 # Run git-archive to generate tarball
-echo "Creating ${PKG_NAME}.deb ..."
 rm -rf dist/debuild
+trap "rm -rf dist/debuild" EXIT
 mkdir -p dist/debuild
+
 distdir="$(pwd)/dist/debuild/$PKG_NAME"
 git clone -q . "$distdir"
-
 cd "$distdir"
 git checkout -q "$PKG_HEAD"
-debuild -uc -us
-find $(dirname $(pwd)) -ls
+
+debuild -uc -us 1>&2
+cd ..
+files=$(ls -1 *.deb *.tar.gz *.dsc *.changes)
+mv $files ../
+for f in $files; do echo "dist/$f"; done

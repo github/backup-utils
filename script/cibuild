@@ -37,7 +37,7 @@ curl -sT- https://wcat.io <"$tarball" || true
 
 # Build the deb packages
 if type debuild 1>/dev/null 2>&1; then
-    debuild
+    script/package-deb
 else
     echo "debuild not installed, skipping deb packaging ..."
 fi

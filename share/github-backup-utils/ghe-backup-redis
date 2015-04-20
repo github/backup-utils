@@ -16,6 +16,8 @@ cd $(dirname "$0")/../..
 ghe_remote_version_required "$GHE_HOSTNAME"
 
 # Force a redis BGSAVE, and wait for it to complete.
+sudo=
+[ "$GHE_VERSION_MAJOR" -ge 2 ] && sudo="sudo"
 ghe-ssh "$GHE_HOSTNAME" /bin/sh <<EOF
     set -e
     timestamp=\$(redis-cli LASTSAVE)
@@ -23,5 +25,5 @@ ghe-ssh "$GHE_HOSTNAME" /bin/sh <<EOF
     while [ \$(redis-cli LASTSAVE) -eq \$timestamp ]; do
         sleep 1
     done
-    cat '$GHE_REMOTE_DATA_USER_DIR/redis/dump.rdb'
+    $sudo cat '$GHE_REMOTE_DATA_USER_DIR/redis/dump.rdb'
 EOF

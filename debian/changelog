@@ -1,3 +1,22 @@
+github-backup-utils (2.2.0) UNRELEASED; urgency=medium
+
+  * Adds support for the new repositories filesystem layout include in
+    GitHub Enterprise v2.2. #122, #124
+  * ghe-restore now performs a config run on the instance after an incremental
+    restore to 11.10.x and 2.x instances. #100
+  * ghe-restore now fails fast when run against a GHE instance with replication
+    enabled. Replication should be disabled during a restore and then setup
+    after the restore completes. #121
+  * Fixes an issue with special port 122 detection failing when port is
+    overridden in an ssh config file. #102
+  * Removes a warning message when running ghe-backup against an instance with
+    GitHub Pages disabled. #117
+  * backup-utils release version numbers now track GitHub Enterprise releases
+    to ease the process of determining which version of backup-utils is
+    required for a given GitHub Enterprise version.
+
+ -- Ryan Tomayko <ryan@github.com>  Wed, 29 Apr 2015 07:29:04 +0000
+
 github-backup-utils (2.0.2) UNRELEASED; urgency=medium
 
   * ghe-restore now requires that an already-configured appliance be put into

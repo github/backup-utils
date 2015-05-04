@@ -242,5 +242,5 @@ site setup or recovery, please contact our [Enterprise support team][7] instead.
 [7]: https://enterprise.github.com/support/
 [8]: https://enterprise.github.com/help/articles/backing-up-enterprise-data
 [9]: https://enterprise.github.com/help/articles/restoring-enterprise-data
-[10]: https://help.github.com/enterprise/2.0/admin-guide/migrating/
+[10]: https://help.github.com/enterprise/2.0/admin-guide/migrating-to-a-different-platform-or-from-github-enterprise-11-10-34x/
 [11]: https://help.github.com/enterprise/2.0/admin-guide/

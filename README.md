@@ -153,7 +153,10 @@ The `ghe-backup` and `ghe-restore` commands also have a verbose output mode
 (`-v`) that lists files as they're being transferred. It's often useful to
 enable when output is logged to a file.
 
-The settings and license are not restored by default to prevent overwriting different configuration on the restore host. Restore appliance settings and license in addition to datastores by passing the `-c` argument to `ghe-restore`
+When restoring to an already configured GHE instance, settings and license data
+are *not* restored to prevent overwriting manual configuration on the restore
+host. This behavior can be overriden by passing the `-c` argument to `ghe-restore`,
+forcing settings and license data to be overwritten with the backup copy's data.
 
 ### Scheduling backups
 

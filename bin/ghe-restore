@@ -177,10 +177,11 @@ if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
     ghe-ssh "$GHE_HOSTNAME" -- /bin/sh 1>&3
 fi
 
-echo "Restoring Git repositories ..."
 # Remove temporary 2.2 storage migration directory if it exists
 echo "if [ -d /data/user/repositories-nw-backup ]; then sudo rm -rf /data/user/repositories-nw-backup; fi" |
 ghe-ssh "$GHE_HOSTNAME" -- /bin/sh 1>&3
+
+echo "Restoring Git repositories ..."
 ghe-restore-repositories-${GHE_BACKUP_STRATEGY} "$GHE_HOSTNAME" 1>&3
 
 echo "Restoring GitHub Pages ..."
@@ -205,6 +206,13 @@ ghe-ssh "$GHE_HOSTNAME" -- 'ghe-import-authorized-keys' < "$GHE_RESTORE_SNAPSHOT
 
 echo "Restoring Elasticsearch indices ..."
 ghe-restore-es-${GHE_BACKUP_STRATEGY} "$GHE_HOSTNAME" 1>&3
+
+# Restart an already running memcached to reset the cache after restore
+if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
+    echo "Restarting memcached ..." 1>&3
+    echo "sudo restart -q memcached 2>/dev/null || true" |
+        ghe-ssh "$GHE_HOSTNAME" -- /bin/sh
+fi
 
 # When restoring to a host that has already been configured, kick off a
 # config run to perform data migrations.

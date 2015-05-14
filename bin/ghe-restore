@@ -177,10 +177,11 @@ if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
     ghe-ssh "$GHE_HOSTNAME" -- /bin/sh 1>&3
 fi
 
-echo "Restoring Git repositories ..."
 # Remove temporary 2.2 storage migration directory if it exists
 echo "if [ -d /data/user/repositories-nw-backup ]; then sudo rm -rf /data/user/repositories-nw-backup; fi" |
 ghe-ssh "$GHE_HOSTNAME" -- /bin/sh 1>&3
+
+echo "Restoring Git repositories ..."
 ghe-restore-repositories-${GHE_BACKUP_STRATEGY} "$GHE_HOSTNAME" 1>&3
 
 echo "Restoring GitHub Pages ..."

@@ -209,7 +209,9 @@ ghe-restore-es-${GHE_BACKUP_STRATEGY} "$GHE_HOSTNAME" 1>&3
 
 # Restart an already running memcached to reset the cache after restore
 if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
-    echo "sudo restart -q memcached 2>&1 || true" | ghe-ssh "$GHE_HOSTNAME"
+    echo "Restarting memcached ..." 1>&3
+    echo "sudo restart -q memcached 2>/dev/null || true" |
+        ghe-ssh "$GHE_HOSTNAME" -- /bin/sh
 fi
 
 # When restoring to a host that has already been configured, kick off a

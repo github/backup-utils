@@ -238,10 +238,6 @@ ssh_port_part () {
 # Log a message to /var/log/syslog on the remote instance.
 # Note: Use sparingly. Remote logging requires an ssh connection per invocation.
 ghe_remote_logger () {
-    if [ "$GHE_VERSION_MAJOR" -lt 2 ]; then
-        return 0
-    fi
-
     echo "$@" |
     ghe-ssh "$GHE_HOSTNAME" -- logger -t backup-utils || true
 }

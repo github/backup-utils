@@ -233,3 +233,11 @@ ssh_host_part () {
 ssh_port_part () {
     [ "${1##*:}" = "$1" ] && echo 22 || echo "${1##*:}"
 }
+
+# Usage: ghe_remote_logger <message>...
+# Log a message to /var/log/syslog on the remote instance.
+# Note: Use sparingly. Remote logging requires an ssh connection per invocation.
+ghe_remote_logger () {
+    echo "$@" |
+    ghe-ssh "$GHE_HOSTNAME" -- logger -t backup-utils || true
+}

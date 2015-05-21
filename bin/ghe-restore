@@ -237,7 +237,7 @@ trap "" EXIT
 update_restore_status "complete"
 
 # Log restore complete message in /var/log/syslog on remote instance
-ghe_remote_logger "Completed restore from $(hostname) / snapshot $GHE_SNAPSHOT_TIMESTAMP ..."
+ghe_remote_logger "Completed restore from $(hostname) / snapshot ${GHE_SNAPSHOT_TIMESTAMP}."
 
 echo "Restoring SSH host keys ..."
 ghe-ssh "$GHE_HOSTNAME" -- 'ghe-import-ssh-host-keys' < "$GHE_RESTORE_SNAPSHOT_PATH/ssh-host-keys.tar" 1>&3

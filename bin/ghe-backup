@@ -67,6 +67,9 @@ echo "Starting backup of $GHE_HOSTNAME in snapshot $GHE_SNAPSHOT_TIMESTAMP"
 ghe_remote_version_required
 echo "$GHE_REMOTE_VERSION" > version
 
+# Log backup start message in /var/log/syslog on remote instance
+ghe_remote_logger "Starting backup from $(hostname) in snapshot $GHE_SNAPSHOT_TIMESTAMP"
+
 # Determine whether to use the rsync or tarball backup strategy based on the
 # remote appliance version. The tarball strategy must be used with GitHub
 # Enterprise versions prior to 11.10.340 since rsync is not available.
@@ -153,8 +156,11 @@ fi
 echo "Completed backup of $GHE_HOSTNAME in snapshot $GHE_SNAPSHOT_TIMESTAMP at $(date +"%H:%M:%S")"
 
 # Exit non-zero and list the steps that failed.
-if [ -n "$failures" ]; then
+if [ -z "$failures" ]; then
+    ghe_remote_logger "Completed backup from $(hostname) / snapshot $GHE_SNAPSHOT_TIMESTAMP successfully."
+else
     steps="$(echo $failures | sed 's/ /, /g')"
+    ghe_remote_logger "Completed backup from $(hostname) / snapshot $GHE_SNAPSHOT_TIMESTAMP with failures: ${steps}."
     echo "Error: Snapshot incomplete. Some steps failed: ${steps}. "
     exit 1
 fi

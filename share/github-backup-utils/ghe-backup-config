@@ -243,5 +243,5 @@ ghe_remote_logger () {
     fi
 
     echo "$@" |
-    ghe-ssh "$GHE_HOSTNAME" -- logger -t backup-utils
+    ghe-ssh "$GHE_HOSTNAME" -- logger -t backup-utils || true
 }

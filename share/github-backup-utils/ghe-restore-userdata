@@ -2,7 +2,7 @@
 #/ Usage: ghe-restore-userdata <dirname> <host>
 #/ Restore a special user data directory via rsync. This is used
 #/ for a number of different simple datastores kept under /data/user on the
-#/ remote appliance, including: hookshot, alambic_assets, and pages data.
+#/ remote appliance, including alambic_assets and pages data.
 set -e
 
 # Bring in the backup configuration

@@ -17,6 +17,14 @@ touch alice/index.html bob/index.html
 mkdir -p "$GHE_REMOTE_DATA_USER_DIR/common"
 echo "fake password hash data" > "$GHE_REMOTE_DATA_USER_DIR/common/manage-password"
 
+# Create some fake hookshot data in the remote data directory
+if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
+    mkdir -p "$GHE_REMOTE_DATA_USER_DIR/hookshot"
+    cd "$GHE_REMOTE_DATA_USER_DIR/hookshot"
+    mkdir -p repository-123 repository-456
+    touch repository-123/test.bpack repository-456/test.bpack
+fi
+
 # Create some fake alambic data in the remote data directory
 if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
     mkdir -p "$GHE_REMOTE_DATA_USER_DIR/alambic_assets/github-enterprise-assets/0000"
@@ -109,6 +117,9 @@ begin_test "ghe-backup first snapshot"
     fi
 
     if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
+        # verify all hookshot user data was transferred
+        diff -ru "$GHE_REMOTE_DATA_USER_DIR/hookshot" "$GHE_DATA_DIR/current/hookshot"
+
         # verify all alambic assets user data was transferred
         diff -ru "$GHE_REMOTE_DATA_USER_DIR/alambic_assets" "$GHE_DATA_DIR/current/alambic_assets"
     fi
@@ -178,6 +189,9 @@ begin_test "ghe-backup subsequent snapshot"
     fi
 
     if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
+        # verify all hookshot user data was transferred
+        diff -ru "$GHE_REMOTE_DATA_USER_DIR/hookshot" "$GHE_DATA_DIR/current/hookshot"
+
         # verify all alambic assets user data was transferred
         diff -ru "$GHE_REMOTE_DATA_USER_DIR/alambic_assets" "$GHE_DATA_DIR/current/alambic_assets"
     fi

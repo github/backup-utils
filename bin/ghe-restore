@@ -194,6 +194,9 @@ ghe-restore-pages-${GHE_BACKUP_STRATEGY} "$GHE_HOSTNAME" 1>&3
 if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
     echo "Restoring asset attachments ..."
     ghe-restore-userdata alambic_assets "$GHE_HOSTNAME" 1>&3
+
+    echo "Restoring hook deliveries ..."
+    ghe-restore-userdata hookshot "$GHE_HOSTNAME" 1>&3
 fi
 
 echo "Restoring MySQL database ..."

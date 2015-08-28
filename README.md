@@ -231,6 +231,13 @@ most recent successful snapshot:
 Note: the `GHE_DATA_DIR` variable set in `backup.config` can be used to change
 the disk location where snapshots are written.
 
+### How does this backup data differ from the HA (High Availability) backup data?
+These two backups serve different purposes. The [HA backup](https://help.github.com/enterprise/2.0/admin-guide/high-availability-cluster-configuration/) has the primary purpose of being another a backup instance that is ready in case the primary instance becomes unavailable. The HA backup pulls data from the primary instance to ensure it is up to date in case it needs to be promoted to the primary instance. In that sense the HA backup has all the data and configuration of the primary instance.
+
+The backup-utils data is meant to be used to restore an istance or set up a new instance. This backup data is more lightweight than having a replica instance. It does not require the overhead of having a VM that can support running GitHub Enterprise. The backup-utils utility only copies over repository data, along with full snapshots of all other pertinent data stores. and formats this data so it can be reused in the restoration or setup of an instance. 
+
+As an example, if a company wanted to create a QA server to test upgrading GitHub Enterprise they could use the backup-utils utility to populate the QA server with data and settings from a snapshot and be up and running in a few minutes. The process is more complex to setup an HA instance and do the conversion after a data set has been copied over. The latter use case is not recommended. 
+
 ### Support
 
 If you find a bug or would like to request a feature in backup-utils, please

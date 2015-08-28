@@ -13,6 +13,7 @@ This repository includes backup and recovery utilities for [GitHub Enterprise][1
 - **[Using the backup and restore commands](#using-the-backup-and-restore-commands)**
 - **[Scheduling backups](#scheduling-backups)**
 - **[Backup snapshot file structure](#backup-snapshot-file-structure)**
+- **[How do backup snapshots differ from a HA (High Availability) replica?](#how-do-backup-snapshots-differ-from-a-ha-high-availability-replica)
 - **[Support](#support)**
 
 ### Features
@@ -231,15 +232,15 @@ most recent successful snapshot:
 Note: the `GHE_DATA_DIR` variable set in `backup.config` can be used to change
 the disk location where snapshots are written.
 
-### How does this data differ from the HA (High Availability) backup data?
+### How do backup snapshots differ from the HA (High Availability) replica?
+The backup utilities and [HA replica](https://help.github.com/enterprise/admin/guides/installation/high-availability-cluster-configuration/) serve different yet complementary purposes as part of a recommended GitHub Enterprise deployment.
 
 ##### The purpose of the High Avaibility replica
-These two tools serve different purposes and are best used separately as part of the recommended GitHub Enterprise setup. The [HA replica](https://help.github.com/enterprise/2.0/admin-guide/high-availability-cluster-configuration/) has the primary purpose of being another a replica instance that is ready in case the primary instance becomes unavailable. The HA replica pulls data from the primary instance to ensure it's data is current in the case it needs to be promoted to the primary instance. In that sense the HA replica has all the data and configuration of the primary instance. However, this data on the HA instance is not usable by other instances without being extracted by the backup-utils.
+The HA replica is a fully redundant secondary GitHub Enterprise instance, kept in sync with the primary instance via replication of all major datastores. This active/passive cluster configuration is designed to minimize service disruption in the event of hardware failure or major network outage affecting the primary instance. Because some forms of data corruption or loss may be replicated immediately from primary to replica, it is not a replacement for the backup utilities as part of your disaster recovery plan.
 
-##### The purpose of the backup-utils
-The backup-utils data is meant to be used to restore an instance or set up a new instance. This backup data does not require the overhead of having a VM that can support running GitHub Enterprise. The backup-utils utility only copies over repository data, along with full snapshots of all other pertinent data stores. and formats this data so it can be reused in the restoration or setup of an instance. 
+##### The purpose of the backup utilities
+Backup utility snapshots can be used to restore a GitHub Enterprise instance to a prior state, or set up a new instance. The backup host does not require the overhead of running another GitHub Enterprise instance. The backup utilities copy repository data, along with full snapshots of all other pertinent data stores. Backup snapshots are date-stamped, making rollback to previous states possible.
 
-As an example, if a company wanted to create a QA server to test upgrading GitHub Enterprise they could use the backup-utils utility to populate the QA server with data and settings from a snapshot and be up and running in a very short amount of time. The process is more complex to setup an HA instance and do the conversion after a data set has been copied over. The latter use case is not recommended. 
 
 ### Support
 

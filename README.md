@@ -232,7 +232,7 @@ Note: the `GHE_DATA_DIR` variable set in `backup.config` can be used to change
 the disk location where snapshots are written.
 
 ### How does this data differ from the HA (High Availability) backup data?
-##### The purpose of High Avaibility backup
+##### The purpose of the High Avaibility backup
 These two backups serve different purposes. The [HA backup](https://help.github.com/enterprise/2.0/admin-guide/high-availability-cluster-configuration/) has the primary purpose of being another a backup instance that is ready in case the primary instance becomes unavailable. The HA backup pulls data from the primary instance to ensure it is up to date in case it needs to be promoted to the primary instance. In that sense the HA backup has all the data and configuration of the primary instance. This data on the HA instance is not usable by other instances without being extracted by the backup-utils.
 
 ##### The purpose of the backup-utils

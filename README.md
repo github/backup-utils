@@ -226,7 +226,7 @@ most recent successful snapshot:
           |- ssh-host-keys.tar
           |- strategy
           |- version
-       |- current -> 20140727T010000
+       |- current -> 20140728T010000
 
 Note: the `GHE_DATA_DIR` variable set in `backup.config` can be used to change
 the disk location where snapshots are written.

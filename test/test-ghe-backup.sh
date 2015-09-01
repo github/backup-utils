@@ -252,7 +252,7 @@ begin_test "ghe-backup without manage-password file"
 )
 end_test
 
-begin_test "ghe-backup emtpy hookshot directory"
+begin_test "ghe-backup empty hookshot directory"
 (
   set -e
 

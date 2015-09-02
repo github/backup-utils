@@ -235,11 +235,11 @@ the disk location where snapshots are written.
 ### How does backup utilities differ from an HA (High Availability) replica?
 It is recommended that both backup utilities and an [HA replica](https://help.github.com/enterprise/admin/guides/installation/high-availability-cluster-configuration/) are used as part of a GitHub Enterprise deployment but they serve different roles.
 
-##### The purpose of the High Avaibility replica
+##### The purpose of the High Availability replica
 The HA replica is a fully redundant secondary GitHub Enterprise instance, kept in sync with the primary instance via replication of all major datastores. This active/passive cluster configuration is designed to minimize service disruption in the event of hardware failure or major network outage affecting the primary instance. Because some forms of data corruption or loss may be replicated immediately from primary to replica, it is not a replacement for the backup utilities as part of your disaster recovery plan.
 
 ##### The purpose of the backup utilities
-Backup utility snapshots can be used to restore a GitHub Enterprise instance to a prior state, or set up a new instance. The backup host does not require the overhead of running another GitHub Enterprise instance. The backup utilities copy repository data, along with full snapshots of all other pertinent data stores. Backup snapshots are date-stamped, making rollback to previous states possible.
+Backup utilities takes date-stamped snapshots of all major datastores. These snapshots are used to restore an instance to a prior state or set up a new instance without having another always-on GitHub Enterprise instance (like the HA replica).
 
 
 ### Support

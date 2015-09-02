@@ -13,7 +13,7 @@ This repository includes backup and recovery utilities for [GitHub Enterprise][1
 - **[Using the backup and restore commands](#using-the-backup-and-restore-commands)**
 - **[Scheduling backups](#scheduling-backups)**
 - **[Backup snapshot file structure](#backup-snapshot-file-structure)**
-- **[How do backup snapshots differ from a HA (High Availability) replica?](#how-do-backup-snapshots-differ-from-a-ha-high-availability-replica)
+- **[How does backup utilities differ from an HA (High Availability) replica?](#how-does-backup-utilities-differ-from-an-ha-high-availability-replica)
 - **[Support](#support)**
 
 ### Features
@@ -232,8 +232,8 @@ most recent successful snapshot:
 Note: the `GHE_DATA_DIR` variable set in `backup.config` can be used to change
 the disk location where snapshots are written.
 
-### How do backup snapshots differ from the HA (High Availability) replica?
-The backup utilities and [HA replica](https://help.github.com/enterprise/admin/guides/installation/high-availability-cluster-configuration/) serve different yet complementary purposes as part of a recommended GitHub Enterprise deployment.
+### How does backup utilities differ from an HA (High Availability) replica?
+It is recommended that both backup utilities and an [HA replica](https://help.github.com/enterprise/admin/guides/installation/high-availability-cluster-configuration/) are used as part of a GitHub Enterprise deployment but they serve different roles.
 
 ##### The purpose of the High Avaibility replica
 The HA replica is a fully redundant secondary GitHub Enterprise instance, kept in sync with the primary instance via replication of all major datastores. This active/passive cluster configuration is designed to minimize service disruption in the event of hardware failure or major network outage affecting the primary instance. Because some forms of data corruption or loss may be replicated immediately from primary to replica, it is not a replacement for the backup utilities as part of your disaster recovery plan.

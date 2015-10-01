@@ -56,9 +56,9 @@ trap 'cleanup' EXIT
 trap 'exit $?' INT # ^C always terminate
 
 if [ -h ../in-progress ]; then
-  echo "Error: in progress backup from previous version detected." 1>&2
+  echo "Error: detected a backup already in progress from a previous version of ghe-backup." 1>&2
   echo "If there is no backup in progress anymore, please remove" 1>&2
-  echo "the $GHE_DATA_DIR/in-progress symlink. This is only needed once." 1>&2
+  echo "the $GHE_DATA_DIR/in-progress symlink." 1>&2
   exit 1
 fi
 

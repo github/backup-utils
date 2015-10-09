@@ -230,7 +230,7 @@ begin_test "ghe-backup tarball strategy"
 )
 end_test
 
-begin_test "ghe-backup fails fast when other run in progress"
+begin_test "ghe-backup fails fast when old style run in progress"
 (
     set -e
 
@@ -240,6 +240,18 @@ begin_test "ghe-backup fails fast when other run in progress"
     unlink "$GHE_DATA_DIR/in-progress"
 )
 end_test
+
+begin_test "ghe-backup cleans up stale in-progress file"
+(
+    set -e
+
+    echo "20150928T153353 99999" > "$GHE_DATA_DIR/in-progress"
+    ghe-backup
+
+    [ ! -f "$GHE_DATA_DIR/in-progress" ]
+)
+end_test
+
 
 begin_test "ghe-backup without manage-password file"
 (

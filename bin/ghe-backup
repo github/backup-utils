@@ -28,36 +28,55 @@ touch "incomplete"
 GHE_MAINTENANCE_MODE_ENABLED=false
 
 # To prevent multiple backup runs happening at the same time, we create a
-# in-progress symlink pointing to the snapshot directory. This will fail if
-# another backup is already in progress, giving us a form of locking.
+# in-progress file with the timestamp and pid of the backup process,
+# giving us a form of locking.
 #
-# Set up a trap to remove the in-progress symlink if we exit for any reason but
-# verify that we own the in-progress symlink before doing so.
+# Set up a trap to remove the in-progress file if we exit for any reason but
+# verify that we are the same process before doing so.
 #
 # The cleanup trap also handles disabling maintenance mode on the appliance if
 # it was automatically enabled.
 cleanup () {
-    if [ "$(readlink ../in-progress)" = "$GHE_SNAPSHOT_TIMESTAMP" ]; then
-        unlink ../in-progress
+  if [ -f ../in-progress ]; then
+    progress=$(cat ../in-progress)
+    snapshot=$(echo "$progress" | cut -d ' ' -f 1)
+    pid=$(echo "$progress" | cut -d ' ' -f 2)
+    if [ "$snapshot" = "$GHE_SNAPSHOT_TIMESTAMP" -a "$$" = $pid ]; then
+      unlink ../in-progress
     fi
+  fi
 
-    if $GHE_MAINTENANCE_MODE_ENABLED; then
-        ghe-maintenance-mode-disable "$GHE_HOSTNAME"
-    fi
+  if $GHE_MAINTENANCE_MODE_ENABLED; then
+    ghe-maintenance-mode-disable "$GHE_HOSTNAME"
+  fi
 }
 
 # Setup exit traps
 trap 'cleanup' EXIT
 trap 'exit $?' INT # ^C always terminate
 
-# Mark the snapshot as in-progress by creating the symlink. If this fails, it
-# means another ghe-backup run is already in progress and we should exit.
-# NOTE: The -n argument to ln is non-POSIX but widely supported.
-if ! ln -sn "$GHE_SNAPSHOT_TIMESTAMP" ../in-progress 2>/dev/null; then
-    snapshot="$(readlink ../in-progress)"
-    echo "Error: backup of $GHE_HOSTNAME already in progress in snapshot $snapshot. Aborting." 1>&2
-    exit 1
+if [ -h ../in-progress ]; then
+  echo "Error: detected a backup already in progress from a previous version of ghe-backup." 1>&2
+  echo "If there is no backup in progress anymore, please remove" 1>&2
+  echo "the $GHE_DATA_DIR/in-progress symlink." 1>&2
+  exit 1
 fi
+
+if [ -f ../in-progress ]; then
+  progress=$(cat ../in-progress)
+  snapshot=$(echo "$progress" | cut -d ' ' -f 1)
+  pid=$(echo "$progress" | cut -d ' ' -f 2)
+  if ! ps -p $pid -o command= | grep ghe-backup; then
+    # We can safely remove in-progress, ghe-prune-snapshots
+    # will clean up the failed backup.
+    unlink ../in-progress
+  else
+    echo "Error: backup process $pid of $GHE_HOSTNAME already in progress in snapshot $snapshot. Aborting." 1>&2
+    exit 1
+  fi
+fi
+
+echo "$GHE_SNAPSHOT_TIMESTAMP $$" > ../in-progress
 
 echo "Starting backup of $GHE_HOSTNAME in snapshot $GHE_SNAPSHOT_TIMESTAMP"
 

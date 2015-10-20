@@ -18,7 +18,7 @@ github-backup-utils (2.4.0) UNRELEASED; urgency=medium
   * Documents the -c option which forces the restoration of the configuration
     information to an already configured appliance. #96
 
- -- Colin Seymour <colin@github.com> Tue, 20 Oct 2015 00:02:37 +0000
+ -- Colin Seymour <colin@github.com>  Tue, 20 Oct 2015 00:02:37 +0000
 
 github-backup-utils (2.2.0) UNRELEASED; urgency=medium
 

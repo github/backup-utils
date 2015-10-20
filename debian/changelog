@@ -1,3 +1,25 @@
+github-backup-utils (2.4.0) UNRELEASED; urgency=medium
+
+  * Moves the in-progress detection to a separate file with PID which is
+    removed if the process is no longer running after the backup. #145, #99
+  * Updates the README to explain why backup-utils is useful even if you have
+    the high availability replica running. #140
+  * Changes the use of the --link-dest option to only occur when backing up
+    populated directories. #138
+  * Adds logging to /var/log/syslog on the remote GitHub Enterprise appliance
+    to both ghe-backup and ghe-restore.  #131
+  * Restarts memcached after restoring to an already configured appliance to
+    ensure it doesn't contain out-of-sync information. #130
+  * Removes the temporary /data/user/repositories-nw-backup directory that
+    remains after successfully migrating the repository storage layout to the
+    new format used on GitHub Enterprise 2.2.0 and later after restoring a
+    backup from an older release of GitHub Enterprise. #129
+  * Add devscripts to Debian's build-depends for checkbashisms. #101
+  * Documents the -c option which forces the restoration of the configuration
+    information to an already configured appliance. #96
+
+ -- Colin Seymour <colin@github.com> Tue, 20 Oct 2015 00:02:37 +0000
+
 github-backup-utils (2.2.0) UNRELEASED; urgency=medium
 
   * Adds support for the new repositories filesystem layout include in

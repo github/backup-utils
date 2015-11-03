@@ -9,7 +9,7 @@ This repository includes backup and recovery utilities for [GitHub Enterprise][1
   - **[Storage requirements](#storage-requirements)**
   - **[GitHub Enterprise version requirements](#github-enterprise-version-requirements)**
 - **[Getting started](#getting-started)**
-- **[Migrating from GitHub Enterprise v11.10.34x to v2.0](#migrating-from-github-enterprise-v111034x-to-v20)**
+- **[Migrating from GitHub Enterprise v11.10.34x to v2.0](#migrating-from-github-enterprise-v111034x-to-v20-or-v21)**
 - **[Using the backup and restore commands](#using-the-backup-and-restore-commands)**
 - **[Scheduling backups](#scheduling-backups)**
 - **[Backup snapshot file structure](#backup-snapshot-file-structure)**

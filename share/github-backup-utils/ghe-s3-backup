@@ -22,4 +22,5 @@ ghe-backup
 s3cmd mb s3://$GHE_S3_BUCKET
 
 # Upload to S3.
+# --delete-removed is to delete items in s3 that have been removed on the host
 s3cmd sync --delete-removed "$GHE_DATA_DIR"/current/ s3://$GHE_S3_BUCKET

@@ -2,7 +2,7 @@
 
 # The hostname of the GitHub Enterprise appliance to back up. The host
 # must be reachable via SSH from the backup host.
-GHE_HOSTNAME="internal-github-ha-GHELB-1D17AXWK5GR5D-1609374053.us-west-1.elb.amazonaws.com"
+GHE_HOSTNAME="github.example.com"
 
 # Path to where backup data is stored. By default this is the "data"
 # directory next to this file but can be set to an absolute path
@@ -14,7 +14,7 @@ GHE_DATA_DIR="data"
 # of scheduled backup runs. If backups are scheduled hourly, snapshots will be
 # available for the past N hours; if backups are scheduled daily, snapshots will
 # be available for the past N days ...
-GHE_NUM_SNAPSHOTS=2
+GHE_NUM_SNAPSHOTS=10
 
 # The hostname of the GitHub appliance to restore. If you've set up a separate
 # GitHub appliance to act as a standby for recovery, specify its IP or hostname

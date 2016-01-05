@@ -26,3 +26,7 @@ GHE_NUM_SNAPSHOTS=10
 # Any extra options passed to the SSH command.  Nothing required by default
 #
 #GHE_EXTRA_SSH_OPTS=""
+
+# Add s3 bucket for configuring which bucket to use in ghe-s3-backup and
+# ghe-s3-restore
+# GHE_S3_BUCKET=""

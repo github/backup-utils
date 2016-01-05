@@ -9,7 +9,7 @@ This repository includes backup and recovery utilities for [GitHub Enterprise][1
   - **[Storage requirements](#storage-requirements)**
   - **[GitHub Enterprise version requirements](#github-enterprise-version-requirements)**
 - **[Getting started](#getting-started)**
-- **[Migrating from GitHub Enterprise v11.10.34x to v2.0](#migrating-from-github-enterprise-v111034x-to-v20)**
+- **[Migrating from GitHub Enterprise v11.10.34x to v2.0](#migrating-from-github-enterprise-v111034x-to-v20-or-v21)**
 - **[Using the backup and restore commands](#using-the-backup-and-restore-commands)**
 - **[Scheduling backups](#scheduling-backups)**
 - **[Backup snapshot file structure](#backup-snapshot-file-structure)**
@@ -93,13 +93,14 @@ download the most recent GitHub Enterprise version.
 
 [release]: https://github.com/github/backup-utils/releases
 
-### Migrating from GitHub Enterprise v11.10.34x to v2.0
+### Migrating from GitHub Enterprise v11.10.34x to v2.0, or v2.1
 
-If you are migrating from GitHub Enterprise version 11.10.34x to 2.0 or greater,
+If you are migrating from GitHub Enterprise version 11.10.34x to 2.0 or 2.1 
+(note, migrations to versions greater than 2.1 are not officially supported),
 please see the [Migrating from GitHub Enterprise v11.10.34x][10] documentation
 in the [GitHub Enterprise System Administrator's Guide][11]. It includes
 important information on using the backup utilities to migrate data from your
-v11.10.34x instance to v2.0.
+v11.10.34x instance to v2.0 or v2.1.
 
 ### Using the backup and restore commands
 

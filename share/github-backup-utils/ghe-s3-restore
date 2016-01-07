@@ -16,7 +16,9 @@ fi
 
 # Restore from S3 into a new snapshot directory.
 mkdir -p "$GHE_SNAPSHOT_DIR"
-s3cmd --preserve get s3://$GHE_S3_BUCKET/* "$GHE_SNAPSHOT_DIR"
+#s3cmd --preserve get s3://$GHE_S3_BUCKET/* "$GHE_SNAPSHOT_DIR"
+
+s3cmd sync s3://$GHE_S3_BUCKET/ --preserve "$GHE_SNAPSHOT_DIR"
 
 # Run the restore script.
 ghe-restore -s "$GHE_SNAPSHOT_DIR"

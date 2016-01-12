@@ -20,10 +20,11 @@ cd "$GHE_SNAPSHOT_DIR"
 echo "* Transferring settings data ..." 1>&3
 ghe-ssh "$host" -- 'ghe-export-settings' > settings.json
 
-echo "* Transferring license data ..." 1>&3
-comm="cat '$GHE_REMOTE_LICENSE_FILE'"
-[ "$GHE_VERSION_MAJOR" -ge 2 ] && comm="sudo $comm"
-ghe-ssh "$host" -- "$comm" > enterprise.ghl
+echo "* Aviod to transfering license data --" 1>&3
+#echo "* Transferring license data ..." 1>&3
+#comm="cat '$GHE_REMOTE_LICENSE_FILE'"
+#[ "$GHE_VERSION_MAJOR" -ge 2 ] && comm="sudo $comm"
+#ghe-ssh "$host" -- "$comm" > enterprise.ghl
 
 if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
     echo "* Transferring management console password ..." 1>&3

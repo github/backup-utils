@@ -22,6 +22,7 @@ ghe-backup
 s3cmd mb s3://$GHE_S3_BUCKET
 
 # Upload to S3.
-#cd "$GHE_DATA_DIR"/current
-#s3cmd --preserve --recursive put * s3://$GHE_S3_BUCKET
-s3cmd sync --delete-removed "$GHE_DATA_DIR"/current/ s3://$GHE_S3_BUCKET
+S3_SSE_C_KEY=$(cat "$S3_AE256_KEY_FILE")
+cd "$GHE_DATA_DIR"/current
+
+aws s3api put-object --sse-customer-algorithm AES256 --sse-customer-key $S3_SSE_C_KEY --bucket $GHE_S3_BUCKET --key *.tar.gz --body *.tar.gz

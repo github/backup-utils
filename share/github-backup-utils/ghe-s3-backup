@@ -21,8 +21,12 @@ ghe-backup
 # Create the bucket if it doesn't exist.
 s3cmd mb s3://$GHE_S3_BUCKET
 
+# compress the data
+cd "$GHE_DATA_DIR"/current
+TAR_FILENAME=$(readlink ../current)".tar.gz"
+tar czvf $TAR_FILENAME *
+
 # Upload to S3.
 S3_SSE_C_KEY=$(cat "$S3_AE256_KEY_FILE")
-cd "$GHE_DATA_DIR"/current
 
-aws s3api put-object --sse-customer-algorithm AES256 --sse-customer-key $S3_SSE_C_KEY --bucket $GHE_S3_BUCKET --key *.tar.gz --body *.tar.gz
+aws s3api put-object --sse-customer-algorithm AES256 --sse-customer-key $S3_SSE_C_KEY --bucket $GHE_S3_BUCKET --key $TAR_FILENAME --body $TAR_FILENAME 

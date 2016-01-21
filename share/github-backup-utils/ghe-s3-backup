@@ -8,18 +8,11 @@ set -e
 cd $(dirname "$0")/../..
 . share/github-backup-utils/ghe-backup-config
 
-if [ -e $HOME/.s3cfg ]; then
-  echo "Using existing ~/.s3cfg ..."
-else
-  # Configure s3cmd if there isn't a config file already.
-  s3cmd --configure
-fi
-
 # Run the backup script.
 ghe-backup
 
 # Create the bucket if it doesn't exist.
-s3cmd mb s3://$GHE_S3_BUCKET
+aws s3 mb s3://$GHE_S3_BUCKET
 
 # compress the data
 cd "$GHE_DATA_DIR"/current

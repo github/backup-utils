@@ -172,8 +172,6 @@ if [ -z "$failures" ]; then
     ghe-prune-snapshots
 fi
 
-#have a compressed file for sending S3 
-tar czvf "$GHE_SNAPSHOT_TIMESTAMP".tar.gz *
 
 echo "Completed backup of $GHE_HOSTNAME in snapshot $GHE_SNAPSHOT_TIMESTAMP at $(date +"%H:%M:%S")"
 

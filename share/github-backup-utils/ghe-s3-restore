@@ -7,19 +7,9 @@ set -e
 cd $(dirname "$0")/../..
 . share/github-backup-utils/ghe-backup-config
 
-if [ -e $HOME/.s3cfg ]; then
-  echo "Using existing ~/.s3cfg ..."
-else
-  # Configure s3cmd if there isn't a config file already.
-  s3cmd --configure
-fi
-
 # Restore from S3 into a new snapshot directory.
 mkdir -p "$GHE_SNAPSHOT_DIR"
-#s3cmd --preserve get s3://$GHE_S3_BUCKET/* "$GHE_SNAPSHOT_DIR"
-#s3cmd sync s3://$GHE_S3_BUCKET/ --preserve "$GHE_SNAPSHOT_DIR"
 
-#s3cmd --preserve get `s3cmd ls s3://$GHE_S3_BUCKET/ | tail -1 | awk '{print $4}'` "$GHE_SNAPSHOT_DIR"
 LATEST_TARBALL=$(aws s3 ls s3://$GHE_S3_BUCKET/ | tail -1 | awk '{print $4}')
 S3_SSE_C_KEY=$(cat "$S3_AE256_KEY_FILE")
 aws s3api get-object --sse-customer-algorithm AES256 --sse-customer-key $S3_SSE_C_KEY --bucket $GHE_S3_BUCKET --key $LATEST_TARBALL $GHE_SNAPSHOT_DIR/$LATEST_TARBALL

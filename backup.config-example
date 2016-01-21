@@ -14,7 +14,7 @@ GHE_DATA_DIR="data"
 # of scheduled backup runs. If backups are scheduled hourly, snapshots will be
 # available for the past N hours; if backups are scheduled daily, snapshots will
 # be available for the past N days ...
-GHE_NUM_SNAPSHOTS=10
+GHE_NUM_SNAPSHOTS=3
 
 # The hostname of the GitHub appliance to restore. If you've set up a separate
 # GitHub appliance to act as a standby for recovery, specify its IP or hostname
@@ -29,4 +29,10 @@ GHE_NUM_SNAPSHOTS=10
 
 # Add s3 bucket for configuring which bucket to use in ghe-s3-backup and
 # ghe-s3-restore
-# GHE_S3_BUCKET=""
+GHE_S3_BUCKET=""
+
+# Add the full path of your GHE license file
+GHE_LICENSE_PULL_PATH=""
+
+# Add the AES-256 key, which is the key for server side encryption with customer key (SSE-C) 
+S3_AE256_KEY_FILE=""

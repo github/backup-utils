@@ -14,7 +14,7 @@ GHE_DATA_DIR="data"
 # of scheduled backup runs. If backups are scheduled hourly, snapshots will be
 # available for the past N hours; if backups are scheduled daily, snapshots will
 # be available for the past N days ...
-GHE_NUM_SNAPSHOTS=3
+GHE_NUM_SNAPSHOTS=10
 
 # The hostname of the GitHub appliance to restore. If you've set up a separate
 # GitHub appliance to act as a standby for recovery, specify its IP or hostname

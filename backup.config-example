@@ -35,4 +35,4 @@ GHE_S3_BUCKET=""
 GHE_LICENSE_FULL_PATH=""
 
 # Add the full path of the AES-256 key, which is the key for server side encryption with customer key (SSE-C) 
-S3_AE256_KEY_FILE=""
+S3_AES256_KEY_FILE=""

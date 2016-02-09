@@ -37,7 +37,7 @@ fi
 # Bail out if we're restoring against a pre-2.x appliance. Everything below is
 # supported by v2.0 appliances only.
 if [ "$GHE_VERSION_MAJOR" -lt 2 ]; then
-    exit 0
+  exit 0
 fi
 
 echo "Restoring license ..."
@@ -48,4 +48,17 @@ if [ -f "$GHE_RESTORE_SNAPSHOT_PATH/manage-password" ]; then
     echo "Restoring management console password ..."
     cat "$GHE_RESTORE_SNAPSHOT_PATH/manage-password" |
     ghe-ssh "$GHE_HOSTNAME" -- "ghe-import-passwords"
+fi
+
+if [ "$GHE_BACKUP_STRATEGY" = "cluster" ]; then
+  echo "Restoring cluster configuration ..."
+    cat "$GHE_RESTORE_SNAPSHOT_PATH/cluster.conf" |
+    ghe-ssh "$GHE_HOSTNAME" -- "sudo tee $GHE_REMOTE_CLUSTER_CONF_FILE >/dev/null"
+fi
+
+# Restore SAML keys if present.
+if [ -f "$GHE_RESTORE_SNAPSHOT_PATH/saml-keys.tar" ]; then
+    echo "Restoring SAML keys ..."
+    cat "$GHE_RESTORE_SNAPSHOT_PATH/saml-keys.tar" |
+    ghe-ssh "$GHE_HOSTNAME" -- "sudo tar -C $GHE_REMOTE_DATA_USER_DIR/common/ -xf -"
 fi

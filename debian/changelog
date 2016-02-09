@@ -1,7 +1,7 @@
 github-backup-utils (2.5.0) UNRELEASED; urgency=medium
 
   * Adds GitHub Enterpise 2.5 support
-  * Adds GitHub Enterprise Cluster support
+  * Adds GitHub Enterprise Clustering support
   * Backups and restores SAML keypairs
 
  -- Sergio Rubio <rubiojr@github.com>  Tue, 9 Feb 2016 00:02:37 +0000

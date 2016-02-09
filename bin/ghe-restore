@@ -97,6 +97,15 @@ elif [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
     restore_settings=true
 fi
 
+# Figure out if we're restoring into cluster
+cluster=false
+if ghe-ssh "$GHE_HOSTNAME" -- \
+  "[ -f '$GHE_REMOTE_ROOT_DIR/etc/github/cluster' ]"; then
+  cluster=true
+  instance_configured=true
+  restore_settings=false
+fi
+
 # Figure out if this instance is in a replication pair
 if ghe-ssh "$GHE_HOSTNAME" -- "ghe-repl-status -r 2>/dev/null" \
   | grep -Eq "replica|primary"; then
@@ -176,40 +185,66 @@ fi
 # Make sure mysql and elasticsearch are prep'd and running before restoring into
 # appliances v2.x or greater. These services will not have been started on appliances
 # that have not been configured yet.
-if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
+if ! $cluster; then
+  if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
     echo "sudo ghe-service-ensure-mysql && sudo ghe-service-ensure-elasticsearch" |
     ghe-ssh "$GHE_HOSTNAME" -- /bin/sh 1>&3
-fi
-
-# Remove temporary 2.2 storage migration directory if it exists
-echo "if [ -d /data/user/repositories-nw-backup ]; then sudo rm -rf /data/user/repositories-nw-backup; fi" |
-ghe-ssh "$GHE_HOSTNAME" -- /bin/sh 1>&3
-
-echo "Restoring Git repositories ..."
-ghe-restore-repositories-${GHE_BACKUP_STRATEGY} "$GHE_HOSTNAME" 1>&3
-
-echo "Restoring GitHub Pages ..."
-ghe-restore-pages-${GHE_BACKUP_STRATEGY} "$GHE_HOSTNAME" 1>&3
-
-if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
-    echo "Restoring asset attachments ..."
-    ghe-restore-userdata alambic_assets "$GHE_HOSTNAME" 1>&3
-
-    echo "Restoring hook deliveries ..."
-    ghe-restore-userdata hookshot "$GHE_HOSTNAME" 1>&3
+  fi
 fi
 
 echo "Restoring MySQL database ..."
-gzip -dc "$GHE_RESTORE_SNAPSHOT_PATH/mysql.sql.gz" | ghe-ssh "$GHE_HOSTNAME" -- 'ghe-import-mysql' 1>&3
+gzip -dc "$GHE_RESTORE_SNAPSHOT_PATH/mysql.sql.gz" | ghe-ssh "$GHE_HOSTNAME" -- 'ghe-import-mysql'
 
 echo "Restoring Redis database ..."
 ghe-ssh "$GHE_HOSTNAME" -- 'ghe-import-redis' < "$GHE_RESTORE_SNAPSHOT_PATH/redis.rdb" 1>&3
 
+if $cluster; then
+  echo "Restoring Git repositories into cluster ..."
+  ghe-restore-repositories-dgit "$GHE_HOSTNAME" 1>&3
+
+  echo "Restoring Gists into cluster ..."
+  ghe-restore-repositories-gist "$GHE_HOSTNAME" 1>&3
+else
+  # Remove temporary 2.2 storage migration directory if it exists
+  echo "if [ -d /data/user/repositories-nw-backup ]; then sudo rm -rf /data/user/repositories-nw-backup; fi" |
+  ghe-ssh "$GHE_HOSTNAME" -- /bin/sh 1>&3
+
+  echo "Restoring Git repositories ..."
+  ghe-restore-repositories-${GHE_BACKUP_STRATEGY} "$GHE_HOSTNAME" 1>&3
+fi
+
+if $cluster; then
+  echo "Restoring GitHub Pages into DPages..."
+  ghe-restore-pages-dpages "$GHE_HOSTNAME" 1>&3
+else
+  echo "Restoring GitHub Pages ..."
+  ghe-restore-pages-${GHE_BACKUP_STRATEGY} "$GHE_HOSTNAME" 1>&3
+fi
+
 echo "Restoring SSH authorized keys ..."
 ghe-ssh "$GHE_HOSTNAME" -- 'ghe-import-authorized-keys' < "$GHE_RESTORE_SNAPSHOT_PATH/authorized-keys.json" 1>&3
 
-echo "Restoring Elasticsearch indices ..."
-ghe-restore-es-${GHE_BACKUP_STRATEGY} "$GHE_HOSTNAME" 1>&3
+if $cluster; then
+  echo "Restoring storage data ..."
+  ghe-restore-alambic-cluster "$GHE_HOSTNAME" 1>&3
+elif [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
+  echo "Restoring asset attachments ..."
+  ghe-restore-userdata alambic_assets "$GHE_HOSTNAME" 1>&3
+
+  echo "Restoring storage data ..."
+  ghe-restore-userdata storage "$GHE_HOSTNAME" 1>&3
+
+  echo "Restoring hook deliveries ..."
+  ghe-restore-userdata hookshot "$GHE_HOSTNAME" 1>&3
+fi
+
+if $cluster; then
+  echo "Restoring ElasticSearch Audit logs"
+  ghe-restore-es-audit-log "$GHE_HOSTNAME" 1>&3
+else
+  echo "Restoring Elasticsearch indices ..."
+  ghe-restore-es-${GHE_BACKUP_STRATEGY} "$GHE_HOSTNAME" 1>&3
+fi
 
 # Restart an already running memcached to reset the cache after restore
 if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
@@ -220,10 +255,13 @@ fi
 
 # When restoring to a host that has already been configured, kick off a
 # config run to perform data migrations.
-if $instance_configured; then
+if $cluster; then
+  echo "Configuring cluster ..."
+  ghe-ssh "$GHE_HOSTNAME" -- "ghe-cluster-config-apply" 1>&3 2>&3
+elif $instance_configured; then
   echo "Configuring storage ..."
   if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
-    ghe-ssh "$GHE_HOSTNAME" -- "sudo ghe-config-apply --full" 1>&3
+    ghe-ssh "$GHE_HOSTNAME" -- "ghe-config-apply --full" 1>&3 2>&3
   else
     echo "   This will take several minutes to complete..."
     ghe-ssh "$GHE_HOSTNAME" -- "sudo enterprise-configure" 1>&3 2>&3
@@ -239,8 +277,13 @@ update_restore_status "complete"
 # Log restore complete message in /var/log/syslog on remote instance
 ghe_remote_logger "Completed restore from $(hostname) / snapshot ${GHE_SNAPSHOT_TIMESTAMP}."
 
-echo "Restoring SSH host keys ..."
-ghe-ssh "$GHE_HOSTNAME" -- 'ghe-import-ssh-host-keys' < "$GHE_RESTORE_SNAPSHOT_PATH/ssh-host-keys.tar" 1>&3
+if ! $cluster; then
+  echo "Restoring SSH host keys ..."
+  ghe-ssh "$GHE_HOSTNAME" -- 'ghe-import-ssh-host-keys' < "$GHE_RESTORE_SNAPSHOT_PATH/ssh-host-keys.tar" 1>&3
+fi
 
 echo "Completed restore of $GHE_HOSTNAME from snapshot $GHE_RESTORE_SNAPSHOT"
-echo "Visit https://$hostname/setup/settings to review appliance configuration."
+
+if ! $cluster; then
+  echo "Visit https://$hostname/setup/settings to review appliance configuration."
+fi

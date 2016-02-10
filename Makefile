@@ -12,6 +12,9 @@ info:
 dist:
 	@script/package-tarball
 
+deb:
+	@script/package-deb
+
 clean:
 	rm -rf dist
 

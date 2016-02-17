@@ -13,7 +13,7 @@ cd $(dirname "$0")/../..
 opts="$GHE_EXTRA_SSH_OPTS"
 while true; do
     case "$1" in
-        -p|-l|-o)
+        -p|-l|-o|-F)
             opts="$opts $1 $2"
             shift 2
             ;;

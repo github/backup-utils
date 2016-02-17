@@ -48,7 +48,7 @@ Backup host software requirements are modest: Linux or other modern Unix
 operating system with [rsync][4] v2.6.4 or newer.
 
 The backup host must be able to establish network connections outbound to the
-GitHub appliance over SSH (port 22).
+GitHub appliance over SSH. TCP port 122 is used to backup GitHub Enterprise 2.0 or newer instances, and TCP port 22 is used for older versions (11.10.34X).
 
 ##### Storage requirements
 
@@ -95,7 +95,7 @@ download the most recent GitHub Enterprise version.
 
 ### Migrating from GitHub Enterprise v11.10.34x to v2.0, or v2.1
 
-If you are migrating from GitHub Enterprise version 11.10.34x to 2.0 or 2.1 
+If you are migrating from GitHub Enterprise version 11.10.34x to 2.0 or 2.1
 (note, migrations to versions greater than 2.1 are not officially supported),
 please see the [Migrating from GitHub Enterprise v11.10.34x][10] documentation
 in the [GitHub Enterprise System Administrator's Guide][11]. It includes
@@ -155,10 +155,10 @@ The `ghe-backup` and `ghe-restore` commands also have a verbose output mode
 (`-v`) that lists files as they're being transferred. It's often useful to
 enable when output is logged to a file.
 
-When restoring to an already configured GHE instance, settings and license data
+When restoring to an already configured GHE instance, settings, certificate, and license data
 are *not* restored to prevent overwriting manual configuration on the restore
 host. This behavior can be overriden by passing the `-c` argument to `ghe-restore`,
-forcing settings and license data to be overwritten with the backup copy's data.
+forcing settings, certificate, and license data to be overwritten with the backup copy's data.
 
 ### Scheduling backups
 

@@ -25,7 +25,7 @@ GHE_NUM_SNAPSHOTS=10
 
 # Any extra options passed to the SSH command.
 # In a single instance environment, nothing is required by default.
-# In a clustering environment, "-i path-to-ssh-private-key" is required.
+# In a clustering environment, "-i abs-path-to-ssh-private-key" is required.
 #
 #GHE_EXTRA_SSH_OPTS=""
 

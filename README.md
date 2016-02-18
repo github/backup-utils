@@ -83,7 +83,7 @@ download the most recent GitHub Enterprise version.
     host name. Additional options are available and documented in the
     configuration file but none are required for basic backup functionality.
 
-    * In a clustering environment, the `GHE_EXTRA_SSH_OPTS` key must be configured.
+    * In a clustering environment, the `GHE_EXTRA_SSH_OPTS` key must be configured with the `-i <abs path to private key>` SSH option.
 
  3. Add the backup host's SSH key to the GitHub appliance as an *Authorized SSH
     key*. See [Adding an SSH key for shell access][3] for instructions.

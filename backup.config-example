@@ -27,7 +27,7 @@ GHE_NUM_SNAPSHOTS=10
 # In a single instance environment, nothing is required by default.
 # In a clustering environment, "-i abs-path-to-ssh-private-key" is required.
 #
-#GHE_EXTRA_SSH_OPTS=""
+GHE_EXTRA_SSH_OPTS="-o StrictHostKeyChecking=no"
 
 # Any extra options passed to the rsync command. Nothing required by default.
 #
@@ -35,4 +35,10 @@ GHE_NUM_SNAPSHOTS=10
 
 # Add s3 bucket for configuring which bucket to use in ghe-s3-backup and
 # ghe-s3-restore
-# GHE_S3_BUCKET=""
+GHE_S3_BUCKET=""
+
+# Add the full path of your GHE license file
+GHE_LICENSE_FULL_PATH=""
+
+# Add the full path of the AES-256 key, which is the key for server side encryption with customer key (SSE-C) 
+S3_AES256_KEY_FILE=""

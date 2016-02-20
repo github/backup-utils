@@ -8,19 +8,18 @@ set -e
 cd $(dirname "$0")/../..
 . share/github-backup-utils/ghe-backup-config
 
-if [ -e $HOME/.s3cfg ]; then
-  echo "Using existing ~/.s3cfg ..."
-else
-  # Configure s3cmd if there isn't a config file already.
-  s3cmd --configure
-fi
-
 # Run the backup script.
 ghe-backup
 
 # Create the bucket if it doesn't exist.
-s3cmd mb s3://$GHE_S3_BUCKET
+aws s3 mb s3://$GHE_S3_BUCKET
+
+# compress the data
+cd "$GHE_DATA_DIR"/current
+TAR_FILENAME=$(readlink ../current)".tar.gz"
+tar czvf $TAR_FILENAME *
 
 # Upload to S3.
-# --delete-removed is to delete items in s3 that have been removed on the host
-s3cmd sync --delete-removed "$GHE_DATA_DIR"/current/ s3://$GHE_S3_BUCKET
+S3_SSE_C_KEY=$(cat "$S3_AES256_KEY_FILE")
+
+aws s3api put-object --sse-customer-algorithm AES256 --sse-customer-key $S3_SSE_C_KEY --bucket $GHE_S3_BUCKET --key $TAR_FILENAME --body $TAR_FILENAME 

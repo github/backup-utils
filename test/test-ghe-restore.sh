@@ -439,7 +439,7 @@ begin_test "ghe-restore aborts when another restore is underway"
 
       cat $TRASHDIR/restore-out
 
-      # verify that ghe-restore failed due to the appliance not being configured
+      # verify that ghe-restore failed due a restore already being underway
       grep -q -e "already has a restore underway" "$TRASHDIR/restore-out"
     fi
 )

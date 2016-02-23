@@ -108,14 +108,15 @@ for storage_path in $storage_paths; do
   done
 
   echo "$oid $routes" >&5
+  read output < ssh_finalize_in
 done
 
 exec 4>&-
 exec 5>&-
 
 # Ensure to flush these and close the pipes
-cat ssh_routes_in > /dev/null
-cat ssh_finalize_in > /dev/null
+cat ssh_routes_in > /dev/null &
+cat ssh_finalize_in > /dev/null &
 
 wait $ssh_routes_pid > /dev/null 1>&2 || true
 wait $ssh_finalize_pid > /dev/null 1>&2 || true

@@ -210,6 +210,11 @@ date and time the snapshot was taken. Each snapshot directory contains a full
 backup snapshot of all relevant data stores. Repository, Search, and Pages data
 is stored efficiently via hard links.
 
+*Please note* Symlinks must be maintained when archiving backup snapshots.
+Dereferencing or excluding symlinks, or storing the snapshot contents on a 
+filesystem which does not support symlinks (e.g. Amazon S3) will result in operational 
+problems when the data is restored.
+
 The following example shows a snapshot file hierarchy for hourly frequency.
 There are five snapshot directories, with the `current` symlink pointing to the
 most recent successful snapshot:

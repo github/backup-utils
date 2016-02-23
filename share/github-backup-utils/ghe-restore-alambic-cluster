@@ -47,6 +47,7 @@ hostnames=$(ghe-ssh "$GHE_HOSTNAME" ghe-config --get-regexp cluster.*.hostname |
 for hostname in $hostnames; do
   config="$config
 Host $hostname
+  ServerAliveInterval 60
   ProxyCommand ssh -q $GHE_EXTRA_SSH_OPTS -p $port $user@$host nc.openbsd %h %p"
 done
 

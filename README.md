@@ -212,7 +212,7 @@ is stored efficiently via hard links.
 
 *Please note* Symlinks must be maintained when archiving backup snapshots.
 Dereferencing or excluding symlinks, or storing the snapshot contents on a 
-filesystem which does not support symlinks (e.g. Amazon S3) will result in operational 
+filesystem which does not support symlinks will result in operational 
 problems when the data is restored.
 
 The following example shows a snapshot file hierarchy for hourly frequency.

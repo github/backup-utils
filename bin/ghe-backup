@@ -94,7 +94,7 @@ if ghe-ssh "$GHE_HOSTNAME" -- \
 fi
 
 # Log backup start message in /var/log/syslog on remote instance
-ghe_remote_logger "Starting backup from $(hostname) in snapshot $GHE_SNAPSHOT_TIMESTAMP ..."
+ghe_remote_logger "Starting backup from $(hostname) / snapshot $GHE_SNAPSHOT_TIMESTAMP ..."
 
 # Determine whether to use the rsync or tarball backup strategy based on the
 # remote appliance version. The tarball strategy must be used with GitHub

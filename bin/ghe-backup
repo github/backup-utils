@@ -213,10 +213,10 @@ echo "Completed backup of $GHE_HOSTNAME in snapshot $GHE_SNAPSHOT_TIMESTAMP at $
 
 # Exit non-zero and list the steps that failed.
 if [ -z "$failures" ]; then
-    ghe_remote_logger "Completed backup from $(hostname) in snapshot $GHE_SNAPSHOT_TIMESTAMP successfully."
+    ghe_remote_logger "Completed backup from $(hostname) / snapshot $GHE_SNAPSHOT_TIMESTAMP successfully."
 else
     steps="$(echo $failures | sed 's/ /, /g')"
-    ghe_remote_logger "Completed backup from $(hostname) in snapshot $GHE_SNAPSHOT_TIMESTAMP with failures: ${steps}."
+    ghe_remote_logger "Completed backup from $(hostname) / snapshot $GHE_SNAPSHOT_TIMESTAMP with failures: ${steps}."
     echo "Error: Snapshot incomplete. Some steps failed: ${steps}. "
     exit 1
 fi

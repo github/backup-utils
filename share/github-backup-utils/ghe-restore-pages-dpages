@@ -85,6 +85,11 @@ for pages_path in $pages_paths; do
   echo "$page_id" >&4
   read routes < ssh_routes_in
 
+  if [ "$routes" = 'page-id-not-found' ]; then
+    echo "  Warning: page ID $page_id not found in the database, ignoring."
+    continue
+  fi
+
   for route in $routes; do
     ghe-rsync -aHR --delete \
       -e "ssh -q $opts -p $port -F $config_file -l $user" \

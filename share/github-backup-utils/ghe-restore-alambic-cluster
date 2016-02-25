@@ -47,6 +47,7 @@ hostnames=$(ghe-ssh "$GHE_HOSTNAME" ghe-config --get-regexp cluster.*.hostname |
 for hostname in $hostnames; do
   config="$config
 Host $hostname
+  ServerAliveInterval 60
   ProxyCommand ssh -q $GHE_EXTRA_SSH_OPTS -p $port $user@$host nc.openbsd %h %p"
 done
 
@@ -59,22 +60,21 @@ cleanup() {
   for pid in $(jobs -p); do
     kill -KILL $pid > /dev/null 1>&2 || true
   done
-  rm -rf $config_file ssh_routes_in ssh_routes_out ssh_finalize_in ssh_finalize_out
+  rm -rf $config_file ssh_routes_in ssh_routes_out ssh_finalize_out
 }
 
 trap 'cleanup' INT TERM EXIT
 
-rm -rf ssh_routes_in ssh_routes_out ssh_finalize_in ssh_finalize_out
+rm -rf ssh_routes_in ssh_routes_out ssh_finalize_out
 mkfifo ssh_routes_in
 mkfifo ssh_routes_out
-mkfifo ssh_finalize_in
 mkfifo ssh_finalize_out
 
 echo "Setting up storage processes"
 
 ghe-ssh "$GHE_HOSTNAME" github-env ./bin/storage-cluster-import-routes - < ssh_routes_out > ssh_routes_in &
 ssh_routes_pid=$!
-ghe-ssh "$GHE_HOSTNAME" github-env ./bin/storage-cluster-import-finalize - < ssh_finalize_out > ssh_finalize_in &
+ghe-ssh "$GHE_HOSTNAME" github-env ./bin/storage-cluster-import-finalize - < ssh_finalize_out &
 ssh_finalize_pid=$!
 
 echo "Set up storage processes"
@@ -114,8 +114,7 @@ exec 4>&-
 exec 5>&-
 
 # Ensure to flush these and close the pipes
-cat ssh_routes_in > /dev/null
-cat ssh_finalize_in > /dev/null
+cat ssh_routes_in > /dev/null &
 
-wait $ssh_routes_pid > /dev/null 1>&2 || true
-wait $ssh_finalize_pid > /dev/null 1>&2 || true
+wait $ssh_routes_pid > /dev/null 2>&1 || true
+wait $ssh_finalize_pid > /dev/null 2>&1 || true

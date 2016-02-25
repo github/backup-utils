@@ -8,7 +8,7 @@
 # All commands should start with the following:
 #
 #     cd $(dirname "$0")/../..
-#     . share/github-backup-utils/ghe-backup-config
+#     . share/github-backup-utils/ghe-backup-config || . /etc/github-backup-utils/backup.config
 #
 
 # Assume the current directory is the root. This should be fine so long as all

@@ -8,7 +8,7 @@ set -e
 
 # Bring in the backup configuration
 cd $(dirname "$0")/../..
-. share/github-backup-utils/ghe-backup-config
+. share/github-backup-utils/ghe-backup-config || . /etc/github-backup-utils/backup.config
 
 # Snapshot all Git repository data
 ghe-ssh "$GHE_HOSTNAME" -- 'ghe-export-repositories' > "$GHE_SNAPSHOT_DIR"/repositories.tar

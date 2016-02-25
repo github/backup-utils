@@ -7,7 +7,7 @@ set -e
 
 # Bring in the backup configuration
 cd $(dirname "$0")/../..
-. share/github-backup-utils/ghe-backup-config
+. share/github-backup-utils/ghe-backup-config || . /etc/github-backup-utils/backup.config
 
 # Verify rsync is available.
 if ! rsync --version 1>/dev/null 2>&1; then

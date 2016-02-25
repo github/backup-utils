@@ -23,7 +23,7 @@ set -e
 
 # Bring in the backup configuration.
 cd $(dirname "$0")/..
-. share/github-backup-utils/ghe-backup-config
+. share/github-backup-utils/ghe-backup-config || . /etc/github-backup-utils/backup.config
 
 # Parse arguments
 restore_settings=false

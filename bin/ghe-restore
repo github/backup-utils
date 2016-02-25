@@ -146,10 +146,6 @@ fi
 echo "Starting restore of $GHE_HOSTNAME from snapshot $GHE_RESTORE_SNAPSHOT"
 ghe_remote_logger "Starting restore from $(hostname) / snapshot $GHE_RESTORE_SNAPSHOT ..."
 
-# Update remote restore state file and setup failure trap
-trap "update_restore_status failed" EXIT
-update_restore_status "restoring"
-
 # Verify the host has been fully configured at least once if when running
 # against v11.10.x appliances and the -c option wasn't specified.
 if [ "$GHE_VERSION_MAJOR" -le 1 ] && ! $restore_settings && ! $instance_configured; then
@@ -167,6 +163,16 @@ if [ "$GHE_VERSION_MAJOR" -le 1 ] && [ "$GHE_BACKUP_STRATEGY" = "rsync" ]; then
         fi
     fi
 fi
+
+# Make sure the appliance doesn't already have a restore underway
+if [ "$GHE_VERSION_MAJOR" -ge 2 ] && ghe-ssh "$GHE_HOSTNAME" -- "sudo grep -q restoring  $GHE_REMOTE_DATA_USER_DIR/common/ghe-restore-status 2>/dev/null"; then
+    echo "Error: $GHE_HOSTNAME already has a restore underway. Aborting." 1>&2
+    exit 1
+fi
+
+# Update remote restore state file and setup failure trap
+trap "update_restore_status failed" EXIT
+update_restore_status "restoring"
 
 # Make sure the GitHub appliance is in maintenance mode.
 if $instance_configured; then

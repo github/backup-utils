@@ -171,7 +171,7 @@ if [ "$GHE_VERSION_MAJOR" -ge 2 ] && ghe-ssh "$GHE_HOSTNAME" -- "sudo grep -q re
 fi
 
 # Update remote restore state file and setup failure trap
-trap "update_restore_status failed" EXIT
+trap "update_restore_status failed" EXIT SIGINT SIGTERM
 update_restore_status "restoring"
 
 # Make sure the GitHub appliance is in maintenance mode.
@@ -277,7 +277,7 @@ fi
 # Update the remote status to "complete". This has to happen before importing
 # ssh host keys because subsequent commands will fail due to the host key
 # changing otherwise.
-trap "" EXIT
+trap "" EXIT SIGINT SIGTERM
 update_restore_status "complete"
 
 # Log restore complete message in /var/log/syslog on remote instance

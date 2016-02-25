@@ -86,7 +86,7 @@ for gist_path in $gist_paths; do
   read routes < ssh_routes_in
 
   if [ "$routes" = 'gist-not-found' ]; then
-    echo "  Warning: gist $gist_id not found in the database (deleted?), ignoring."
+    echo "  Warning: gist $gist_id not found in the database, ignoring."
     continue
   fi
 

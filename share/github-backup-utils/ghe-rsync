@@ -9,7 +9,7 @@ set -o pipefail
 
 # Bring in the backup configuration
 cd $(dirname "$0")/../..
-. share/github-backup-utils/ghe-backup-config
+. share/github-backup-utils/ghe-backup-config || . /etc/github-backup-utils/backup.config
 
 # Filter vanished file warnings from both stdout (rsync versions < 3.x) and
 # stderr (rsync versions >= 3.x). The complex redirections are necessary to

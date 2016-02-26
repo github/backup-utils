@@ -19,13 +19,52 @@ GHE_HOSTNAME="$1"
 # Perform a host-check and establish GHE_REMOTE_XXX variables.
 ghe_remote_version_required "$GHE_HOSTNAME"
 
+# Remote sync-in-progress file location. When this file exists, Git GC
+# operations are disabled on the GitHub instance.
+sync_in_progress_file="$GHE_REMOTE_DATA_USER_DIR/repositories/.sync_in_progress"
+
 # The snapshot to restore should be set by the ghe-restore command but this lets
 # us run this script directly.
 : ${GHE_RESTORE_SNAPSHOT:=current}
 
+# Removes the remote sync-in-progress file on exit, re-enabling GC operations
+# on the remote instance.
+cleanup() {
+    ghe-ssh "$GHE_HOSTNAME" -- "sudo rm -f '$sync_in_progress_file'"
+}
+trap 'cleanup' EXIT
+trap 'exit $?' INT # ^C always terminate
+
+# Touch the sync-in-progress file, disabling GC operations, and wait for all
+# active GC processes to finish on the remote side.
+echo "
+    set -e
+    sudo -u git touch '$sync_in_progress_file'
+
+    sanity=0
+    while [ \$sanity -lt $GHE_GIT_COOLDOWN_PERIOD ]; do
+        # note: the bracket synta[x] below is to prevent matches against the
+        # grep process itself.
+        if ps axo args | grep -E -e '^git( -.*)? nw-repac[k]( |$)' -e '^git( -.*)? g[c]( |$)' >/dev/null; then
+            sleep 1
+            sanity=\$(( sanity + 1 ))
+        else
+            exit 0
+        fi
+    done
+    exit 7
+" | ghe-ssh "$GHE_HOSTNAME" -- /bin/sh || {
+    res=$?
+    if [ $res = 7 ]; then
+        echo "Error: Git GC processes remain after $GHE_GIT_COOLDOWN_PERIOD seconds. Aborting..." 1>&2
+    fi
+    exit $res
+}
+
 # Transfer all git repository data from the latest snapshot to the GitHub
 # instance in a single rsync invocation.
 ghe-rsync -avH --delete \
+    --exclude ".sync_in_progress" \
     -e "ghe-ssh -p $(ssh_port_part "$GHE_HOSTNAME")" \
     --rsync-path="sudo -u git rsync" \
     "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/repositories/" \

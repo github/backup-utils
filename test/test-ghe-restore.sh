@@ -410,37 +410,3 @@ begin_test "ghe-restore with tarball strategy"
     echo "$output" | grep -q 'fake ghe-export-repositories data'
 )
 end_test
-
-begin_test "ghe-restore aborts when another restore is underway"
-(
-    set -e
-    # This test is only valid for version 2 and above
-    if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
-      rm -rf "$GHE_REMOTE_ROOT_DIR"
-      setup_remote_metadata
-
-      # create file used to determine if instance has been configured.
-      touch "$GHE_REMOTE_ROOT_DIR/etc/github/configured"
-
-      # create file used to determine if instance is in maintenance mode.
-      mkdir -p "$GHE_REMOTE_DATA_DIR/github/current/public/system"
-      touch "$GHE_REMOTE_DATA_DIR/github/current/public/system/maintenance.html"
-
-      # create file to indicate restore is underway
-      echo "restoring" > "$GHE_REMOTE_DATA_USER_DIR/common/ghe-restore-status"
-
-      # set restore host environ var
-      GHE_RESTORE_HOST=127.0.0.1
-      export GHE_RESTORE_HOST
-
-      # run ghe-restore and write output to file for asserting against
-      # this should fail due to the appliance being in an unconfigured state
-      ! ghe-restore -v > "$TRASHDIR/restore-out" 2>&1
-
-      cat $TRASHDIR/restore-out
-
-      # verify that ghe-restore failed due a restore already being underway
-      grep -q -e "already has a restore underway" "$TRASHDIR/restore-out"
-    fi
-)
-end_test

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 #/ Usage: ghe-restore-settings <host>
 #/ Restore settings from a snapshot to the given <host>.
 set -e

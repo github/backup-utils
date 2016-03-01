@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 #/ Usage: ghe-backup-pages-rsync
 #/ Take an online, incremental snapshot of all Pages data.
 #/

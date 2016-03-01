@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 #/ Usage: ghe-backup-alambic-cluster
 #/ Take an online, incremental snapshot of all Alambic Storage data
 #/

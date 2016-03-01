@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 #/ Usage: ghe-backup-es-audit-log
 #/ Take a backup of audit logs in ElasticSearch.
 #/

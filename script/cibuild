@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 # Usage: script/cibuild [--no-package]
 set -e
 

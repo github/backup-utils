@@ -19,7 +19,13 @@ ghe_remote_version_required "$host"
 # Make sure root backup dir exists if this is the first run
 mkdir -p "$GHE_SNAPSHOT_DIR/audit-log"
 
-if ! indices=$(ghe-ssh "$host" 'curl -s "localhost:9201/_cat/indices/audit_log*?h=index"'); then
+if [ $GHE_VERSION_MAJOR -ge 2 ] && [ $GHE_VERSION_MINOR -ge 2 ]; then
+  es_port=9201
+else
+  es_port=9200
+fi
+
+if ! indices=$(ghe-ssh "$host" "curl -s \"localhost:$es_port/_cat/indices/audit_log*?h=index"\"); then
   echo "Error: failed to retrieve audit log indices." 1>&2
   exit 1
 fi
@@ -31,6 +37,6 @@ for index in $indices; do
     # Hard link any older indices since they are read only and won't change
     ln $GHE_DATA_DIR/current/audit-log/$index.gz $GHE_SNAPSHOT_DIR/audit-log/$index.gz
   else
-    ghe-ssh "$host" "/usr/local/share/enterprise/ghe-es-dump-json 'http://localhost:9201/$index'" | gzip > $GHE_SNAPSHOT_DIR/audit-log/$index.gz
+    ghe-ssh "$host" "/usr/local/share/enterprise/ghe-es-dump-json \"http://localhost:$es_port/$index\"" | gzip > $GHE_SNAPSHOT_DIR/audit-log/$index.gz
   fi
 done

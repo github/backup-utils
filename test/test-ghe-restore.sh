@@ -80,6 +80,9 @@ begin_test "ghe-restore into configured vm"
     mkdir -p "$GHE_REMOTE_DATA_DIR/github/current/public/system"
     touch "$GHE_REMOTE_DATA_DIR/github/current/public/system/maintenance.html"
 
+    # Create fake remote repositories dir
+    mkdir -p "$GHE_REMOTE_DATA_USER_DIR/repositories"
+
     # set restore host environ var
     GHE_RESTORE_HOST=127.0.0.1
     export GHE_RESTORE_HOST
@@ -141,6 +144,9 @@ begin_test "ghe-restore aborts without user verification"
     mkdir -p "$GHE_REMOTE_DATA_DIR/github/current/public/system"
     touch "$GHE_REMOTE_DATA_DIR/github/current/public/system/maintenance.html"
 
+    # Create fake remote repositories dir
+    mkdir -p "$GHE_REMOTE_DATA_USER_DIR/repositories"
+
     # set restore host environ var
     GHE_RESTORE_HOST=127.0.0.1
     export GHE_RESTORE_HOST
@@ -172,6 +178,9 @@ begin_test "ghe-restore accepts user verification"
     mkdir -p "$GHE_REMOTE_DATA_DIR/github/current/public/system"
     touch "$GHE_REMOTE_DATA_DIR/github/current/public/system/maintenance.html"
 
+    # Create fake remote repositories dir
+    mkdir -p "$GHE_REMOTE_DATA_USER_DIR/repositories"
+
     # set restore host environ var
     GHE_RESTORE_HOST=127.0.0.1
     export GHE_RESTORE_HOST
@@ -197,6 +206,9 @@ begin_test "ghe-restore -c into unconfigured vm"
     # create file used to determine if instance is in maintenance mode.
     mkdir -p "$GHE_REMOTE_DATA_DIR/github/current/public/system"
     touch "$GHE_REMOTE_DATA_DIR/github/current/public/system/maintenance.html"
+
+    # Create fake remote repositories dir
+    mkdir -p "$GHE_REMOTE_DATA_USER_DIR/repositories"
 
     # run ghe-restore and write output to file for asserting against
     if ! ghe-restore -v -f -c > "$TRASHDIR/restore-out" 2>&1; then
@@ -246,6 +258,9 @@ begin_test "ghe-restore into unconfigured vm"
     # create file used to determine if instance is in maintenance mode.
     mkdir -p "$GHE_REMOTE_DATA_DIR/github/current/public/system"
     touch "$GHE_REMOTE_DATA_DIR/github/current/public/system/maintenance.html"
+
+    # Create fake remote repositories dir
+    mkdir -p "$GHE_REMOTE_DATA_USER_DIR/repositories"
 
     if [ "$GHE_VERSION_MAJOR" -le 1 ]; then
         # run ghe-restore and write output to file for asserting against
@@ -309,6 +324,9 @@ begin_test "ghe-restore with host arg"
     mkdir -p "$GHE_REMOTE_DATA_DIR/github/current/public/system"
     touch "$GHE_REMOTE_DATA_DIR/github/current/public/system/maintenance.html"
 
+    # Create fake remote repositories dir
+    mkdir -p "$GHE_REMOTE_DATA_USER_DIR/repositories"
+
     # set restore host environ var
     GHE_RESTORE_HOST=127.0.0.1
     export GHE_RESTORE_HOST
@@ -352,6 +370,9 @@ begin_test "ghe-restore no host arg or configured restore host"
     mkdir -p "$GHE_REMOTE_DATA_DIR/github/current/public/system"
     touch "$GHE_REMOTE_DATA_DIR/github/current/public/system/maintenance.html"
 
+    # Create fake remote repositories dir
+    mkdir -p "$GHE_REMOTE_DATA_USER_DIR/repositories"
+
     # unset configured restore host
     unset GHE_RESTORE_HOST
 
@@ -377,6 +398,9 @@ begin_test "ghe-restore with no pages backup"
     mkdir -p "$GHE_REMOTE_DATA_DIR/github/current/public/system"
     touch "$GHE_REMOTE_DATA_DIR/github/current/public/system/maintenance.html"
 
+    # Create fake remote repositories dir
+    mkdir -p "$GHE_REMOTE_DATA_USER_DIR/repositories"
+
     # remove pages data
     rm -rf "$GHE_DATA_DIR/1/pages"
 
@@ -401,6 +425,9 @@ begin_test "ghe-restore with tarball strategy"
     # create file used to determine if instance is in maintenance mode.
     mkdir -p "$GHE_REMOTE_DATA_DIR/github/current/public/system"
     touch "$GHE_REMOTE_DATA_DIR/github/current/public/system/maintenance.html"
+
+    # Create fake remote repositories dir
+    mkdir -p "$GHE_REMOTE_DATA_USER_DIR/repositories"
 
     # run it
     echo "tarball" > "$GHE_DATA_DIR/current/strategy"

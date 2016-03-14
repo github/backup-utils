@@ -64,6 +64,7 @@ cleanup() {
 
 trap 'cleanup' INT TERM EXIT
 
+# Find the routes (servers) for each gist available locally
 echo "$gist_paths" | sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/ /g' | ghe-ssh "$GHE_HOSTNAME" github-env ./bin/gist-cluster-import-routes - \
  | while read g; do
   server=$(echo $g | cut -d ',' -f1)
@@ -79,7 +80,7 @@ for route in $tempdir/*.rsync; do
     --rsync-path="sudo -u git rsync" \
     --files-from=$route \
     "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/repositories/./" \
-    "$(basename $route .rsync):$GHE_REMOTE_DATA_USER_DIR/repositories" # &
+    "$(basename $route .rsync):$GHE_REMOTE_DATA_USER_DIR/repositories"
 done
 
 # Add the imported gists to the database

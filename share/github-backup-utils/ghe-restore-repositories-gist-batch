@@ -72,6 +72,7 @@ echo "$gist_paths" | sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/ /g' | ghe-ssh "$GHE_
   done
 done
 
+# rsync all the gist repositories
 for route in $tempdir/*.rsync; do
   ghe-rsync -arHR --delete \
     -e "ssh -q $opts -p $port -F $config_file -l $user" \
@@ -81,11 +82,14 @@ for route in $tempdir/*.rsync; do
     "$(basename $route .rsync):$GHE_REMOTE_DATA_USER_DIR/repositories" # &
 done
 
-for gpath in $(cd $tempdir && cat *.rsync | sort | uniq); do
+# Add the imported gists to the database
+(
+cd $tempdir
+for gpath in $(cat *.rsync | sort | uniq); do
   gid=$(basename $(echo $gpath | cut -d / -f6) .git)
   shard="/data/repositories/$gpath" 
-  routes=$(cd $tempdir && grep $gid *.rsync | cut -d : -f1 | sed 's/\.rsync//' | xargs echo -n)
+  routes=$(grep "/$gid\.git" *.rsync | cut -d : -f1 | sed 's/\.rsync//' | xargs echo -n)
   echo "$gid $shard $routes" >> $tempdir/import
 done
-
-cat $tempdir/import | ghe-ssh "$GHE_HOSTNAME" github-env ./bin/gist-cluster-import-finalize -
+)
+cat $tempdir/import | ghe-ssh "$GHE_HOSTNAME" github-env ./bin/gist-cluster-import-finalize - >/dev/null

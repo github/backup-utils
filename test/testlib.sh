@@ -112,7 +112,6 @@ setup_remote_cluster () {
     mkdir -p "$GHE_REMOTE_ROOT_DIR/etc/github"
     touch "$GHE_REMOTE_ROOT_DIR/etc/github/cluster"
 }
-setup_remote_cluster
 
 # Mark the beginning of a test. A subshell should immediately follow this
 # statement.

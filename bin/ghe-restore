@@ -111,7 +111,7 @@ if $cluster; then
   snapshot_instance_version=$(cat $GHE_RESTORE_SNAPSHOT_PATH/version)
   if ! echo $snapshot_instance_version | \
     grep -Eq "v2\.[5-9]|v2\.[1-9][0-9]|v[3-9]|v[1-9][0-9]"; then
-    echo "Error: Snapshot must be from GitHub Enterprise v2.5.0 and above to be restored"
+    echo "Error: Snapshot must be from GitHub Enterprise v2.5.0 or above to be restored"
     echo "       into a cluster (detected $snapshot_instance_version).  Aborting." >&2
     exit 1
   fi

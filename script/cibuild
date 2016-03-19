@@ -21,13 +21,23 @@ for version in $REMOTE_VERSIONS
 do
     echo "==> Running testsuite with GHE_TEST_REMOTE_VERSION=$version"
     export GHE_TEST_REMOTE_VERSION="$version"
-    if ! ls -1 test/test-*.sh | xargs -P 4 -n 1 /bin/sh; then
+    if ! ls -1 test/test-*.sh | xargs -P 4 -n 1 /bin/bash; then
         res=false
     fi
     echo
 done
 
 # If any of the version tests failed, exit non-zero
+$res
+
+version="2.5.0"
+echo "==> Running cluster testsuite with GHE_TEST_REMOTE_VERSION=$version"
+export GHE_TEST_REMOTE_VERSION="$version"
+if ! ls -1 test/cluster/test-*.sh | xargs -P 4 -n 1 /bin/bash; then
+    res=false
+fi
+echo
+
 $res
 
 # Bail out when --no-package given

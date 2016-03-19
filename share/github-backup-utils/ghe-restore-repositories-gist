@@ -49,7 +49,9 @@ for hostname in $hostnames; do
   config="$config
 Host $hostname
   ServerAliveInterval 60
-  ProxyCommand ssh -q $GHE_EXTRA_SSH_OPTS -p $port $user@$host nc.openbsd %h %p"
+  ProxyCommand ssh -q $GHE_EXTRA_SSH_OPTS -p $port $user@$host nc.openbsd %h %p
+  StrictHostKeyChecking=no
+"
 done
 
 config_file=$(mktemp -t cluster-backup-restore-XXXXXX)

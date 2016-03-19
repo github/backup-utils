@@ -31,6 +31,16 @@ done
 # If any of the version tests failed, exit non-zero
 $res
 
+version="2.5.0"
+echo "==> Running cluster testsuite with GHE_TEST_REMOTE_VERSION=$version"
+export GHE_TEST_REMOTE_VERSION="$version"
+if ! ls -1 test/cluster/test-*.sh | xargs -P 4 -n 1 /bin/bash; then
+    res=false
+fi
+echo
+
+$res
+
 # Bail out when --no-package given
 [ "$1" = "--no-package" ] && exit 0
 

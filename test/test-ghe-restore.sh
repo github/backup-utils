@@ -2,7 +2,8 @@
 # ghe-restore command tests
 
 # Bring in testlib
-. $(dirname "$0")/testlib.sh
+ROOTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
+. $ROOTDIR/test/testlib.sh
 
 # Add some fake pages data to the snapshot
 mkdir -p "$GHE_DATA_DIR/1/pages"

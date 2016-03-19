@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 # ghe-backup-repositories-rsync command tests
 
 # Bring in testlib

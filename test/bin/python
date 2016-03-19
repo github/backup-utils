@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 # Usage: python -c '...'
 # Fake python command stub for tests. Python is used on the remote side
 # only to parse JSON data retreived from the maintenance status API and produce

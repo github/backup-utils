@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 #/ Usage: ghe-backup-repositories-cluster
 #/ Take an online, incremental snapshot of all Git repository data.
 #/

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 # Usage: script/package-deb
 # Script to build a deb release package from the current HEAD version.
 # The package version comes from the debian/changelog file so that should

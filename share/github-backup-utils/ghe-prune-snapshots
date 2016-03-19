@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 #/ Usage: ghe-prune-snapshots
 #/ Keep N latest backup snapshots.
 set -e

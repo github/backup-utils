@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 #/ Usage: ghe-backup-redis
 #/ Take a snapshot of all Redis data. This is needed because older versions of
 #/ the remote side ghe-export-redis command use a blocking SAVE instead of a

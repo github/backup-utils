@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 #/ Usage: ghe-restore-repositories-tarball <host>
 #/ Restore a tarball snapshot of all Git repository data to a GitHub instance.
 #/

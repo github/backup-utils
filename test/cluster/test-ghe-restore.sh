@@ -80,6 +80,8 @@ begin_test "cluster: ghe-restore from 2.4.0 snapshot"
     mkdir -p "$GHE_REMOTE_DATA_DIR/github/current/public/system"
     touch "$GHE_REMOTE_DATA_DIR/github/current/public/system/maintenance.html"
 
+    echo "2.4.0" > "$GHE_DATA_DIR/current/version"
+
     # run ghe-restore and write output to file for asserting against
     if ghe-restore -v -f > "$TRASHDIR/restore-out" 2>&1; then
         cat "$TRASHDIR/restore-out"

@@ -436,9 +436,6 @@ begin_test "cluster: ghe-restore from v2.4.0 snapshot"
         false
     fi
 
-    # for debugging
-    cat "$TRASHDIR/restore-out"
-
     # verify restore error message
     grep -q "Error: Snapshot must be from" "$TRASHDIR/restore-out"
 )
@@ -464,7 +461,7 @@ begin_test "cluster: ghe-restore from v2.5.0 snapshot"
     # run ghe-restore and write output to file for asserting against
     if ! ghe-restore -v -f > "$TRASHDIR/restore-out" 2>&1; then
         cat "$TRASHDIR/restore-out"
-        : ghe-restore should have been exited successfully
+        : ghe-restore should have exited successfully
         false
     fi
 )

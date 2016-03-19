@@ -1,0 +1,6 @@
+#!/bin/sh
+# Usage: ghe-cluster-config-apply
+# Emulates the remote GitHub ghe-cluster-config-apply command. Tests use this
+# to assert that the command was executed.
+set -e
+echo "ghe-cluster-config-apply OK"

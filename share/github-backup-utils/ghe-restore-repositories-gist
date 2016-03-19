@@ -57,14 +57,64 @@ echo "$config" > "$config_file"
 
 opts="$GHE_EXTRA_SSH_OPTS -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no"
 
+# Remote sync-in-progress file location. When this file exists, Git GC
+# operations are disabled on the GitHub instance.
+sync_in_progress_file="$GHE_REMOTE_DATA_USER_DIR/repositories/.sync_in_progress"
+
 cleanup() {
   for pid in $(jobs -p); do
     kill -KILL $pid > /dev/null 2>&1 || true
+  done
+  for hostname in $hostnames; do
+    ghe-ssh -F $config_file "$hostname:$port" -- "sudo rm -f '$sync_in_progress_file'"
   done
   rm -rf $config_file ssh_routes_in ssh_routes_out ssh_finalize_in ssh_finalize_out
 }
 
 trap 'cleanup' INT TERM EXIT
+
+wait_pids=""
+for hostname in $hostnames; do
+  # Touch the sync-in-progress file, disabling GC operations, and wait for all
+  # active GC processes to finish on the remote side.
+  echo "
+      set -e
+      sudo -u git touch '$sync_in_progress_file'
+      sanity=0
+      while [ \$sanity -lt $GHE_GIT_COOLDOWN_PERIOD ]; do
+          # note: the bracket synta[x] below is to prevent matches against the
+          # grep process itself.
+          if ps axo args | grep -E -e '^git( -.*)? nw-repac[k]( |$)' -e '^git( -.*)? g[c]( |$)' >/dev/null; then
+              sleep 1
+              sanity=\$(( sanity + 1 ))
+          else
+              exit 0
+          fi
+      done
+      exit 7
+  " | ssh -q $opts -p $port -F $config_file -l $user $hostname -- /bin/sh
+  wait_pids="$wait_pids $hostname:$!"
+done
+
+# strip leading space
+wait_pids="$(echo -e "${wait_pids}" | sed -e 's/^[[:space:]]*//')"
+
+# wait for jobs one by one, bail on the first one
+for pid in $wait_pids; do
+  # pull out pid:hostname pairs into vars
+  wait_hostname="$(echo $pid | awk 'BEGIN {FS = ":" }; { print $1; }')"
+  wait_pid="$(echo $pid | awk 'BEGIN {FS = ":" }; { print $2; }')"
+  wait $wait_pid || {
+      res=$?
+      if [ $res = 7 ]; then
+          echo "Error: Git GC processes remain after $GHE_GIT_COOLDOWN_PERIOD seconds on host: $wait_hostname. Aborting..." 1>&2
+      fi
+      exit $res
+  }
+  unset wait_hostname wait_pid
+done
+
+unset wait_pids
 
 rm -rf ssh_routes_in ssh_routes_out ssh_finalize_in ssh_finalize_out
 mkfifo ssh_routes_in
@@ -87,6 +137,7 @@ for gist_path in $gist_paths; do
 
   for route in $routes; do
     ghe-rsync -aHR --delete \
+      --exclude ".sync_in_progress" \
       -e "ssh -q $opts -p $port -F $config_file -l $user" \
       --rsync-path="sudo -u git rsync" \
       "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/repositories/./$gist_path" \

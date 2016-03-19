@@ -106,6 +106,17 @@ if ghe-ssh "$GHE_HOSTNAME" -- \
   restore_settings=false
 fi
 
+# Figure out if we're restoring into a cluster with an unsupported snapshot
+if $cluster; then
+  snapshot_instance_version=$(cat $GHE_RESTORE_SNAPSHOT_PATH/version)
+  if ! echo $snapshot_instance_version | \
+    grep -Eq "v2\.[5-9]|v2\.[1-9][0-9]|v[3-9]|v[1-9][0-9]"; then
+    echo "Error: Snapshot must be from GitHub Enterprise v2.5.0 and above to be restored"
+    echo "       into a cluster (detected $snapshot_instance_version).  Aborting." >&2
+    exit 1
+  fi
+fi
+
 # Figure out if this instance is in a replication pair
 if ghe-ssh "$GHE_HOSTNAME" -- "ghe-repl-status -r 2>/dev/null" \
   | grep -Eq "replica|primary"; then

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 #/ Usage: ghe-ssh [<option>...] <host> [<simple-command>...]
 #/        echo 'set -o pipefail; <complex-command>...' | ghe-ssh [<option>...] <host> /bin/bash
 #/ Helper to ssh into a GitHub instance with the right user and port. The first

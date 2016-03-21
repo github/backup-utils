@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 # ghe-backup-repositories-rsync-nw command tests
 # uses the net-shard filesystem layout
 

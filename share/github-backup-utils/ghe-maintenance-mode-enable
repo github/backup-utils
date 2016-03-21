@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 #/ Usage: ghe-maintenance-mode-enable [-w] <host>
 #/ Enable maintenance mode on GitHub appliance at <host>. This locks down all
 #/ access to the appliance to prevent writes to datastores and waits for all

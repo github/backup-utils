@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 #/ Usage: ghe-maintenance-mode-disable <host>
 #/ Disable maintenance mode on GitHub appliance at <host>. This opens up access
 #/ to the appliance.

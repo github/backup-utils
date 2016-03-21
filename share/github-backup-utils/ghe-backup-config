@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 # Usage: . ghe-backup-config
 # GitHub Enterprise backup shell configuration.
 #

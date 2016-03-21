@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 # Usage: curl ...
 # Fake curl command stub for tests.
 set -e

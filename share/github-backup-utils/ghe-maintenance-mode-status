@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 #/ Usage: ghe-maintenance-mode-status <host>
 #/ Checks the status of maintenance mode on GitHub appliance at <host>.
 set -e

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 #/ Usage: ghe-backup-repositories-tarball
 #/ Take a tarball snapshot of all Git repository data.
 #/

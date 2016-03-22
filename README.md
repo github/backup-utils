@@ -83,6 +83,8 @@ download the most recent GitHub Enterprise version.
     host name. Additional options are available and documented in the
     configuration file but none are required for basic backup functionality.
 
+    * In a clustering environment, the `GHE_EXTRA_SSH_OPTS` key must be configured with the `-i <abs path to private key>` SSH option.
+
  3. Add the backup host's SSH key to the GitHub appliance as an *Authorized SSH
     key*. See [Adding an SSH key for shell access][3] for instructions.
 
@@ -109,7 +111,8 @@ After the initial backup, use the following commands:
  - The `ghe-backup` command creates incremental snapshots of repository data,
    along with full snapshots of all other pertinent data stores.
  - The `ghe-restore` command restores snapshots to the same or separate GitHub
-   Enterprise appliance.
+   Enterprise appliance. You must add the backup host's SSH key to the target
+   GitHub Enterprise appliance before using this command.
 
 ##### Example backup and restore usage
 
@@ -206,6 +209,11 @@ Backup snapshots are stored in rotating increment directories named after the
 date and time the snapshot was taken. Each snapshot directory contains a full
 backup snapshot of all relevant data stores. Repository, Search, and Pages data
 is stored efficiently via hard links.
+
+*Please note* Symlinks must be maintained when archiving backup snapshots.
+Dereferencing or excluding symlinks, or storing the snapshot contents on a 
+filesystem which does not support symlinks will result in operational 
+problems when the data is restored.
 
 The following example shows a snapshot file hierarchy for hourly frequency.
 There are five snapshot directories, with the `current` symlink pointing to the

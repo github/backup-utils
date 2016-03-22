@@ -1,3 +1,13 @@
+github-backup-utils (2.5.1) UNRELEASED; urgency=medium
+
+  * Fixes for cluster restores #173
+  * Fix Elasticsearch backups for GitHub Enterprise <= 2.2 #175
+  * Removed experimental S3 support #167
+  * Remote logging output fixes #170
+  * Update ghe-host-check to detect extra port 22 error #162
+
+ -- Sergio Rubio <rubiojr@github.com>  Wed, 09 Mar 2016 14:44:05 +0100
+
 github-backup-utils (2.5.0) UNRELEASED; urgency=medium
 
   * Adds GitHub Enterpise 2.5 support

@@ -147,9 +147,11 @@ else
     failures="$failures redis"
 fi
 
-echo "Backing up audit log ..."
-ghe-backup-es-audit-log ||
-failures="$failures audit-log"
+if [ $GHE_VERSION_MAJOR -ge 2 ]; then
+  echo "Backing up audit log ..."
+  ghe-backup-es-audit-log ||
+  failures="$failures audit-log"
+fi
 
 echo "Backing up hookshot logs ..."
 ghe-backup-es-hookshot ||

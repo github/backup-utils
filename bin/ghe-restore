@@ -144,7 +144,7 @@ fi
 
 # Log restore start message locally and in /var/log/syslog on remote instance
 echo "Starting restore of $GHE_HOSTNAME from snapshot $GHE_RESTORE_SNAPSHOT"
-ghe_remote_logger "Starting restore from $(hostname) / snapshot $GHE_SNAPSHOT_TIMESTAMP ..."
+ghe_remote_logger "Starting restore from $(hostname) / snapshot $GHE_RESTORE_SNAPSHOT ..."
 
 # Update remote restore state file and setup failure trap
 trap "update_restore_status failed" EXIT
@@ -275,7 +275,7 @@ trap "" EXIT
 update_restore_status "complete"
 
 # Log restore complete message in /var/log/syslog on remote instance
-ghe_remote_logger "Completed restore from $(hostname) / snapshot ${GHE_SNAPSHOT_TIMESTAMP}."
+ghe_remote_logger "Completed restore from $(hostname) / snapshot ${GHE_RESTORE_SNAPSHOT}."
 
 if ! $cluster; then
   echo "Restoring SSH host keys ..."

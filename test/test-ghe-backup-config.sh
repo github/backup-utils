@@ -20,6 +20,12 @@ begin_test "ghe-backup-config GHE_CREATE_DATA_DIR disabled"
     set -e
 
     export GHE_DATA_DIR=$(mktemp -d -u)
+    . share/github-backup-utils/ghe-backup-config 2>&1 \
+      | grep -q "Creating the backup data directory ..."
+    test -d $GHE_DATA_DIR
+    rm -rf $GHE_DATA_DIR
+
+    export GHE_DATA_DIR=$(mktemp -d -u)
     export GHE_CREATE_DATA_DIR=no
     set +e
     error=$(. share/github-backup-utils/ghe-backup-config 2>&1)
@@ -29,11 +35,6 @@ begin_test "ghe-backup-config GHE_CREATE_DATA_DIR disabled"
     fi
     set -e
     echo $error | grep -q "Error: GHE_DATA_DIR .* does not exist"
-
-    export GHE_CREATE_DATA_DIR=yes
-    . share/github-backup-utils/ghe-backup-config 2>&1 \
-      | grep -q "Creating the backup data directory ..."
-    test -d $GHE_DATA_DIR
 
     rm -rf $GHE_DATA_DIR
 )

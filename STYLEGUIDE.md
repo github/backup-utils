@@ -1,4 +1,4 @@
-## Styleguide
+# backup-utils Bash styleguide
 
 If you've not done much Bash development before you may find these debugging tips useful: http://wiki.bash-hackers.org/scripting/debuggingtips
 
@@ -181,7 +181,7 @@ eof
   fi
   ```
 
-### tests
+## Writing tests
 
 All tests should use `set -e` before making any assertions:
 

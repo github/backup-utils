@@ -1,0 +1,27 @@
+#!/bin/sh
+#/ Usage: ghe-gc-enable [<option>...] <host>
+#/ Helper to enable GC operations on a GitHub Enterprise server.
+set -e
+
+# Bring in the backup configuration
+cd $(dirname "$0")/../..
+. share/github-backup-utils/ghe-backup-config
+
+while true; do
+    case "$1" in
+        -F)
+            opts="$1 $2"
+            shift 2
+            ;;
+        *)
+            host="$1"
+            shift
+            break
+            ;;
+    esac
+done
+
+# Show usage with no host
+[ -z "$host" ] && print_usage
+
+ghe-ssh $opts "$host" -- "sudo rm -f '$SYNC_IN_PROGRESS_FILE'"

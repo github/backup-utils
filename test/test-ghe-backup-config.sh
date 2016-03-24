@@ -33,6 +33,7 @@ begin_test "ghe-backup-config GHE_CREATE_DATA_DIR disabled"
     export GHE_CREATE_DATA_DIR=yes
     . share/github-backup-utils/ghe-backup-config 2>&1 \
       | grep -q "Creating the backup data directory ..."
+    test -d $GHE_DATA_DIR
 
     rm -rf $GHE_DATA_DIR
 )

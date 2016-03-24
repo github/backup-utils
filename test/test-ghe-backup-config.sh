@@ -15,6 +15,29 @@ export GHE_DATA_DIR GHE_REMOTE_DATA_DIR
 cd "$ROOTDIR"
 . "share/github-backup-utils/ghe-backup-config"
 
+begin_test "ghe-backup-config GHE_CREATE_DATA_DIR disabled"
+(
+    set -e
+    set -x
+    export GHE_DATA_DIR=$(mktemp -d -u)
+    export GHE_CREATE_DATA_DIR=no
+    set +e
+    error=$(. share/github-backup-utils/ghe-backup-config 2>&1)
+    # should exit 8
+    if [ $? != 8 ]; then
+      exit 1
+    fi
+    set -e
+    echo $error | grep -q "Error: GHE_DATA_DIR .* does not exist"
+
+    export GHE_CREATE_DATA_DIR=yes
+    . share/github-backup-utils/ghe-backup-config 2>&1 \
+      | grep -q "Creating the backup data directory ..."
+
+    rm -rf $GHE_DATA_DIR
+)
+end_test
+
 begin_test "ghe-backup-config ssh_host_part"
 (
     set -e

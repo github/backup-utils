@@ -18,7 +18,7 @@ cd "$ROOTDIR"
 begin_test "ghe-backup-config GHE_CREATE_DATA_DIR disabled"
 (
     set -e
-    set -x
+
     export GHE_DATA_DIR=$(mktemp -d -u)
     export GHE_CREATE_DATA_DIR=no
     set +e

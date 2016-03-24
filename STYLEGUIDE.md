@@ -185,26 +185,26 @@ eof
 
 1. All tests should use `set -e` before making any assertions:
 
-```bash
-begin_test "echo works"
-(
-  set -e
-
-  echo passing | grep passing
-)
-end_test
-```
+  ```bash
+  begin_test "echo works"
+  (
+    set -e
+  
+    echo passing | grep passing
+  )
+  end_test
+  ```
 
 1. If you want to assert failure, please resist the urge to disable `set -e` and
 instead use negation with `!`:
 
-```bash
-begin_test "netcat is not from bsd"
-(
-  set -e
-  setup
-
-  ! nc -h 2>&1 | grep bsd
-)
-end_test
-```
+  ```bash
+  begin_test "netcat is not from bsd"
+  (
+    set -e
+    setup
+  
+    ! nc -h 2>&1 | grep bsd
+  )
+  end_test
+  ```

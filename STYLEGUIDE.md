@@ -1,4 +1,4 @@
-# backup-utils Bash styleguide
+# Bash styleguide
 
 If you've not done much Bash development before you may find these debugging tips useful: http://wiki.bash-hackers.org/scripting/debuggingtips
 

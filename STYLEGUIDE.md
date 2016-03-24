@@ -183,7 +183,7 @@ eof
 
 ## Writing tests
 
-All tests should use `set -e` before making any assertions:
+1. All tests should use `set -e` before making any assertions:
 
 ```bash
 begin_test "echo works"
@@ -195,7 +195,7 @@ begin_test "echo works"
 end_test
 ```
 
-If you want to assert failure, please resist the urge to disable `set -e` and
+1. If you want to assert failure, please resist the urge to disable `set -e` and
 instead use negation with `!`:
 
 ```bash

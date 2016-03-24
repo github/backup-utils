@@ -35,4 +35,5 @@ GHE_NUM_SNAPSHOTS=10
 #
 # If set to 'no', GHE_DATA_DIR will not be created automatically
 # and restore/backup will exit 8
-# GHE_CREATE_DATA_DIR=${GHE_CREATE_DATA_DIR:-yes}
+#
+#GHE_CREATE_DATA_DIR=yes

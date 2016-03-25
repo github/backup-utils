@@ -1,6 +1,11 @@
-#!/bin/sh
+#!/usr/bin/env bash
 #/ Usage: ghe-gc-enable [<option>...] <host>
+#/
 #/ Helper to enable GC operations on a GitHub Enterprise server.
+#/
+#/ OPTIONS:
+#/   -F <configfile>            Alternative SSH per-user configuration file.
+#/
 set -e
 
 # Bring in the backup configuration

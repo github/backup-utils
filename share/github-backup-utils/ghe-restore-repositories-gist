@@ -74,7 +74,7 @@ trap 'cleanup' INT TERM EXIT
 
 # Disable remote GC operations
 for hostname in $hostnames; do
-  ghe-gc-enable -F $config_file $hostname:$port
+  ghe-gc-disable -F $config_file $hostname:$port
 done
 
 rm -rf ssh_routes_in ssh_routes_out ssh_finalize_in ssh_finalize_out

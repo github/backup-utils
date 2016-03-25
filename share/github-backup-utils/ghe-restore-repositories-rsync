@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 #/ Usage: ghe-restore-repositories-rsync <host>
 #/ Restore an rsync snapshot of all Git repository data to a GitHub instance.
 #/

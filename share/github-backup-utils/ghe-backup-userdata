@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 #/ Usage: ghe-backup-userdata <dirname>
 #/ Take an online, incremental snapshot of a user data directory. This is used
 #/ for a number of different simple datastores kept under /data/user on the

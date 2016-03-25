@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 # Usage: . ghe-backup-config
 # GitHub Enterprise backup shell configuration.
 #
@@ -79,10 +79,17 @@ if [ -z "$GHE_HOSTNAME" ]; then
     exit 2
 fi
 
+GHE_CREATE_DATA_DIR=${GHE_CREATE_DATA_DIR:-yes}
+
 # Check that the data directory is set and create it if it doesn't exist.
-if [ ! -d "$GHE_DATA_DIR" ]; then
+if [ ! -d "$GHE_DATA_DIR" ] && [ "$GHE_CREATE_DATA_DIR" = "yes" ]; then
     echo "Creating the backup data directory ..." 1>&3
     mkdir -p "$GHE_DATA_DIR"
+fi
+
+if [ ! -d "$GHE_DATA_DIR" ]; then
+    echo "Error: GHE_DATA_DIR $GHE_DATA_DIR does not exist." >&2
+    exit 8
 fi
 
 # Set some defaults if needed.

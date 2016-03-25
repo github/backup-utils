@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 # Usage: ssh [-o opt=val]... <host> <command>...
 # Fake ssh command that executes <command> locally. This is placed on PATH
 # during tests to fake out a remote host. Both normal ssh invocations and rsync

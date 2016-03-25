@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 # ghe-restore command tests
 
 # Bring in testlib

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 #/ Usage: ghe-restore-pages-rsync <host>
 #/ Restore an rsync snapshot of all Pages data to a GitHub instance.
 #/

@@ -45,7 +45,7 @@ storage and must have network connectivity with the GitHub Enterprise appliance.
 ##### Backup host requirements
 
 Backup host software requirements are modest: Linux or other modern Unix
-operating system with [rsync][4] v2.6.4 or newer.
+operating system with bash and [rsync][4] v2.6.4 or newer.
 
 The backup host must be able to establish network connections outbound to the
 GitHub appliance over SSH. TCP port 122 is used to backup GitHub Enterprise 2.0 or newer instances, and TCP port 22 is used for older versions (11.10.34X).
@@ -211,8 +211,8 @@ backup snapshot of all relevant data stores. Repository, Search, and Pages data
 is stored efficiently via hard links.
 
 *Please note* Symlinks must be maintained when archiving backup snapshots.
-Dereferencing or excluding symlinks, or storing the snapshot contents on a 
-filesystem which does not support symlinks will result in operational 
+Dereferencing or excluding symlinks, or storing the snapshot contents on a
+filesystem which does not support symlinks will result in operational
 problems when the data is restored.
 
 The following example shows a snapshot file hierarchy for hourly frequency.

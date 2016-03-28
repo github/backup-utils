@@ -5,22 +5,15 @@
 # This file is sourced by the various utilities under bin and share/github-backup-utils to
 # load in backup configuration and ensure things are configured properly.
 #
-# All commands in share/github-backup-utils/ should start with the following:
+# All commands should start with the following:
 #
-#     export GHE_BACKUP_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/../.." && pwd )"
-#     . $GHE_BACKUP_ROOT/share/github-backup-utils/ghe-backup-config
-#
-# And all commands in bin/ should start with the following:
-#
-#     export GHE_BACKUP_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
-#     . $GHE_BACKUP_ROOT/share/github-backup-utils/ghe-backup-config
+#     cd $(dirname "$0")/../..
+#     . share/github-backup-utils/ghe-backup-config
 #
 
-# If GHE_BACKUP_ROOT has not been set, assume the current directory is the root.
-# This is required for older scripts that don't source us using the above method.
-if [ -z $GHE_BACKUP_ROOT ]; then
-  GHE_BACKUP_ROOT="$(pwd)"
-fi
+# Assume the current directory is the root. This should be fine so long as all
+# scripts source us in according to the instructions above.
+GHE_BACKUP_ROOT="$(pwd)"
 
 # Get the version from the version file.
 BACKUP_UTILS_VERSION="$(cat share/github-backup-utils/version)"

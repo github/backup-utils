@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 #/ Usage: ghe-restore [-v] [-s <snapshot-id>] [<host>]
 #/ Restores a GitHub instance from local backup snapshots. The <host> is the
 #/ hostname or IP of the GitHub instance. The <host> may be omitted when

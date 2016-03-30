@@ -32,3 +32,8 @@ GHE_NUM_SNAPSHOTS=10
 # Any extra options passed to the rsync command. Nothing required by default.
 #
 #GHE_EXTRA_RSYNC_OPTS=""
+#
+# If set to 'no', GHE_DATA_DIR will not be created automatically
+# and restore/backup will exit 8
+#
+#GHE_CREATE_DATA_DIR=yes

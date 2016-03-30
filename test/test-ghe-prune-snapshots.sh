@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 # ghe-prune-snapshots command tests
 
 # Bring in testlib

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 #/ Usage: ghe-restore-snapshot-path [snapshot]
 #/
 #/ Print the path to the given snapshot. Defaults to current if no argument given.

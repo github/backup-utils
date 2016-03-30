@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 #/ Usage: ghe-backup-es-hookshot
 #/ Take a backup of hookshot logs in ElasticSearch.
 #/

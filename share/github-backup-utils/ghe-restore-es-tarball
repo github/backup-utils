@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 #/ Usage: ghe-restore-es-tarball <host>
 #/ Restore a tarball snapshot of all ES data to a GitHub instance.
 #/

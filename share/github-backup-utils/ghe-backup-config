@@ -17,7 +17,7 @@
 #
 
 # Get the version from the version file.
-BACKUP_UTILS_VERSION="$(cat share/github-backup-utils/version)"
+BACKUP_UTILS_VERSION="$(cat $GHE_BACKUP_ROOT/share/github-backup-utils/version)"
 
 # Add the bin and share/github-backup-utils dirs to PATH
 PATH="$GHE_BACKUP_ROOT/bin:$GHE_BACKUP_ROOT/share/github-backup-utils:$PATH"

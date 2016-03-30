@@ -51,7 +51,7 @@ if [ $rc -ne 0 ]; then
             ;;
         1)
             if [ "${port:-22}" -eq 22 ] && echo "$output" | grep "use port 122" >/dev/null; then
-                exec "bin/$(basename $0)" "$hostname:122"
+                exec "$GHE_BACKUP_ROOT/bin/$(basename $0)" "$hostname:122"
             else
                 echo "$output" 1>&2
             fi

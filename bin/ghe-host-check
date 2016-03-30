@@ -4,9 +4,9 @@
 #/ provided, the $GHE_HOSTNAME configured in backup.config is assumed.
 set -e
 
-# Bring in the backup configuration.
-cd $(dirname "$0")/..
-. share/github-backup-utils/ghe-backup-config
+# Bring in the backup configuration
+export GHE_BACKUP_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
+. $GHE_BACKUP_ROOT/share/github-backup-utils/ghe-backup-config
 
 # Use the host provided on the command line if provided, or fallback on the
 # $GHE_HOSTNAME configured in backup.config when not present.

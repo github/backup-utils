@@ -7,8 +7,8 @@
 set -e
 
 # Bring in the backup configuration
-cd $(dirname "$0")/../..
-. share/github-backup-utils/ghe-backup-config
+export GHE_BACKUP_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/../.." && pwd )"
+. $GHE_BACKUP_ROOT/share/github-backup-utils/ghe-backup-config
 
 opts="$GHE_EXTRA_SSH_OPTS"
 while true; do

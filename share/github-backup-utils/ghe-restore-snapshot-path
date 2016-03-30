@@ -6,10 +6,9 @@
 
 set -e
 
-# Bring in the backup configuration.
-cd $(dirname "$0")/../..
-. share/github-backup-utils/ghe-backup-config
-
+# Bring in the backup configuration
+export GHE_BACKUP_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/../.." && pwd )"
+. $GHE_BACKUP_ROOT/share/github-backup-utils/ghe-backup-config
 
 if [ -n "$1" ]; then
   GHE_RESTORE_SNAPSHOT="$(basename "$1")"

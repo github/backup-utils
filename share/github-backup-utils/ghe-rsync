@@ -8,8 +8,8 @@
 set -o pipefail
 
 # Bring in the backup configuration
-cd $(dirname "$0")/../..
-. share/github-backup-utils/ghe-backup-config
+export GHE_BACKUP_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/../.." && pwd )"
+. $GHE_BACKUP_ROOT/share/github-backup-utils/ghe-backup-config
 
 # Filter vanished file warnings from both stdout (rsync versions < 3.x) and
 # stderr (rsync versions >= 3.x). The complex redirections are necessary to

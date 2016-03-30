@@ -7,8 +7,8 @@
 set -e
 
 # Bring in the backup configuration
-cd $(dirname "$0")/../..
-. share/github-backup-utils/ghe-backup-config
+export GHE_BACKUP_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/../.." && pwd )"
+. $GHE_BACKUP_ROOT/share/github-backup-utils/ghe-backup-config
 
 # Set up remote host and root elastic backup directory based on config
 host="$GHE_HOSTNAME"

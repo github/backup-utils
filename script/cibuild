@@ -10,6 +10,7 @@ REMOTE_VERSIONS="
   11.10.344
   2.0.0
   2.2.0
+  2.5.0
 "
 
 # Enable verbose logging of ssh commands
@@ -21,7 +22,7 @@ for version in $REMOTE_VERSIONS
 do
     echo "==> Running testsuite with GHE_TEST_REMOTE_VERSION=$version"
     export GHE_TEST_REMOTE_VERSION="$version"
-    if ! ls -1 test/test-*.sh | xargs -P 4 -n 1 /bin/sh; then
+    if ! ls -1 test/test-*.sh | xargs -P 4 -n 1 /bin/bash; then
         res=false
     fi
     echo

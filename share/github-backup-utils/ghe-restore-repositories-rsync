@@ -23,9 +23,20 @@ ghe_remote_version_required "$GHE_HOSTNAME"
 # us run this script directly.
 : ${GHE_RESTORE_SNAPSHOT:=current}
 
+cleanup() {
+  # Enable remote GC operations
+  ghe-gc-enable $GHE_HOSTNAME
+}
+
+trap 'cleanup' INT TERM EXIT
+
+# Disable remote GC operations
+ghe-gc-disable $GHE_HOSTNAME
+
 # Transfer all git repository data from the latest snapshot to the GitHub
 # instance in a single rsync invocation.
 ghe-rsync -avH --delete \
+    --exclude ".sync_in_progress" \
     -e "ghe-ssh -p $(ssh_port_part "$GHE_HOSTNAME")" \
     --rsync-path="sudo -u git rsync" \
     "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/repositories/" \

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #/ Usage: ghe-restore-repositories-dgit <host>
-#/ Restore repositories fron an rsync snapshot of all Git repository data to a GitHub cluster.
+#/ Restore repositories from an rsync snapshot of all Git repository data to a GitHub cluster.
 #/
 #/ Note: This script typically isn't called directly. It's invoked by the
 #/ ghe-restore command when restoring into a cluster.

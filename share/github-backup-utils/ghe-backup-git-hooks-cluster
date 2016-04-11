@@ -97,5 +97,6 @@ rsync_git_hooks_data () {
 }
 
 for hostname in $hostnames; do
+  ghe-ssh -F $config_file "$hostname:122" -- "[ -d '$GHE_REMOTE_DATA_USER_DIR/git-hooks' ]" || exit 0
   rsync_git_hooks_data $hostname:122 && break
 done

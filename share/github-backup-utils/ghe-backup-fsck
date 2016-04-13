@@ -9,8 +9,8 @@ cd $(dirname "$0")/../..
 
 # Verify git is available.
 if ! git --version 1>/dev/null 2>&1; then
-    echo "Error: git not found." 1>&2
-    exit 1
+  echo "Error: git not found." 1>&2
+  exit 1
 fi
 
 repos=0
@@ -65,6 +65,6 @@ for repo in $(find $GHE_SNAPSHOT_DIR/repositories/ -type d -name \*.git); do
 
 done
 
-echo Total repos: $repos
-echo Errors:      $errors
-echo Warnings:    $warnings
+echo "* Total repos: $repos"
+echo "* Errors:      $errors"
+echo "* Warnings:    $warnings"

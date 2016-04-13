@@ -131,6 +131,9 @@ begin_test "ghe-backup first snapshot"
         # verify all alambic assets user data was transferred
         diff -ru "$GHE_REMOTE_DATA_USER_DIR/alambic_assets" "$GHE_DATA_DIR/current/alambic_assets"
     fi
+
+    # verify that ghe-backup wrote its version information to the host
+    [ -f "$GHE_REMOTE_DATA_USER_DIR/common/backup-utils-version" ]
 )
 end_test
 

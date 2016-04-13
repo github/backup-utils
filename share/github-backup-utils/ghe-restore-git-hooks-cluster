@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#/ Usage: ghe-restore-git-hooks-cluster
+#/ Usage: ghe-restore-git-hooks-cluster <host>
 #/ Restore custom Git hooks data from an rsync snapshot
 #/
 #/ Note: This command typically isn't called directly. It's invoked by
@@ -49,8 +49,6 @@ echo "$config" > "$config_file"
 
 opts="$GHE_EXTRA_SSH_OPTS -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no"
 
-# Removes the remote sync-in-progress file on exit, re-enabling GC operations
-# on the remote instance.
 cleanup() {
   for pid in $(jobs -p); do
     kill -KILL $pid > /dev/null 2>&1 || true

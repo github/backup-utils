@@ -204,6 +204,7 @@ fi
 
 # git fsck repositories after the backup
 if [ "$GHE_BACKUP_FSCK" = "yes" ]; then
+  echo "Running git fsck on repos..."
   ghe-backup-fsck ||
     failures="$failures fsck"
 fi

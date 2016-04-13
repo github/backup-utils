@@ -68,5 +68,3 @@ done
 echo Total repos: $repos
 echo Errors:      $errors
 echo Warnings:    $warnings
-
-[ $errors -gt 0 ] && exit 1

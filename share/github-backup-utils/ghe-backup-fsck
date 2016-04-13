@@ -3,6 +3,10 @@
 #/ git fsck backed up repos
 set -e
 
+# Bring in the backup configuration
+cd $(dirname "$0")/../..
+. share/github-backup-utils/ghe-backup-config
+
 repos=0
 errors=0
 warnings=0

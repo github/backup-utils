@@ -7,6 +7,12 @@ set -e
 cd $(dirname "$0")/../..
 . share/github-backup-utils/ghe-backup-config
 
+# Verify git is available.
+if ! git --version 1>/dev/null 2>&1; then
+    echo "Error: git not found." 1>&2
+    exit 1
+fi
+
 repos=0
 errors=0
 warnings=0

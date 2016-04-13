@@ -287,7 +287,7 @@ begin_test "ghe-backup fsck"
   set -e
 
   export GHE_BACKUP_FSCK=yes
-  ghe-backup | grep -q "Repos verified: 4, Errors: 1, Took: 0s"
+  ghe-backup | grep -q "Repos verified: 4, Errors: 1, Took:"
   # Verbose mode disabled by default
   ! ghe-backup | grep -q "missing tree 4b825dc642cb6eb9a060e54bf8d69288fbee4904"
   ghe-backup -v | grep -q "missing tree 4b825dc642cb6eb9a060e54bf8d69288fbee4904"

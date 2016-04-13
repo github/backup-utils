@@ -81,8 +81,8 @@ begin_test "ghe-restore into configured vm"
     mkdir -p "$GHE_REMOTE_DATA_DIR/github/current/public/system"
     touch "$GHE_REMOTE_DATA_DIR/github/current/public/system/maintenance.html"
 
-    # Create fake remote repositories dir
-    mkdir -p "$GHE_REMOTE_DATA_USER_DIR/repositories"
+    # Create fake remote repositories and common dirs
+    mkdir -p "$GHE_REMOTE_DATA_USER_DIR/repositories $GHE_REMOTE_DATA_USER_DIR/common"
 
     # set restore host environ var
     GHE_RESTORE_HOST=127.0.0.1

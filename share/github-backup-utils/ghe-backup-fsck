@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+#/ Usage: ghe-backup-fsck [--print-nwo]
+#/ git fsck backed up repos
+set -e
+
+repos=0
+errors=0
+warnings=0
+log=$(mktemp)
+
+for repo in $(find $GHE_SNAPSHOT_DIR/repositories/ -type d -name \*.git); do
+  repos=$(($repos+1))
+  before_time=$(date +%s)
+
+  status=$(
+    set -e
+
+    cd $repo
+
+    nwo="-"
+    if [ "$1" = "--print-nwo" ] && [ -f info/nwo ]; then
+      nwo="$(cat info/nwo)"
+    fi
+
+    if [ ! -f objects/info/alternates ] || grep -q '^\.\.' objects/info/alternates; then
+      git fsck --no-dangling >/dev/null 2>$log && {
+        echo "OK $repo $nwo"; exit
+      }
+    else
+      GIT_ALTERNATE_OBJECT_DIRECTORIES=../network.git/objects git fsck --no-dangling >/dev/null 2>$log && {
+        echo "WARN $repo $nwo (alternates absolute path)"; exit
+      }
+    fi
+
+    echo "ERROR $repo $nwo"
+  )
+
+  elapsed_time=$(($(date +%s) - before_time))
+
+  if [[ ! "$status" =~ ^OK ]] || [ $elapsed_time -gt 5 ]; then
+    echo "$status ${elapsed_time}s"
+    [[ ! "$status" =~ ^OK ]] && cat $log
+  fi
+
+  case "$status" in
+    OK*)
+      ;;
+    WARN*)
+      warnings=$(($warnings+1))
+      ;;
+    ERROR*)
+      errors=$(($errors+1))
+      ;;
+   esac
+
+done
+
+echo Total repos: $repos
+echo Errors:      $errors
+echo Warnings:    $warnings
+
+[ $errors -gt 0 ] && exit 1

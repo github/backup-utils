@@ -76,3 +76,5 @@ for repo in $(find $sdir/repositories/ -type d -name \*.git); do
 done
 
 echo "* Repos verified: $repos, Errors: $errors, Took: $(($(date +%s) - $t_start))s"
+
+rm -f $log

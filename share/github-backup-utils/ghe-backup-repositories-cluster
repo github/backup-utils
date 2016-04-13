@@ -95,7 +95,7 @@ mkdir -p "$backup_dir"
 # on the remote instance.
 cleanup() {
   for hostname in $hostnames; do
-    ghe-ssh -F $config_file "$hostname:$port" -- "sudo rm -f '$sync_in_progress_file'"
+    ghe-ssh -F $config_file "$hostname:122" -- "sudo rm -f '$sync_in_progress_file'"
   done
   rm -f $config_file
 }

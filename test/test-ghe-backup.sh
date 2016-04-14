@@ -49,13 +49,15 @@ fi
 mkdir "$GHE_REMOTE_DATA_USER_DIR/repositories"
 cd "$GHE_REMOTE_DATA_USER_DIR/repositories"
 mkdir alice bob
-mkdir alice/repo1.git alice/repo2.git bob/repo3.git
+mkdir alice/repo1.git alice/repo2.git bob/repo3.git alice/broken.git
 
 # Initialize test repositories with a fake commit
 for repo in */*.git; do
     git init -q --bare "$repo"
     git --git-dir="$repo" --work-tree=. commit -q --allow-empty -m 'test commit'
 done
+# Break a repo to test fsck
+rm -f alice/broken.git/objects/4b/825dc642cb6eb9a060e54bf8d69288fbee4904
 
 begin_test "ghe-backup first snapshot"
 (
@@ -277,5 +279,20 @@ begin_test "ghe-backup empty hookshot directory"
 
   # Check that the "--link-dest arg does not exist" message hasn't occurred.
   [ ! "$(grep "[l]ink-dest arg does not exist" $TRASHDIR/out)" ]
+)
+end_test
+
+begin_test "ghe-backup fsck"
+(
+  set -e
+
+  export GHE_BACKUP_FSCK=yes
+  ghe-backup | grep -q "Repos verified: 4, Errors: 1, Took:"
+  # Verbose mode disabled by default
+  ! ghe-backup | grep -q "missing tree 4b825dc642cb6eb9a060e54bf8d69288fbee4904"
+  ghe-backup -v | grep -q "missing tree 4b825dc642cb6eb9a060e54bf8d69288fbee4904"
+
+  export GHE_BACKUP_FSCK=no
+  ! ghe-backup | grep -q "Repos verified:"
 )
 end_test

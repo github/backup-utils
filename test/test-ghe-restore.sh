@@ -480,7 +480,7 @@ begin_test "cluster: ghe-restore from v2.5.0 snapshot"
     export GHE_RESTORE_HOST
 
     # create file used to determine if instance is in maintenance mode.
-    mkdir -p "$GHE_REMOTE_DATA_DIR/github/current/public/system"
+    mkdir -p "$GHE_REMOTE_DATA_DIR/github/current/public/system" "$GHE_REMOTE_DATA_USER_DIR/common"
     touch "$GHE_REMOTE_DATA_DIR/github/current/public/system/maintenance.html"
 
     echo "v2.5.0" > "$GHE_DATA_DIR/current/version"
@@ -491,5 +491,8 @@ begin_test "cluster: ghe-restore from v2.5.0 snapshot"
         : ghe-restore should have exited successfully
         false
     fi
+
+    # verify that ghe-backup wrote its version information to the host
+    [ -f "$GHE_REMOTE_DATA_USER_DIR/common/backup-utils-version" ]
 )
 end_test

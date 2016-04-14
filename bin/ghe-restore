@@ -187,6 +187,9 @@ if $instance_configured; then
     fi
 fi
 
+ghe-backup-store-version  ||
+echo "Warning: storing backup-utils version remotely failed."
+
 # Restore settings and license if restoring to an unconfigured appliance or when
 # specified manually.
 if $restore_settings; then

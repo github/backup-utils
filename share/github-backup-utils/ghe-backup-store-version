@@ -14,5 +14,5 @@ if [ -d .git ]; then
     version_info="$version_info:$ref"
   fi
   echo "$version_info" |
-  ghe-ssh "$GHE_HOSTNAME" -- "sudo dd of=$GHE_REMOTE_DATA_USER_DIR/common/backup-utils-version"
+  ghe-ssh "$GHE_HOSTNAME" -- "sudo dd of=$GHE_REMOTE_DATA_USER_DIR/common/backup-utils-version >/dev/null 2>&1"
 fi

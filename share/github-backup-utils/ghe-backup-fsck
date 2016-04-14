@@ -62,7 +62,7 @@ for repo in $(find $sdir/repositories/ -type d -name \*.git); do
 
   if [[ ! "$status" =~ ^OK ]] || [ $elapsed_time -gt 5 ]; then
     echo "$status ${elapsed_time}s" 1>&3
-    [[ ! "$status" =~ ^OK ]] && cat $log
+    [ -n "$GHE_VERBOSE" ] && cat $log
   fi
 
   case "$status" in

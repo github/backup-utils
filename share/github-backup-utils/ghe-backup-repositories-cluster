@@ -32,8 +32,7 @@ set -e
 #      <http://rsync.samba.org/ftp/rsync/rsync.html>
 
 # Bring in the backup configuration
-export GHE_BACKUP_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/../.." && pwd )"
-. $GHE_BACKUP_ROOT/share/github-backup-utils/ghe-backup-config
+. $( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config
 
 # Split host:port into parts
 port=$(ssh_port_part "$GHE_HOSTNAME")

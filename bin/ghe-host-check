@@ -5,8 +5,7 @@
 set -e
 
 # Bring in the backup configuration
-export GHE_BACKUP_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
-. $GHE_BACKUP_ROOT/share/github-backup-utils/ghe-backup-config
+. $( dirname "${BASH_SOURCE[0]}" )/../share/github-backup-utils/ghe-backup-config
 
 # Use the host provided on the command line if provided, or fallback on the
 # $GHE_HOSTNAME configured in backup.config when not present.
@@ -51,7 +50,7 @@ if [ $rc -ne 0 ]; then
             ;;
         1)
             if [ "${port:-22}" -eq 22 ] && echo "$output" | grep "use port 122" >/dev/null; then
-                exec "$GHE_BACKUP_ROOT/bin/$(basename $0)" "$hostname:122"
+                exec "${BASH_SOURCE[0]}" "$hostname:122"
             else
                 echo "$output" 1>&2
             fi

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 # Usage: . ghe-backup-config
 # GitHub Enterprise backup shell configuration.
 #
@@ -7,14 +7,15 @@
 #
 # All commands in share/github-backup-utils/ should start with the following:
 #
-#     export GHE_BACKUP_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/../.." && pwd )"
-#     . $GHE_BACKUP_ROOT/share/github-backup-utils/ghe-backup-config
+#     . $( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config
 #
 # And all commands in bin/ should start with the following:
 #
-#     export GHE_BACKUP_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
-#     . $GHE_BACKUP_ROOT/share/github-backup-utils/ghe-backup-config
+#     . $( dirname "${BASH_SOURCE[0]}" )/../share/github-backup-utils/ghe-backup-config
 #
+
+# Assume this script lives in share/github-backup-utils/ when setting the root
+GHE_BACKUP_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/../.." && pwd )"
 
 # Get the version from the version file.
 BACKUP_UTILS_VERSION="$(cat $GHE_BACKUP_ROOT/share/github-backup-utils/version)"

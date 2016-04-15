@@ -22,8 +22,7 @@
 set -e
 
 # Bring in the backup configuration
-export GHE_BACKUP_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
-. $GHE_BACKUP_ROOT/share/github-backup-utils/ghe-backup-config
+. $( dirname "${BASH_SOURCE[0]}" )/../share/github-backup-utils/ghe-backup-config
 
 # Parse arguments
 restore_settings=false

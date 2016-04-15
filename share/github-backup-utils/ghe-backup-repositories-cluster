@@ -119,7 +119,7 @@ rsync_repository_data () {
     host=$(ssh_host_part "$1")
 
     shift
-    ghe-rsync -a \
+    ghe-rsync -av \
         -e "ssh -q $opts -p $port -F $config_file -l $user" \
         $link_dest "$@" \
         --rsync-path='sudo -u git rsync' \

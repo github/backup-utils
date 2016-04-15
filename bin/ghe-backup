@@ -121,6 +121,9 @@ if [ "$GHE_BACKUP_STRATEGY" = "tarball" ]; then
     GHE_MAINTENANCE_MODE_ENABLED=true
 fi
 
+ghe-backup-store-version  ||
+echo "Warning: storing backup-utils version remotely failed."
+
 echo "Backing up GitHub settings ..."
 ghe-backup-settings ||
 failures="$failures settings"
@@ -197,6 +200,12 @@ if $GHE_MAINTENANCE_MODE_ENABLED; then
     ghe-maintenance-mode-disable "$GHE_HOSTNAME" ||
         echo "Warning: Disabling maintenance mode on $GHE_HOSTNAME failed."
     GHE_MAINTENANCE_MODE_ENABLED=false
+fi
+
+# git fsck repositories after the backup
+if [ "$GHE_BACKUP_FSCK" = "yes" ]; then
+  ghe-backup-fsck $GHE_SNAPSHOT_DIR ||
+    failures="$failures fsck"
 fi
 
 # If everything was successful, mark the snapshot as complete, update the

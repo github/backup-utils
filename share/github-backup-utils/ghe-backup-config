@@ -59,6 +59,7 @@ done
 if ! $config_found; then
     echo "Error: No backup configuration file found. Tried:" 1>&2
     echo " - $GHE_BACKUP_CONFIG" 1>&2
+    echo " - $HOME/github-backup-utils/backup.config" 1>&2
     echo " - /etc/github-backup-utils/backup.config" 1>&2
     exit 2
 fi

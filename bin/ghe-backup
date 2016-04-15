@@ -201,6 +201,12 @@ if $GHE_MAINTENANCE_MODE_ENABLED; then
     GHE_MAINTENANCE_MODE_ENABLED=false
 fi
 
+# git fsck repositories after the backup
+if [ "$GHE_BACKUP_FSCK" = "yes" ]; then
+  ghe-backup-fsck $GHE_SNAPSHOT_DIR ||
+    failures="$failures fsck"
+fi
+
 # If everything was successful, mark the snapshot as complete, update the
 # current symlink to point to the new snapshot and prune expired and failed
 # snapshots.

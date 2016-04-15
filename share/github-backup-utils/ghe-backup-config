@@ -46,7 +46,7 @@ GHE_HOSTNAME_PRESERVE="$GHE_HOSTNAME"
 # Source in the backup config file from the local working copy location first
 # and then falling back to the system location.
 config_found=false
-for f in "$GHE_BACKUP_CONFIG" "/etc/github-backup-utils/backup.config"; do
+for f in "$GHE_BACKUP_CONFIG" "$HOME/github-backup-utils/backup.config" "/etc/github-backup-utils/backup.config"; do
     if [ -f "$f" ]; then
         GHE_BACKUP_CONFIG="$f"
         . "$GHE_BACKUP_CONFIG"

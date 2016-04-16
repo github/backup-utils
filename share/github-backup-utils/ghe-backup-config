@@ -44,7 +44,7 @@ GHE_HOSTNAME_PRESERVE="$GHE_HOSTNAME"
 # first and then fall back to the backup-utils root, home directory and system.
 config_found=false
 for f in "$GHE_BACKUP_CONFIG" "$GHE_BACKUP_ROOT/backup.config" \
-  "$HOME/github-backup-utils/backup.config" "/etc/github-backup-utils/backup.config"; do
+  "$HOME/.github-backup-utils/backup.config" "/etc/github-backup-utils/backup.config"; do
     if [ -f "$f" ]; then
         GHE_BACKUP_CONFIG="$f"
         . "$GHE_BACKUP_CONFIG"
@@ -58,7 +58,7 @@ if ! $config_found; then
     echo "Error: No backup configuration file found. Tried:" 1>&2
     [ -n "$GHE_BACKUP_CONFIG" ] && echo " - $GHE_BACKUP_CONFIG" 1>&2
     echo " - $GHE_BACKUP_ROOT/backup.config" 1>&2
-    echo " - $HOME/github-backup-utils/backup.config" 1>&2
+    echo " - $HOME/.github-backup-utils/backup.config" 1>&2
     echo " - /etc/github-backup-utils/backup.config" 1>&2
     exit 2
 fi

@@ -23,9 +23,6 @@ BACKUP_UTILS_VERSION="$(cat $GHE_BACKUP_ROOT/share/github-backup-utils/version)"
 # Add the bin and share/github-backup-utils dirs to PATH
 PATH="$GHE_BACKUP_ROOT/bin:$GHE_BACKUP_ROOT/share/github-backup-utils:$PATH"
 
-# The backup config file. This may be set in the environment.
-: ${GHE_BACKUP_CONFIG:="$GHE_BACKUP_ROOT/backup.config"}
-
 # Parse out -v (verbose) argument
 if [ "$1" = "-v" ]; then
     GHE_VERBOSE=true
@@ -45,10 +42,11 @@ fi
 # backup.config value when set.
 GHE_HOSTNAME_PRESERVE="$GHE_HOSTNAME"
 
-# Source in the backup config file from the local working copy location first
-# and then falling back to the system location.
+# Source in the backup config file from the copy specified in the environment
+# first and then fall back to the backup-utils root, home directory and system.
 config_found=false
-for f in "$GHE_BACKUP_CONFIG" "/etc/github-backup-utils/backup.config"; do
+for f in "$GHE_BACKUP_CONFIG" "$GHE_BACKUP_ROOT/backup.config" \
+  "$HOME/.github-backup-utils/backup.config" "/etc/github-backup-utils/backup.config"; do
     if [ -f "$f" ]; then
         GHE_BACKUP_CONFIG="$f"
         . "$GHE_BACKUP_CONFIG"
@@ -60,7 +58,9 @@ done
 # Check that the config file exists before we source it in.
 if ! $config_found; then
     echo "Error: No backup configuration file found. Tried:" 1>&2
-    echo " - $GHE_BACKUP_CONFIG" 1>&2
+    [ -n "$GHE_BACKUP_CONFIG" ] && echo " - $GHE_BACKUP_CONFIG" 1>&2
+    echo " - $GHE_BACKUP_ROOT/backup.config" 1>&2
+    echo " - $HOME/.github-backup-utils/backup.config" 1>&2
     echo " - /etc/github-backup-utils/backup.config" 1>&2
     exit 2
 fi

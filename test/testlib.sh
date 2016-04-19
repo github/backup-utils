@@ -47,7 +47,7 @@ export GHE_TEST_REMOTE_VERSION
 
 # Source in the backup config and set GHE_REMOTE_XXX variables based on the
 # remote version established above or in the environment.
-. $( dirname "${BASH_SOURCE[0]}" )/../share/github-backup-utils/ghe-backup-config
+. $ROOTDIR/share/github-backup-utils/ghe-backup-config
 ghe_parse_remote_version "$GHE_TEST_REMOTE_VERSION"
 ghe_remote_version_config "$GHE_TEST_REMOTE_VERSION"
 

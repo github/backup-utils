@@ -6,7 +6,8 @@
 set -e
 
 # Bring in the backup configuration
-. $( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config
+cd $(dirname "$0")/../..
+. share/github-backup-utils/ghe-backup-config
 
 # Parse args
 wait_procs=true

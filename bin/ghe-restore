@@ -21,8 +21,9 @@
 #/ <https://enterprise.github.com/help/articles/adding-an-ssh-key-for-shell-access>
 set -e
 
-# Bring in the backup configuration
-. $( dirname "${BASH_SOURCE[0]}" )/../share/github-backup-utils/ghe-backup-config
+# Bring in the backup configuration.
+cd $(dirname "$0")/..
+. share/github-backup-utils/ghe-backup-config
 
 # Parse arguments
 restore_settings=false

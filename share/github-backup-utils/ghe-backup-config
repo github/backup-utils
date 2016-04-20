@@ -74,6 +74,10 @@ if [ -z "$GHE_HOSTNAME" ]; then
     exit 2
 fi
 
+# Canonicalize the data directory path, basing any relative paths on the
+# backup-utils root.
+GHE_DATA_DIR="$( cd "$GHE_BACKUP_ROOT" && readlink -m "$GHE_DATA_DIR" )"
+
 GHE_CREATE_DATA_DIR=${GHE_CREATE_DATA_DIR:-yes}
 
 # Check that the data directory is set and create it if it doesn't exist.

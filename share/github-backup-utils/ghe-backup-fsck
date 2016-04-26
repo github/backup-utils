@@ -21,7 +21,7 @@ repos=0
 errors=0
 log=$(mktemp)
 t_start=$(date +%s)
-if git fsck --help | grep -q '\-\-\[no-\]dangling'; then
+if git fsck --help 2>/dev/null | grep -q '\-\-\[no-\]dangling'; then
   git_cmd='git fsck --no-dangling'
 else
   echo "Warning: old git version, --no-dangling not available"

@@ -23,6 +23,11 @@ if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
     cd "$GHE_REMOTE_DATA_USER_DIR/hookshot"
     mkdir -p repository-123 repository-456
     touch repository-123/test.bpack repository-456/test.bpack
+
+    mkdir -p "$GHE_REMOTE_DATA_USER_DIR/git-hooks"
+    cd "$GHE_REMOTE_DATA_USER_DIR/git-hooks"
+    mkdir -p repository-123 repository-456
+    touch repository-123/script.sh repository-456/foo.sh
 fi
 
 # Create some fake alambic data in the remote data directory
@@ -122,6 +127,9 @@ begin_test "ghe-backup first snapshot"
         # verify all hookshot user data was transferred
         diff -ru "$GHE_REMOTE_DATA_USER_DIR/hookshot" "$GHE_DATA_DIR/current/hookshot"
 
+        # verify all git hooks data was transferred
+        diff -ru "$GHE_REMOTE_DATA_USER_DIR/git-hooks" "$GHE_DATA_DIR/current/git-hooks"
+
         # verify all alambic assets user data was transferred
         diff -ru "$GHE_REMOTE_DATA_USER_DIR/alambic_assets" "$GHE_DATA_DIR/current/alambic_assets"
     fi
@@ -196,6 +204,9 @@ begin_test "ghe-backup subsequent snapshot"
     if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
         # verify all hookshot user data was transferred
         diff -ru "$GHE_REMOTE_DATA_USER_DIR/hookshot" "$GHE_DATA_DIR/current/hookshot"
+
+        # verify all git hooks data was transferred
+        diff -ru "$GHE_REMOTE_DATA_USER_DIR/git-hooks" "$GHE_DATA_DIR/current/git-hooks"
 
         # verify all alambic assets user data was transferred
         diff -ru "$GHE_REMOTE_DATA_USER_DIR/alambic_assets" "$GHE_DATA_DIR/current/alambic_assets"
@@ -275,6 +286,19 @@ begin_test "ghe-backup empty hookshot directory"
 
   rm -rf $GHE_REMOTE_DATA_USER_DIR/hookshot/repository-*
   rm -rf $GHE_DATA_DIR/current/hookshot/repository-*
+  ghe-backup
+
+  # Check that the "--link-dest arg does not exist" message hasn't occurred.
+  [ ! "$(grep "[l]ink-dest arg does not exist" $TRASHDIR/out)" ]
+)
+end_test
+
+begin_test "ghe-backup empty git-hooks directory"
+(
+  set -e
+
+  rm -rf $GHE_REMOTE_DATA_USER_DIR/git-hooks/repository-*
+  rm -rf $GHE_DATA_DIR/current/git-hooks/repository-*
   ghe-backup
 
   # Check that the "--link-dest arg does not exist" message hasn't occurred.

@@ -21,6 +21,12 @@ repos=0
 errors=0
 log=$(mktemp)
 t_start=$(date +%s)
+if git fsck --help | grep -q '\-\-\[no-\]dangling'; then
+  git_cmd='git fsck --no-dangling'
+else
+  echo "Warning: old git version, --no-dangling not available"
+  git_cmd='git fsck'
+fi
 
 if [ -z "$sdir" ] || [ ! -d "$sdir" ]; then
   print_usage
@@ -46,11 +52,11 @@ for repo in $(find $sdir/repositories/ -type d -name \*.git); do
     fi
 
     if [ ! -f objects/info/alternates ] || grep -q '^\.\.' objects/info/alternates; then
-      git fsck --no-dangling >$log 2>&1 && {
+      $git_cmd >$log 2>&1 && {
         echo "OK $repo $nwo"; exit
       }
     else
-      GIT_ALTERNATE_OBJECT_DIRECTORIES=../network.git/objects git fsck --no-dangling >$log 2>&1 && {
+      GIT_ALTERNATE_OBJECT_DIRECTORIES=../network.git/objects $git_cmd >$log 2>&1 && {
         echo "WARN $repo $nwo (alternates absolute path)"; exit
       }
     fi

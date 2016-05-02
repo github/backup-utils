@@ -272,6 +272,9 @@ begin_test "ghe-backup with relative data dir path"
         # verify all hookshot user data was transferred
         diff -ru "$GHE_REMOTE_DATA_USER_DIR/hookshot" "$GHE_DATA_DIR/current/hookshot"
 
+        # verify all git hooks data was transferred
+        diff -ru "$GHE_REMOTE_DATA_USER_DIR/git-hooks" "$GHE_DATA_DIR/current/git-hooks"
+
         # verify all alambic assets user data was transferred
         diff -ru "$GHE_REMOTE_DATA_USER_DIR/alambic_assets" "$GHE_DATA_DIR/current/alambic_assets"
     fi

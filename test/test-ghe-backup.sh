@@ -131,7 +131,6 @@ begin_test "ghe-backup first snapshot"
 )
 end_test
 
-
 begin_test "ghe-backup subsequent snapshot"
 (
     set -e
@@ -203,6 +202,70 @@ begin_test "ghe-backup subsequent snapshot"
 )
 end_test
 
+begin_test "ghe-backup with relative data dir path"
+(
+    set -e
+
+    # wait a second for snapshot timestamp
+    sleep 1
+
+    # grab the previous snapshot number so we can compare after
+    previous_snapshot=$(ls -ld "$GHE_DATA_DIR/current" | sed 's/.* -> //')
+
+    # run it
+    GHE_DATA_DIR=$(realpath --relative-to=$ROOTDIR $GHE_DATA_DIR) ghe-backup
+
+    # check that current symlink points to new snapshot
+    this_snapshot=$(ls -ld "$GHE_DATA_DIR/current" | sed 's/.* -> //')
+    [ "$previous_snapshot" != "$this_snapshot" ]
+
+    # check that settings were backed up
+    [ "$(cat "$GHE_DATA_DIR/current/settings.json")" = "fake ghe-export-settings data" ]
+
+    # check that license was backed up
+    [ "$(cat "$GHE_DATA_DIR/current/enterprise.ghl")" = "fake license data" ]
+
+    # check that repositories directory was created
+    [ -d "$GHE_DATA_DIR/current/repositories" ]
+
+    # check that pages data was backed up
+    [ -f "$GHE_DATA_DIR/current/pages/alice/index.html" ]
+
+    # check that mysql data was backed up
+    [ "$(gzip -dc < "$GHE_DATA_DIR/current/mysql.sql.gz")" = "fake ghe-export-mysql data" ]
+
+    # check that redis data was backed up
+    [ "$(cat "$GHE_DATA_DIR/current/redis.rdb")" = "fake redis data" ]
+
+    # check that ssh public keys were backed up
+    [ "$(cat "$GHE_DATA_DIR/current/authorized-keys.json")" = "fake ghe-export-authorized-keys data" ]
+
+    # check that ssh host key was backed up
+    [ "$(cat "$GHE_DATA_DIR/current/ssh-host-keys.tar")" = "fake ghe-export-ssh-host-keys data" ]
+
+    # verify all repository data was transferred
+    diff -ru "$GHE_REMOTE_DATA_USER_DIR/repositories" "$GHE_DATA_DIR/current/repositories"
+
+    # verify all pages data was transferred
+    diff -ru "$GHE_REMOTE_DATA_USER_DIR/pages" "$GHE_DATA_DIR/current/pages"
+
+    # verify all ES data was transferred from live directory
+    diff -ru "$GHE_REMOTE_DATA_USER_DIR/elasticsearch" "$GHE_DATA_DIR/current/elasticsearch"
+
+    # verify manage-password file was backed up under v2.x VMs
+    if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
+        [ "$(cat "$GHE_DATA_DIR/current/manage-password")" = "fake password hash data" ]
+    fi
+
+    if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
+        # verify all hookshot user data was transferred
+        diff -ru "$GHE_REMOTE_DATA_USER_DIR/hookshot" "$GHE_DATA_DIR/current/hookshot"
+
+        # verify all alambic assets user data was transferred
+        diff -ru "$GHE_REMOTE_DATA_USER_DIR/alambic_assets" "$GHE_DATA_DIR/current/alambic_assets"
+    fi
+)
+end_test
 
 begin_test "ghe-backup tarball strategy"
 (
@@ -256,7 +319,6 @@ begin_test "ghe-backup cleans up stale in-progress file"
     [ ! -f "$GHE_DATA_DIR/in-progress" ]
 )
 end_test
-
 
 begin_test "ghe-backup without manage-password file"
 (

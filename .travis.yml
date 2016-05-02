@@ -1,6 +1,6 @@
 ---
 script:
   - debuild -uc -us
-before_install: 
+before_install:
   - sudo apt-get update -qq
-  - sudo apt-get install -y devscripts realpath
+  - sudo apt-get install -y devscripts

@@ -223,8 +223,11 @@ begin_test "ghe-backup with relative data dir path"
     # grab the previous snapshot number so we can compare after
     previous_snapshot=$(ls -ld "$GHE_DATA_DIR/current" | sed 's/.* -> //')
 
+    # Change working directory to the root directory
+    cd $ROOTDIR
+
     # run it
-    GHE_DATA_DIR=$(realpath --relative-to=$ROOTDIR $GHE_DATA_DIR) ghe-backup
+    GHE_DATA_DIR=$(echo $GHE_DATA_DIR | sed 's|'$ROOTDIR'/||') ghe-backup
 
     # check that current symlink points to new snapshot
     this_snapshot=$(ls -ld "$GHE_DATA_DIR/current" | sed 's/.* -> //')

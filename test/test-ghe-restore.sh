@@ -25,6 +25,11 @@ if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
     cd "$GHE_DATA_DIR/1/hookshot"
     mkdir -p repository-123 repository-456
     touch repository-123/test.bpack repository-456/test.bpack
+
+    mkdir -p "$GHE_DATA_DIR/1/git-hooks"
+    cd "$GHE_DATA_DIR/1/git-hooks"
+    mkdir -p repository-123 repository-456
+    touch repository-123/script.sh repository-456/foo.sh
 fi
 
 # Create some fake alambic data in the remote data directory
@@ -121,6 +126,9 @@ begin_test "ghe-restore into configured vm"
     if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
         # verify all hookshot user data was transferred
         diff -ru "$GHE_DATA_DIR/current/hookshot" "$GHE_REMOTE_DATA_USER_DIR/hookshot"
+
+        # verify all git hooks data was transferred
+        diff -ru "$GHE_DATA_DIR/current/git-hooks" "$GHE_REMOTE_DATA_USER_DIR/git-hooks"
 
         # verify all alambic assets user data was transferred
         diff -ru "$GHE_DATA_DIR/current/alambic_assets" "$GHE_REMOTE_DATA_USER_DIR/alambic_assets"
@@ -240,6 +248,9 @@ begin_test "ghe-restore -c into unconfigured vm"
         # verify all hookshot user data was transferred
         diff -ru "$GHE_DATA_DIR/current/hookshot" "$GHE_REMOTE_DATA_USER_DIR/hookshot"
 
+        # verify all git hooks data was transferred
+        diff -ru "$GHE_DATA_DIR/current/git-hooks" "$GHE_REMOTE_DATA_USER_DIR/git-hooks"
+
         # verify all alambic assets user data was transferred
         diff -ru "$GHE_DATA_DIR/current/alambic_assets" "$GHE_REMOTE_DATA_USER_DIR/alambic_assets"
     fi
@@ -299,6 +310,9 @@ begin_test "ghe-restore into unconfigured vm"
         # verify all hookshot user data was transferred
         diff -ru "$GHE_DATA_DIR/current/hookshot" "$GHE_REMOTE_DATA_USER_DIR/hookshot"
 
+        # verify all git hooks data was transferred
+        diff -ru "$GHE_DATA_DIR/current/git-hooks" "$GHE_REMOTE_DATA_USER_DIR/git-hooks"
+
         # verify all alambic assets user data was transferred
         diff -ru "$GHE_DATA_DIR/current/alambic_assets" "$GHE_REMOTE_DATA_USER_DIR/alambic_assets"
 
@@ -347,6 +361,9 @@ begin_test "ghe-restore with host arg"
     if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
         # verify all hookshot user data was transferred
         diff -ru "$GHE_DATA_DIR/current/hookshot" "$GHE_REMOTE_DATA_USER_DIR/hookshot"
+
+        # verify all git hooks data was transferred
+        diff -ru "$GHE_DATA_DIR/current/git-hooks" "$GHE_REMOTE_DATA_USER_DIR/git-hooks"
 
         # verify all alambic assets user data was transferred
         diff -ru "$GHE_DATA_DIR/current/alambic_assets" "$GHE_REMOTE_DATA_USER_DIR/alambic_assets"

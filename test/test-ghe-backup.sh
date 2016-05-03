@@ -232,6 +232,14 @@ begin_test "ghe-backup with relative data dir path"
     # check that current symlink points to new snapshot
     ls -ld "$GHE_DATA_DIR/current" | grep -q "$GHE_SNAPSHOT_TIMESTAMP"
 
+    # check that the version file was written
+    [ -f "$GHE_DATA_DIR/current/version" ]
+    [ $(cat "$GHE_DATA_DIR/current/version") = "v$GHE_TEST_REMOTE_VERSION" ]
+
+    # check that the strategy file was written
+    [ -f "$GHE_DATA_DIR/current/strategy" ]
+    [ $(cat "$GHE_DATA_DIR/current/strategy") = "rsync" ]
+
     # check that settings were backed up
     [ "$(cat "$GHE_DATA_DIR/current/settings.json")" = "fake ghe-export-settings data" ]
 
@@ -280,6 +288,9 @@ begin_test "ghe-backup with relative data dir path"
         # verify all alambic assets user data was transferred
         diff -ru "$GHE_REMOTE_DATA_USER_DIR/alambic_assets" "$GHE_DATA_DIR/current/alambic_assets"
     fi
+
+    # verify that ghe-backup wrote its version information to the host
+    [ -f "$GHE_REMOTE_DATA_USER_DIR/common/backup-utils-version" ]
 )
 end_test
 

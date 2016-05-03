@@ -220,18 +220,17 @@ begin_test "ghe-backup with relative data dir path"
     # wait a second for snapshot timestamp
     sleep 1
 
-    # grab the previous snapshot number so we can compare after
-    previous_snapshot=$(ls -ld "$GHE_DATA_DIR/current" | sed 's/.* -> //')
+    # generate a timestamp
+    export GHE_SNAPSHOT_TIMESTAMP="relative-$(date +"%Y%m%dT%H%M%S")"
 
-    # Change working directory to the root directory
+    # change working directory to the root directory
     cd $ROOTDIR
 
     # run it
     GHE_DATA_DIR=$(echo $GHE_DATA_DIR | sed 's|'$ROOTDIR'/||') ghe-backup
 
     # check that current symlink points to new snapshot
-    this_snapshot=$(ls -ld "$GHE_DATA_DIR/current" | sed 's/.* -> //')
-    [ "$previous_snapshot" != "$this_snapshot" ]
+    ls -ld "$GHE_DATA_DIR/current" | grep -q "$GHE_SNAPSHOT_TIMESTAMP"
 
     # check that settings were backed up
     [ "$(cat "$GHE_DATA_DIR/current/settings.json")" = "fake ghe-export-settings data" ]

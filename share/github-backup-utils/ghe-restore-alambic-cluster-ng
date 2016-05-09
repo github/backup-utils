@@ -56,12 +56,13 @@ echo "$config" > "$config_file"
 
 # Stores a list of "oid size" tuples.
 tmp_list=$(mktemp -t cluster-backup-restore-XXXXXX)
+to_restore=$(mktemp -t cluster-backup-restore-XXXXXX)
 
 opts="$GHE_EXTRA_SSH_OPTS -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no"
 tempdir=$(mktemp -d)
 
 cleanup() {
-  rm -rf $tempdir $config_file $tmp_list
+  rm -rf $tempdir $config_file $tmp_list $to_restore
   true
 }
 
@@ -103,6 +104,7 @@ cat $tmp_list | ghe-ssh "$GHE_HOSTNAME" github-env ./bin/storage-cluster-restore
     ghe_verbose "Adding $oid_c1/$oid_c2/$oid_c3/$oid to $tempdir/$server.rsync"
     echo "$oid_c1/$oid_c2/$oid_c3/$oid" >> $tempdir/$server.rsync
   done
+  echo "$obj" >> $to_restore
 done
 
 # rsync all the objects to the storage server where they belong.
@@ -118,4 +120,4 @@ for route in $tempdir/*.rsync; do
 done
 
 ghe_verbose "* Update storage database after the restore ..."
-cat $tmp_list | ghe-ssh "$GHE_HOSTNAME" github-env ./bin/storage-cluster-restore-finalize
+cat $to_restore | ghe-ssh "$GHE_HOSTNAME" github-env ./bin/storage-cluster-restore-finalize

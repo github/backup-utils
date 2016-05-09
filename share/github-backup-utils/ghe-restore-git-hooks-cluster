@@ -63,7 +63,7 @@ if [ -d "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/git-hooks" ]; then
     -e "ssh -q $opts -p $port -F $config_file -l $user" \
     --rsync-path="sudo -u git rsync" \
     "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/git-hooks" \
-    "$route:$GHE_REMOTE_DATA_USER_DIR/git-hooks" &
+    "$hostname:$GHE_REMOTE_DATA_USER_DIR/git-hooks" &
   done
 
   for pid in $(jobs -p); do

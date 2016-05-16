@@ -5,18 +5,20 @@
 # This file is sourced by the various utilities under bin and share/github-backup-utils to
 # load in backup configuration and ensure things are configured properly.
 #
-# All commands should start with the following:
+# All commands in share/github-backup-utils/ should start with the following:
 #
-#     cd $(dirname "$0")/../..
-#     . share/github-backup-utils/ghe-backup-config
+#     . $( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config
+#
+# And all commands in bin/ should start with the following:
+#
+#     . $( dirname "${BASH_SOURCE[0]}" )/../share/github-backup-utils/ghe-backup-config
 #
 
-# Assume the current directory is the root. This should be fine so long as all
-# scripts source us in according to the instructions above.
-GHE_BACKUP_ROOT="$(pwd)"
+# Assume this script lives in share/github-backup-utils/ when setting the root
+GHE_BACKUP_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/../.." && pwd )"
 
 # Get the version from the version file.
-BACKUP_UTILS_VERSION="$(cat share/github-backup-utils/version)"
+BACKUP_UTILS_VERSION="$(cat $GHE_BACKUP_ROOT/share/github-backup-utils/version)"
 
 # Add the bin and share/github-backup-utils dirs to PATH
 PATH="$GHE_BACKUP_ROOT/bin:$GHE_BACKUP_ROOT/share/github-backup-utils:$PATH"
@@ -71,6 +73,10 @@ if [ -z "$GHE_HOSTNAME" ]; then
     echo "Error: GHE_HOSTNAME not set in config file." 1>&2
     exit 2
 fi
+
+# Canonicalize the data directory path, basing any relative paths on the
+# backup-utils root.
+GHE_DATA_DIR="$( cd "$GHE_BACKUP_ROOT" && readlink -m "$GHE_DATA_DIR" )"
 
 GHE_CREATE_DATA_DIR=${GHE_CREATE_DATA_DIR:-yes}
 

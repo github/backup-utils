@@ -4,12 +4,11 @@
 set -e
 
 # Bring in the backup configuration
-cd $(dirname "$0")/../..
-. share/github-backup-utils/ghe-backup-config
+. $( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config
 
-if [ -d .git ]; then
+if [ -d $GHE_BACKUP_ROOT/.git ]; then
   version_info="$BACKUP_UTILS_VERSION"
-  ref=$(git rev-parse HEAD || true)
+  ref=$(git --git-dir=$GHE_BACKUP_ROOT/.git rev-parse HEAD || true)
   if [ -n "$ref" ]; then
     version_info="$version_info:$ref"
   fi

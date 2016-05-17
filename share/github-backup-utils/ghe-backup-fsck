@@ -18,7 +18,7 @@ fi
 sdir=$1
 repos=0
 errors=0
-log=$(mktemp -t ghe-backup-fsck)
+log=$(mktemp -t ghe-backup-fsck-XXXXXX)
 t_start=$(date +%s)
 if git fsck -h | grep -q '\-\-dangling'; then
   git_cmd='git fsck --no-dangling'

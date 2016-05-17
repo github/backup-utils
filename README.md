@@ -58,8 +58,8 @@ patterns of the GitHub appliance. We recommend allocating at least 5x the amount
 of storage allocated to the primary GitHub appliance for historical snapshots
 and growth over time.
 
-As Repository, Search, and Pages data is stored efficiently via hard links,
-backup snapshots must be written to a filesystem which supports hard links.
+The backup utilities use [hard links][12] to store data efficiently, so the backup
+snapshots must be written to a filesystem with support for hard links.
 
 ##### GitHub Enterprise version requirements
 
@@ -281,3 +281,4 @@ site setup or recovery, please contact our [Enterprise support team][7] instead.
 [9]: https://enterprise.github.com/help/articles/restoring-enterprise-data
 [10]: https://help.github.com/enterprise/2.0/admin-guide/migrating-to-a-different-platform-or-from-github-enterprise-11-10-34x/
 [11]: https://help.github.com/enterprise/2.0/admin-guide/
+[12]: https://en.wikipedia.org/wiki/Hard_link

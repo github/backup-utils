@@ -247,6 +247,7 @@ if $cluster; then
   else
     ghe-restore-alambic-cluster "$GHE_HOSTNAME" 1>&3
   fi
+  echo "Restoring custom Git hooks ..."
   ghe-restore-git-hooks-cluster "$GHE_HOSTNAME" 1>&3
 elif [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
   echo "Restoring asset attachments ..."

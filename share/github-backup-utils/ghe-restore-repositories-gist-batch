@@ -57,20 +57,30 @@ echo "$config" > "$config_file"
 
 opts="$GHE_EXTRA_SSH_OPTS -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no"
 tempdir=$(mktemp -d)
+tmp_list=$(mktemp -t cluster-backup-restore-XXXXXX)
+to_restore=$(mktemp -t cluster-backup-restore-XXXXXX)
 
 cleanup() {
   rm -rf $tempdir $config_file
 }
 
-trap 'cleanup' INT TERM EXIT
+trap 'cleanup' EXIT
 
 # Find the routes (servers) for each gist available locally
-echo "$gist_paths" | sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/ /g' | ghe-ssh "$GHE_HOSTNAME" github-env ./bin/gist-cluster-import-routes - \
- | while read g; do
-  server=$(echo $g | cut -d ',' -f1)
-  for r in $(echo $g | cut -d ',' -f2); do
-    echo $r >> $tempdir/$server.rsync
-  done
+OLDIFS=$IFS; IFS=$'\n'
+for path in "$gist_paths"; do
+   echo $path | sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/ /g'
+done > $tmp_list
+IFS=$OLDIFS
+
+cat $tmp_list | ghe-ssh "$GHE_HOSTNAME" github-env ./bin/gist-cluster-restore-routes \
+ | while read route; do
+  for server in $(echo $route | cut -d ' ' -f2-); do
+    gist=$(echo $route | cut -d ' ' -f1)
+    ghe_verbose "Adding $route to $tempdir/$server.rsync"
+    echo "$gist" >> $tempdir/$server.rsync
+ done
+ echo "$route" >> $to_restore
 done
 
 # rsync all the gist repositories
@@ -83,14 +93,4 @@ for route in $tempdir/*.rsync; do
     "$(basename $route .rsync):$GHE_REMOTE_DATA_USER_DIR/repositories"
 done
 
-# Add the imported gists to the database
-(
-cd $tempdir
-for gpath in $(cat *.rsync | sort | uniq); do
-  gid=$(basename $(echo $gpath | cut -d / -f6) .git)
-  shard="/data/repositories/$gpath" 
-  routes=$(grep "/$gid\.git" *.rsync | cut -d : -f1 | sed 's/\.rsync//' | xargs echo -n)
-  echo "$gid $shard $routes" >> $tempdir/import
-done
-)
-cat $tempdir/import | ghe-ssh "$GHE_HOSTNAME" github-env ./bin/gist-cluster-import-finalize - >/dev/null
+cat $to_restore | ghe-ssh "$GHE_HOSTNAME" github-env ./bin/gist-cluster-restore-finalize

@@ -239,8 +239,14 @@ ghe-ssh "$GHE_HOSTNAME" -- 'ghe-import-authorized-keys' < "$GHE_RESTORE_SNAPSHOT
 
 if $cluster; then
   echo "Restoring storage data ..."
-  ghe-restore-alambic-cluster "$GHE_HOSTNAME" 1>&3
-  
+  if ghe-ssh "$GHE_HOSTNAME" test -f /data/github/current/script/storage-cluster-restore-routes; then
+    ghe_verbose "* Using ghe-restore-alambic-cluster-ng to restore"
+    # This restore script is faster but only available in
+    # GHE >= 2.6.3
+    ghe-restore-alambic-cluster-ng "$GHE_HOSTNAME" 1>&3
+  else
+    ghe-restore-alambic-cluster "$GHE_HOSTNAME" 1>&3
+  fi
   echo "Restoring custom Git hooks ..."
   ghe-restore-git-hooks-cluster "$GHE_HOSTNAME" 1>&3
 elif [ "$GHE_VERSION_MAJOR" -ge 2 ]; then

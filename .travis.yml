@@ -1,6 +1,13 @@
 ---
-script:
-  - debuild -uc -us
-before_install: 
-  - sudo apt-get update -qq
-  - sudo apt-get install -y devscripts
+matrix:
+  include:
+    - os: osx
+      before_install:
+        - brew update
+        - brew install gnu-tar
+      script: make test
+    - os: linux
+      addons:
+        apt:
+          packages: devscripts
+      script: debuild -uc -us

@@ -21,9 +21,8 @@
 #/ <https://enterprise.github.com/help/articles/adding-an-ssh-key-for-shell-access>
 set -e
 
-# Bring in the backup configuration.
-cd $(dirname "$0")/..
-. share/github-backup-utils/ghe-backup-config
+# Bring in the backup configuration
+. $( dirname "${BASH_SOURCE[0]}" )/../share/github-backup-utils/ghe-backup-config
 
 # Parse arguments
 restore_settings=false
@@ -106,6 +105,17 @@ if ghe-ssh "$GHE_HOSTNAME" -- \
   restore_settings=false
 fi
 
+# Figure out if we're restoring into a cluster with an unsupported snapshot
+if $cluster; then
+  snapshot_instance_version=$(cat $GHE_RESTORE_SNAPSHOT_PATH/version)
+  if ! echo $snapshot_instance_version | \
+    grep -Eq "v2\.[5-9]|v2\.[1-9][0-9]|v[3-9]|v[1-9][0-9]"; then
+    echo "Error: Snapshot must be from GitHub Enterprise v2.5.0 or above to be restored"
+    echo "       into a cluster (detected $snapshot_instance_version).  Aborting." >&2
+    exit 1
+  fi
+fi
+
 # Figure out if this instance is in a replication pair
 if ghe-ssh "$GHE_HOSTNAME" -- "ghe-repl-status -r 2>/dev/null" \
   | grep -Eq "replica|primary"; then
@@ -176,6 +186,9 @@ if $instance_configured; then
     fi
 fi
 
+ghe-backup-store-version  ||
+echo "Warning: storing backup-utils version remotely failed."
+
 # Restore settings and license if restoring to an unconfigured appliance or when
 # specified manually.
 if $restore_settings; then
@@ -231,7 +244,16 @@ ghe-ssh "$GHE_HOSTNAME" -- 'ghe-import-authorized-keys' < "$GHE_RESTORE_SNAPSHOT
 
 if $cluster; then
   echo "Restoring storage data ..."
-  ghe-restore-alambic-cluster "$GHE_HOSTNAME" 1>&3
+  if ghe-ssh "$GHE_HOSTNAME" test -f /data/github/current/script/storage-cluster-restore-routes; then
+    ghe_verbose "* Using ghe-restore-alambic-cluster-ng to restore"
+    # This restore script is faster but only available in
+    # GHE >= 2.6.3
+    ghe-restore-alambic-cluster-ng "$GHE_HOSTNAME" 1>&3
+  else
+    ghe-restore-alambic-cluster "$GHE_HOSTNAME" 1>&3
+  fi
+  echo "Restoring custom Git hooks ..."
+  ghe-restore-git-hooks-cluster "$GHE_HOSTNAME" 1>&3
 elif [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
   echo "Restoring asset attachments ..."
   ghe-restore-userdata alambic_assets "$GHE_HOSTNAME" 1>&3
@@ -241,6 +263,9 @@ elif [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
 
   echo "Restoring hook deliveries ..."
   ghe-restore-userdata hookshot "$GHE_HOSTNAME" 1>&3
+
+  echo "Restoring custom Git hooks ..."
+  ghe-restore-userdata git-hooks "$GHE_HOSTNAME" 1>&3
 fi
 
 if $cluster; then

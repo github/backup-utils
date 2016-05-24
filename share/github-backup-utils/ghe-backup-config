@@ -5,24 +5,23 @@
 # This file is sourced by the various utilities under bin and share/github-backup-utils to
 # load in backup configuration and ensure things are configured properly.
 #
-# All commands should start with the following:
+# All commands in share/github-backup-utils/ should start with the following:
 #
-#     cd $(dirname "$0")/../..
-#     . share/github-backup-utils/ghe-backup-config
+#     . $( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config
+#
+# And all commands in bin/ should start with the following:
+#
+#     . $( dirname "${BASH_SOURCE[0]}" )/../share/github-backup-utils/ghe-backup-config
 #
 
-# Assume the current directory is the root. This should be fine so long as all
-# scripts source us in according to the instructions above.
-GHE_BACKUP_ROOT="$(pwd)"
+# Assume this script lives in share/github-backup-utils/ when setting the root
+GHE_BACKUP_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/../.." && pwd )"
 
 # Get the version from the version file.
-BACKUP_UTILS_VERSION="$(cat share/github-backup-utils/version)"
+BACKUP_UTILS_VERSION="$(cat $GHE_BACKUP_ROOT/share/github-backup-utils/version)"
 
 # Add the bin and share/github-backup-utils dirs to PATH
 PATH="$GHE_BACKUP_ROOT/bin:$GHE_BACKUP_ROOT/share/github-backup-utils:$PATH"
-
-# The backup config file. This may be set in the environment.
-: ${GHE_BACKUP_CONFIG:="$GHE_BACKUP_ROOT/backup.config"}
 
 # Parse out -v (verbose) argument
 if [ "$1" = "-v" ]; then
@@ -43,10 +42,11 @@ fi
 # backup.config value when set.
 GHE_HOSTNAME_PRESERVE="$GHE_HOSTNAME"
 
-# Source in the backup config file from the local working copy location first
-# and then falling back to the system location.
+# Source in the backup config file from the copy specified in the environment
+# first and then fall back to the backup-utils root, home directory and system.
 config_found=false
-for f in "$GHE_BACKUP_CONFIG" "/etc/github-backup-utils/backup.config"; do
+for f in "$GHE_BACKUP_CONFIG" "$GHE_BACKUP_ROOT/backup.config" \
+  "$HOME/.github-backup-utils/backup.config" "/etc/github-backup-utils/backup.config"; do
     if [ -f "$f" ]; then
         GHE_BACKUP_CONFIG="$f"
         . "$GHE_BACKUP_CONFIG"
@@ -58,7 +58,9 @@ done
 # Check that the config file exists before we source it in.
 if ! $config_found; then
     echo "Error: No backup configuration file found. Tried:" 1>&2
-    echo " - $GHE_BACKUP_CONFIG" 1>&2
+    [ -n "$GHE_BACKUP_CONFIG" ] && echo " - $GHE_BACKUP_CONFIG" 1>&2
+    echo " - $GHE_BACKUP_ROOT/backup.config" 1>&2
+    echo " - $HOME/.github-backup-utils/backup.config" 1>&2
     echo " - /etc/github-backup-utils/backup.config" 1>&2
     exit 2
 fi
@@ -72,10 +74,24 @@ if [ -z "$GHE_HOSTNAME" ]; then
     exit 2
 fi
 
+# Convert the data directory path to an absolute path, basing any relative
+# paths on the backup-utils root, and using readlink, if available, to
+# canonicalize the path.
+if [ ${GHE_DATA_DIR:0:1} != "/" ]; then
+  GHE_DATA_DIR="$( cd "$GHE_BACKUP_ROOT" && readlink -m "$GHE_DATA_DIR" 2> /dev/null || echo "$GHE_BACKUP_ROOT/$GHE_DATA_DIR" )"
+fi
+
+GHE_CREATE_DATA_DIR=${GHE_CREATE_DATA_DIR:-yes}
+
 # Check that the data directory is set and create it if it doesn't exist.
-if [ ! -d "$GHE_DATA_DIR" ]; then
+if [ ! -d "$GHE_DATA_DIR" ] && [ "$GHE_CREATE_DATA_DIR" = "yes" ]; then
     echo "Creating the backup data directory ..." 1>&3
     mkdir -p "$GHE_DATA_DIR"
+fi
+
+if [ ! -d "$GHE_DATA_DIR" ]; then
+    echo "Error: GHE_DATA_DIR $GHE_DATA_DIR does not exist." >&2
+    exit 8
 fi
 
 # Set some defaults if needed.
@@ -134,6 +150,9 @@ GHE_SNAPSHOT_DIR="$GHE_DATA_DIR"/"$GHE_SNAPSHOT_TIMESTAMP"
 # This is always "/data/user/common/cluster.conf" for GitHub Cluster instances.
 # Use of this variable allows the location to be overridden in tests.
 : ${GHE_REMOTE_CLUSTER_CONF_FILE:="$GHE_REMOTE_DATA_DIR/user/common/cluster.conf"}
+
+# The location of the file used to disable GC operations on the remote side.
+: ${SYNC_IN_PROGRESS_FILE:="$GHE_REMOTE_DATA_USER_DIR/repositories/.sync_in_progress"}
 
 ###############################################################################
 ### Dynamic remote version config
@@ -251,4 +270,12 @@ ghe_remote_logger () {
 ghe_cluster_online_nodes () {
     role=$1
     echo "ghe-config --get-regexp cluster.*.$role | egrep 'true$' | awk '{ print \$1; }' | awk 'BEGIN { FS=\".\" }; { print \$2 };' | xargs -I{} -n1 bash -c 'if [ \"\$(ghe-config cluster.\$hostname.offline)\" != true ]; then ghe-config cluster.{}.hostname; fi'" | ghe-ssh "$GHE_HOSTNAME" /bin/bash
+}
+
+# Usage: ghe_verbose <message>
+# Log if verbose mode is enabled (GHE_VERBOSE or `-v`).
+ghe_verbose() {
+  if [ -n "$GHE_VERBOSE" ]; then
+    echo "$@" 1>&3
+  fi
 }

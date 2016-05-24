@@ -1,3 +1,23 @@
+github-backup-utils (2.6.0) UNRELEASED; urgency=medium
+
+  * Adds support for GitHub Enterprise 2.6
+  * Adds an extra supported location for the backup configuration #197
+  * New config option to check for corrupted repositories after the backup #195
+  * General improvements and bug fixes
+
+ -- Sergio Rubio <rubiojr@github.com>  Tue, 26 Apr 2016 18:03:01 +0200
+
+github-backup-utils (2.5.2) UNRELEASED; urgency=medium
+
+  * New configuration variable: GHE_CREATE_DATA_DIR #186
+  * Require that snapshots originated from an instance running GitHub
+    Enterprise 2.5.0 or above when restoring to a cluster #182
+  * Prevent Git GC operations and some other maintenance jobs from running
+    while repositories are being restored #179
+  * Fix Solaris and SmartOS support, using Bash everywhere #177
+
+ -- Sergio Rubio <rubiojr@github.com>  Wed, 30 Mar 2016 14:32:15 +0200
+
 github-backup-utils (2.5.1) UNRELEASED; urgency=medium
 
   * Fixes for cluster restores #173

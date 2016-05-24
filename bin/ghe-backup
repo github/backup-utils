@@ -8,8 +8,7 @@
 set -e
 
 # Bring in the backup configuration
-cd $(dirname "$0")/..
-. share/github-backup-utils/ghe-backup-config
+. $( dirname "${BASH_SOURCE[0]}" )/../share/github-backup-utils/ghe-backup-config
 
 # Used to record failed backup steps
 failures=
@@ -121,6 +120,9 @@ if [ "$GHE_BACKUP_STRATEGY" = "tarball" ]; then
     GHE_MAINTENANCE_MODE_ENABLED=true
 fi
 
+ghe-backup-store-version  ||
+echo "Warning: storing backup-utils version remotely failed."
+
 echo "Backing up GitHub settings ..."
 ghe-backup-settings ||
 failures="$failures settings"
@@ -170,6 +172,10 @@ if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
         echo "Backing up asset attachments ..."
         ghe-backup-alambic-cluster ||
         failures="$failures alambic_assets"
+
+        echo "Backing up custom Git hooks ..."
+        ghe-backup-git-hooks-cluster ||
+        failures="$failures alambic_assets"
     else
         echo "Backing up asset attachments ..."
         ghe-backup-userdata alambic_assets ||
@@ -182,6 +188,10 @@ if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
         echo "Backing up hook deliveries ..."
         ghe-backup-userdata hookshot ||
         failures="$failures hookshot"
+
+        echo "Backing up custom Git hooks ..."
+        ghe-backup-userdata git-hooks ||
+        failures="$failures git-hooks"
     fi
 fi
 
@@ -197,6 +207,12 @@ if $GHE_MAINTENANCE_MODE_ENABLED; then
     ghe-maintenance-mode-disable "$GHE_HOSTNAME" ||
         echo "Warning: Disabling maintenance mode on $GHE_HOSTNAME failed."
     GHE_MAINTENANCE_MODE_ENABLED=false
+fi
+
+# git fsck repositories after the backup
+if [ "$GHE_BACKUP_FSCK" = "yes" ]; then
+  ghe-backup-fsck $GHE_SNAPSHOT_DIR ||
+    failures="$failures fsck"
 fi
 
 # If everything was successful, mark the snapshot as complete, update the

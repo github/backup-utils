@@ -23,6 +23,11 @@ if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
     cd "$GHE_REMOTE_DATA_USER_DIR/hookshot"
     mkdir -p repository-123 repository-456
     touch repository-123/test.bpack repository-456/test.bpack
+
+    mkdir -p "$GHE_REMOTE_DATA_USER_DIR/git-hooks"
+    cd "$GHE_REMOTE_DATA_USER_DIR/git-hooks"
+    mkdir -p repository-123 repository-456
+    touch repository-123/script.sh repository-456/foo.sh
 fi
 
 # Create some fake alambic data in the remote data directory
@@ -49,13 +54,15 @@ fi
 mkdir "$GHE_REMOTE_DATA_USER_DIR/repositories"
 cd "$GHE_REMOTE_DATA_USER_DIR/repositories"
 mkdir alice bob
-mkdir alice/repo1.git alice/repo2.git bob/repo3.git
+mkdir alice/repo1.git alice/repo2.git bob/repo3.git alice/broken.git
 
 # Initialize test repositories with a fake commit
 for repo in */*.git; do
     git init -q --bare "$repo"
     git --git-dir="$repo" --work-tree=. commit -q --allow-empty -m 'test commit'
 done
+# Break a repo to test fsck
+rm -f alice/broken.git/objects/4b/825dc642cb6eb9a060e54bf8d69288fbee4904
 
 begin_test "ghe-backup first snapshot"
 (
@@ -120,12 +127,17 @@ begin_test "ghe-backup first snapshot"
         # verify all hookshot user data was transferred
         diff -ru "$GHE_REMOTE_DATA_USER_DIR/hookshot" "$GHE_DATA_DIR/current/hookshot"
 
+        # verify all git hooks data was transferred
+        diff -ru "$GHE_REMOTE_DATA_USER_DIR/git-hooks" "$GHE_DATA_DIR/current/git-hooks"
+
         # verify all alambic assets user data was transferred
         diff -ru "$GHE_REMOTE_DATA_USER_DIR/alambic_assets" "$GHE_DATA_DIR/current/alambic_assets"
     fi
+
+    # verify that ghe-backup wrote its version information to the host
+    [ -f "$GHE_REMOTE_DATA_USER_DIR/common/backup-utils-version" ]
 )
 end_test
-
 
 begin_test "ghe-backup subsequent snapshot"
 (
@@ -192,12 +204,95 @@ begin_test "ghe-backup subsequent snapshot"
         # verify all hookshot user data was transferred
         diff -ru "$GHE_REMOTE_DATA_USER_DIR/hookshot" "$GHE_DATA_DIR/current/hookshot"
 
+        # verify all git hooks data was transferred
+        diff -ru "$GHE_REMOTE_DATA_USER_DIR/git-hooks" "$GHE_DATA_DIR/current/git-hooks"
+
         # verify all alambic assets user data was transferred
         diff -ru "$GHE_REMOTE_DATA_USER_DIR/alambic_assets" "$GHE_DATA_DIR/current/alambic_assets"
     fi
 )
 end_test
 
+begin_test "ghe-backup with relative data dir path"
+(
+    set -e
+
+    # wait a second for snapshot timestamp
+    sleep 1
+
+    # generate a timestamp
+    export GHE_SNAPSHOT_TIMESTAMP="relative-$(date +"%Y%m%dT%H%M%S")"
+
+    # change working directory to the root directory
+    cd $ROOTDIR
+
+    # run it
+    GHE_DATA_DIR=$(echo $GHE_DATA_DIR | sed 's|'$ROOTDIR'/||') ghe-backup
+
+    # check that current symlink points to new snapshot
+    ls -ld "$GHE_DATA_DIR/current" | grep -q "$GHE_SNAPSHOT_TIMESTAMP"
+
+    # check that the version file was written
+    [ -f "$GHE_DATA_DIR/current/version" ]
+    [ $(cat "$GHE_DATA_DIR/current/version") = "v$GHE_TEST_REMOTE_VERSION" ]
+
+    # check that the strategy file was written
+    [ -f "$GHE_DATA_DIR/current/strategy" ]
+    [ $(cat "$GHE_DATA_DIR/current/strategy") = "rsync" ]
+
+    # check that settings were backed up
+    [ "$(cat "$GHE_DATA_DIR/current/settings.json")" = "fake ghe-export-settings data" ]
+
+    # check that license was backed up
+    [ "$(cat "$GHE_DATA_DIR/current/enterprise.ghl")" = "fake license data" ]
+
+    # check that repositories directory was created
+    [ -d "$GHE_DATA_DIR/current/repositories" ]
+
+    # check that pages data was backed up
+    [ -f "$GHE_DATA_DIR/current/pages/alice/index.html" ]
+
+    # check that mysql data was backed up
+    [ "$(gzip -dc < "$GHE_DATA_DIR/current/mysql.sql.gz")" = "fake ghe-export-mysql data" ]
+
+    # check that redis data was backed up
+    [ "$(cat "$GHE_DATA_DIR/current/redis.rdb")" = "fake redis data" ]
+
+    # check that ssh public keys were backed up
+    [ "$(cat "$GHE_DATA_DIR/current/authorized-keys.json")" = "fake ghe-export-authorized-keys data" ]
+
+    # check that ssh host key was backed up
+    [ "$(cat "$GHE_DATA_DIR/current/ssh-host-keys.tar")" = "fake ghe-export-ssh-host-keys data" ]
+
+    # verify all repository data was transferred
+    diff -ru "$GHE_REMOTE_DATA_USER_DIR/repositories" "$GHE_DATA_DIR/current/repositories"
+
+    # verify all pages data was transferred
+    diff -ru "$GHE_REMOTE_DATA_USER_DIR/pages" "$GHE_DATA_DIR/current/pages"
+
+    # verify all ES data was transferred from live directory
+    diff -ru "$GHE_REMOTE_DATA_USER_DIR/elasticsearch" "$GHE_DATA_DIR/current/elasticsearch"
+
+    # verify manage-password file was backed up under v2.x VMs
+    if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
+        [ "$(cat "$GHE_DATA_DIR/current/manage-password")" = "fake password hash data" ]
+    fi
+
+    if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
+        # verify all hookshot user data was transferred
+        diff -ru "$GHE_REMOTE_DATA_USER_DIR/hookshot" "$GHE_DATA_DIR/current/hookshot"
+
+        # verify all git hooks data was transferred
+        diff -ru "$GHE_REMOTE_DATA_USER_DIR/git-hooks" "$GHE_DATA_DIR/current/git-hooks"
+
+        # verify all alambic assets user data was transferred
+        diff -ru "$GHE_REMOTE_DATA_USER_DIR/alambic_assets" "$GHE_DATA_DIR/current/alambic_assets"
+    fi
+
+    # verify that ghe-backup wrote its version information to the host
+    [ -f "$GHE_REMOTE_DATA_USER_DIR/common/backup-utils-version" ]
+)
+end_test
 
 begin_test "ghe-backup tarball strategy"
 (
@@ -252,7 +347,6 @@ begin_test "ghe-backup cleans up stale in-progress file"
 )
 end_test
 
-
 begin_test "ghe-backup without manage-password file"
 (
     set -e
@@ -274,5 +368,33 @@ begin_test "ghe-backup empty hookshot directory"
 
   # Check that the "--link-dest arg does not exist" message hasn't occurred.
   [ ! "$(grep "[l]ink-dest arg does not exist" $TRASHDIR/out)" ]
+)
+end_test
+
+begin_test "ghe-backup empty git-hooks directory"
+(
+  set -e
+
+  rm -rf $GHE_REMOTE_DATA_USER_DIR/git-hooks/repository-*
+  rm -rf $GHE_DATA_DIR/current/git-hooks/repository-*
+  ghe-backup
+
+  # Check that the "--link-dest arg does not exist" message hasn't occurred.
+  [ ! "$(grep "[l]ink-dest arg does not exist" $TRASHDIR/out)" ]
+)
+end_test
+
+begin_test "ghe-backup fsck"
+(
+  set -e
+
+  export GHE_BACKUP_FSCK=yes
+  ghe-backup | grep -q "Repos verified: 4, Errors: 1, Took:"
+  # Verbose mode disabled by default
+  ! ghe-backup | grep -q "missing tree 4b825dc642cb6eb9a060e54bf8d69288fbee4904"
+  ghe-backup -v | grep -q "missing tree 4b825dc642cb6eb9a060e54bf8d69288fbee4904"
+
+  export GHE_BACKUP_FSCK=no
+  ! ghe-backup | grep -q "Repos verified:"
 )
 end_test

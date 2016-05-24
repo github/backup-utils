@@ -48,7 +48,8 @@ Backup host software requirements are modest: Linux or other modern Unix
 operating system with bash and [rsync][4] v2.6.4 or newer.
 
 The backup host must be able to establish network connections outbound to the
-GitHub appliance over SSH. TCP port 122 is used to backup GitHub Enterprise 2.0 or newer instances, and TCP port 22 is used for older versions (11.10.34X).
+GitHub appliance over SSH. TCP port 122 is used to backup GitHub Enterprise 2.0
+or newer instances, and TCP port 22 is used for older versions (11.10.34X).
 
 ##### Storage requirements
 
@@ -56,6 +57,9 @@ Storage requirements vary based on current Git repository disk usage and growth
 patterns of the GitHub appliance. We recommend allocating at least 5x the amount
 of storage allocated to the primary GitHub appliance for historical snapshots
 and growth over time.
+
+The backup utilities use [hard links][12] to store data efficiently, so the backup
+snapshots must be written to a filesystem with support for hard links.
 
 ##### GitHub Enterprise version requirements
 
@@ -83,6 +87,14 @@ download the most recent GitHub Enterprise version.
     host name. Additional options are available and documented in the
     configuration file but none are required for basic backup functionality.
 
+    * backup-utils will attempt to load the backup configuration from the following locations, in this order:
+
+      ```
+      $GHE_BACKUP_CONFIG (User configurable environment variable)
+      $GHE_BACKUP_ROOT/backup.config (Root directory of backup-utils install)
+      $HOME/.github-backup-utils/backup.config
+      /etc/github-backup-utils/backup.config
+      ```
     * In a clustering environment, the `GHE_EXTRA_SSH_OPTS` key must be configured with the `-i <abs path to private key>` SSH option.
 
  3. Add the backup host's SSH key to the GitHub appliance as an *Authorized SSH
@@ -269,3 +281,4 @@ site setup or recovery, please contact our [Enterprise support team][7] instead.
 [9]: https://enterprise.github.com/help/articles/restoring-enterprise-data
 [10]: https://help.github.com/enterprise/2.0/admin-guide/migrating-to-a-different-platform-or-from-github-enterprise-11-10-34x/
 [11]: https://help.github.com/enterprise/2.0/admin-guide/
+[12]: https://en.wikipedia.org/wiki/Hard_link

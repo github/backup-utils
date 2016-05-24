@@ -2,7 +2,8 @@
 # ghe-restore command tests
 
 # Bring in testlib
-. $(dirname "$0")/testlib.sh
+ROOTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
+. $ROOTDIR/test/testlib.sh
 
 # Add some fake pages data to the snapshot
 mkdir -p "$GHE_DATA_DIR/1/pages"
@@ -24,6 +25,11 @@ if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
     cd "$GHE_DATA_DIR/1/hookshot"
     mkdir -p repository-123 repository-456
     touch repository-123/test.bpack repository-456/test.bpack
+
+    mkdir -p "$GHE_DATA_DIR/1/git-hooks"
+    cd "$GHE_DATA_DIR/1/git-hooks"
+    mkdir -p repository-123 repository-456
+    touch repository-123/script.sh repository-456/foo.sh
 fi
 
 # Create some fake alambic data in the remote data directory
@@ -80,6 +86,9 @@ begin_test "ghe-restore into configured vm"
     mkdir -p "$GHE_REMOTE_DATA_DIR/github/current/public/system"
     touch "$GHE_REMOTE_DATA_DIR/github/current/public/system/maintenance.html"
 
+    # Create fake remote repositories dir
+    mkdir -p "$GHE_REMOTE_DATA_USER_DIR/repositories"
+
     # set restore host environ var
     GHE_RESTORE_HOST=127.0.0.1
     export GHE_RESTORE_HOST
@@ -87,7 +96,7 @@ begin_test "ghe-restore into configured vm"
     # run ghe-restore and write output to file for asserting against
     if ! ghe-restore -v -f > "$TRASHDIR/restore-out" 2>&1; then
         cat "$TRASHDIR/restore-out"
-        : ghe-restore should have exited non-zero
+        : ghe-restore should have exited successfully
         false
     fi
 
@@ -118,6 +127,9 @@ begin_test "ghe-restore into configured vm"
         # verify all hookshot user data was transferred
         diff -ru "$GHE_DATA_DIR/current/hookshot" "$GHE_REMOTE_DATA_USER_DIR/hookshot"
 
+        # verify all git hooks data was transferred
+        diff -ru "$GHE_DATA_DIR/current/git-hooks" "$GHE_REMOTE_DATA_USER_DIR/git-hooks"
+
         # verify all alambic assets user data was transferred
         diff -ru "$GHE_DATA_DIR/current/alambic_assets" "$GHE_REMOTE_DATA_USER_DIR/alambic_assets"
     fi
@@ -140,6 +152,9 @@ begin_test "ghe-restore aborts without user verification"
     # create file used to determine if instance is in maintenance mode.
     mkdir -p "$GHE_REMOTE_DATA_DIR/github/current/public/system"
     touch "$GHE_REMOTE_DATA_DIR/github/current/public/system/maintenance.html"
+
+    # Create fake remote repositories dir
+    mkdir -p "$GHE_REMOTE_DATA_USER_DIR/repositories"
 
     # set restore host environ var
     GHE_RESTORE_HOST=127.0.0.1
@@ -172,6 +187,9 @@ begin_test "ghe-restore accepts user verification"
     mkdir -p "$GHE_REMOTE_DATA_DIR/github/current/public/system"
     touch "$GHE_REMOTE_DATA_DIR/github/current/public/system/maintenance.html"
 
+    # Create fake remote repositories dir
+    mkdir -p "$GHE_REMOTE_DATA_USER_DIR/repositories"
+
     # set restore host environ var
     GHE_RESTORE_HOST=127.0.0.1
     export GHE_RESTORE_HOST
@@ -197,6 +215,9 @@ begin_test "ghe-restore -c into unconfigured vm"
     # create file used to determine if instance is in maintenance mode.
     mkdir -p "$GHE_REMOTE_DATA_DIR/github/current/public/system"
     touch "$GHE_REMOTE_DATA_DIR/github/current/public/system/maintenance.html"
+
+    # Create fake remote repositories dir
+    mkdir -p "$GHE_REMOTE_DATA_USER_DIR/repositories"
 
     # run ghe-restore and write output to file for asserting against
     if ! ghe-restore -v -f -c > "$TRASHDIR/restore-out" 2>&1; then
@@ -227,6 +248,9 @@ begin_test "ghe-restore -c into unconfigured vm"
         # verify all hookshot user data was transferred
         diff -ru "$GHE_DATA_DIR/current/hookshot" "$GHE_REMOTE_DATA_USER_DIR/hookshot"
 
+        # verify all git hooks data was transferred
+        diff -ru "$GHE_DATA_DIR/current/git-hooks" "$GHE_REMOTE_DATA_USER_DIR/git-hooks"
+
         # verify all alambic assets user data was transferred
         diff -ru "$GHE_DATA_DIR/current/alambic_assets" "$GHE_REMOTE_DATA_USER_DIR/alambic_assets"
     fi
@@ -246,6 +270,9 @@ begin_test "ghe-restore into unconfigured vm"
     # create file used to determine if instance is in maintenance mode.
     mkdir -p "$GHE_REMOTE_DATA_DIR/github/current/public/system"
     touch "$GHE_REMOTE_DATA_DIR/github/current/public/system/maintenance.html"
+
+    # Create fake remote repositories dir
+    mkdir -p "$GHE_REMOTE_DATA_USER_DIR/repositories"
 
     if [ "$GHE_VERSION_MAJOR" -le 1 ]; then
         # run ghe-restore and write output to file for asserting against
@@ -283,6 +310,9 @@ begin_test "ghe-restore into unconfigured vm"
         # verify all hookshot user data was transferred
         diff -ru "$GHE_DATA_DIR/current/hookshot" "$GHE_REMOTE_DATA_USER_DIR/hookshot"
 
+        # verify all git hooks data was transferred
+        diff -ru "$GHE_DATA_DIR/current/git-hooks" "$GHE_REMOTE_DATA_USER_DIR/git-hooks"
+
         # verify all alambic assets user data was transferred
         diff -ru "$GHE_DATA_DIR/current/alambic_assets" "$GHE_REMOTE_DATA_USER_DIR/alambic_assets"
 
@@ -309,6 +339,9 @@ begin_test "ghe-restore with host arg"
     mkdir -p "$GHE_REMOTE_DATA_DIR/github/current/public/system"
     touch "$GHE_REMOTE_DATA_DIR/github/current/public/system/maintenance.html"
 
+    # Create fake remote repositories dir
+    mkdir -p "$GHE_REMOTE_DATA_USER_DIR/repositories"
+
     # set restore host environ var
     GHE_RESTORE_HOST=127.0.0.1
     export GHE_RESTORE_HOST
@@ -328,6 +361,9 @@ begin_test "ghe-restore with host arg"
     if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
         # verify all hookshot user data was transferred
         diff -ru "$GHE_DATA_DIR/current/hookshot" "$GHE_REMOTE_DATA_USER_DIR/hookshot"
+
+        # verify all git hooks data was transferred
+        diff -ru "$GHE_DATA_DIR/current/git-hooks" "$GHE_REMOTE_DATA_USER_DIR/git-hooks"
 
         # verify all alambic assets user data was transferred
         diff -ru "$GHE_DATA_DIR/current/alambic_assets" "$GHE_REMOTE_DATA_USER_DIR/alambic_assets"
@@ -351,6 +387,9 @@ begin_test "ghe-restore no host arg or configured restore host"
     # create file used to determine if instance is in maintenance mode.
     mkdir -p "$GHE_REMOTE_DATA_DIR/github/current/public/system"
     touch "$GHE_REMOTE_DATA_DIR/github/current/public/system/maintenance.html"
+
+    # Create fake remote repositories dir
+    mkdir -p "$GHE_REMOTE_DATA_USER_DIR/repositories"
 
     # unset configured restore host
     unset GHE_RESTORE_HOST
@@ -377,6 +416,9 @@ begin_test "ghe-restore with no pages backup"
     mkdir -p "$GHE_REMOTE_DATA_DIR/github/current/public/system"
     touch "$GHE_REMOTE_DATA_DIR/github/current/public/system/maintenance.html"
 
+    # Create fake remote repositories dir
+    mkdir -p "$GHE_REMOTE_DATA_USER_DIR/repositories"
+
     # remove pages data
     rm -rf "$GHE_DATA_DIR/1/pages"
 
@@ -402,11 +444,72 @@ begin_test "ghe-restore with tarball strategy"
     mkdir -p "$GHE_REMOTE_DATA_DIR/github/current/public/system"
     touch "$GHE_REMOTE_DATA_DIR/github/current/public/system/maintenance.html"
 
+    # Create fake remote repositories dir
+    mkdir -p "$GHE_REMOTE_DATA_USER_DIR/repositories"
+
     # run it
     echo "tarball" > "$GHE_DATA_DIR/current/strategy"
     output=$(ghe-restore -v -f localhost)
 
     # verify ghe-import-repositories was run on remote side with fake tarball
     echo "$output" | grep -q 'fake ghe-export-repositories data'
+)
+end_test
+
+begin_test "cluster: ghe-restore from v2.4.0 snapshot"
+(
+    set -e
+    rm -rf "$GHE_REMOTE_ROOT_DIR"
+    setup_remote_cluster || exit 0
+    setup_remote_metadata
+
+    # set restore host environ var
+    GHE_RESTORE_HOST=127.0.0.1
+    export GHE_RESTORE_HOST
+
+    # create file used to determine if instance is in maintenance mode.
+    mkdir -p "$GHE_REMOTE_DATA_DIR/github/current/public/system"
+    touch "$GHE_REMOTE_DATA_DIR/github/current/public/system/maintenance.html"
+
+    echo "v2.4.0" > "$GHE_DATA_DIR/current/version"
+
+    # run ghe-restore and write output to file for asserting against
+    if ghe-restore -v -f > "$TRASHDIR/restore-out" 2>&1; then
+        cat "$TRASHDIR/restore-out"
+        : ghe-restore should have exited non-zero
+        false
+    fi
+
+    # verify restore error message
+    grep -q "Error: Snapshot must be from" "$TRASHDIR/restore-out"
+)
+end_test
+
+begin_test "cluster: ghe-restore from v2.5.0 snapshot"
+(
+    set -e
+    rm -rf "$GHE_REMOTE_ROOT_DIR"
+    setup_remote_cluster || exit 0
+    setup_remote_metadata
+
+    # set restore host environ var
+    GHE_RESTORE_HOST=127.0.0.1
+    export GHE_RESTORE_HOST
+
+    # create file used to determine if instance is in maintenance mode.
+    mkdir -p "$GHE_REMOTE_DATA_DIR/github/current/public/system" "$GHE_REMOTE_DATA_USER_DIR/common"
+    touch "$GHE_REMOTE_DATA_DIR/github/current/public/system/maintenance.html"
+
+    echo "v2.5.0" > "$GHE_DATA_DIR/current/version"
+
+    # run ghe-restore and write output to file for asserting against
+    if ! ghe-restore -v -f > "$TRASHDIR/restore-out" 2>&1; then
+        cat "$TRASHDIR/restore-out"
+        : ghe-restore should have exited successfully
+        false
+    fi
+
+    # verify that ghe-backup wrote its version information to the host
+    [ -f "$GHE_REMOTE_DATA_USER_DIR/common/backup-utils-version" ]
 )
 end_test

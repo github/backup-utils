@@ -57,8 +57,7 @@ done
 cleanup() {
   rm -rf $tempdir
 }
-
-#trap cleanup EXIT
+trap cleanup EXIT
 
 # Find the routes (servers) for each gist available locally
 OLDIFS=$IFS; IFS=$'\n'

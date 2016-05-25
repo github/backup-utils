@@ -9,6 +9,8 @@ set -e
 # Show usage and bail with no arguments
 [ -z "$*" ] && print_usage
 
+bm_start "$(basename $0)"
+
 # Grab host arg
 GHE_HOSTNAME="$1"
 
@@ -61,3 +63,5 @@ if [ -f "$GHE_RESTORE_SNAPSHOT_PATH/saml-keys.tar" ]; then
     cat "$GHE_RESTORE_SNAPSHOT_PATH/saml-keys.tar" |
     ghe-ssh "$GHE_HOSTNAME" -- "sudo tar -C $GHE_REMOTE_DATA_USER_DIR/common/ -xf -"
 fi
+
+bm_start "$(basename $0)"

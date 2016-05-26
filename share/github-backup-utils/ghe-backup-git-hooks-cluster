@@ -7,8 +7,7 @@
 set -e
 
 # Bring in the backup configuration
-cd $(dirname "$0")/../..
-. share/github-backup-utils/ghe-backup-config
+. $( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config
 
 # Split host:port into parts
 port=$(ssh_port_part "$GHE_HOSTNAME")

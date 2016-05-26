@@ -69,14 +69,10 @@ mkfifo ssh_routes_in
 mkfifo ssh_routes_out
 mkfifo ssh_finalize_out
 
-echo "Setting up storage processes"
-
 ghe-ssh "$GHE_HOSTNAME" github-env ./bin/storage-cluster-import-routes - < ssh_routes_out > ssh_routes_in &
 ssh_routes_pid=$!
 ghe-ssh "$GHE_HOSTNAME" github-env ./bin/storage-cluster-import-finalize - < ssh_finalize_out &
 ssh_finalize_pid=$!
-
-echo "Set up storage processes"
 
 exec 4> ssh_routes_out
 exec 5> ssh_finalize_out

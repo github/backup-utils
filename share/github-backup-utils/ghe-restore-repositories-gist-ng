@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#/ Usage: ghe-restore-repositories-gist-batch <host>
+#/ Usage: ghe-restore-repositories-gist-ng <host>
 #/ Restore repositories fron an rsync snapshot of all Git repository data to a GitHub cluster.
 #/
 #/ Note: This script typically isn't called directly. It's invoked by the

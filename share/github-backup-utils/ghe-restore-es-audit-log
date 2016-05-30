@@ -19,7 +19,7 @@ ghe_remote_version_required "$GHE_HOSTNAME"
 
 last_index=$(ghe-ssh "$GHE_HOSTNAME" 'curl -s "localhost:9201/_cat/indices/audit_log*"' | cut -d ' ' -f 3 | sort | tail -1)
 
-indices=$(ls -1 $GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/audit-log/*.gz | xargs -I{} -n1 basename {} .gz)
+indices=$(ls -1 $GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/audit-log/*.gz 2>/dev/null | xargs -I{} -n1 basename {} .gz)
 
 for index in $indices; do
   if [ -z "$last_index" ] || ! [ $index \< $last_index ]; then

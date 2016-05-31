@@ -2,7 +2,7 @@ github-backup-utils (2.6.1) UNRELEASED; urgency=medium
 
   * Cluster: faster gist restores #220
   * Cluster: faster storage restores #212
-  * Cluster: fix git-hooks restores #209
+  * Cluster: fix git-hooks restores #204
 
  -- Sergio Rubio <rubiojr@github.com>  Tue, 31 May 2016 20:54:11 +0200
 

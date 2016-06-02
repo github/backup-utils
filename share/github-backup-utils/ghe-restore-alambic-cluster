@@ -12,6 +12,8 @@ set -e
 # Show usage and bail with no arguments
 [ -z "$*" ] && print_usage
 
+bm_start "$(basename $0)"
+
 # Grab host arg
 GHE_HOSTNAME="$1"
 
@@ -113,3 +115,5 @@ cat ssh_routes_in > /dev/null &
 
 wait $ssh_routes_pid > /dev/null 2>&1 || true
 wait $ssh_finalize_pid > /dev/null 2>&1 || true
+
+bm_end "$(basename $0)"

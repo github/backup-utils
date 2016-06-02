@@ -220,7 +220,12 @@ if $cluster; then
   ghe-restore-repositories-dgit "$GHE_HOSTNAME" 1>&3
 
   echo "Restoring Gists into cluster ..."
-  ghe-restore-repositories-gist "$GHE_HOSTNAME" 1>&3
+  if ghe-ssh "$GHE_HOSTNAME" test -f /data/github/current/script/gist-cluster-restore-routes; then
+    ghe_verbose "* Using ghe-restore-repositories-gist-ng to restore"
+    ghe-restore-repositories-gist-ng "$GHE_HOSTNAME" 1>&3
+  else
+    ghe-restore-repositories-gist "$GHE_HOSTNAME" 1>&3
+  fi
 else
   # Remove temporary 2.2 storage migration directory if it exists
   echo "if [ -d /data/user/repositories-nw-backup ]; then sudo rm -rf /data/user/repositories-nw-backup; fi" |

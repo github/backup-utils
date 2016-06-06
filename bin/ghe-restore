@@ -28,6 +28,9 @@ set -e
 restore_settings=false
 force=false
 while true; do
+    if [ -z "$1" ]; then
+        break;
+    fi
     case "$1" in
         -f|--force)
             force=true
@@ -46,13 +49,12 @@ while true; do
             exit 1
             ;;
         *)
-            break
+            # Grab the host arg
+            GHE_HOSTNAME="${1:-$GHE_RESTORE_HOST}"
+            shift
             ;;
     esac
 done
-
-# Grab the host arg
-GHE_HOSTNAME="${1:-$GHE_RESTORE_HOST}"
 
 # Hostname without any port suffix
 hostname=$(echo "$GHE_HOSTNAME" | cut -f 1 -d :)

@@ -50,11 +50,14 @@ while true; do
             ;;
         *)
             # Grab the host arg
-            GHE_HOSTNAME="${1:-$GHE_RESTORE_HOST}"
+            GHE_HOSTNAME="$1"
             shift
             ;;
     esac
 done
+
+# Grab the host arg from configuration file if not specified on commandline
+GHE_HOSTNAME="${GHE_HOSTNAME:-$GHE_RESTORE_HOST}"
 
 # Hostname without any port suffix
 hostname=$(echo "$GHE_HOSTNAME" | cut -f 1 -d :)

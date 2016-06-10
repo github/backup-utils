@@ -156,6 +156,9 @@ GHE_SNAPSHOT_DIR="$GHE_DATA_DIR"/"$GHE_SNAPSHOT_TIMESTAMP"
 # The location of the file used to disable GC operations on the remote side.
 : ${SYNC_IN_PROGRESS_FILE:="$GHE_REMOTE_DATA_USER_DIR/repositories/.sync_in_progress"}
 
+# Exit 1 if remote fsck fails (unhealthy repositories)
+: ${GHE_REMOTE_GIT_FSCK_ABORT_ON_ERROR:="yes"}
+
 ###############################################################################
 ### Dynamic remote version config
 

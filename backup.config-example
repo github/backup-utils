@@ -43,3 +43,13 @@ GHE_NUM_SNAPSHOTS=10
 #
 # WARNING: do not enable this, only useful for debugging/development
 #GHE_BACKUP_FSCK=no
+
+# If set to 'yes', git fsck will run on all the remote repositories.
+# When running against a cluster, it will git fsck each cluster node.
+#
+# WARNING: do not enable this, only useful for debugging/development
+#GHE_REMOTE_GIT_FSCK=no
+# Print owner and name of the repo also
+#GHE_REMOTE_GIT_FSCK_PRINT_NWO=no
+# Exit 1 if remote fsck fails (unhealthy repositories)
+#GHE_REMOTE_GIT_FSCK_ABORT_ON_ERROR=yes

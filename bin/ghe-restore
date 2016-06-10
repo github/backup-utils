@@ -235,6 +235,22 @@ else
   ghe-restore-repositories-${GHE_BACKUP_STRATEGY} "$GHE_HOSTNAME" 1>&3
 fi
 
+# git fsck repositories after restoring the repositories
+if [ "$GHE_REMOTE_GIT_FSCK" = "yes" ]; then
+  echo "Checking remote git repositories ..."
+  cmd="ghe-remote-git-fsck"
+  if $cluster; then
+    cmd="ghe-remote-git-fsck-cluster"
+  fi
+  if ! $cmd $GHE_HOSTNAME; then
+    if [ "$GHE_REMOTE_GIT_FSCK_ABORT_ON_ERROR" = "yes" ]; then
+      exit 1
+    else
+      echo "Warning: remote git fsck failed, ignoring"
+    fi
+  fi
+fi
+
 if $cluster; then
   echo "Restoring GitHub Pages into DPages..."
   ghe-restore-pages-dpages "$GHE_HOSTNAME" 1>&3

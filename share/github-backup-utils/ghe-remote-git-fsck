@@ -1,0 +1,87 @@
+#!/usr/bin/env bash
+#/ Usage: ghe-remote-git-fsck [--print-nwo] [-F ssh_config_path] <host>
+#/
+#/ Run git fsck on remote GitHub Enterprise repositories.
+set -e
+
+while true; do
+    case "$1" in
+        -F)
+          ssh_config_opts="-F $2"
+          shift 2
+          ;;
+        *)
+          export GHE_HOSTNAME="$1"
+          shift
+          break
+          ;;
+    esac
+done
+
+# Bring in the backup configuration
+. $( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config
+
+sdir=/data/user
+repos=0
+errors=0
+log=$(mktemp --dry-run -t ghe-backup-fsck-XXXXXX)
+t_start=$(date +%s)
+git_cmd="git fsck --no-dangling"
+
+echo "Running git fsck on $GHE_HOSTNAME ..."
+
+if ! ghe-ssh $ssh_config_opts $GHE_HOSTNAME test -d "$sdir/repositories"; then
+  echo "Error: can't find git repositories in /data/user/repositories" >&2
+  exit 1
+fi
+
+for repo in $(ghe-ssh $ssh_config_opts $GHE_HOSTNAME sudo find $sdir/repositories/ -type d -name \*.git); do
+  repos=$(($repos+1))
+  before_time=$(date +%s)
+
+  status=$(echo "
+    set -e
+
+    cd $repo
+
+    nwo='-'
+    if [ -n '$GHE_REMOTE_GIT_FSCK_PRINT_NWO' ] && [ -f info/nwo ]; then
+      nwo=\$(cat info/nwo)
+    fi
+
+    if [ -f objects/info/alternates ] && grep -q '^\.\.' objects/info/alternates; then
+      export GIT_ALTERNATE_OBJECT_DIRECTORIES=../network.git/objects
+    fi
+
+    if $git_cmd >$log 2>&1; then
+      echo "OK $repo \$nwo"
+    else
+      echo \"ERROR $repo \$nwo\"
+    fi
+
+  " | ghe-ssh $ssh_config_opts $GHE_HOSTNAME -- sudo -u git /bin/bash)
+
+  elapsed_time=$(($(date +%s) - before_time))
+
+  if [[ ! "$status" =~ ^OK ]] || [ $elapsed_time -gt 5 ]; then
+    echo "$status ${elapsed_time}s" 1>&3
+    [ -n "$GHE_VERBOSE" ] && ghe-ssh $ssh_config_opts $GHE_HOSTNAME -- cat $log
+  fi
+
+  case "$status" in
+    OK*)
+      ;;
+    ERROR*)
+      errors=$(($errors+1))
+      ;;
+   esac
+
+done
+
+echo "* Repos verified: $repos, Errors: $errors, Took: $(($(date +%s) - $t_start))s"
+
+ghe-ssh $ssh_config_opts $GHE_HOSTNAME -- sudo rm -f $log
+
+if [ "$errors" -gt 0 ]; then
+  exit 1
+fi

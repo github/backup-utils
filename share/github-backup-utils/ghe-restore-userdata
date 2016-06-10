@@ -11,6 +11,8 @@ set -e
 # Show usage and bail with no arguments
 [ $# -lt 2 ] && print_usage
 
+bm_start "$(basename $0)"
+
 # Grab userdata directory name and host args
 dirname="$1"
 GHE_HOSTNAME="$2"
@@ -37,3 +39,5 @@ if [ -d "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/$dirname" ]; then
       "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/$dirname/" \
       "$(ssh_host_part "$GHE_HOSTNAME"):$GHE_REMOTE_DATA_USER_DIR/$dirname" 1>&3
 fi
+
+bm_end "$(basename $0)"

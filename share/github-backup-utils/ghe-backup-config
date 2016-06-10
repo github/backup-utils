@@ -23,6 +23,8 @@ BACKUP_UTILS_VERSION="$(cat $GHE_BACKUP_ROOT/share/github-backup-utils/version)"
 # Add the bin and share/github-backup-utils dirs to PATH
 PATH="$GHE_BACKUP_ROOT/bin:$GHE_BACKUP_ROOT/share/github-backup-utils:$PATH"
 
+. $GHE_BACKUP_ROOT/share/github-backup-utils/bm.sh
+
 # Parse out -v (verbose) argument
 if [ "$1" = "-v" ]; then
     GHE_VERBOSE=true

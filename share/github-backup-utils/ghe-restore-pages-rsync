@@ -12,5 +12,9 @@ set -e
 # Show usage and bail with no arguments
 [ -z "$*" ] && print_usage
 
+bm_start "$(basename $0)"
+
 # Restore all pages data via rsync
 ghe-restore-userdata pages "$1"
+
+bm_end "$(basename $0)"

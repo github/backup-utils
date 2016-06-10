@@ -12,6 +12,8 @@ set -e
 # Show usage and bail with no arguments
 [ $# -lt 1 ] && print_usage
 
+bm_start "$(basename $0)"
+
 GHE_HOSTNAME="$1"
 
 # Perform a host-check and establish GHE_REMOTE_XXX variables.
@@ -27,3 +29,5 @@ for index in $indices; do
     gzip -dc $GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/audit-log/$index.gz | ghe-ssh "$GHE_HOSTNAME" "/usr/local/share/enterprise/ghe-es-load-json 'http://localhost:9201/$index'"
   fi
 done
+
+bm_end "$(basename $0)"

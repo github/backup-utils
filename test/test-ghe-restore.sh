@@ -136,6 +136,17 @@ begin_test "ghe-restore into configured vm"
 )
 end_test
 
+begin_test "ghe-restore logs the benchmark"
+(
+  set -e
+
+  export BM_TIMESTAMP=foo
+  export GHE_RESTORE_HOST=127.0.0.1
+  ghe-restore -v -f
+  [ $(grep took $GHE_DATA_DIR/current/benchmarks/benchmark.foo.log | wc -l) -gt 1 ]
+)
+end_test
+
 begin_test "ghe-restore aborts without user verification"
 (
     set -e

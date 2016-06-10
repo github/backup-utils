@@ -13,6 +13,8 @@ set -e
 # Show usage and bail with no arguments
 [ -z "$*" ] && print_usage
 
+bm_start "$(basename $0)"
+
 # Grab host arg
 GHE_HOSTNAME="$1"
 
@@ -90,7 +92,7 @@ ghe_verbose "* Sending the object list to the server..."
 # The format of the list returned by the server:
 #
 # # OID SERVER1 SERVER2 SERVER2
-# b8a48b6b122b4ef8175348d1d6fbd846d3b3ccc8fd7552b79f91125c4958e43b server1 server2 server3 
+# b8a48b6b122b4ef8175348d1d6fbd846d3b3ccc8fd7552b79f91125c4958e43b server1 server2 server3
 # bc4cdd292e6b5387df2a42a907fcd5f3b6804a5d5ab427184faea5ef118d635e server1 server2 server3
 cat $tmp_list | ghe-ssh "$GHE_HOSTNAME" github-env ./bin/storage-cluster-restore-routes \
  | while read obj; do
@@ -120,3 +122,5 @@ done
 
 ghe_verbose "* Update storage database after the restore ..."
 cat $to_restore | ghe-ssh "$GHE_HOSTNAME" github-env ./bin/storage-cluster-restore-finalize
+
+bm_end "$(basename $0)"

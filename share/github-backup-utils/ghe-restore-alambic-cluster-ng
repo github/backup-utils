@@ -23,7 +23,7 @@ GHE_HOSTNAME="$1"
 : ${GHE_RESTORE_SNAPSHOT:=current}
 
 # Find the objets to restore
-storage_paths=$(cd $GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/ && find storage -mindepth 4 -maxdepth 4 -type f -printf '%p %s\n' | cut -d / -f2-)
+storage_paths=$(cd $GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/ && find storage -mindepth 4 -maxdepth 4 -type f -exec wc -c {} \;)
 
 # No need to restore anything, early exit
 if [ -z "$storage_paths" ]; then
@@ -80,8 +80,8 @@ trap 'cleanup' EXIT
 # ...
 OLDIFS=$IFS; IFS=$'\n'
 for path in $storage_paths; do
-  oid=$(echo $path | cut -d ' ' -f 1 | awk -F/ '{print $(NF)}')
-  size=$(echo $path | cut -d ' ' -f 2)
+  oid=$(echo $path | awk -F/ '{print $(NF)}')
+  size=$(echo $path | awk '{print $1}')
   echo $oid $size
 done > $tmp_list
 IFS=$OLDIFS

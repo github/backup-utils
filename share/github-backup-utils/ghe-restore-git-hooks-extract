@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+#/ Usage: ghe-restore-git-hooks-extract <host>
+#/ Restore custom Git hooks environments from tarballs
+#/
+#/ Note: This command typically isn't called directly. It's invoked by
+#/ ghe-restore
+set -e
+
+# Bring in the backup configuration
+. $( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config
+
+# Show usage and bail with no arguments
+[ -z "$*" ] && print_usage
+
+# Grab host arg
+GHE_HOSTNAME="$1"
+
+# Perform a host-check and establish GHE_REMOTE_XXX variables.
+ghe_remote_version_required "$GHE_HOSTNAME"
+
+# The snapshot to restore should be set by the ghe-restore command but this lets
+# us run this script directly.
+: ${GHE_RESTORE_SNAPSHOT:=current}
+
+if [ ! -d $GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/git-hooks/environments/tarballs ]; then
+  echo "Warning: No pre-receive hook environments. Skipping ..."
+  exit 0
+fi
+
+tarballs=$(cd $GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/git-hooks/environments/tarballs && find . -type f)
+
+for tarball in $tarballs; do
+  env_id=$(echo $tarball | cut -d '/' -f 2)
+  ghe-ssh "$GHE_HOSTNAME" "/bin/bash -c 'export PATH=\$PATH:/usr/local/share/enterprise && ghe-hook-env-update $env_id $GHE_REMOTE_DATA_USER_DIR/git-hooks/environments/tarballs/$tarball'"
+done

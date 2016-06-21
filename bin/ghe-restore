@@ -269,7 +269,9 @@ elif [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
   ghe-restore-userdata hookshot "$GHE_HOSTNAME" 1>&3
 
   echo "Restoring custom Git hooks ..."
-  ghe-restore-userdata git-hooks "$GHE_HOSTNAME" 1>&3
+  ghe-restore-userdata git-hooks/environments/tarballs "$GHE_HOSTNAME" 1>&3
+  ghe-restore-userdata git-hooks/repos "$GHE_HOSTNAME" 1>&3
+  ghe-restore-git-hooks-extract "$GHE_HOSTNAME" 1>&3
 fi
 
 if $cluster; then

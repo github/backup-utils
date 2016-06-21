@@ -217,7 +217,12 @@ bm_end "ghe-import-redis"
 
 if $cluster; then
   echo "Restoring Git repositories into cluster ..."
-  ghe-restore-repositories-dgit "$GHE_HOSTNAME" 1>&3
+  if ghe-ssh "$GHE_HOSTNAME" test -f /data/github/current/script/dgit-cluster-restore-routes; then
+    ghe_verbose "* Using ghe-restore-repositories-dgit-ng to restore"
+    ghe-restore-repositories-dgit-ng "$GHE_HOSTNAME" 1>&3
+  else
+    ghe-restore-repositories-dgit "$GHE_HOSTNAME" 1>&3
+  fi
 
   echo "Restoring Gists into cluster ..."
   if ghe-ssh "$GHE_HOSTNAME" test -f /data/github/current/script/gist-cluster-restore-routes; then

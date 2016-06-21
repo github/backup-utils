@@ -23,13 +23,32 @@ ghe_remote_version_required "$host"
 
 # Verify that the user data directory exists. Bail out if not, which may be due
 # to an older version of GHE or no data has been added to this directory yet.
-ghe-ssh "$host" -- "[ -d '$GHE_REMOTE_DATA_USER_DIR/$dirname' ]" || exit 0
+ghe-ssh "$host" -- "sudo -u git [ -d '$GHE_REMOTE_DATA_USER_DIR/$dirname' ]" || exit 0
 
 # If we have a previous increment and it is not empty, avoid transferring existing files via rsync's
 # --link-dest support. This also decreases physical space usage considerably.
 if [ -d "$GHE_DATA_DIR/current/$dirname" ] && [ "$(ls -A $GHE_DATA_DIR/current/$dirname)" ]; then
-    link_dest="--link-dest=../../current/$dirname"
+
+  subdir=$dirname
+  link_path=".."
+  while true; do
+    if [ $(dirname $subdir) = "." ]; then
+      break
+    fi
+
+    if [ $(dirname $subdir) = "/" ]; then
+      break
+    fi
+
+    link_path="../$link_path"
+    subdir=$(dirname $subdir)
+  done
+
+  link_dest="--link-dest=../${link_path}/current/$dirname"
 fi
+
+# Ensure target directory exists, is needed with subdirectories
+mkdir -p "$GHE_SNAPSHOT_DIR/$dirname"
 
 # Transfer all data from the user data directory using rsync.
 ghe-rsync -avz \

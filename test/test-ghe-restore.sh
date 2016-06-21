@@ -26,14 +26,25 @@ if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
     mkdir -p repository-123 repository-456
     touch repository-123/test.bpack repository-456/test.bpack
 
-    mkdir -p "$GHE_DATA_DIR/1/git-hooks"
-    cd "$GHE_DATA_DIR/1/git-hooks"
-    mkdir -p repository-123 repository-456
-    touch repository-123/script.sh repository-456/foo.sh
-fi
+    # Create some fake environments
+    mkdir -p "$GHE_DATA_DIR/1/git-hooks/environments/tarballs"
+    cd "$GHE_DATA_DIR/1/git-hooks/environments/tarballs"
+    mkdir -p 123 456
+    touch 123/script.sh 456/foo.sh
+    cd 123
+    tar -czf script.tar.gz script.sh
+    cd ../456
+    tar -czf foo.tar.gz foo.sh
+    cd ..
+    rm 123/script.sh 456/foo.sh
+    mkdir -p "$GHE_DATA_DIR/1/git-hooks/repos/1"
+    touch "$GHE_DATA_DIR/1/git-hooks/repos/1/bar.sh"
 
-# Create some fake alambic data in the remote data directory
-if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
+    cd "$GHE_DATA_DIR/1/git-hooks/environments"
+    mkdir -p 123 456
+    touch 123/script.sh 456/foo.sh
+
+    # Create some fake alambic data in the remote data directory
     mkdir -p "$GHE_DATA_DIR/1/alambic_assets/github-enterprise-assets/0000"
     touch "$GHE_DATA_DIR/1/alambic_assets/github-enterprise-assets/0000/test.png"
 
@@ -128,7 +139,9 @@ begin_test "ghe-restore into configured vm"
         diff -ru "$GHE_DATA_DIR/current/hookshot" "$GHE_REMOTE_DATA_USER_DIR/hookshot"
 
         # verify all git hooks data was transferred
-        diff -ru "$GHE_DATA_DIR/current/git-hooks" "$GHE_REMOTE_DATA_USER_DIR/git-hooks"
+        diff -ru "$GHE_DATA_DIR/current/git-hooks/environments/tarballs" "$GHE_REMOTE_DATA_USER_DIR/git-hooks/environments/tarballs"
+        ! diff -ru "$GHE_DATA_DIR/current/git-hooks/environments" "$GHE_REMOTE_DATA_USER_DIR/git-hooks/environments"
+        diff -ru "$GHE_DATA_DIR/current/git-hooks/repos" "$GHE_REMOTE_DATA_USER_DIR/git-hooks/repos"
 
         # verify all alambic assets user data was transferred
         diff -ru "$GHE_DATA_DIR/current/alambic_assets" "$GHE_REMOTE_DATA_USER_DIR/alambic_assets"
@@ -260,7 +273,9 @@ begin_test "ghe-restore -c into unconfigured vm"
         diff -ru "$GHE_DATA_DIR/current/hookshot" "$GHE_REMOTE_DATA_USER_DIR/hookshot"
 
         # verify all git hooks data was transferred
-        diff -ru "$GHE_DATA_DIR/current/git-hooks" "$GHE_REMOTE_DATA_USER_DIR/git-hooks"
+        diff -ru "$GHE_DATA_DIR/current/git-hooks/environments/tarballs" "$GHE_REMOTE_DATA_USER_DIR/git-hooks/environments/tarballs"
+        ! diff -ru "$GHE_DATA_DIR/current/git-hooks/environments" "$GHE_REMOTE_DATA_USER_DIR/git-hooks/environments"
+        diff -ru "$GHE_DATA_DIR/current/git-hooks/repos" "$GHE_REMOTE_DATA_USER_DIR/git-hooks/repos"
 
         # verify all alambic assets user data was transferred
         diff -ru "$GHE_DATA_DIR/current/alambic_assets" "$GHE_REMOTE_DATA_USER_DIR/alambic_assets"
@@ -322,7 +337,9 @@ begin_test "ghe-restore into unconfigured vm"
         diff -ru "$GHE_DATA_DIR/current/hookshot" "$GHE_REMOTE_DATA_USER_DIR/hookshot"
 
         # verify all git hooks data was transferred
-        diff -ru "$GHE_DATA_DIR/current/git-hooks" "$GHE_REMOTE_DATA_USER_DIR/git-hooks"
+        diff -ru "$GHE_DATA_DIR/current/git-hooks/environments/tarballs" "$GHE_REMOTE_DATA_USER_DIR/git-hooks/environments/tarballs"
+        ! diff -ru "$GHE_DATA_DIR/current/git-hooks/environments" "$GHE_REMOTE_DATA_USER_DIR/git-hooks/environments"
+        diff -ru "$GHE_DATA_DIR/current/git-hooks/repos" "$GHE_REMOTE_DATA_USER_DIR/git-hooks/repos"
 
         # verify all alambic assets user data was transferred
         diff -ru "$GHE_DATA_DIR/current/alambic_assets" "$GHE_REMOTE_DATA_USER_DIR/alambic_assets"
@@ -373,8 +390,9 @@ begin_test "ghe-restore with host arg"
         # verify all hookshot user data was transferred
         diff -ru "$GHE_DATA_DIR/current/hookshot" "$GHE_REMOTE_DATA_USER_DIR/hookshot"
 
-        # verify all git hooks data was transferred
-        diff -ru "$GHE_DATA_DIR/current/git-hooks" "$GHE_REMOTE_DATA_USER_DIR/git-hooks"
+        diff -ru "$GHE_DATA_DIR/current/git-hooks/environments/tarballs" "$GHE_REMOTE_DATA_USER_DIR/git-hooks/environments/tarballs"
+        ! diff -ru "$GHE_DATA_DIR/current/git-hooks/environments" "$GHE_REMOTE_DATA_USER_DIR/git-hooks/environments"
+        diff -ru "$GHE_DATA_DIR/current/git-hooks/repos" "$GHE_REMOTE_DATA_USER_DIR/git-hooks/repos"
 
         # verify all alambic assets user data was transferred
         diff -ru "$GHE_DATA_DIR/current/alambic_assets" "$GHE_REMOTE_DATA_USER_DIR/alambic_assets"

@@ -63,26 +63,26 @@ if [ -d "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/git-hooks/environments/tarballs" ];
   hostname=$(echo $hostnames | awk '{ print $1; }')
 
   if [ -n "$hostname" ]; then
-    ghe-rsync -aH --delete \
+    ghe-rsync -avH --delete \
     -e "ssh -q $opts -p $port -F $config_file -l $user" \
     --rsync-path="sudo -u git rsync" \
     "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/git-hooks/environments/tarballs/" \
-    "$hostname:$GHE_REMOTE_DATA_USER_DIR/git-hooks/environments/tarballs"
+    "$hostname:$GHE_REMOTE_DATA_USER_DIR/git-hooks/environments/tarballs" 1>&3
 
     for tarball in $tarballs; do
       env_id=$(echo $tarball | cut -d '/' -f 2)
-      ssh -q $opts -p $port -F $config_file -l $user $hostname "/bin/bash -c 'export PATH=\$PATH:/usr/local/share/enterprise && ghe-hook-env-update $env_id $GHE_REMOTE_DATA_USER_DIR/git-hooks/environments/tarballs/$tarball'"
+      ssh -q $opts -p $port -F $config_file -l $user $hostname "/bin/bash -c 'export PATH=\$PATH:/usr/local/share/enterprise && ghe-hook-env-update $env_id $GHE_REMOTE_DATA_USER_DIR/git-hooks/environments/tarballs/$tarball'" 1>&3 2>&3
     done
   fi
 fi
 
 if [ -d "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/git-hooks/repos" ]; then
   for hostname in $hostnames; do
-    ghe-rsync -aH --delete \
+    ghe-rsync -avH --delete \
     -e "ssh -q $opts -p $port -F $config_file -l $user" \
     --rsync-path="sudo -u git rsync" \
     "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/git-hooks/repos/" \
-    "$hostname:$GHE_REMOTE_DATA_USER_DIR/git-hooks/repos" &
+    "$hostname:$GHE_REMOTE_DATA_USER_DIR/git-hooks/repos" 1>&3 &
   done
 
   for pid in $(jobs -p); do

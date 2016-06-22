@@ -1,3 +1,13 @@
+github-backup-utils (2.6.2) UNRELEASED; urgency=medium
+
+    * git-hooks fixes #231
+    * Cluster: speedup repositories restore #232 (requires GitHub Enterprise
+      2.6.4)
+    * Cluster: restore Git over SSH keys #230
+    * Benchmark restores #219
+
+ -- Sergio Rubio <rubiojr@github.com>  Wed, 22 Jun 2016 19:36:06 +0200
+
 github-backup-utils (2.6.1) UNRELEASED; urgency=medium
 
   * Cluster: faster gist restores #220

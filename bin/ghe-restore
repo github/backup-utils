@@ -14,12 +14,20 @@
 #/   -s <snapshot-id>  Restore from the snapshot with the given id. Available
 #/                     snapshots may be listed under the data directory.
 #/   -v                Enable verbose output.
+#/   -h | --help       Show this message.
 #/
 #/ Note that the host must be reachable and your SSH key must be setup as
 #/ described in the following help article:
 #/
 #/ <https://enterprise.github.com/help/articles/adding-an-ssh-key-for-shell-access>
 set -e
+
+# If -h or --help are passed into the command prompt, spit out
+# the help documents
+usage() {
+  grep '^#/' < $0 | cut -c4-
+  exit 2
+}
 
 # Bring in the backup configuration
 . $( dirname "${BASH_SOURCE[0]}" )/../share/github-backup-utils/ghe-backup-config
@@ -32,6 +40,10 @@ while true; do
         -f|--force)
             force=true
             shift
+            ;;
+        -h|--help)
+            usage
+            exit 2
             ;;
         -s)
             snapshot_id="$(basename "$2")"

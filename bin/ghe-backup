@@ -7,6 +7,28 @@
 #/ transferred.
 set -e
 
+# If -h or --help are passed into the command prompt, spit out
+# the help documents
+usage() {
+  grep '^#/' < $0 | cut -c4-
+  exit 2
+}
+
+# Depending on the variables passed in, either spit out the help, be more
+# verbose, or just continue
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -h|--help)
+      usage
+      exit 2
+      ;;
+    -v|--verbose)
+      set -x
+      ;;
+  esac
+  shift
+done
+
 # Bring in the backup configuration
 . $( dirname "${BASH_SOURCE[0]}" )/../share/github-backup-utils/ghe-backup-config
 

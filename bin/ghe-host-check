@@ -1,8 +1,33 @@
 #!/usr/bin/env bash
-#/ Usage: ghe-host-check [<host>]
+#/ Usage: ghe-host-check [options] <host>
 #/ Verify connectivity with the GitHub Enterprise host. When no <host> is
 #/ provided, the $GHE_HOSTNAME configured in backup.config is assumed.
+#/ OPTIONS:
+#/   -h | --help     Show this message.
+#/   -v | --verbose  Run this script in verbose mode
 set -e
+
+# If -h or --help are passed into the command prompt, spit out
+# the help documents
+usage() {
+  grep '^#/' < $0 | cut -c4-
+  exit 2
+}
+
+# Depending on the variables passed in, either spit out the help, be more
+# verbose, or just continue
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -h|--help)
+      usage
+      exit 2
+      ;;
+    -v|--verbose)
+      set -x
+      ;;
+  esac
+  shift
+done
 
 # Bring in the backup configuration
 . $( dirname "${BASH_SOURCE[0]}" )/../share/github-backup-utils/ghe-backup-config

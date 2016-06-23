@@ -1,10 +1,13 @@
 #!/usr/bin/env bash
-#/ Usage: ghe-backup [-v]
+#/ Usage: ghe-backup [options]
 #/ Take snapshots of all GitHub Enterprise data, including Git repository data,
 #/ the MySQL database, instance settings, GitHub Pages data, etc.
 #/
 #/ With -v, enable verbose output and show more information about what's being
 #/ transferred.
+#/ OPTIONS:
+#/   -h | --help     Show this message.
+#/   -v | --verbose  Run this script in verbose mode
 set -e
 
 # If -h or --help are passed into the command prompt, spit out

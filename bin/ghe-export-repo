@@ -7,6 +7,9 @@
 #/ transferred.
 set -e
 
+# Bring in the backup configuration
+. $( dirname "${BASH_SOURCE[0]}" )/../share/github-backup-utils/ghe-backup-config
+
 # Switch into the appropriate directory where all of the repositories are
 # stored.
 cd "$GHE_DATA_DIR"

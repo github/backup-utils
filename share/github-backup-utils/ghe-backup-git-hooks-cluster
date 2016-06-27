@@ -9,6 +9,21 @@ set -e
 # Bring in the backup configuration
 . $( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config
 
+# Verify rsync is available.
+if ! rsync --version 1>/dev/null 2>&1; then
+    echo "Error: rsync not found." 1>&2
+    exit 1
+fi
+
+bm_start "$(basename $0)"
+
+backup_dir="$GHE_SNAPSHOT_DIR/git-hooks"
+# Location of last good backup for rsync --link-dest
+backup_current="$GHE_DATA_DIR/current/git-hooks"
+
+# Perform a host-check and establish GHE_REMOTE_XXX variables.
+ghe_remote_version_required "$host"
+
 # Split host:port into parts
 port=$(ssh_port_part "$GHE_HOSTNAME")
 host=$(ssh_host_part "$GHE_HOSTNAME")
@@ -17,22 +32,7 @@ host=$(ssh_host_part "$GHE_HOSTNAME")
 user="${host%@*}"
 [ "$user" = "$host" ] && user="admin"
 
-backup_dir="$GHE_SNAPSHOT_DIR/git-hooks"
-
-# Location of last good backup for rsync --link-dest
-backup_current="$GHE_DATA_DIR/current/git-hooks"
-
-# Verify rsync is available.
-if ! rsync --version 1>/dev/null 2>&1; then
-    echo "Error: rsync not found." 1>&2
-    exit 1
-fi
-
-# Perform a host-check and establish GHE_REMOTE_XXX variables.
-ghe_remote_version_required "$host"
-
 # Generate SSH config for forwarding
-
 config=""
 
 # git server hostnames
@@ -102,6 +102,16 @@ rsync_git_hooks_data () {
 }
 
 hostname=$(echo $hostnames | awk '{ print $1; }')
-ghe-ssh -F $config_file "$hostname:122" -- "sudo -u git [ -d '$GHE_REMOTE_DATA_USER_DIR/git-hooks' ]" || exit 0
-rsync_git_hooks_data $hostname:122 environments/tarballs
-rsync_git_hooks_data $hostname:122 repos
+if ghe-ssh -F $config_file "$hostname:122" -- "sudo -u git [ -d '$GHE_REMOTE_DATA_USER_DIR/git-hooks/environments/tarballs' ]"; then
+  rsync_git_hooks_data $hostname:122 environments/tarballs
+else
+  ghe_verbose "git-hooks environment tarballs not found. Skipping ..."
+fi
+
+if ghe-ssh -F $config_file "$hostname:122" -- "sudo -u git [ -d '$GHE_REMOTE_DATA_USER_DIR/git-hooks/repos' ]"; then
+  rsync_git_hooks_data $hostname:122 repos
+else
+  ghe_verbose "git-hooks repositories not found. Skipping ..."
+fi
+
+bm_end "$(basename $0)"

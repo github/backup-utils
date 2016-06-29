@@ -175,7 +175,7 @@ if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
 
         echo "Backing up custom Git hooks ..."
         ghe-backup-git-hooks-cluster ||
-        failures="$failures alambic_assets"
+        failures="$failures git-hooks"
     else
         echo "Backing up asset attachments ..."
         ghe-backup-userdata alambic_assets ||

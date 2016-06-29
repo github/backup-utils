@@ -1,7 +1,7 @@
 --
 ### Writing tests
 
-See also the [Bash style guide](../README.md)
+See also the [Bash style guide](../STYLEGUIDE.md)
 
 --
 ##### all tests should use `set -e` and call `setup` before making any assertions

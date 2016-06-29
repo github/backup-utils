@@ -1,210 +1,233 @@
-# Bash styleguide
+## Bash Styleguide
 
-If you've not done much Bash development before you may find these debugging tips useful: http://wiki.bash-hackers.org/scripting/debuggingtips
+If you've not done much Bash development before you may find these debugging tips useful: http://wiki.bash-hackers.org/scripting/debuggingtips.
 
-1. Scripts must start with `#!/usr/bin/env bash`.
+--
+##### Scripts must start with `#!/usr/bin/env bash`
 
-1. Scripts must use `set -e`.
-   if the return value of a command can be ignored, suffix it with `|| true`
+--
+##### Scripts must use `set -e`
 
-  ``` bash
-  set -e
-  command_that_might_fail || true
-  command_that_should_not_fail
-  ```
-  
-  Note that ignoring an exit status with `|| true` is genrally not a good practice
-  though. Generally speaking it's better to handle the error.
+If the return value of a command can be ignored, suffix it with `|| true`:
 
-1. Scripts should not check exit status via `$?` manually. rely on `set -e` instead:
+```bash
+set -e
+command_that_might_fail || true
+command_that_should_not_fail
+```
 
-  ``` bash
-  cmd
-  if [ $? -eq 0 ]; then
-    echo worked
-  fi
-  ```
+Note that ignoring an exit status with `|| true` is not a good practice though. Generally speaking, it's better to handle the error.
 
-  should be written as:
+--
+##### Scripts should not check exit status via `$?` manually
 
-  ``` bash
-  set -e
-  if cmd; then
-    echo worked
-  fi
-  ```
+Rely on `set -e` instead:
 
-1. Scripts must include a usage, description and optional examples in this format:
+```bash
+cmd
+if [ $? -eq 0 ]; then
+  echo worked
+fi
+```
 
-  ```bash
-  #/ Usage: ghe-this-is-my-script [options] <required_arg>
-  #/
-  #/ This is a brief description of the script's purpose.
-  #/
-  #/ OPTIONS:
-  #/   -h | --help                      Show this message.
-  #/   -l | --longopt <required_arg>    An option.
-  #/   -c <required_arg>                Another option.
-  #/
-  #/ EXAMPLES: (optional section but nice to have when not trivial)
-  #/
-  #/    This will do foo and bar:
-  #/      $ ghe-this-is-my-script --longopt foobar -c 2
-  #/
-  ```
+should be written as:
 
-  If there are no options or required arguments, that can be ignored.
+```bash
+set -e
+if cmd; then
+  echo worked
+fi
+```
 
-1. Customer-facing scripts must accept both `-h` and `--help` arguments and print the usage information with an `exit 2` status code.
+--
+##### Scripts must include a usage, description and optional examples
 
-1. Scripts should not use Bash arrays.
+Use this format:
 
-1. Scripts should use `test` or `[` whenever possible:
+```bash
+#!/usr/bin/env bash
+#/ Usage: ghe-this-is-my-script [options] <required_arg>
+#/
+#/ This is a brief description of the script's purpose.
+#/
+#/ OPTIONS:
+#/   -h | --help                      Show this message.
+#/   -l | --longopt <required_arg>    An option.
+#/   -c <required_arg>                Another option.
+#/
+#/ EXAMPLES: (optional section but nice to have when not trivial)
+#/
+#/    This will do foo and bar:
+#/      $ ghe-this-is-my-script --longopt foobar -c 2
+#/
+set -e
+```
 
-  ``` bash
-  test -f /etc/passwd
-  test -f /etc/passwd -a -f /etc/group
-  if [ "string" = "string" ]; then
-    true
-  fi
-  ```
+If there are no options or required arguments, the `OPTIONS` section can be ignored.
 
-1. Scripts may use `[[` for advanced bash features
+--
+##### Customer-facing scripts must accept both -h and --help arguments
 
-  ``` bash
-  if [[ "$(hostname)" = *.iad.github.net ]]; then
-    true
-  fi
-  ```
+They should also print the usage information and exit 2.
 
-1. Scripts may use bash for loops
+For example:
 
-  ``` bash
-  for ((n=0; n<10; n++)); do
-  done
-  ```
+```bash
+#!/usr/bin/env bash
+#/ Usage: ghe-this-is-my-script [options] <required_arg>
+#/
+#/ This is a brief description of the script's purpose.
+set -e
 
-  or
+if [ "$1" = "--help" -o "$1" = "-h" ]; then
+  grep '^#/' <"$0" | cut -c 4-
+  exit 2
+fi
 
-  ```bash
-  for i in $(seq 0 9); do
-  done
-  ```
+```
 
-1. Scripts should use `$[x+y*z]` for mathematical expressions
+--
+##### Scripts should not use Bash arrays
 
-  ``` bash
-  local n=1
-  let n++
-  n=$[n+1] # preferred
-  n=$[$n+1]
-  n=$((n+1))
-  n=$(($n+1))
-  ```
+Main issues:
 
-1. Scripts should use variables sparingly.
-   Short paths and other constants should be repeated liberally throughout
-   code since they can be search/replaced easily if they ever change.
+* Portability
+* Important bugs in Bash versions < 4.3
 
-  ``` bash
-  DATA_DB_PATH=/data/user/db
-  mkdir -p $DATA_DB_PATH
-  rsync $DATA_DB_PATH remote:$DATA_DB_PATH
-  ```
+--
+##### Scripts should use `test` or `[` whenever possible
 
-  vs the much more readable:
+```bash
+test -f /etc/passwd
+test -f /etc/passwd -a -f /etc/group
+if [ "string" = "string" ]; then
+  true
+fi
+```
 
-  ``` bash
-  mkdir -p /data/user/db
-  rsync /data/user/db remote:/data/user/db
-  ```
+--
+##### Scripts may use `[[` for advanced bash features
 
-1. Scripts should use lowercase variables for locals,
-   and uppercase for variables inherited or exported via the environment:
+```bash
+if [[ "$(hostname)" = *.iad.github.net ]]; then
+  true
+fi
+```
 
-  ``` bash
-  #!/bin/bash
-  #/ Usage: [DEBUG=0] process_repo <nwo>
-  nwo=$1
-  [ -n $DEBUG ] && echo "** processing $nwo" >&2
+--
+##### Scripts may use Bash for loops
 
-  export GIT_DIR=/data/repos/$nwo.git
-  git rev-list
-  ```
+Preferred:
 
-1. Scripts should use `${var}` for interpolation only when required:
+```bash
+for i in $(seq 0 9); do
+done
+```
 
-  ``` bash
-  greeting=hello
-  echo $greeting
-  echo ${greeting}world
-  ```
+or:
 
-1. Scripts should use functions sparingly, opting for small/simple/sequential
-   scripts instead whenever possible when defining functions, use the following style:
+```bash
+for ((n=0; n<10; n++)); do
+done
+```
 
-  ``` bash
-  my_function() {
-    local arg1=$1
-    [ -n $arg1 ] || return
-    ...
-  }
-  ```
+--
+##### Scripts should use `$[x+y*z]` for mathematical expressions
 
-1. Scripts should use `<<heredocs` when dealing with multi-line strings:
+```bash
+local n=1
+let n++
+n=$[n+1] # preferred
+n=$[$n+1]
+n=$((n+1))
+n=$(($n+1))
+```
 
-  - `<<eof` and `<< eof` will allow interpolation
-  - `<<"eof"` and `<<'eof'` will disallow interpolation
-  - `<<-eof` and `<<-"eof"` will strip off leading tabs first
+--
+##### Scripts should use variables sparingly
 
-  ``` bash
-  cat <<"eof" | ssh $remote -- bash
-    foo=bar
-    echo $foo # interpolated on remote side after ssh
+Short paths and other constants should be repeated liberally throughout code since they
+can be search/replaced easily if they ever change.
+
+```bash
+DATA_DB_PATH=/data/user/db
+mkdir -p $DATA_DB_PATH
+rsync $DATA_DB_PATH remote:$DATA_DB_PATH
+```
+
+versus the much more readable:
+
+```bash
+mkdir -p /data/user/db
+rsync /data/user/db remote:/data/user/db
+```
+
+--
+##### Scripts should use lowercase variables for locals, and uppercase for variables inherited or exported via the environment
+
+```bash
+#!/usr/bin/env bash
+#/ Usage: [DEBUG=0] process_repo <nwo>
+nwo=$1
+[ -n $DEBUG ] && echo "** processing $nwo" >&2
+
+export GIT_DIR=/data/repos/$nwo.git
+git rev-list
+```
+
+--
+##### Scripts should use `${var}` for interpolation only when required
+
+```bash
+greeting=hello
+echo $greeting
+echo ${greeting}world
+```
+
+--
+##### Scripts should use functions sparingly, opting for small/simple/sequential scripts instead whenever possible
+
+When defining functions, use the following style:
+
+```bash
+my_function() {
+  local arg1=$1
+  [ -n $arg1 ] || return
+  ...
+}
+```
+
+--
+##### Scripts should use `<<heredocs` when dealing with multi-line strings
+
+- `<<eof` and `<< eof` will allow interpolation
+- `<<"eof"` and `<<'eof'` will disallow interpolation
+- `<<-eof` and `<<-"eof"` will strip off leading tabs first
+
+```bash
+cat <<"eof" | ssh $remote -- bash
+  foo=bar
+  echo $foo # interpolated on remote side after ssh
 eof
-  ```
+```
 
-  ``` bash
-  bar=baz
-  cat <<eof | ssh $remote -- bash
-    echo $bar > /etc/foo # interpolated before ssh
-    chmod 0600 /etc/foo
+```bash
+bar=baz
+cat <<eof | ssh $remote -- bash
+  echo $bar > /etc/foo # interpolated before ssh
+  chmod 0600 /etc/foo
 eof
-  ```
+```
 
-1. Scripts should quote variables that could reasonably have a space now or in
-   the future:
+--
+##### Scripts should quote variables that could reasonably have a space now or in the future
 
-  ``` bash
-  if [ ! -z "$packages" ]; then
-    true
-  fi
-  ```
+```bash
+if [ ! -z "$packages" ]; then
+  true
+fi
+```
 
-## Writing tests
+### Testing
 
-1. All tests should use `set -e` before making any assertions:
-
-  ```bash
-  begin_test "echo works"
-  (
-    set -e
-  
-    echo passing | grep passing
-  )
-  end_test
-  ```
-
-1. If you want to assert failure, please resist the urge to disable `set -e` and
-instead use negation with `!`:
-
-  ```bash
-  begin_test "netcat is not from bsd"
-  (
-    set -e
-    setup
-  
-    ! nc -h 2>&1 | grep bsd
-  )
-  end_test
-  ```
+See [this README](../test/README.md)

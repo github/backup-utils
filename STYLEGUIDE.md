@@ -230,4 +230,4 @@ fi
 
 ### Testing
 
-See [this README](../test/README.md)
+See [the style guide](../test/STYLEGUIDE.md)

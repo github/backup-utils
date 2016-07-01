@@ -337,7 +337,8 @@ else
   echo "Restoring Git over SSH host keys ..."
   ghe-ssh "$GHE_HOSTNAME" -- "sudo tar -xpf - -C /data/user/common" < "$GHE_RESTORE_SNAPSHOT_PATH/ssh-host-keys.tar" 1>&3
   ghe-ssh "$GHE_HOSTNAME" -- "sudo chown babeld:babeld /data/user/common/ssh_host_*" 1>&3
-  ghe-ssh "$GHE_HOSTNAME" -- "/usr/local/share/enterprise/ghe-cluster-config-update -s" 1>&3
+  echo "if [ -f /usr/local/share/enterprise/ghe-cluster-config-update ]; then /usr/local/share/enterprise/ghe-cluster-config-update -s; else /usr/local/bin/ghe-cluster-config-update -s; fi" |
+  ghe-ssh "$GHE_HOSTNAME" -- /bin/sh 1>&3
 fi
 
 echo "Completed restore of $GHE_HOSTNAME from snapshot $GHE_RESTORE_SNAPSHOT"

@@ -6,6 +6,8 @@ set -e
 # Bring in the backup configuration
 . $( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config
 
+bm_start "$(basename $0)"
+
 if [ -d $GHE_BACKUP_ROOT/.git ]; then
   version_info="$BACKUP_UTILS_VERSION"
   ref=$(git --git-dir=$GHE_BACKUP_ROOT/.git rev-parse HEAD || true)
@@ -15,3 +17,5 @@ if [ -d $GHE_BACKUP_ROOT/.git ]; then
   echo "$version_info" |
   ghe-ssh "$GHE_HOSTNAME" -- "sudo dd of=$GHE_REMOTE_DATA_USER_DIR/common/backup-utils-version >/dev/null 2>&1"
 fi
+
+bm_end "$(basename $0)"

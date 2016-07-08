@@ -234,6 +234,21 @@ begin_test "ghe-backup subsequent snapshot"
 )
 end_test
 
+begin_test "ghe-backup logs the benchmark"
+(
+  set -e
+
+  # wait a second for snapshot timestamp
+  sleep 1
+
+  export BM_TIMESTAMP=foo
+
+  ghe-backup
+
+  [ $(grep took $GHE_DATA_DIR/current/benchmarks/benchmark.foo.log | wc -l) -gt 1 ]
+)
+end_test
+
 begin_test "ghe-backup with relative data dir path"
 (
     set -e

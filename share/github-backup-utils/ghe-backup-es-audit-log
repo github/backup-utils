@@ -9,6 +9,8 @@ set -e
 # Bring in the backup configuration
 . $( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config
 
+bm_start "$(basename $0)"
+
 # Set up remote host and root elastic backup directory based on config
 host="$GHE_HOSTNAME"
 
@@ -39,3 +41,5 @@ for index in $indices; do
     ghe-ssh "$host" "/usr/local/share/enterprise/ghe-es-dump-json \"http://localhost:$es_port/$index\"" | gzip > $GHE_SNAPSHOT_DIR/audit-log/$index.gz
   fi
 done
+
+bm_end "$(basename $0)"

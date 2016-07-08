@@ -9,6 +9,8 @@ set -e
 # Bring in the backup configuration
 . $( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config
 
+bm_start "$(basename $0)"
+
 # Set up remote host and root backup snapshot directory based on config
 host="$GHE_HOSTNAME"
 backup_dir="$GHE_SNAPSHOT_DIR/pages"
@@ -67,6 +69,7 @@ if [ -d "$GHE_DATA_DIR/current/pages" ] && [ "$(ls -A $GHE_DATA_DIR/current/page
 fi
 
 for hostname in $hostnames; do
+  bm_start "$(basename $0) - $hostname"
   echo 1>&3
   echo "* Starting backup for host: $hostname"
   # Sync all auxiliary repository data. This includes files and directories like
@@ -82,4 +85,7 @@ for hostname in $hostnames; do
       $link_dest \
       "$hostname:$GHE_REMOTE_DATA_USER_DIR/pages/" \
       "$GHE_SNAPSHOT_DIR/pages" 1>&3
+  bm_end "$(basename $0) - $hostname"
 done
+
+bm_end "$(basename $0)"

@@ -9,6 +9,8 @@ set -e
 # Bring in the backup configuration
 . $( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config
 
+bm_start "$(basename $0)"
+
 # Snapshot all Pages data or fake it when no /data/pages directory exists.
 echo '
     if [ -d /data/pages ]; then
@@ -17,3 +19,5 @@ echo '
         tar cvf - --files-from /dev/null
     fi
 ' | ghe-ssh "$GHE_HOSTNAME" /bin/sh > "$GHE_SNAPSHOT_DIR"/pages.tar
+
+bm_end "$(basename $0)"

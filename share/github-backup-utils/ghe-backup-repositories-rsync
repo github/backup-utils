@@ -34,6 +34,8 @@ set -e
 # Bring in the backup configuration
 . $( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config
 
+bm_start "$(basename $0)"
+
 # Set up remote host and root backup snapshot directory based on config
 host="$GHE_HOSTNAME"
 backup_dir="$GHE_SNAPSHOT_DIR/repositories"
@@ -240,3 +242,5 @@ rsync_repository_data <<RULES
 + /info/*
 RULES
 echo 1>&3
+
+bm_end "$(basename $0)"

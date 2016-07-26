@@ -9,6 +9,8 @@ set -e
 # Bring in the backup configuration
 . $( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config
 
+bm_start "$(basename $0)"
+
 # Verify rsync is available.
 if ! rsync --version 1>/dev/null 2>&1; then
     echo "Error: rsync not found." 1>&2

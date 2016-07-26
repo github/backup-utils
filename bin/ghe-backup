@@ -128,17 +128,23 @@ ghe-backup-settings ||
 failures="$failures settings"
 
 echo "Backing up SSH authorized keys ..."
+bm_start "ghe-export-authorized-keys"
 ghe-ssh "$GHE_HOSTNAME" -- 'ghe-export-authorized-keys' > authorized-keys.json ||
 failures="$failures authorized-keys"
+bm_end "ghe-export-authorized-keys"
 
 echo "Backing up SSH host keys ..."
+bm_start "ghe-export-ssh-host-keys"
 ghe-ssh "$GHE_HOSTNAME" -- 'ghe-export-ssh-host-keys' > ssh-host-keys.tar ||
 failures="$failures ssh-host-keys"
+bm_end "ghe-export-ssh-host-keys"
 
 echo "Backing up MySQL database ..."
+bm_start "ghe-export-mysql"
 echo 'set -o pipefail; ghe-export-mysql | gzip' |
 ghe-ssh "$GHE_HOSTNAME" -- /bin/bash > mysql.sql.gz ||
 failures="$failures mysql"
+bm_end "ghe-export-mysql"
 
 echo "Backing up Redis database ..."
 if $cluster; then

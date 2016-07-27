@@ -34,6 +34,8 @@ set -e
 # Bring in the backup configuration
 . $( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config
 
+bm_start "$(basename $0)"
+
 # Split host:port into parts
 port=$(ssh_port_part "$GHE_HOSTNAME")
 host=$(ssh_host_part "$GHE_HOSTNAME")
@@ -129,6 +131,7 @@ rsync_repository_data () {
 
 
 for hostname in $hostnames; do
+  bm_start "$(basename $0) - $hostname"
   echo 1>&3
   echo "* Starting backup for host: $hostname"
   # Sync all auxiliary repository data. This includes files and directories like
@@ -286,4 +289,7 @@ RULES
 + /info/*
 RULES
   echo 1>&3
+  bm_end "$(basename $0) - $hostname"
 done
+
+bm_end "$(basename $0)"

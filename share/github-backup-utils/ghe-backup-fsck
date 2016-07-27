@@ -7,6 +7,8 @@ set -e
 # Bring in the backup configuration
 . $( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config
 
+bm_start "$(basename $0)"
+
 echo "Running git fsck on repos..."
 
 # Verify git is available.
@@ -83,3 +85,5 @@ done
 echo "* Repos verified: $repos, Errors: $errors, Took: $(($(date +%s) - $t_start))s"
 
 rm -f $log
+
+bm_end "$(basename $0)"

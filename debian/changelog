@@ -1,3 +1,10 @@
+github-backup-utils (2.6.4) UNRELEASED; urgency=medium
+
+  * Instrument/benchmark backups #238
+  * Cluster: remove restoring cluster.conf on restore #242
+
+ -- Sergio Rubio <rubiojr@github.com>  Wed, 27 Jul 2016 19:15:53 +0200
+
 github-backup-utils (2.6.3) UNRELEASED; urgency=medium
 
   * Cluster: git-hooks backup fixes #235

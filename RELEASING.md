@@ -4,6 +4,7 @@
     `sudo apt-get install devscripts`
  2. Add a new version and release notes to the `debian/changelog` file:
     `dch --newversion 2.6.0 --release-heuristic log`
+    You can use `make pending-prs` to craft the release notes.
  3. Rev the `share/github-backup-utils/version` file.
  4. Tag the release: `git tag v2.0.2`
  5. Build that tarball package: `make dist`

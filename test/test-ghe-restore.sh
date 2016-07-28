@@ -506,7 +506,7 @@ begin_test "ghe-restore cluster backup to non-cluster appliance"
     mkdir -p "$GHE_REMOTE_DATA_USER_DIR/repositories"
 
     echo "cluster" > "$GHE_DATA_DIR/current/strategy"
-    output=$(ghe-restore -v -f localhost 2>&1) || true
+    ! output=$(ghe-restore -v -f localhost 2>&1)
 
     echo $output | grep -q "Snapshot from a GitHub Enterprise cluster cannot be restored"
 )

@@ -484,3 +484,30 @@ begin_test "ghe-restore with tarball strategy"
     echo "$output" | grep -q 'fake ghe-export-repositories data'
 )
 end_test
+
+begin_test "ghe-restore cluster backup to non-cluster appliance"
+(
+    set -e
+    rm -rf "$GHE_REMOTE_ROOT_DIR"
+    setup_remote_metadata
+
+    # create file used to determine if instance has been configured.
+    if [ "$GHE_VERSION_MAJOR" -le 1 ]; then
+        touch "$GHE_REMOTE_DATA_DIR/enterprise/dna.json"
+    else
+        touch "$GHE_REMOTE_ROOT_DIR/etc/github/configured"
+    fi
+
+    # create file used to determine if instance is in maintenance mode.
+    mkdir -p "$GHE_REMOTE_DATA_DIR/github/current/public/system"
+    touch "$GHE_REMOTE_DATA_DIR/github/current/public/system/maintenance.html"
+
+    # Create fake remote repositories dir
+    mkdir -p "$GHE_REMOTE_DATA_USER_DIR/repositories"
+
+    echo "cluster" > "$GHE_DATA_DIR/current/strategy"
+    ! output=$(ghe-restore -v -f localhost 2>&1)
+
+    echo $output | grep -q "Snapshot from a GitHub Enterprise cluster cannot be restored"
+)
+end_test

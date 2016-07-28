@@ -105,6 +105,13 @@ if ghe-ssh "$GHE_HOSTNAME" -- \
   restore_settings=false
 fi
 
+# Restoring a cluster backup to a standalone appliance is not supported
+if ! $cluster && [ "$GHE_BACKUP_STRATEGY" = "cluster" ]; then
+  echo "Error: Snapshot from a GitHub Enterprise cluster cannot be restored" \
+    "to a standalone appliance. Aborting." >&2
+  exit 1
+fi
+
 # Figure out if we're restoring into a cluster with an unsupported snapshot
 if $cluster; then
   snapshot_instance_version=$(cat $GHE_RESTORE_SNAPSHOT_PATH/version)

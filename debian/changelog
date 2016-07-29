@@ -2,6 +2,7 @@ github-backup-utils (2.6.4) UNRELEASED; urgency=medium
 
   * Instrument/benchmark backups #238
   * Cluster: remove restoring cluster.conf on restore #242
+  * Cluster: Prevent restoring to a standalone GHE appliance #244
 
  -- Sergio Rubio <rubiojr@github.com>  Wed, 27 Jul 2016 19:15:53 +0200
 

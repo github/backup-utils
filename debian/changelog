@@ -1,3 +1,9 @@
+github-backup-utils (2.7.0) UNRELEASED; urgency=medium
+
+  * GitHub Enterprise 2.7.0 support 
+
+ -- Sergio Rubio <rubiojr@github.com>  Wed, 03 Aug 2016 20:25:31 +0200
+
 github-backup-utils (2.6.4) UNRELEASED; urgency=medium
 
   * Instrument/benchmark backups #238

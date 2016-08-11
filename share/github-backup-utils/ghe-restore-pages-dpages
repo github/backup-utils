@@ -45,8 +45,7 @@ host=$(ssh_host_part "$GHE_HOSTNAME")
 user="${host%@*}"
 [ "$user" = "$host" ] && user="admin"
 
-hostnames=$(ghe-ssh "$GHE_HOSTNAME" ghe-config --get-regexp cluster.*.hostname | cut -d ' ' -f 2)
-for hostname in $hostnames; do
+for hostname in $(ghe-cluster-hostnames "$GHE_HOSTNAME" "pages-server"); do
   config="$config
 Host $hostname
   ServerAliveInterval 60

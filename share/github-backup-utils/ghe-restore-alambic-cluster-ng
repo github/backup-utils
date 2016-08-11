@@ -44,8 +44,7 @@ user="${host%@*}"
 
 # Generate SSH config for forwarding
 config=""
-hostnames=$(ghe-ssh "$GHE_HOSTNAME" ghe-config --get-regexp cluster.*.hostname | cut -d ' ' -f 2)
-for hostname in $hostnames; do
+for hostname in $(ghe-cluster-hostnames "$GHE_HOSTNAME" "storage-server"); do
   config="$config
 Host $hostname
   ServerAliveInterval 60

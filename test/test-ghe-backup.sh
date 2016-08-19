@@ -476,6 +476,21 @@ begin_test "ghe-backup with no leaked keys"
 
   # Make sure there are no leaked key messages
   ! ghe-backup -v | grep "Leaked key"
+)
+end_test
 
+begin_test "ghe-backup stores version when not run from a clone"
+(
+  set -e
+
+  # Make sure this doesn't exist
+  rm -f "$GHE_REMOTE_DATA_USER_DIR/common/backup-utils-version"
+
+  mv "$ROOTDIR/.git" "$ROOTDIR/.gittmp"
+  ghe-backup
+  mv "$ROOTDIR/.gittmp" "$ROOTDIR/.git"
+
+  # verify that ghe-backup wrote its version information to the host
+  [ -f "$GHE_REMOTE_DATA_USER_DIR/common/backup-utils-version" ]
 )
 end_test

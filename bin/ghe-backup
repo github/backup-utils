@@ -166,8 +166,18 @@ ghe-backup-es-hookshot ||
 failures="$failures hookshot"
 
 echo "Backing up Git repositories ..."
-ghe-backup-repositories-${GHE_BACKUP_STRATEGY} ||
-failures="$failures repositories"
+if [ "$GHE_BACKUP_STRATEGY" = "cluster" ]; then
+  if ghe-ssh "$GHE_HOSTNAME" test -f /data/github/current/bin/dgit-cluster-backup-routes ; then
+    echo "* Using calculated routes method..."
+    ghe-backup-repositories-cluster-ng || failures="$failure repositories"
+  else
+    echo "* Using legacy method. A faster backup method is available on enterprise 2.7 and up."
+    ghe-backup-repositories-cluster || failures="$failures repositories"
+  fi
+else
+  ghe-backup-repositories-${GHE_BACKUP_STRATEGY} ||
+  failures="$failures repositories"
+fi
 
 echo "Backing up GitHub Pages ..."
 ghe-backup-pages-${GHE_BACKUP_STRATEGY} ||

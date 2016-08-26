@@ -74,7 +74,7 @@ user="${host%@*}"
 [ "$user" = "$host" ] && user="admin"
 
 # git server hostnames
-hostnames=$(ghe_cluster_online_nodes "git-server")
+hostnames=$(ghe-cluster-hostnames "$GHE_HOSTNAME" "git-server")
 for hostname in $hostnames; do
   config="$config
 Host $hostname
@@ -147,17 +147,32 @@ fi
 rsync_repository_data () {
   port=$(ssh_port_part "$1")
   host=$(ssh_host_part "$1")
-  file_list="$2"
-  shift
-  shift
-  ghe-rsync -avr \
-    -e "ssh -q $opts -p $port -F $config_file -l $user" \
-    $link_dest "$@" \
-    --rsync-path='sudo -u git rsync' \
-	  --include-from=- --exclude=\* \
-	  --files-from="$file_list" \
-    "$host:$GHE_REMOTE_DATA_USER_DIR/repositories/" \
-    "$backup_dir" 1>&3
+
+  #check if we are syncing from a given file list
+  if [[ "$2" == *".rsync" ]]; then
+    files_list="$2"
+    shift
+    shift
+    ghe-rsync -avr \
+      -e "ssh -q $opts -p $port -F $config_file -l $user" \
+      $link_dest "$@" \
+      --rsync-path='sudo -u git rsync' \
+      --include-from=- --exclude=\* \
+      --files-from="$files_list" \
+      "$host:$GHE_REMOTE_DATA_USER_DIR/repositories/" \
+      "$backup_dir" 1>&3
+  else
+    shift
+    ghe-rsync -avr \
+      -e "ssh -q $opts -p $port -F $config_file -l $user" \
+      $link_dest "$@" \
+      --rsync-path='sudo -u git rsync' \
+      --include-from=- --exclude=\* \
+      "$host:$GHE_REMOTE_DATA_USER_DIR/repositories/" \
+      "$backup_dir" 1>&3
+  fi
+
+
 }
 
 sync_data (){
@@ -295,26 +310,6 @@ RULES
 + /*/nw/??/??/??/*/*.git/objects/**
 RULES
 
-  # Sync __special__ data directories, including the __alambic_assets__,
-  # __hookshot__, and __purgatory__ directories. The __nodeload_archives__,
-  # __gitmon__, and __render__ directories are excludes since they act only as
-  # caches.
-  #
-  # Under v2.x and greater, only the special __purgatory__ directory remains under
-  # /data/repositories. All other special user data directories have been moved under
-  # the /data/user directory.
-  echo 1>&3
-  echo "* Transferring special data directories ..." 1>&3
-  rsync_repository_data $1:122 $2  <<RULES
-- /__nodeload_archives__/
-- /__gitmon__/
-- /__render__/
-+ /__*__/
-+ /__*__/**
-+ /info/
-- /info/lost+found/
-+ /info/*
-RULES
  echo 1>&3
 
 }
@@ -332,6 +327,36 @@ done
 wait
 bm_end "$(basename $0) - Repo sync"
 
+# Since there are no routes for special data directories
+# or archived repositories, we need to do this serially
+# for all hostnames. Good candidate for future optimizations.
+
+bm_start "$(basename $0) - Special Data Directories Sync"
+for h in $hostnames; do
+  # Sync __special__ data directories, including the __alambic_assets__,
+  # __hookshot__, and __purgatory__ directories. The __nodeload_archives__,
+  # __gitmon__, and __render__ directories are excludes since they act only as
+  # caches.
+  #
+  # Under v2.x and greater, only the special __purgatory__ directory remains under
+  # /data/repositories. All other special user data directories have been moved under
+  # the /data/user directory.
+  echo 1>&3
+  echo "* Transferring special data directories from $h..." 1>&3
+  rsync_repository_data $h:122 -z <<RULES
+- /__nodeload_archives__/
+- /__gitmon__/
+- /__render__/
++ /__*__/
++ /__*__/**
++ /info/
+- /info/lost+found/
++ /info/*
+RULES
+  echo 1>&3
+done
+bm_end "$(basename $0) - Special Data Directories Sync"
+
 bm_start "$(basename $0) - Archived Repos"
 ghe-ssh "$GHE_HOSTNAME" github-env ./bin/dgit-cluster-backup-archived-repos-routes \
   | while read route; do
@@ -340,7 +365,9 @@ ghe-ssh "$GHE_HOSTNAME" github-env ./bin/dgit-cluster-backup-archived-repos-rout
   echo "$ar_route" >> $tempdir/archived_repos.rsync
 done
 
-if ! test -f $tempdir/archived_repos.sync; then
+
+
+if ! test -f $tempdir/archived_repos.rsync; then
   echo "* No archived repositories found to backup."
   exit 0
 fi

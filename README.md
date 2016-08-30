@@ -207,13 +207,13 @@ a log file and errors generating an email:
 
     MAILTO=admin@example.com
 
-    0 * * * * /opt/backup-utils/bin/ghe-backup -v 1>>/opt/backup-utils/backup.log
+    0 * * * * /opt/backup-utils/bin/ghe-backup -v 1>>/opt/backup-utils/backup.log 2>&1
 
 To schedule nightly backup snapshots instead, use:
 
     MAILTO=admin@example.com
 
-    0 0 * * * /opt/backup-utils/bin/ghe-backup -v 1>>/opt/backup-utils/backup.log
+    0 0 * * * /opt/backup-utils/bin/ghe-backup -v 1>>/opt/backup-utils/backup.log 2>&1
 
 ### Backup snapshot file structure
 

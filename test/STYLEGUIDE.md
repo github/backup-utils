@@ -1,7 +1,7 @@
 --
 ### Writing tests
 
-See also the [Bash style guide](../STYLEGUIDE.md)
+See also the [Bash style guide](https://github.com/github/backup-utils/tree/master/STYLEGUIDE.md)
 
 --
 ##### all tests should use `set -e` and call `setup` before making any assertions

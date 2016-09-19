@@ -295,26 +295,6 @@ RULES
 + /*/nw/??/??/??/*/*.git/objects/**
 RULES
 
-  # Sync __special__ data directories, including the __alambic_assets__,
-  # __hookshot__, and __purgatory__ directories. The __nodeload_archives__,
-  # __gitmon__, and __render__ directories are excludes since they act only as
-  # caches.
-  #
-  # Under v2.x and greater, only the special __purgatory__ directory remains under
-  # /data/repositories. All other special user data directories have been moved under
-  # the /data/user directory.
-  echo 1>&3
-  echo "* Transferring special data directories ..." 1>&3
-  rsync_repository_data $1:122 $2  <<RULES
-- /__nodeload_archives__/
-- /__gitmon__/
-- /__render__/
-+ /__*__/
-+ /__*__/**
-+ /info/
-- /info/lost+found/
-+ /info/*
-RULES
  echo 1>&3
 
 }
@@ -331,6 +311,37 @@ for file_list in $tempdir/*.rsync; do
 done
 wait
 bm_end "$(basename $0) - Repo sync"
+
+# Since there are no routes for special data directories
+# or archived repositories, we need to do this serially
+# for all hostnames. Good candidate for future optimizations.
+
+bm_start "$(basename $0) - Special Data Directories Sync"
+for h in $hostnames; do
+  # Sync __special__ data directories, including the __alambic_assets__,
+  # __hookshot__, and __purgatory__ directories. The __nodeload_archives__,
+  # __gitmon__, and __render__ directories are excludes since they act only as
+  # caches.
+  #
+  # Under v2.x and greater, only the special __purgatory__ directory remains under
+  # /data/repositories. All other special user data directories have been moved under
+  # the /data/user directory.
+  echo 1>&3
+  echo "* Transferring special data directories from $h..." 1>&3
+  rsync_repository_data $h:122 -z <<RULES
+- /__nodeload_archives__/
+- /__gitmon__/
+- /__render__/
++ /__*__/
++ /__*__/**
++ /info/
+- /info/lost+found/
++ /info/*
+RULES
+  echo 1>&3
+done
+bm_end "$(basename $0) - Special Data Directories Sync"
+
 
 bm_start "$(basename $0) - Archived Repos"
 ghe-ssh "$GHE_HOSTNAME" github-env ./bin/dgit-cluster-backup-archived-repos-routes \

@@ -351,7 +351,7 @@ ghe-ssh "$GHE_HOSTNAME" github-env ./bin/dgit-cluster-backup-archived-repos-rout
   echo "$ar_route" >> $tempdir/archived_repos.rsync
 done
 
-if ! test -f $tempdir/archived_repos.sync; then
+if ! test -f $tempdir/archived_repos.rsync; then
   echo "* No archived repositories found to backup."
   exit 0
 fi

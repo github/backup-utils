@@ -9,4 +9,4 @@ Looking to contribute something to this project? That is great, we always apprec
 5. Push your feature branch to GitHub.com (`git push -u origin my-feature-branch`).
 6. Open a [Pull Request](https://github.com/github/backup-utils/compare/) and wait for our feedback.
 
-Have a look at the styleguide [styleguide](https://github.com/github/backup-utils/tree/master/STYLEGUIDE.md) to make sure your code style is consistent with the code in this repository.
+Have a look at the [styleguide](https://github.com/github/backup-utils/tree/master/STYLEGUIDE.md) to make sure your code style is consistent with the code in this repository.

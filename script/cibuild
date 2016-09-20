@@ -63,11 +63,5 @@ else
     exit 1
 fi
 
-# Publish package files on wcat.io
-echo "Uploading packages ..."
-for f in $pkg_files; do
-    printf "%-32s %-s\n" "$(curl -sT- https://wcat.io <"$f" || true)" "$f"
-done
-
 # Generate md5sums
 md5sum $pkg_files

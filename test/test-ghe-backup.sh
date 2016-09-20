@@ -440,3 +440,42 @@ begin_test "ghe-backup fsck"
   ! ghe-backup | grep -q "Repos verified:"
 )
 end_test
+
+begin_test "ghe-backup with leaked SSH host key detection for current backup"
+(
+  set -e
+
+  SHARED_UTILS_PATH=$(dirname $(which ghe-detect-leaked-ssh-keys))
+  # Inject the fingerprint into the blacklist
+  echo 98:d8:99:d3:be:c0:55:05:db:b0:53:2f:1f:ad:b3:60 >> "$SHARED_UTILS_PATH/ghe-ssh-leaked-host-keys-list.txt"
+
+  # Re-link ghe-export-ssh-keys to generate a fake ssh
+  unlink  "$ROOTDIR/test/bin/ghe-export-ssh-host-keys"
+  cd "$ROOTDIR/test/bin"
+  ln -s ghe-gen-fake-ssh-tar ghe-export-ssh-host-keys
+  cd -
+
+  # Run it
+  output=$(ghe-backup -v)
+
+  # Set the export ssh link back
+  unlink  "$ROOTDIR/test/bin/ghe-export-ssh-host-keys"
+  cd "$ROOTDIR/test/bin"
+  ln -s ghe-fake-export-command ghe-export-ssh-host-keys
+  cd -
+
+  # Test the output for leaked key detection
+  echo $output| grep "The current backup contains leaked SSH host keys"
+
+)
+end_test
+
+begin_test "ghe-backup with no leaked keys"
+(
+  set -e
+
+  # Make sure there are no leaked key messages
+  ! ghe-backup -v | grep "Leaked key"
+
+)
+end_test

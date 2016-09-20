@@ -247,5 +247,9 @@ else
     exit 1
 fi
 
+# Detect if the created backup contains any leaked ssh keys
+echo "Checking for leaked ssh keys ..."
+ghe-detect-leaked-ssh-keys -s "$GHE_SNAPSHOT_DIR" || true
+
 # Make sure we exit zero after the conditional
 true

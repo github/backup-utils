@@ -482,16 +482,16 @@ begin_test "ghe-backup with leaked SSH host key detection for current backup"
 
   # Test the output for leaked key detection
   echo $output| grep "The current backup contains leaked SSH host keys"
-  
+
 )
 end_test
 
 begin_test "ghe-backup with no leaked keys"
 (
-  set -e 
+  set -e
 
   # Make sure there are no leaked key messages
   ! ghe-backup -v | grep "Leaked key"
-  
+
 )
 end_test

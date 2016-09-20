@@ -230,4 +230,4 @@ fi
 
 ### Testing
 
-See [the style guide](../test/STYLEGUIDE.md)
+See [the style guide](https://github.com/github/backup-utils/blob/master/test/STYLEGUIDE.md)

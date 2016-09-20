@@ -62,6 +62,11 @@ failures=0
 # this runs at process exit
 atexit () {
     res=$?
+
+    # cleanup injected test key
+    shared_path=$(dirname $(which ghe-detect-leaked-ssh-keys))
+    sed -i '/98:d8:99:d3:be:c0:55:05:db:b0:53:2f:1f:ad:b3:60/d' "$shared_path/ghe-ssh-leaked-host-keys-list.txt"
+
     [ -z "$KEEPTRASH" ] && rm -rf "$TRASHDIR"
     if [ $failures -gt 0 ]
     then exit 1

@@ -459,8 +459,8 @@ end_test
 
 begin_test "ghe-backup with leaked SSH host key detection for current backup"
 (
-  set -e 
-  
+  set -e
+
   SHARED_UTILS_PATH=$(dirname $(which ghe-detect-leaked-ssh-keys))
   # Inject the fingerprint into the blacklist
   echo 98:d8:99:d3:be:c0:55:05:db:b0:53:2f:1f:ad:b3:60 >> "$SHARED_UTILS_PATH/ghe-ssh-leaked-host-keys-list.txt"
@@ -482,16 +482,16 @@ begin_test "ghe-backup with leaked SSH host key detection for current backup"
 
   # Test the output for leaked key detection
   echo $output| grep "The current backup contains leaked SSH host keys"
-  
+
 )
 end_test
 
 begin_test "ghe-backup with no leaked keys"
 (
-  set -e 
+  set -e
 
   # Make sure there are no leaked key messages
   ! ghe-backup -v | grep "Leaked key"
-  
+
 )
 end_test

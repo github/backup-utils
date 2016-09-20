@@ -111,7 +111,7 @@ if $leaked_keys_found; then
       echo "* Roll the keys either manually or with ghe-ssh-roll-host-keys on the appliance."
       echo "* (An upgrade may be required)"
     fi
-    echo 
+    echo
     echo "* One or more older backup snapshots contain leaked SSH host keys."
     echo "* No immediate action is needed but when you use one of these older snapshots for a restore, "
     echo "* please make sure to roll the SSH host keys after restore."

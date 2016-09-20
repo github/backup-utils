@@ -70,7 +70,6 @@ export GHE_RESTORE_SNAPSHOT
 echo "Checking for leaked keys in the backup snapshot that is being restored ..."
 ghe-detect-leaked-ssh-keys -s "$GHE_RESTORE_SNAPSHOT_PATH"
 
-
 # Figure out whether to use the tarball or rsync restore strategy based on the
 # strategy file written in the snapshot directory.
 GHE_BACKUP_STRATEGY=$(cat "$GHE_RESTORE_SNAPSHOT_PATH/strategy")

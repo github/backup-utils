@@ -5,7 +5,6 @@
 ROOTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 . $ROOTDIR/test/testlib.sh
 
-
 # Add some fake repositories to the snapshot
 mkdir -p "$GHE_DATA_DIR/1"
 
@@ -14,7 +13,6 @@ ln -s 1 "$GHE_DATA_DIR/current"
 
 # Make another backup snapshot based on 1
 cp -r "$GHE_DATA_DIR/1" "$GHE_DATA_DIR/2"
-
 
 # Add a custom ssh key that will be used as part of the backup and fingerprint injection for the tests
 cat <<EOF > "$GHE_DATA_DIR/ssh_host_dsa_key.pub"

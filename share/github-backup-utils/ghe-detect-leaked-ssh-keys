@@ -47,6 +47,11 @@ if [ -n "$ppid_script" ]; then
   ppid_name=$(basename $ppid_script)
 fi
 
+sshkeygen_multiple_hash_formats=false
+if (ssh-keygen -E 2>&1 | head -1 |  grep -q 'option requires an argument'); then
+  sshkeygen_multiple_hash_formats=true
+fi
+
 # Bring in the backup configuration
 . $( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config
 
@@ -63,7 +68,7 @@ fi
 
 # Store the current backup snapshot folder
 if [ -L "$GHE_DATA_DIR/current" ]; then
-  current_dir=$(readlink -f "$GHE_DATA_DIR/current")
+  current_dir=$(cd "$GHE_DATA_DIR/current"; pwd -P)
 fi
 
 leaked_keys_found=false
@@ -72,7 +77,11 @@ for tar_file in $ssh_tars; do
   for key in $keys; do
     if $(tar -tvf "$tar_file" $key &>/dev/null); then
       tar -C $TEMPDIR -xvf "$tar_file" $key &>/dev/null
-      fingerprint=$(ssh-keygen -lf $TEMPDIR/$key | cut -d ' ' -f 2)
+      if $sshkeygen_multiple_hash_formats; then
+        fingerprint=$(ssh-keygen -l -E md5 -f $TEMPDIR/$key | cut -d ' ' -f 2 | cut -f 2- -d ':')
+      else
+        fingerprint=$(ssh-keygen -lf $TEMPDIR/$key | cut -d ' ' -f 2)
+      fi
       if echo "$fingerprint_blacklist" | grep -q "$fingerprint"; then
         leaked_keys_found=true
         if [ "$current_dir" == $(dirname "$tar_file") ]; then

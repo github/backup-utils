@@ -77,7 +77,11 @@ for tar_file in $ssh_tars; do
   for key in $keys; do
     if $(tar -tvf "$tar_file" $key &>/dev/null); then
       tar -C $TEMPDIR -xvf "$tar_file" $key &>/dev/null
-      fingerprint=$(ssh-keygen -lf $TEMPDIR/$key | cut -d ' ' -f 2)
+      if $sshkeygen_multiple_hash_formats; then
+        fingerprint=$(ssh-keygen -l -E md5 -f $TEMPDIR/$key | cut -d ' ' -f 2 | cut -f 2- -d ':')
+      else
+        fingerprint=$(ssh-keygen -lf $TEMPDIR/$key | cut -d ' ' -f 2)
+      fi
       if echo "$fingerprint_blacklist" | grep -q "$fingerprint"; then
         leaked_keys_found=true
         if [ "$current_dir" == $(dirname "$tar_file") ]; then

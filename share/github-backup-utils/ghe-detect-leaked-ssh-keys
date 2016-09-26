@@ -68,7 +68,7 @@ fi
 
 # Store the current backup snapshot folder
 if [ -L "$GHE_DATA_DIR/current" ]; then
-  current_dir=$(readlink -f "$GHE_DATA_DIR/current")
+  current_dir=$(cd "$GHE_DATA_DIR/current"; pwd -P)
 fi
 
 leaked_keys_found=false

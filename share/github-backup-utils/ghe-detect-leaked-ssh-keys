@@ -48,7 +48,7 @@ if [ -n "$ppid_script" ]; then
 fi
 
 sshkeygen_multiple_hash_formats=false
-if (ssh-keygen --a-dedicated-help-flag-would-be-great 2>&1 | grep 'ssh-keygen -l ' | grep -q -- '-E'); then
+if (ssh-keygen -E 2>&1 | head -1 |  grep -q 'option requires an argument'); then
   sshkeygen_multiple_hash_formats=true
 fi
 

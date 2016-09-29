@@ -78,11 +78,7 @@ for tar_file in $ssh_tars; do
     if $(tar -tvf "$tar_file" $key &>/dev/null); then
       tar -C $TEMPDIR -xvf "$tar_file" $key &>/dev/null
       if $sshkeygen_multiple_hash_formats; then
-<<<<<<< HEAD
-        fingerprint=$(ssh-keygen -l -E md5 -f $TEMPDIR/$key | cut -d ' ' -f 2 | cut -f 2- -d ':')
-=======
         fingerprint=$(ssh-keygen -l -E md5 -f $TEMPDIR/$key | cut -d ' ' -f 2 | cut -f2- -d':')
->>>>>>> a3fac8e... add support for macOS Sierra ssh-keygen
       else
         fingerprint=$(ssh-keygen -lf $TEMPDIR/$key | cut -d ' ' -f 2)
       fi

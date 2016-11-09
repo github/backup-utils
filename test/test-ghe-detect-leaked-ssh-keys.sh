@@ -25,7 +25,7 @@ begin_test "ghe-detect-leaked-ssh-keys check -h dispays help message"
 (
   set -e
 
-  ghe-detect-leaked-ssh-keys -h | grep "--help"
+  ghe-detect-leaked-ssh-keys -h | grep "\-\-help"
 )
 end_test
 

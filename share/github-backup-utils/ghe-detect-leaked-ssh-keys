@@ -34,7 +34,7 @@ while [ $# -gt 0 ]; do
   shift
 done
 
-ppid_script=$(ps -o args= $PPID | awk '{print $2}')
+ppid_script=$(ps -o args= $PPID 2>/dev/null | awk '{print $2}')
 if [ -n "$ppid_script" ]; then
   ppid_name=$(basename $ppid_script)
 fi

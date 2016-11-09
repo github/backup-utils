@@ -6,6 +6,32 @@
 #/ ghe-restore command when restoring into a cluster.
 set -e
 
+sync_repo_info() {
+  # node names changed in 2.8 and `ghe-cluster-each -u` isn't available
+  # on GHE <= 2.7.X. We need to be backwards compatible.
+  if ghe-ssh "$GHE_HOSTNAME" test -f /data/user/common/uuid; then
+    for uuid in `ghe-ssh "$GHE_HOSTNAME" ghe-cluster-each -r git -u`; do
+      if ! ghe-rsync -av --delete \
+          -e "ssh -q $opts -p $port -F $ssh_config_file -l $user" \
+          --rsync-path="sudo -u git rsync" \
+          "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/repositories/info/" \
+          "git-server-$uuid:$GHE_REMOTE_DATA_USER_DIR/repositories/info" 1>&3; then
+        echo "Error restoring /data/repositories/info to git-server-$uuid" 1>&2
+      fi
+    done
+  else
+    for route in `ghe-ssh "$GHE_HOSTNAME" ghe-cluster-each -r git -p`; do
+      if ! ghe-rsync -av --delete \
+          -e "ssh -q $opts -p $port -F $ssh_config_file -l $user" \
+          --rsync-path="sudo -u git rsync" \
+          "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/repositories/info/" \
+          "$route:$GHE_REMOTE_DATA_USER_DIR/repositories/info" 1>&3; then
+        echo "Error restoring /data/repositories/info to $route" 1>&2
+      fi
+    done
+  fi
+}
+
 # Bring in the backup configuration
 . $( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config
 
@@ -46,7 +72,7 @@ opts="$GHE_EXTRA_SSH_OPTS -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecki
 tmp_list=$tempdir/tmp_list
 to_restore=$tempdir/to_restore
 
-hostnames=$(ghe-ssh "$GHE_HOSTNAME" ghe-config --get-regexp cluster.*.hostname | cut -d ' ' -f 2)
+hostnames=$(ghe-cluster-hostnames "$GHE_HOSTNAME" "git-server")
 for hostname in $hostnames; do
   echo "
 Host $hostname
@@ -129,15 +155,7 @@ cat $to_restore | ghe-ssh "$GHE_HOSTNAME" github-env ./bin/dgit-cluster-restore-
 
 if [ -d $GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/repositories/info ]; then
   ghe_verbose "* Transferring repository info data"
-  for route in `ghe-ssh "$GHE_HOSTNAME" ghe-cluster-each -r git -p`; do
-    if ! ghe-rsync -av --delete \
-        -e "ssh -q $opts -p $port -F $ssh_config_file -l $user" \
-        --rsync-path="sudo -u git rsync" \
-        "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/repositories/info/" \
-        "$route:$GHE_REMOTE_DATA_USER_DIR/repositories/info" 1>&3; then
-      echo "Error restoring /data/repositories/info to $route"
-    fi
-  done
+  sync_repo_info
 else
   ghe_verbose "* Removing repository info data"
   ghe-ssh "$GHE_HOSTNAME" ghe-cluster-each -r git -- rm -f /data/repositories/info/*

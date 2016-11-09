@@ -46,8 +46,7 @@ opts="$GHE_EXTRA_SSH_OPTS -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecki
 tmp_list=$tempdir/tmp_list
 to_restore=$tempdir/to_restore
 
-hostnames=$(ghe-ssh "$GHE_HOSTNAME" ghe-config --get-regexp cluster.*.hostname | cut -d ' ' -f 2)
-for hostname in $hostnames; do
+for hostname in $(ghe-cluster-hostnames "$GHE_HOSTNAME" "git-server"); do
   echo "
 Host $hostname
   ServerAliveInterval 60

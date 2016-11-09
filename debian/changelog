@@ -1,3 +1,11 @@
+github-backup-utils (2.8.0) UNRELEASED; urgency=low
+
+  * Adds support for GitHub Enterprise 2.8.0
+  * Speedup storage restores #247
+  * More portable backup-utils #260
+
+ -- rubiojr <rubiojr@github.com>  Wed, 09 Nov 2016 06:35:21 -0800
+
 github-backup-utils (2.7.1) UNRELEASED; urgency=medium
 
   * Cluster: fix offline cluster node detection #250

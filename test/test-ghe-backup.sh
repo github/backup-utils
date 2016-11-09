@@ -441,10 +441,26 @@ begin_test "ghe-backup fsck"
 )
 end_test
 
-begin_test "ghe-backup with leaked SSH host key detection for current backup"
+begin_test "ghe-backup stores version when not run from a clone"
 (
   set -e
 
+  # Make sure this doesn't exist
+  rm -f "$GHE_REMOTE_DATA_USER_DIR/common/backup-utils-version"
+
+  mv "$ROOTDIR/.git" "$ROOTDIR/.gittmp"
+  ghe-backup
+  mv "$ROOTDIR/.gittmp" "$ROOTDIR/.git"
+
+  # verify that ghe-backup wrote its version information to the host
+  [ -f "$GHE_REMOTE_DATA_USER_DIR/common/backup-utils-version" ]
+)
+end_test
+
+begin_test "ghe-backup with leaked SSH host key detection for current backup"
+(
+  set -e 
+  
   SHARED_UTILS_PATH=$(dirname $(which ghe-detect-leaked-ssh-keys))
   # Inject the fingerprint into the blacklist
   echo 98:d8:99:d3:be:c0:55:05:db:b0:53:2f:1f:ad:b3:60 >> "$SHARED_UTILS_PATH/ghe-ssh-leaked-host-keys-list.txt"
@@ -476,21 +492,6 @@ begin_test "ghe-backup with no leaked keys"
 
   # Make sure there are no leaked key messages
   ! ghe-backup -v | grep "Leaked key"
-)
-end_test
 
-begin_test "ghe-backup stores version when not run from a clone"
-(
-  set -e
-
-  # Make sure this doesn't exist
-  rm -f "$GHE_REMOTE_DATA_USER_DIR/common/backup-utils-version"
-
-  mv "$ROOTDIR/.git" "$ROOTDIR/.gittmp"
-  ghe-backup
-  mv "$ROOTDIR/.gittmp" "$ROOTDIR/.git"
-
-  # verify that ghe-backup wrote its version information to the host
-  [ -f "$GHE_REMOTE_DATA_USER_DIR/common/backup-utils-version" ]
 )
 end_test

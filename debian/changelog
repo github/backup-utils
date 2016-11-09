@@ -1,3 +1,9 @@
+github-backup-utils (2.7.2) UNRELEASED; urgency=medium
+
+  * Fix macOS regressions #256
+
+ -- Sergio Rubio <rubiojr@github.com>  Thu, 28 Sep 2016 17:15:12 +0200
+
 github-backup-utils (2.7.1) UNRELEASED; urgency=medium
 
   * Cluster: fix offline cluster node detection #250

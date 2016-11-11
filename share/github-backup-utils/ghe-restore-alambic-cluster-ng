@@ -79,13 +79,7 @@ trap 'cleanup' EXIT
 # b63c30f6f885e59282c2aa22cfca846516b5e72621c10a58140fb04d133e2c17 5592492
 # ...
 bm_start "$(basename $0) - Building object list"
-OLDIFS=$IFS; IFS=$'\n'
-for path in $storage_paths; do
-  oid=$(echo $path | awk -F/ '{print $(NF)}')
-  size=$(echo $path | awk '{print $1}')
-  echo $oid $size
-done > $tmp_list
-IFS=$OLDIFS
+echo "$storage_paths" | awk '{print $2 " " $1}' | awk -F/ '{print $NF }' > $tmp_list
 bm_end "$(basename $0) - Building object list"
 
 ghe_verbose "* Sending the object list to the server..."

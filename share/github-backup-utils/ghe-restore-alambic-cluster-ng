@@ -102,8 +102,7 @@ ghe-rsync -avz --delete \
     "$tmp_list" \
     "$(ssh_host_part "$GHE_HOSTNAME"):$(basename $tmp_list)" 1>&3
 
-
-echo "cat $(basename $tmp_list) | github-env ./bin/storage-cluster-restore-routes > $(basename $routes_list)" | ghe-ssh "$GHE_HOSTNAME"
+echo "cat $(basename $tmp_list) | github-env ./bin/storage-cluster-restore-routes > $(basename $routes_list)" | ghe-ssh "$GHE_HOSTNAME" /bin/bash
 
 ghe-rsync -avz --delete \
     -e "ghe-ssh -p $(ssh_port_part "$GHE_HOSTNAME")" \

@@ -56,6 +56,7 @@ echo "$config" > "$config_file"
 
 # Stores a list of "oid size" tuples.
 tmp_list=$(mktemp -t cluster-backup-restore-XXXXXX)
+routes_list=$(mktemp -t cluster-backup-restore-XXXXXX)
 to_restore=$(mktemp -t cluster-backup-restore-XXXXXX)
 
 opts="$GHE_EXTRA_SSH_OPTS -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no"
@@ -96,8 +97,20 @@ ghe_verbose "* Sending the object list to the server..."
 # b8a48b6b122b4ef8175348d1d6fbd846d3b3ccc8fd7552b79f91125c4958e43b server1 server2 server3
 # bc4cdd292e6b5387df2a42a907fcd5f3b6804a5d5ab427184faea5ef118d635e server1 server2 server3
 bm_start "$(basename $0) - Obtaining routes"
-cat $tmp_list | ghe-ssh "$GHE_HOSTNAME" github-env ./bin/storage-cluster-restore-routes \
- | while read obj; do
+ghe-rsync -avz --delete \
+    -e "ghe-ssh -p $(ssh_port_part "$GHE_HOSTNAME")" \
+    "$tmp_list" \
+    "$(ssh_host_part "$GHE_HOSTNAME"):$(basename $tmp_list)" 1>&3
+
+
+echo "cat $(basename $tmp_list) | github-env ./bin/storage-cluster-restore-routes > $(basename $routes_list)" | ghe-ssh "$GHE_HOSTNAME"
+
+ghe-rsync -avz --delete \
+    -e "ghe-ssh -p $(ssh_port_part "$GHE_HOSTNAME")" \
+    "$(ssh_host_part "$GHE_HOSTNAME"):$(basename $routes_list)" \
+    "$routes_list" 1>&3
+
+cat $routes_list | while read obj; do
   ghe_verbose "Received route: $obj"
   oid=$(echo $obj | cut -d ' ' -f1)
   oid_c1=$(echo $oid | cut -c1)

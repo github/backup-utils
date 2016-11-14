@@ -12,8 +12,3 @@ matrix:
         apt:
           packages: devscripts
       script: debuild -uc -us
-    - os: linux
-      dist: trusty
-      sudo: false
-      group: beta
-      script: debuild -uc -us

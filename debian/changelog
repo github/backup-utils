@@ -1,3 +1,10 @@
+github-backup-utils (2.8.1) UNRELEASED; urgency=medium
+
+  * Stop cron and timerd during restore #266
+  * Fix compatibility issue with older versions of OpenSSH #263
+
+ -- Sergio Rubio <rubiojr@github.com>  Mon, 14 Nov 2016 22:04:48 +0100
+
 github-backup-utils (2.8.0) UNRELEASED; urgency=low
 
   * Adds support for GitHub Enterprise 2.8.0

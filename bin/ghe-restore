@@ -202,12 +202,23 @@ echo "Warning: storing backup-utils version remotely failed."
 
 # Stop cron and timerd, as scheduled jobs may disrupt the restore process.
 if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
+  echo "Stopping cron and github-timerd ..."
   if $cluster; then
-    ghe-ssh "$GHE_HOSTNAME" -- "ghe-cluster-each -- sudo service cron stop"
-    ghe-ssh "$GHE_HOSTNAME" -- "ghe-cluster-each -- sudo service github-timerd stop"
+    if ! ghe-ssh "$GHE_HOSTNAME" -- "ghe-cluster-each -- sudo service cron stop"; then
+      ghe_verbose "* Warning: Failed to stop cron on one or more nodes"
+    fi
+
+    if ! ghe-ssh "$GHE_HOSTNAME" -- "ghe-cluster-each -- sudo service github-timerd stop"; then
+      ghe_verbose "* Warning: Failed to stop github-timerd on one or more nodes"
+    fi
   else
-    ghe-ssh "$GHE_HOSTNAME" -- "sudo service cron stop"
-    ghe-ssh "$GHE_HOSTNAME" -- "sudo service github-timerd stop"
+    if ! ghe-ssh "$GHE_HOSTNAME" -- "sudo service cron stop"; then
+      ghe_verbose "* Warning: Failed to stop cron"
+    fi
+
+    if ! ghe-ssh "$GHE_HOSTNAME" -- "sudo service github-timerd stop"; then
+      ghe_verbose "* Warning: Failed to stop github-timerd"
+    fi
   fi
 fi
 
@@ -336,10 +347,15 @@ fi
 
 # Start cron. Timerd will start automatically as part of the config run.
 if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
+  echo "Starting cron ..."
   if $cluster; then
-    ghe-ssh "$GHE_HOSTNAME" -- "ghe-cluster-each -- sudo service cron start"
+    if ! ghe-ssh "$GHE_HOSTNAME" -- "ghe-cluster-each -- sudo service cron start"; then
+      echo "* Warning: Failed to start cron on one or more nodes"
+    fi
   else
-    ghe-ssh "$GHE_HOSTNAME" -- "sudo service cron start"
+    if ! ghe-ssh "$GHE_HOSTNAME" -- "sudo service cron start"; then
+      echo "* Warning: Failed to start cron"
+    fi
   fi
 fi
 

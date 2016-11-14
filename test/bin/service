@@ -1,3 +1,0 @@
-#!/usr/bin/env bash
-# Fake service command for tests.
-true

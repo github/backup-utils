@@ -163,7 +163,7 @@ ghe_remote_logger "Starting restore from $(hostname) / snapshot $GHE_RESTORE_SNA
 update_restore_status () {
     if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
       if $cluster; then
-        echo "set -o pipefail; ghe-cluster-each -- \"echo '$1' | sudo dd of='$GHE_REMOTE_DATA_USER_DIR/common/ghe-restore-status' >/dev/null\"" |
+        echo "ghe-cluster-each -- \"echo '$1' | sudo dd of='$GHE_REMOTE_DATA_USER_DIR/common/ghe-restore-status' >/dev/null\"" |
         ghe-ssh "$GHE_HOSTNAME" /bin/bash
       else
         echo "$1" |

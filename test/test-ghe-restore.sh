@@ -19,8 +19,8 @@ mkdir -p gh-enterprise-es/node/0
 touch gh-enterprise-es/node/0/stuff1
 touch gh-enterprise-es/node/0/stuff2
 
-# Create some fake hookshot data in the remote data directory
 if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
+    # Create some fake hookshot data in the remote data directory
     mkdir -p "$GHE_DATA_DIR/1/hookshot"
     cd "$GHE_DATA_DIR/1/hookshot"
     mkdir -p repository-123 repository-456
@@ -50,6 +50,9 @@ if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
 
     mkdir -p "$GHE_DATA_DIR/1/alambic_assets/github-enterprise-releases/0001"
     touch "$GHE_DATA_DIR/1/alambic_assets/github-enterprise-releases/0001/1ed78298-522b-11e3-9dc0-22eed1f8132d"
+
+    # Create a fake uuid
+    echo "fake uuid" > "$GHE_DATA_DIR/1/uuid"
 fi
 
 # Add some fake repositories to the snapshot
@@ -145,6 +148,9 @@ begin_test "ghe-restore into configured vm"
 
         # verify all alambic assets user data was transferred
         diff -ru "$GHE_DATA_DIR/current/alambic_assets" "$GHE_REMOTE_DATA_USER_DIR/alambic_assets"
+
+        # verify the UUID was transferred
+        diff -ru "$GHE_DATA_DIR/current/uuid" "$GHE_REMOTE_DATA_USER_DIR/common/uuid"
     fi
 )
 end_test
@@ -279,6 +285,9 @@ begin_test "ghe-restore -c into unconfigured vm"
 
         # verify all alambic assets user data was transferred
         diff -ru "$GHE_DATA_DIR/current/alambic_assets" "$GHE_REMOTE_DATA_USER_DIR/alambic_assets"
+
+        # verify the UUID was transferred
+        diff -ru "$GHE_DATA_DIR/current/uuid" "$GHE_REMOTE_DATA_USER_DIR/common/uuid"
     fi
 )
 end_test
@@ -344,6 +353,9 @@ begin_test "ghe-restore into unconfigured vm"
         # verify all alambic assets user data was transferred
         diff -ru "$GHE_DATA_DIR/current/alambic_assets" "$GHE_REMOTE_DATA_USER_DIR/alambic_assets"
 
+        # verify the UUID was transferred
+        diff -ru "$GHE_DATA_DIR/current/uuid" "$GHE_REMOTE_DATA_USER_DIR/common/uuid"
+
         # verify no config run after restore on unconfigured instance
         ! grep -q "ghe-config-apply OK" "$TRASHDIR/restore-out"
     fi
@@ -396,6 +408,9 @@ begin_test "ghe-restore with host arg"
 
         # verify all alambic assets user data was transferred
         diff -ru "$GHE_DATA_DIR/current/alambic_assets" "$GHE_REMOTE_DATA_USER_DIR/alambic_assets"
+
+        # verify the UUID was transferred
+        diff -ru "$GHE_DATA_DIR/current/uuid" "$GHE_REMOTE_DATA_USER_DIR/common/uuid"
     fi
 )
 end_test
@@ -482,6 +497,43 @@ begin_test "ghe-restore with tarball strategy"
 
     # verify ghe-import-repositories was run on remote side with fake tarball
     echo "$output" | grep -q 'fake ghe-export-repositories data'
+)
+end_test
+
+begin_test "ghe-restore with empty uuid file"
+(
+  set -e
+
+  # Remove the UUID from the remote instance
+  rm -f "$GHE_REMOTE_DATA_USER_DIR/common/uuid"
+
+  # Zero-length the UUID file
+  cat /dev/null > "$GHE_DATA_DIR/current/uuid"
+
+  # Run a restore
+  ghe-restore -v -f localhost
+
+  # Verify no uuid is restored
+  [ ! -f "$GHE_REMOTE_DATA_USER_DIR/common/uuid" ]
+
+)
+end_test
+
+begin_test "ghe-restore with no uuid file"
+(  set -e
+
+  # Remove the UUID from the remote instance
+  rm -f "$GHE_REMOTE_DATA_USER_DIR/common/uuid"
+
+  # Remove the UUID file
+  rm -f "$GHE_DATA_DIR/current/uuid"
+
+  # Run a restore
+  ghe-restore -v -f localhost
+
+  # Verify no uuid is restored
+  [ ! -f "$GHE_REMOTE_DATA_USER_DIR/common/uuid" ]
+
 )
 end_test
 

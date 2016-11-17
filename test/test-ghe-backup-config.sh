@@ -20,8 +20,9 @@ begin_test "ghe-backup-config GHE_CREATE_DATA_DIR disabled"
     set -e
 
     export GHE_DATA_DIR="$TRASHDIR/create-enabled-data"
-    output=$(. share/github-backup-utils/ghe-backup-config 2>&1)
-    echo $output | grep -q "Creating the backup data directory ..."
+    export GHE_VERBOSE=1
+    . share/github-backup-utils/ghe-backup-config |
+      grep -q "Creating the backup data directory ..."
     test -d $GHE_DATA_DIR
     rm -rf $GHE_DATA_DIR
 

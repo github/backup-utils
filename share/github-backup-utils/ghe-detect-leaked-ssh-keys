@@ -124,6 +124,8 @@ if $leaked_keys_found; then
     echo "* (An upgrade may be required)"
     echo
   fi
+else 
+  echo "* No leaked keys found"  
 fi
 
 # Cleanup temp dir

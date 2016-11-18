@@ -79,6 +79,7 @@ echo "fake ghe-export-es-indices data" > "$GHE_DATA_DIR/current/elasticsearch.ta
 echo "fake ghe-export-ssh-host-keys data" > "$GHE_DATA_DIR/current/ssh-host-keys.tar"
 echo "fake ghe-export-repositories data" > "$GHE_DATA_DIR/current/repositories.tar"
 echo "fake ghe-export-settings data" > "$GHE_DATA_DIR/current/settings.json"
+echo "fake ghe-export-ssl-ca-certificates data" > "$GHE_DATA_DIR/current/ssl-ca-certificates.tar"
 echo "fake license data" > "$GHE_DATA_DIR/current/enterprise.ghl"
 echo "fake manage password hash data" > "$GHE_DATA_DIR/current/manage-password"
 echo "rsync" > "$GHE_DATA_DIR/current/strategy"
@@ -288,6 +289,9 @@ begin_test "ghe-restore -c into unconfigured vm"
 
         # verify the UUID was transferred
         diff -ru "$GHE_DATA_DIR/current/uuid" "$GHE_REMOTE_DATA_USER_DIR/common/uuid"
+
+        # verify ghe-export-ssl-ca-certificates was run
+        grep -q "fake ghe-export-ssl-ca-certificates data" "$TRASHDIR/restore-out"
     fi
 )
 end_test
@@ -355,6 +359,9 @@ begin_test "ghe-restore into unconfigured vm"
 
         # verify the UUID was transferred
         diff -ru "$GHE_DATA_DIR/current/uuid" "$GHE_REMOTE_DATA_USER_DIR/common/uuid"
+
+        # verify ghe-export-ssl-ca-certificates was run
+        grep -q "fake ghe-export-ssl-ca-certificates data" "$TRASHDIR/restore-out"
 
         # verify no config run after restore on unconfigured instance
         ! grep -q "ghe-config-apply OK" "$TRASHDIR/restore-out"

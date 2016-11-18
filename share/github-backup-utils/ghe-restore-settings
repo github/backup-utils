@@ -62,7 +62,7 @@ fi
 if [ -f "$GHE_RESTORE_SNAPSHOT_PATH/ssl-ca-certificates.tar" ]; then
     echo "Restoring CA certificates ..."
     cat "$GHE_RESTORE_SNAPSHOT_PATH/ssl-ca-certificates.tar" |
-    ghe-ssh "$GHE_HOSTNAME" -- "ghe-import-ssl-ca-certificates >/dev/null"
+    ghe-ssh "$GHE_HOSTNAME" -- "ghe-import-ssl-ca-certificates"
 fi
 
 bm_start "$(basename $0)"

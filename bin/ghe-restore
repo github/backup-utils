@@ -77,19 +77,6 @@ GHE_BACKUP_STRATEGY=$(cat "$GHE_RESTORE_SNAPSHOT_PATH/strategy")
 # Perform a host-check and establish the remote version in GHE_REMOTE_VERSION.
 ghe_remote_version_required "$GHE_HOSTNAME"
 
-# Keep other processes on the VM in the loop about the restore status.
-#
-# Other processes will look for these states:
-# "restoring" - restore is currently in progress
-# "failed"    - restore has failed
-# "complete"  - restore has completed successfully
-update_restore_status () {
-    if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
-        echo "$1" |
-        ghe-ssh "$GHE_HOSTNAME" -- "sudo dd of='$GHE_REMOTE_DATA_USER_DIR/common/ghe-restore-status' 2>/dev/null"
-    fi
-}
-
 # Figure out if this instance has been configured or is entirely new.
 instance_configured=false
 if ghe-ssh "$GHE_HOSTNAME" -- \
@@ -166,6 +153,24 @@ fi
 # Log restore start message locally and in /var/log/syslog on remote instance
 echo "Starting restore of $GHE_HOSTNAME from snapshot $GHE_RESTORE_SNAPSHOT"
 ghe_remote_logger "Starting restore from $(hostname) / snapshot $GHE_RESTORE_SNAPSHOT ..."
+
+# Keep other processes on the VM or cluster in the loop about the restore status.
+#
+# Other processes will look for these states:
+# "restoring" - restore is currently in progress
+# "failed"    - restore has failed
+# "complete"  - restore has completed successfully
+update_restore_status () {
+    if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
+      if $cluster; then
+        echo "ghe-cluster-each -- \"echo '$1' | sudo dd of='$GHE_REMOTE_DATA_USER_DIR/common/ghe-restore-status' >/dev/null\"" |
+        ghe-ssh "$GHE_HOSTNAME" /bin/bash
+      else
+        echo "$1" |
+        ghe-ssh "$GHE_HOSTNAME" -- "sudo dd of='$GHE_REMOTE_DATA_USER_DIR/common/ghe-restore-status' >/dev/null"
+      fi
+    fi
+}
 
 # Update remote restore state file and setup failure trap
 trap "update_restore_status failed" EXIT

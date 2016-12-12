@@ -159,11 +159,11 @@ if [ $GHE_VERSION_MAJOR -ge 2 ]; then
   echo "Backing up audit log ..."
   ghe-backup-es-audit-log ||
   failures="$failures audit-log"
-fi
 
-echo "Backing up hookshot logs ..."
-ghe-backup-es-hookshot ||
-failures="$failures hookshot"
+  echo "Backing up hookshot logs ..."
+  ghe-backup-es-hookshot ||
+  failures="$failures hookshot"
+fi
 
 echo "Backing up Git repositories ..."
 if [ "$GHE_BACKUP_STRATEGY" = "cluster" ]; then

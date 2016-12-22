@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #/ Usage: ghe-backup-settings
-#/ Restore settings from a snapshot to the given <host>.
+#/ Backup settings from a snapshot to the given <host>.
 set -e
 
 # Bring in the backup configuration

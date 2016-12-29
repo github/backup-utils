@@ -11,5 +11,7 @@ matrix:
       sudo: false
       addons:
         apt:
-          packages: devscripts
+          packages:
+            - devscripts
+            - debhelper
       script: debuild -uc -us

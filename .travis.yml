@@ -8,7 +8,7 @@ matrix:
       script: make test
     - os: linux
       dist: trusty
-      sudo: false
+      sudo: true
       addons:
         apt:
           packages:

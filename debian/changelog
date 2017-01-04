@@ -1,3 +1,10 @@
+github-backup-utils (2.8.3) UNRELEASED; urgency=medium
+
+  * Set restore status on all cluster nodes #274
+  * Fix pages backups and restores in GitHub Enterprise 11.10 #275
+
+ -- Steven Honson <snh@github.com>  Wed, 21 Dec 2016 21:01:20 +1100
+
 github-backup-utils (2.8.2) UNRELEASED; urgency=medium
 
   * Backup and restore the appliance UUID #272

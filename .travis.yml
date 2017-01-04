@@ -12,3 +12,12 @@ matrix:
         apt:
           packages: devscripts
       script: debuild -uc -us
+    - os: linux
+      dist: trusty
+      sudo: required
+      addons:
+        apt:
+          packages:
+            - devscripts
+            - debhelper
+      script: debuild -uc -us

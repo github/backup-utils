@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #/ Usage: ghe-detect-leaked-ssh-key [-s <snapshot-id>]
 #/
 #/ This utility will check each snapshot's existing SSH host keys against the list

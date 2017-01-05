@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # bm.sh: benchmarking Bash code blocks
 #
 # Example:

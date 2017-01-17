@@ -49,8 +49,8 @@ begin_test "ghe-backup-config run on GHE appliance"
     touch "$GHE_RELEASE_FILE"
     set +e
     error=$(. share/github-backup-utils/ghe-backup-config 2>&1)
-    # should exit 2
-    if [ $? != 2 ]; then
+    # should exit 1
+    if [ $? != 1 ]; then
       exit 1
     fi
     set -e

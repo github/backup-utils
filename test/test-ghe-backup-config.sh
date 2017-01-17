@@ -41,6 +41,26 @@ begin_test "ghe-backup-config GHE_CREATE_DATA_DIR disabled"
 )
 end_test
 
+begin_test "ghe-backup-config run on GHE appliance"
+(
+    set -e
+
+    export GHE_RELEASE_FILE="$TRASHDIR/enterprise-release"
+    touch "$GHE_RELEASE_FILE"
+    set +e
+    error=$(. share/github-backup-utils/ghe-backup-config 2>&1)
+    # should exit 1
+    if [ $? != 1 ]; then
+      exit 1
+    fi
+    set -e
+    echo "$error" | grep -q "Error: Backup Utils cannot be run on the GitHub Enterprise host."
+
+    test -f "$GHE_RELEASE_FILE"
+    rm -rf "$GHE_RELEASE_FILE"
+)
+end_test
+
 begin_test "ghe-backup-config ssh_host_part"
 (
     set -e
@@ -50,7 +70,6 @@ begin_test "ghe-backup-config ssh_host_part"
     [ $(ssh_host_part "git@github.example.com:5000") = "git@github.example.com" ]
 )
 end_test
-
 
 begin_test "ghe-backup-config ssh_port_part"
 (

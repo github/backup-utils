@@ -84,7 +84,7 @@ if [ ${GHE_DATA_DIR:0:1} != "/" ]; then
 fi
 
 # Assign the Release File path if it hasn't been provided (eg: by test suite)
-[ -z "$GHE_RELEASE_FILE" ] && GHE_RELEASE_FILE="/etc/github/enterprise-release"
+: ${GHE_RELEASE_FILE:="/etc/github/enterprise-release"}
 
 # Check that utils are not being run directly on GHE appliance.
 if [ -f "$GHE_RELEASE_FILE" ]; then

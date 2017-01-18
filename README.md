@@ -68,7 +68,7 @@ greater.
 
 The previous release series (11.10.34x) is also supported but must meet minimum
 version requirements. For online and incremental backup support, the GitHub
-Enterprise instance must be running version 11.10.342 or above.
+Enterprise instance must be running version 11.10.342 or above. 
 
 Earlier versions are supported, but online and incremental backups are not
 supported. We strongly recommend upgrading to the latest release if you're

@@ -15,6 +15,19 @@ export GHE_DATA_DIR GHE_REMOTE_DATA_DIR
 cd "$ROOTDIR"
 . "share/github-backup-utils/ghe-backup-config"
 
+begin_test "ghe-backup-config GHE_DATA_DIR defined"
+(
+    set +e
+    GHE_DATA_DIR= error=$(. share/github-backup-utils/ghe-backup-config 2>&1)
+    # should exit 2
+    if [ $? != 2 ]; then
+      exit 1
+    fi
+    set -e
+    echo $error | grep -q "Error: GHE_DATA_DIR not set in config file."
+)
+end_test
+
 begin_test "ghe-backup-config GHE_CREATE_DATA_DIR disabled"
 (
     set -e

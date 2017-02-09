@@ -17,6 +17,8 @@ bm_desc_to_varname(){
 bm_start()
 {
   eval "$(bm_desc_to_varname $@)_start=$(date +%s)"
+
+  bm_file_path > /dev/null
 }
 
 bm_file_path() {

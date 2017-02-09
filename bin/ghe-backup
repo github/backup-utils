@@ -120,6 +120,9 @@ if [ "$GHE_BACKUP_STRATEGY" = "tarball" ]; then
     GHE_MAINTENANCE_MODE_ENABLED=true
 fi
 
+# Create benchmark file
+bm_file_path > /dev/null
+
 ghe-backup-store-version  ||
 echo "Warning: storing backup-utils version remotely failed."
 

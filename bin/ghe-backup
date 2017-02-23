@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#/ Usage: ghe-backup [-v]
+#/ Usage: ghe-backup [-v] [--version]
 #/ Take snapshots of all GitHub Enterprise data, including Git repository data,
 #/ the MySQL database, instance settings, GitHub Pages data, etc.
 #/

@@ -6,6 +6,7 @@
 #/ argument is provided, it always overrides the configured restore host.
 #/
 #/ Options:
+#/   --version         Display version information.
 #/   -f                Don't prompt for confirmation before restoring.
 #/   -c                Restore appliance settings and license in addition to
 #/                     datastores. Settings are not restored by default to

@@ -203,7 +203,7 @@ if $instance_configured; then
 fi
 
 # Create benchmark file
-bm_file_path > /dev/null
+bm_init > /dev/null
 
 ghe-backup-store-version  ||
 echo "Warning: storing backup-utils version remotely failed."

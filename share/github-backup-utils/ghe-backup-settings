@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #/ Usage: ghe-backup-settings
-#/ Restore settings from a snapshot to the given <host>.
+#/ Backup settings from a snapshot to the given <host>.
 set -e
 
 # Bring in the backup configuration
@@ -43,6 +43,11 @@ if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
       echo "* Transferring SAML keys ..." 1>&3
       ghe-ssh $host -- sudo tar -C $GHE_REMOTE_DATA_USER_DIR/common/ -cf - "idp.crt saml-sp.p12" > saml-keys.tar
     fi
+fi
+
+if ghe-ssh "$host" -- "which ghe-export-ssl-ca-certificates 1>/dev/null"; then
+  echo "* Transferring CA certificates ..." 1>&3
+  ghe-ssh "$host" -- "ghe-export-ssl-ca-certificates" > ssl-ca-certificates.tar
 fi
 
 if [ "$GHE_BACKUP_STRATEGY" = "cluster" ]; then

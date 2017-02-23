@@ -82,6 +82,12 @@ if [ -z "$GHE_HOSTNAME" ]; then
     exit 2
 fi
 
+# Check that the GHE data directory is set.
+if [ -z "$GHE_DATA_DIR" ]; then
+    echo "Error: GHE_DATA_DIR not set in config file." 1>&2
+    exit 2
+fi
+
 # Convert the data directory path to an absolute path, basing any relative
 # paths on the backup-utils root, and using readlink, if available, to
 # canonicalize the path.

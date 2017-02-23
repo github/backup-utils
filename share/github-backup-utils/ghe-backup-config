@@ -25,6 +25,12 @@ PATH="$GHE_BACKUP_ROOT/bin:$GHE_BACKUP_ROOT/share/github-backup-utils:$PATH"
 
 . $GHE_BACKUP_ROOT/share/github-backup-utils/bm.sh
 
+# Display version string if flag present for any command
+if [ "$1" = "--version" ]; then
+    echo "GitHub backup-utils v$BACKUP_UTILS_VERSION"
+    exit 0
+fi
+
 # Parse out -v (verbose) argument
 if [ "$1" = "-v" ]; then
     GHE_VERBOSE=true
@@ -81,6 +87,18 @@ fi
 # canonicalize the path.
 if [ ${GHE_DATA_DIR:0:1} != "/" ]; then
   GHE_DATA_DIR="$( cd "$GHE_BACKUP_ROOT" && readlink -m "$GHE_DATA_DIR" 2> /dev/null || echo "$GHE_BACKUP_ROOT/$GHE_DATA_DIR" )"
+fi
+
+# Assign the Release File path if it hasn't been provided (eg: by test suite)
+: ${GHE_RELEASE_FILE:="/etc/github/enterprise-release"}
+
+# Check that utils are not being run directly on GHE appliance.
+if [ -f "$GHE_RELEASE_FILE" ]; then
+  echo "Error: Backup Utils cannot be run on the GitHub Enterprise host." 1>&2
+  echo "       The backup utilities should be run on a host dedicated to" 1>&2
+  echo "       long-term permanent storage and must have network connectivity" 1>&2
+  echo "       with the GitHub Enterprise appliance." 1>&2
+  exit 1
 fi
 
 GHE_CREATE_DATA_DIR=${GHE_CREATE_DATA_DIR:-yes}

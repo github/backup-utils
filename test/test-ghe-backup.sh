@@ -151,6 +151,9 @@ begin_test "ghe-backup first snapshot"
 
         # verify the UUID was transferred
         diff -ru "$GHE_REMOTE_DATA_USER_DIR/common/uuid" "$GHE_DATA_DIR/current/uuid"
+
+        # check that ca certificates were backed up
+        [ "$(cat "$GHE_DATA_DIR/current/ssl-ca-certificates.tar")" = "fake ghe-export-ssl-ca-certificates data" ]
     fi
 
     # verify that ghe-backup wrote its version information to the host
@@ -235,6 +238,9 @@ begin_test "ghe-backup subsequent snapshot"
 
         # verify the UUID was transferred
         diff -ru "$GHE_REMOTE_DATA_USER_DIR/common/uuid" "$GHE_DATA_DIR/current/uuid"
+
+        # check that ca certificates were backed up
+        [ "$(cat "$GHE_DATA_DIR/current/ssl-ca-certificates.tar")" = "fake ghe-export-ssl-ca-certificates data" ]
     fi
 )
 end_test
@@ -335,6 +341,9 @@ begin_test "ghe-backup with relative data dir path"
 
         # verify the UUID was transferred
         diff -ru "$GHE_REMOTE_DATA_USER_DIR/common/uuid" "$GHE_DATA_DIR/current/uuid"
+
+        # check that ca certificates were backed up
+        [ "$(cat "$GHE_DATA_DIR/current/ssl-ca-certificates.tar")" = "fake ghe-export-ssl-ca-certificates data" ]
     fi
 
     # verify that ghe-backup wrote its version information to the host

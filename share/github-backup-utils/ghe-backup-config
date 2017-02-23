@@ -25,6 +25,12 @@ PATH="$GHE_BACKUP_ROOT/bin:$GHE_BACKUP_ROOT/share/github-backup-utils:$PATH"
 
 . $GHE_BACKUP_ROOT/share/github-backup-utils/bm.sh
 
+# Display version string if flag present for any command
+if [ "$1" = "--version" ]; then
+    echo "GitHub backup-utils v$BACKUP_UTILS_VERSION"
+    exit 0
+fi
+
 # Parse out -v (verbose) argument
 if [ "$1" = "-v" ]; then
     GHE_VERBOSE=true

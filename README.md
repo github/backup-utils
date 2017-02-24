@@ -172,7 +172,7 @@ enable when output is logged to a file.
 
 When restoring to an already configured GHE instance, settings, certificate, and license data
 are *not* restored to prevent overwriting manual configuration on the restore
-host. This behavior can be overriden by passing the `-c` argument to `ghe-restore`,
+host. This behavior can be overridden by passing the `-c` argument to `ghe-restore`,
 forcing settings, certificate, and license data to be overwritten with the backup copy's data.
 
 ### Scheduling backups

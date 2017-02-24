@@ -45,7 +45,7 @@ if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
     fi
 fi
 
-if ghe-ssh "$host" -- "which ghe-export-ssl-ca-certificates"; then
+if ghe-ssh "$host" -- "which ghe-export-ssl-ca-certificates 1>/dev/null"; then
   echo "* Transferring CA certificates ..." 1>&3
   ghe-ssh "$host" -- "ghe-export-ssl-ca-certificates" > ssl-ca-certificates.tar
 fi

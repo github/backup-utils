@@ -463,7 +463,7 @@ begin_test "ghe-backup stores version when not run from a clone"
   # Make sure this doesn't exist
   rm -f "$GHE_REMOTE_DATA_USER_DIR/common/backup-utils-version"
 
-  tmpdir=$TRASHDIR/ghe-backup-stores-version
+  tmpdir=$TRASHDIR/ghe-backup-stores-version-$RANDOM
   mkdir $tmpdir
   git clone $ROOTDIR $tmpdir/backup-utils
   cd $tmpdir/backup-utils

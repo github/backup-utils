@@ -11,6 +11,7 @@ matrix:
       addons:
         apt:
           packages: devscripts
+      before_script: git fetch --unshallow
       script: debuild -uc -us
     - os: linux
       dist: trusty

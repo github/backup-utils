@@ -58,4 +58,11 @@ if [ -f "$GHE_RESTORE_SNAPSHOT_PATH/saml-keys.tar" ]; then
     ghe-ssh "$GHE_HOSTNAME" -- "sudo tar -C $GHE_REMOTE_DATA_USER_DIR/common/ -xf -"
 fi
 
+# Restore CA certificates if present.
+if [ -f "$GHE_RESTORE_SNAPSHOT_PATH/ssl-ca-certificates.tar" ]; then
+    echo "Restoring CA certificates ..."
+    cat "$GHE_RESTORE_SNAPSHOT_PATH/ssl-ca-certificates.tar" |
+    ghe-ssh "$GHE_HOSTNAME" -- "ghe-import-ssl-ca-certificates"
+fi
+
 bm_start "$(basename $0)"

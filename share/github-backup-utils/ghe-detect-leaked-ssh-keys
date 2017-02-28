@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #/ Usage: ghe-detect-leaked-ssh-key [-s <snapshot-id>]
 #/
 #/ This utility will check each snapshot's existing SSH host keys against the list
@@ -13,30 +13,22 @@ set -e
 
 usage() {
   grep '^#/' < "$0" | cut -c 4-
+  exit 2
 }
 
 TEMPDIR=$(mktemp -d)
-
-# Parse args.
-ARGS=$(getopt --name "$0" --long help,snapshot: --options hs -- "$@") || {
-  usage
-  exit 2
-}
-eval set -- $ARGS
 
 while [ $# -gt 0 ]; do
   case "$1" in
     -h|--help)
       usage
-      exit 2
       ;;
     -s|--snapshot)
-      shift 2
-      snapshot=$1
-      ;;
-    --)
+      snapshot=$2
       shift
-      break
+      ;;
+    *)
+      usage
       ;;
   esac
   shift
@@ -61,6 +53,10 @@ keys="ssh_host_dsa_key.pub ssh_host_ecdsa_key.pub ssh_host_ed25519_key.pub ssh_h
 
 # Get all the host ssh keys tar from all snapshots directories
 if [ -n "$snapshot" ]; then
+  if [ ! -d "$snapshot" ]; then
+    echo "Invalid snapshot directory: $snapshot" >&2
+    exit 1
+  fi
   ssh_tars=$(find "$snapshot" -maxdepth 1 -type f -iname 'ssh-host-keys.tar')
 else
   ssh_tars=$(find "$GHE_DATA_DIR" -maxdepth 2 -type f -iname 'ssh-host-keys.tar')
@@ -78,7 +74,7 @@ for tar_file in $ssh_tars; do
     if $(tar -tvf "$tar_file" $key &>/dev/null); then
       tar -C $TEMPDIR -xvf "$tar_file" $key &>/dev/null
       if $sshkeygen_multiple_hash_formats; then
-        fingerprint=$(ssh-keygen -l -E md5 -f $TEMPDIR/$key | cut -d ' ' -f 2 | cut -f 2- -d ':')
+        fingerprint=$(ssh-keygen -l -E md5 -f $TEMPDIR/$key | cut -d ' ' -f 2 | cut -f2- -d':')
       else
         fingerprint=$(ssh-keygen -lf $TEMPDIR/$key | cut -d ' ' -f 2)
       fi
@@ -128,6 +124,8 @@ if $leaked_keys_found; then
     echo "* (An upgrade may be required)"
     echo
   fi
+else 
+  echo "* No leaked keys found"  
 fi
 
 # Cleanup temp dir

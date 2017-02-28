@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #/ Usage: ghe-backup-settings
-#/ Restore settings from a snapshot to the given <host>.
+#/ Backup settings from a snapshot to the given <host>.
 set -e
 
 # Bring in the backup configuration
@@ -45,11 +45,20 @@ if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
     fi
 fi
 
+if ghe-ssh "$host" -- "which ghe-export-ssl-ca-certificates 1>/dev/null"; then
+  echo "* Transferring CA certificates ..." 1>&3
+  ghe-ssh "$host" -- "ghe-export-ssl-ca-certificates" > ssl-ca-certificates.tar
+fi
+
 if [ "$GHE_BACKUP_STRATEGY" = "cluster" ]; then
   echo "* Transferring cluster configuration ..." 1>&3
   if ! ghe-ssh "$host" -- "sudo cat $GHE_REMOTE_CLUSTER_CONF_FILE 2>/dev/null" > cluster.conf; then
     echo "Error: Enterprise Cluster is not configured yet, backup will fail" >&2
     exit 1
+  fi
+else
+  if ghe-ssh "$host" -- "sudo cat $GHE_REMOTE_DATA_USER_DIR/common/uuid 2>/dev/null" > uuid; then
+    echo "* Transferring UUID ..." 1>&3
   fi
 fi
 

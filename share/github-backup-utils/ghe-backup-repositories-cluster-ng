@@ -135,7 +135,7 @@ ghe-ssh "$GHE_HOSTNAME" github-env ./bin/dgit-cluster-backup-routes \
 done
 bm_end "$(basename $0) - Calculating Sync Routes"
 
-if ! ls $tempdir/*.rsync 2>/dev/null; then
+if ! ls $tempdir/*.rsync >/dev/null 2>&1; then
   echo "Warning: no routes found, skipping repositories backup ..."
   exit 0
 fi

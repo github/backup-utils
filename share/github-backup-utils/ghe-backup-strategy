@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+#/ Usage: ghe-backup-strategy
+#/
+#/ Determine the backup strategy that will be used.
+#/
+#/ The tarball strategy must be used with GitHub Enterprise versions prior to
+#/ 11.10.340 since rsync is not available.
+#/
+#/ The rsync strategy should be used for single VMs and all HA configurations.
+#/
+#/ The cluster strategy should be used to backup GHE clusters.
+set -e
+
+# Bring in the backup configuration
+. $( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config
+
+if [ $GHE_VERSION_MAJOR -eq 1 -a $GHE_VERSION_PATCH -lt 340 ]; then
+  echo "tarball"
+elif ghe-ssh "$GHE_HOSTNAME" -- \
+  "[ -f '$GHE_REMOTE_ROOT_DIR/etc/github/repl-state' ]"; then
+  echo "rsync"
+elif ghe-ssh "$GHE_HOSTNAME" -- \
+  "[ -f '$GHE_REMOTE_ROOT_DIR/etc/github/cluster' ]"; then
+  echo "cluster"
+else
+  echo "rsync"
+fi

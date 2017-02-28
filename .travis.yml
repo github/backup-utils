@@ -14,6 +14,7 @@ matrix:
           packages:
             - devscripts
             - moreutils
+      before_script: git fetch --unshallow
       script: debuild -uc -us
     - os: linux
       dist: trusty

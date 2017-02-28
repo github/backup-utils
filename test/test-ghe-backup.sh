@@ -463,9 +463,11 @@ begin_test "ghe-backup stores version when not run from a clone"
   # Make sure this doesn't exist
   rm -f "$GHE_REMOTE_DATA_USER_DIR/common/backup-utils-version"
 
-  mv "$ROOTDIR/.git" "$ROOTDIR/.gittmp"
-  ghe-backup
-  mv "$ROOTDIR/.gittmp" "$ROOTDIR/.git"
+  tmpdir=$(mktemp -d $TRASHDIR/foo.XXXXXX)
+  git clone $ROOTDIR $tmpdir/backup-utils
+  cd $tmpdir/backup-utils
+  rm -rf .git
+  ./bin/ghe-backup
 
   # verify that ghe-backup wrote its version information to the host
   [ -f "$GHE_REMOTE_DATA_USER_DIR/common/backup-utils-version" ]

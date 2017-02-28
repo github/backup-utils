@@ -22,7 +22,7 @@ if ghe-ssh "$GHE_HOSTNAME" test -f /data/user/common/uuid; then
   node_uuids=$(ghe-ssh "$GHE_HOSTNAME" ghe-config --get-regexp cluster.*.uuid | cut -d ' ' -f 2)
   hostnames=''
   for uuid in $node_uuids; do
-    hostname_with_role=$(ghe-config --get-regexp cluster.*.uuid  | grep $prefix | cut -d ' ' -f 1 | sed 's\uuid\git-server\g') || true
+    hostname_with_role=$(ghe-ssh "$GHE_HOSTNAME" ghe-config --get-regexp cluster.*.uuid  | grep $prefix | cut -d ' ' -f 1 | sed 's\uuid\git-server\g') || true
     if [ -n "$hostname_with_role"]; then
       if $(ghe-config $hostname_with_role); then
             hostnames+="$prefix-$uuid "

@@ -115,12 +115,12 @@ if $cluster; then
   fi
 fi
 
-# Figure out if this instance is in a replication pair
-if ghe-ssh "$GHE_HOSTNAME" -- "ghe-repl-status -r 2>/dev/null" \
-  | grep -Eq "replica|primary"; then
-  instance_configured=true
-  echo "WARNING: Restoring to a server with replication enabled interrupts replication."
-  echo "         You will need to reconfigure replication after the restore completes."
+# Figure out if this appliance is in a replication pair
+if ghe-ssh "$GHE_HOSTNAME" -- \
+  "[ -f '$GHE_REMOTE_ROOT_DIR/etc/github/repl-state' ]"; then
+  echo "Error: Restoring to an appliance with replication enabled is not supported." >&2
+  echo "       Please teardown replication before restoring." >&2
+  exit 1
 fi
 
 # Prompt to verify the restore host given is correct. Restoring overwrites

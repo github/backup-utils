@@ -19,9 +19,9 @@ set -e
 GHE_HOSTNAME="$1"
 prefix="$2"
 
-if ghe-ssh "$GHE_HOSTNAME" test -f /data/user/common/uuid; then
+if ghe-ssh "$GHE_HOSTNAME" test -f "$GHE_REMOTE_DATA_USER_DIR/common/uuid"; then
   cluster_configs=$(ghe-ssh "$GHE_HOSTNAME" ghe-config --get-regexp cluster.*)
-  node_uuids=$(echo "$cluster_configs" | grep -P "cluster.*.uuid" | cut -d ' ' -f 2)
+  node_uuids=$(echo "$cluster_configs" | grep -e "cluster.*.uuid" | cut -d ' ' -f 2)
   hostnames=''
   for uuid in $node_uuids; do
     #match uuid to role in prefix i.e git-server , git-web-server etc

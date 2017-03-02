@@ -13,6 +13,9 @@ set -e
 # Bring in the backup configuration
 . $( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config
 
+# Set user directory if not already exported from config
+: ${GHE_REMOTE_DATA_USER_DIR:="/data/user"}
+
 # Show usage and bail with no arguments
 [ -z "$*" ] && print_usage
 

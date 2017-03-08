@@ -13,8 +13,11 @@ set -e
 # Bring in the backup configuration
 . $( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config
 
-# Set user directory if not already exported from config
-: ${GHE_REMOTE_DATA_USER_DIR:="/data/user"}
+# Check if the REMOTE DATA USER directory is set
+if [ -z $GHE_REMOTE_DATA_USER_DIR ]; then
+  echo "Env variable GHE_REMOTE_DATA_USER_DIR is not set. Exiting"
+  exit 1
+fi
 
 # Show usage and bail with no arguments
 [ -z "$*" ] && print_usage

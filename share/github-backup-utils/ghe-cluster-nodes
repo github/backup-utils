@@ -2,7 +2,7 @@
 #/ Usage: ghe-cluster-nodes <host> <prefix>
 #/
 #/ Finds all nodes of the cluster using the config on <host>.
-#/ If it is a 2.8 cluster the results are returned as prefix-uuid,
+#/ If it is a 2.8 and later cluster version the results are returned as prefix-uuid,
 #/ otherwise the configured hostnames are returned.
 #/ Also filters nodes based on the prefix role.
 #/

@@ -19,18 +19,9 @@ begin_test "ghe-cluster-nodes should return both uuids for git-server"
 (
     set -e
 
+
     output="$(ghe-cluster-nodes "$GHE_HOSTNAME" "git-server")"
     echo "$output"
     [ "git-server-05cbcd42-f519-11e6-b6c9-002bd51dfa77 git-server-08d94884-f519-11e6-88a1-0063a7c33551 " = "$output" ]
-)
-end_test
-
-begin_test "ghe-cluster-nodes should return only one uuid for web-server"
-(
-    set -e
-
-    output="$(ghe-cluster-nodes "$GHE_HOSTNAME" "web-server")"
-    echo "$output"
-    [ "web-server-05cbcd42-f519-11e6-b6c9-002bd51dfa77 " = "$output" ]
 )
 end_test

@@ -21,23 +21,15 @@ fi
 
 # Show usage and bail with no arguments
 [ -z "$*" ] && print_usage
-
 GHE_HOSTNAME="$1"
 prefix="$2"
+role=$(echo "$prefix" | cut -d '-' -f1)
 
 if ghe-ssh "$GHE_HOSTNAME" test -f "$GHE_REMOTE_DATA_USER_DIR/common/uuid"; then
-  cluster_configs=$(ghe-ssh "$GHE_HOSTNAME" ghe-config --get-regexp cluster.*)
-  node_uuids=$(echo "$cluster_configs" | grep -e "cluster.*.uuid" | cut -d ' ' -f 2)
+  node_uuids=$(ghe-ssh "$GHE_HOSTNAME" ghe-config ghe-cluster-each -r "$role" -u)
   hostnames=''
   for uuid in $node_uuids; do
-    #match uuid to role in prefix i.e git-server , git-web-server etc
-    hostname_with_role=$(echo "$cluster_configs" | grep "$uuid" | cut -d ' ' -f 1 | sed "s/uuid/$prefix/g") || true
-    if [ -n "$hostname_with_role" ]; then
-      #check that the prefix role value is true
-      if grep "$hostname_with_role" <<< "$cluster_configs" > /dev/null ; then
-          hostnames+="$prefix-$uuid "
-      fi
-    fi
+    hostnames+="$prefix-$uuid "
   done
 else
   hostnames=$(ghe-ssh "$GHE_HOSTNAME" ghe-config --get-regexp cluster.*.hostname | cut -d ' ' -f 2)

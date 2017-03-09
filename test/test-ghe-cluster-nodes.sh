@@ -12,9 +12,6 @@ export GHE_DATA_DIR GHE_REMOTE_DATA_DIR
 mkdir -p "$GHE_REMOTE_DATA_USER_DIR/common"
 echo "fake uuids" > "$GHE_REMOTE_DATA_USER_DIR/common/uuid"
 
-# Source in config file for hostname
-. "$GHE_BACKUP_CONFIG"
-
 begin_test "ghe-cluster-nodes should return both uuids for git-server"
 (
     set -e

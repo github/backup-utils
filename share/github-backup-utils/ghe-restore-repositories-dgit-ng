@@ -72,7 +72,7 @@ opts="$GHE_EXTRA_SSH_OPTS -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecki
 tmp_list=$tempdir/tmp_list
 to_restore=$tempdir/to_restore
 
-hostnames=$(ghe-cluster-hostnames "$GHE_HOSTNAME" "git-server")
+hostnames=$(ghe-cluster-nodes "$GHE_HOSTNAME" "git-server")
 for hostname in $hostnames; do
   echo "
 Host $hostname

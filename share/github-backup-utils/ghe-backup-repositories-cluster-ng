@@ -74,7 +74,7 @@ user="${host%@*}"
 [ "$user" = "$host" ] && user="admin"
 
 # git server hostnames
-hostnames=$(ghe-cluster-hostnames "$GHE_HOSTNAME" "git-server")
+hostnames=$(ghe-cluster-nodes "$GHE_HOSTNAME" "git-server")
 for hostname in $hostnames; do
   config="$config
 Host $hostname

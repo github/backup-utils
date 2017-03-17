@@ -43,3 +43,9 @@ GHE_NUM_SNAPSHOTS=10
 #
 # WARNING: do not enable this, only useful for debugging/development
 #GHE_BACKUP_FSCK=no
+
+# In some operatingsystems various tools such as gnu are located elsewhere
+# Modify you path here.
+#
+# Set this path on Solaris 11
+#PATH="/usr/gnu/bin:$PATH:/usr/sbin"

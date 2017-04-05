@@ -75,7 +75,7 @@ supported. We strongly recommend upgrading to the latest release if you're
 running a version prior to 11.10.342. Visit [enterprise.github.com][5] to
 download the most recent GitHub Enterprise version.
 
-Note: You can only restore from snapshot that's at most two releases ahead of the version of GitHub Enterprise running on your backup host. For example, to restore from a snapshot running GitHub Enterprise 2.7, your backup host must be on GitHub Enterprise 2.6 or 2.5. You can't restore from 2.4 to 2.7, because that's three releases behind.
+Note: You can restore a snapshot that's at most two feature releases behind the restore target's version of GitHub Enterprise. For example, to restore a snapshot of GitHub Enterprise 2.4, the target GitHub Enterprise appliance must be running GitHub Enterprise 2.5.x or 2.6.x. You can't restore a snapshot from 2.4 to 2.7, because that's three releases ahead.
 
 
 ### Getting started

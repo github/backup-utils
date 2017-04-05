@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#/ Usage: ghe-backup-repositories-cluster
+#/ Usage: ghe-backup-repositories-cluster-ng
 #/ Take an online, incremental snapshot of all Git repository data.
 #/
 #/ Note: This command typically isn't called directly. It's invoked by
@@ -49,6 +49,9 @@ backup_dir="$GHE_SNAPSHOT_DIR/repositories"
 # Location of last good backup for rsync --link-dest
 backup_current="$GHE_DATA_DIR/current/repositories"
 
+tempdir=$(mktemp -d)
+to_backup=$tempdir/to_backup
+
 # Verify rsync is available.
 if ! rsync --version 1>/dev/null 2>&1; then
   echo "Error: rsync not found." 1>&2
@@ -71,7 +74,7 @@ user="${host%@*}"
 [ "$user" = "$host" ] && user="admin"
 
 # git server hostnames
-hostnames=$(ghe_cluster_online_nodes "git-server")
+hostnames=$(ghe-cluster-hostnames "$GHE_HOSTNAME" "git-server")
 for hostname in $hostnames; do
   config="$config
 Host $hostname
@@ -96,6 +99,7 @@ cleanup() {
     ghe-gc-enable -F $config_file $hostname:$port
   done
   rm -f $config_file
+  rm -rf $tempdir
 }
 trap 'cleanup' EXIT
 trap 'exit $?' INT # ^C always terminate
@@ -111,6 +115,31 @@ if [ -d "$backup_current" ]; then
   link_dest="--link-dest=../../current/repositories"
 fi
 
+# Calculate sync routes. This will store the healthy repo paths for each node
+#
+# This gets a repo path and stores the path in the $node.sync file
+# a/nw/a8/3f/02/100000855 dgit-node1 >> dgit-node1.sync
+# a/nw/a8/bc/8d/100000880 dgit-node3 >> dgit-node3.sync
+# a/nw/a5/06/81/100000659 dgit-node2 >> dgit-node2.sync
+# ...
+#one route per line.
+#
+bm_start "$(basename $0) - Calculating Sync Routes"
+ghe-ssh "$GHE_HOSTNAME" github-env ./bin/dgit-cluster-backup-routes \
+  | while read route; do
+  ghe_verbose "Got backup route $route"
+  server=$(echo $route | cut -d ' ' -f2-)
+  network_path=$(echo $route | cut -d ' ' -f1)
+  ghe_verbose "Adding $network_path to $tempdir/$server.rsync"
+  echo "$network_path" >> $tempdir/$server.rsync
+done
+bm_end "$(basename $0) - Calculating Sync Routes"
+
+if ! ls $tempdir/*.rsync >/dev/null 2>&1; then
+  echo "Warning: no routes found, skipping repositories backup ..."
+  exit 0
+fi
+
 # Transfer repository data from a GitHub instance to the current snapshot
 # directory, using a previous snapshot to avoid transferring files that have
 # already been transferred. A set of rsync filter rules are provided on stdin
@@ -119,26 +148,39 @@ rsync_repository_data () {
   port=$(ssh_port_part "$1")
   host=$(ssh_host_part "$1")
 
-  shift
-  ghe-rsync -av \
-    -e "ssh -q $opts -p $port -F $config_file -l $user" \
-    $link_dest "$@" \
-    --rsync-path='sudo -u git rsync' \
-    --include-from=- --exclude=\* \
-    "$host:$GHE_REMOTE_DATA_USER_DIR/repositories/" \
-    "$backup_dir" 1>&3
+  #check if we are syncing from a given file list
+  if [[ "$2" == *".rsync" ]]; then
+    files_list="$2"
+    shift
+    shift
+    ghe-rsync -avr \
+      -e "ssh -q $opts -p $port -F $config_file -l $user" \
+      $link_dest "$@" \
+      --rsync-path='sudo -u git rsync' \
+      --include-from=- --exclude=\* \
+      --files-from="$files_list" \
+      "$host:$GHE_REMOTE_DATA_USER_DIR/repositories/" \
+      "$backup_dir" 1>&3
+  else
+    shift
+    ghe-rsync -avr \
+      -e "ssh -q $opts -p $port -F $config_file -l $user" \
+      $link_dest "$@" \
+      --rsync-path='sudo -u git rsync' \
+      --include-from=- --exclude=\* \
+      "$host:$GHE_REMOTE_DATA_USER_DIR/repositories/" \
+      "$backup_dir" 1>&3
+  fi
 }
 
-for hostname in $hostnames; do
-  bm_start "$(basename $0) - $hostname"
-  echo 1>&3
-  echo "* Starting backup for host: $hostname"
+sync_data (){
   # Sync all auxiliary repository data. This includes files and directories like
   # HEAD, audit_log, config, description, info/, etc. No refs or object data
   # should be transferred here.
   echo 1>&3
+
   echo "* Transferring auxiliary files ..." 1>&3
-  rsync_repository_data $hostname:122 -z <<RULES
+  rsync_repository_data $1:122 $2 -z <<RULES
 - /__*__/
 - /info/
 
@@ -171,11 +213,11 @@ for hostname in $hostnames; do
 + /*/nw/??/??/??/*/*.git/**
 RULES
 
-  # Sync packed refs files. This is performed before sync'ing loose refs since
-  # loose refs trump packed-refs information.
+    # Sync packed refs files. This is performed before sync'ing loose refs since
+    # loose refs trump packed-refs information.
   echo 1>&3
   echo "* Transferring packed-refs files ..." 1>&3
-  rsync_repository_data $hostname:122 -z <<RULES
+  rsync_repository_data $1:122 $2 -z <<RULES
 - /__*__/
 - /info/
 
@@ -197,12 +239,11 @@ RULES
 + /*/nw/??/??/??/*/*.git
 + /*/nw/??/??/??/*/*.git/packed-refs
 RULES
-
-  # Sync loose refs and reflogs. This must be performed before object data is
-  # transferred to ensure that all referenced objects are included.
+    # Sync loose refs and reflogs. This must be performed before object data is
+    # transferred to ensure that all referenced objects are included.
   echo 1>&3
   echo "* Transferring refs and reflogs ..."  1>&3
-  rsync_repository_data $hostname:122 -z <<RULES
+  rsync_repository_data $1:122 $2 -z <<RULES
 - /__*__/
 - /info/
 
@@ -234,11 +275,11 @@ RULES
 + /*/nw/??/??/??/*/*.git/logs/**
 RULES
 
-  # Sync git objects and pack files. Compression is disabled during this phase
-  # since these files are already well compressed.
+    # Sync git objects and pack files. Compression is disabled during this phase
+    # since these files are already well compressed.
   echo 1>&3
   echo "* Transferring objects and packs ..." 1>&3
-  rsync_repository_data $hostname:122 -H <<RULES
+  rsync_repository_data $1:122 $2 -H <<RULES
 - /__*__/
 - /info/
 
@@ -267,6 +308,29 @@ RULES
 + /*/nw/??/??/??/*/*.git/objects/**
 RULES
 
+ echo 1>&3
+
+}
+
+# rsync all the repositories
+bm_start "$(basename $0) - Repo sync"
+for file_list in $tempdir/*.rsync; do
+  hostname=$(basename $file_list .rsync)
+
+  repo_num=$(cat $file_list | wc -l)
+  echo "* Transferring $repo_num repositories from $hostname"
+
+  sync_data $hostname $file_list &
+done
+wait
+bm_end "$(basename $0) - Repo sync"
+
+# Since there are no routes for special data directories
+# or archived repositories, we need to do this serially
+# for all hostnames. Good candidate for future optimizations.
+
+bm_start "$(basename $0) - Special Data Directories Sync"
+for h in $hostnames; do
   # Sync __special__ data directories, including the __alambic_assets__,
   # __hookshot__, and __purgatory__ directories. The __nodeload_archives__,
   # __gitmon__, and __render__ directories are excludes since they act only as
@@ -276,8 +340,8 @@ RULES
   # /data/repositories. All other special user data directories have been moved under
   # the /data/user directory.
   echo 1>&3
-  echo "* Transferring special data directories ..." 1>&3
-  rsync_repository_data $hostname:122 <<RULES
+  echo "* Transferring special data directories from $h..." 1>&3
+  rsync_repository_data $h:122 -z <<RULES
 - /__nodeload_archives__/
 - /__gitmon__/
 - /__render__/
@@ -288,7 +352,26 @@ RULES
 + /info/*
 RULES
   echo 1>&3
-  bm_end "$(basename $0) - $hostname"
 done
+bm_end "$(basename $0) - Special Data Directories Sync"
+
+bm_start "$(basename $0) - Archived Repos"
+ghe-ssh "$GHE_HOSTNAME" github-env ./bin/dgit-cluster-backup-archived-repos-routes \
+  | while read route; do
+  ar_route=$(dirname $route)
+  ghe_verbose "Got archived route $ar_route"
+  echo "$ar_route" >> $tempdir/archived_repos.rsync
+done
+
+if ! test -f $tempdir/archived_repos.rsync; then
+  echo "* No archived repositories found to backup."
+  exit 0
+fi
+
+for h in $hostnames; do
+  echo "* Transferring archived routes from $h"
+  sync_data $h $tempdir/archived_repos.rsync 2>/dev/null || true
+done
+bm_end "$(basename $0) - Archived Repos"
 
 bm_end "$(basename $0)"

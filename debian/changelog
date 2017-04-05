@@ -1,3 +1,48 @@
+github-backup-utils (2.9.0) UNRELEASED; urgency=medium
+
+  * Block restores to appliances with HA configured #291
+  * Add a `--version` flag #284
+  * Check backup-utils are not being run on GitHub Enterprise host #286
+  * Backup and restore custom CA certificates #281
+  * Hookshot backup/restores optimisations #276
+
+ -- Sergio Rubio <rubiojr@github.com>  Wed, 01 Mar 2017 09:39:26 -0800
+
+github-backup-utils (2.8.3) UNRELEASED; urgency=medium
+
+  * Set restore status on all cluster nodes #274
+  * Fix pages backups and restores in GitHub Enterprise 11.10 #275
+
+ -- Steven Honson <snh@github.com>  Wed, 21 Dec 2016 21:01:20 +1100
+
+github-backup-utils (2.8.2) UNRELEASED; urgency=medium
+
+  * Backup and restore the appliance UUID #272
+
+ -- Sergio Rubio <rubiojr@github.com>  Thu, 17 Nov 2016 15:58:08 +0100
+
+github-backup-utils (2.8.1) UNRELEASED; urgency=medium
+
+  * Stop cron and timerd during restore #269
+  * Fix compatibility issue with older versions of OpenSSH #263
+
+ -- Sergio Rubio <rubiojr@github.com>  Mon, 14 Nov 2016 22:04:48 +0100
+
+github-backup-utils (2.8.0) UNRELEASED; urgency=low
+
+  * Adds support for GitHub Enterprise 2.8.0
+  * Speedup storage restores #247
+  * More portable backup-utils #260
+
+ -- rubiojr <rubiojr@github.com>  Wed, 09 Nov 2016 06:35:21 -0800
+
+github-backup-utils (2.7.1) UNRELEASED; urgency=medium
+
+  * Cluster: fix offline cluster node detection #250
+  * Detect leaked ssh keys in backup snapshots #253
+
+ -- Sergio Rubio <rubiojr@github.com>  Tue, 20 Sep 2016 20:15:12 +0200
+
 github-backup-utils (2.7.0) UNRELEASED; urgency=medium
 
   * GitHub Enterprise 2.7.0 support 

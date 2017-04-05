@@ -10,5 +10,5 @@
  5. Build that tarball package: `make dist`
  6. Build the deb package: `make deb`. All the tests should pass.
  7. Draft a new release at https://github.com/github/backup-utils/releases, including the release notes and attaching the tarball and deb packages.
-    The dist tarball you should upload has the git revision in the file name, i.e. something like `github-backup-utils-v2.5.0-1-g23c41cc.tar.gz`
+    The dist tarball you should upload has the git revision in the file name, i.e. something like `github-backup-utils-v2.5.0.tar.gz`
  8. Push the head of the release to the 'stable' branch.

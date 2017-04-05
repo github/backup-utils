@@ -15,17 +15,31 @@ export GHE_DATA_DIR GHE_REMOTE_DATA_DIR
 cd "$ROOTDIR"
 . "share/github-backup-utils/ghe-backup-config"
 
+begin_test "ghe-backup-config GHE_DATA_DIR defined"
+(
+    set +e
+    GHE_DATA_DIR= error=$(. share/github-backup-utils/ghe-backup-config 2>&1)
+    # should exit 2
+    if [ $? != 2 ]; then
+      exit 1
+    fi
+    set -e
+    echo $error | grep -q "Error: GHE_DATA_DIR not set in config file."
+)
+end_test
+
 begin_test "ghe-backup-config GHE_CREATE_DATA_DIR disabled"
 (
     set -e
 
-    export GHE_DATA_DIR=$(mktemp -d -u)
-    . share/github-backup-utils/ghe-backup-config 2>&1 \
-      | grep -q "Creating the backup data directory ..."
+    export GHE_DATA_DIR="$TRASHDIR/create-enabled-data"
+    export GHE_VERBOSE=1
+    . share/github-backup-utils/ghe-backup-config |
+      grep -q "Creating the backup data directory ..."
     test -d $GHE_DATA_DIR
     rm -rf $GHE_DATA_DIR
 
-    export GHE_DATA_DIR=$(mktemp -d -u)
+    export GHE_DATA_DIR="$TRASHDIR/create-disabled-data"
     export GHE_CREATE_DATA_DIR=no
     set +e
     error=$(. share/github-backup-utils/ghe-backup-config 2>&1)
@@ -40,6 +54,26 @@ begin_test "ghe-backup-config GHE_CREATE_DATA_DIR disabled"
 )
 end_test
 
+begin_test "ghe-backup-config run on GHE appliance"
+(
+    set -e
+
+    export GHE_RELEASE_FILE="$TRASHDIR/enterprise-release"
+    touch "$GHE_RELEASE_FILE"
+    set +e
+    error=$(. share/github-backup-utils/ghe-backup-config 2>&1)
+    # should exit 1
+    if [ $? != 1 ]; then
+      exit 1
+    fi
+    set -e
+    echo "$error" | grep -q "Error: Backup Utils cannot be run on the GitHub Enterprise host."
+
+    test -f "$GHE_RELEASE_FILE"
+    rm -rf "$GHE_RELEASE_FILE"
+)
+end_test
+
 begin_test "ghe-backup-config ssh_host_part"
 (
     set -e
@@ -49,7 +83,6 @@ begin_test "ghe-backup-config ssh_host_part"
     [ $(ssh_host_part "git@github.example.com:5000") = "git@github.example.com" ]
 )
 end_test
-
 
 begin_test "ghe-backup-config ssh_port_part"
 (

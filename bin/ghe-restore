@@ -6,6 +6,7 @@
 #/ argument is provided, it always overrides the configured restore host.
 #/
 #/ Options:
+#/   --version         Display version information.
 #/   -f                Don't prompt for confirmation before restoring.
 #/   -c                Restore appliance settings and license in addition to
 #/                     datastores. Settings are not restored by default to
@@ -66,25 +67,16 @@ GHE_RESTORE_SNAPSHOT_PATH="$(ghe-restore-snapshot-path "$snapshot_id")"
 GHE_RESTORE_SNAPSHOT=$(basename "$GHE_RESTORE_SNAPSHOT_PATH")
 export GHE_RESTORE_SNAPSHOT
 
+# Detect if the backup we are restoring has a leaked ssh key
+echo "Checking for leaked keys in the backup snapshot that is being restored ..."
+ghe-detect-leaked-ssh-keys -s "$GHE_RESTORE_SNAPSHOT_PATH" || true
+
 # Figure out whether to use the tarball or rsync restore strategy based on the
 # strategy file written in the snapshot directory.
 GHE_BACKUP_STRATEGY=$(cat "$GHE_RESTORE_SNAPSHOT_PATH/strategy")
 
 # Perform a host-check and establish the remote version in GHE_REMOTE_VERSION.
 ghe_remote_version_required "$GHE_HOSTNAME"
-
-# Keep other processes on the VM in the loop about the restore status.
-#
-# Other processes will look for these states:
-# "restoring" - restore is currently in progress
-# "failed"    - restore has failed
-# "complete"  - restore has completed successfully
-update_restore_status () {
-    if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
-        echo "$1" |
-        ghe-ssh "$GHE_HOSTNAME" -- "sudo dd of='$GHE_REMOTE_DATA_USER_DIR/common/ghe-restore-status' 2>/dev/null"
-    fi
-}
 
 # Figure out if this instance has been configured or is entirely new.
 instance_configured=false
@@ -123,12 +115,12 @@ if $cluster; then
   fi
 fi
 
-# Figure out if this instance is in a replication pair
-if ghe-ssh "$GHE_HOSTNAME" -- "ghe-repl-status -r 2>/dev/null" \
-  | grep -Eq "replica|primary"; then
-  instance_configured=true
-  echo "WARNING: Restoring to a server with replication enabled interrupts replication."
-  echo "         You will need to reconfigure replication after the restore completes."
+# Figure out if this appliance is in a replication pair
+if ghe-ssh "$GHE_HOSTNAME" -- \
+  "[ -f '$GHE_REMOTE_ROOT_DIR/etc/github/repl-state' ]"; then
+  echo "Error: Restoring to an appliance with replication enabled is not supported." >&2
+  echo "       Please teardown replication before restoring." >&2
+  exit 1
 fi
 
 # Prompt to verify the restore host given is correct. Restoring overwrites
@@ -163,6 +155,24 @@ fi
 echo "Starting restore of $GHE_HOSTNAME from snapshot $GHE_RESTORE_SNAPSHOT"
 ghe_remote_logger "Starting restore from $(hostname) / snapshot $GHE_RESTORE_SNAPSHOT ..."
 
+# Keep other processes on the VM or cluster in the loop about the restore status.
+#
+# Other processes will look for these states:
+# "restoring" - restore is currently in progress
+# "failed"    - restore has failed
+# "complete"  - restore has completed successfully
+update_restore_status () {
+    if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
+      if $cluster; then
+        echo "ghe-cluster-each -- \"echo '$1' | sudo dd of='$GHE_REMOTE_DATA_USER_DIR/common/ghe-restore-status' >/dev/null\"" |
+        ghe-ssh "$GHE_HOSTNAME" /bin/bash
+      else
+        echo "$1" |
+        ghe-ssh "$GHE_HOSTNAME" -- "sudo dd of='$GHE_REMOTE_DATA_USER_DIR/common/ghe-restore-status' >/dev/null"
+      fi
+    fi
+}
+
 # Update remote restore state file and setup failure trap
 trap "update_restore_status failed" EXIT
 update_restore_status "restoring"
@@ -193,8 +203,33 @@ if $instance_configured; then
     fi
 fi
 
+# Create benchmark file
+bm_init > /dev/null
+
 ghe-backup-store-version  ||
 echo "Warning: storing backup-utils version remotely failed."
+
+# Stop cron and timerd, as scheduled jobs may disrupt the restore process.
+if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
+  echo "Stopping cron and github-timerd ..."
+  if $cluster; then
+    if ! ghe-ssh "$GHE_HOSTNAME" -- "ghe-cluster-each -- sudo service cron stop"; then
+      ghe_verbose "* Warning: Failed to stop cron on one or more nodes"
+    fi
+
+    if ! ghe-ssh "$GHE_HOSTNAME" -- "ghe-cluster-each -- sudo service github-timerd stop"; then
+      ghe_verbose "* Warning: Failed to stop github-timerd on one or more nodes"
+    fi
+  else
+    if ! ghe-ssh "$GHE_HOSTNAME" -- "sudo service cron stop"; then
+      ghe_verbose "* Warning: Failed to stop cron"
+    fi
+
+    if ! ghe-ssh "$GHE_HOSTNAME" -- "sudo service github-timerd stop"; then
+      ghe_verbose "* Warning: Failed to stop github-timerd"
+    fi
+  fi
+fi
 
 # Restore settings and license if restoring to an unconfigured appliance or when
 # specified manually.
@@ -210,6 +245,13 @@ if ! $cluster; then
     echo "sudo ghe-service-ensure-mysql && sudo ghe-service-ensure-elasticsearch" |
     ghe-ssh "$GHE_HOSTNAME" -- /bin/sh 1>&3
   fi
+fi
+
+# Restore UUID if present and not restoring to cluster.
+if [ -s "$GHE_RESTORE_SNAPSHOT_PATH/uuid" ] && ! $cluster; then
+  echo "Restoring UUID ..."
+  cat "$GHE_RESTORE_SNAPSHOT_PATH/uuid" |
+  ghe-ssh "$GHE_HOSTNAME" -- "sudo dd of='$GHE_REMOTE_DATA_USER_DIR/common/uuid' 2>/dev/null"
 fi
 
 echo "Restoring MySQL database ..."
@@ -289,13 +331,13 @@ fi
 if $cluster; then
   echo "Restoring ElasticSearch Audit logs"
   ghe-restore-es-audit-log "$GHE_HOSTNAME" 1>&3
+
+  echo "Restoring hookshot logs ..."
+  ghe-restore-es-hookshot "$GHE_HOSTNAME" 1>&3
 else
   echo "Restoring Elasticsearch indices ..."
   ghe-restore-es-${GHE_BACKUP_STRATEGY} "$GHE_HOSTNAME" 1>&3
 fi
-
-echo "Restoring hookshot logs ..."
-ghe-restore-es-hookshot "$GHE_HOSTNAME" 1>&3
 
 # Restart an already running memcached to reset the cache after restore
 if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
@@ -316,6 +358,20 @@ elif $instance_configured; then
   else
     echo "   This will take several minutes to complete..."
     ghe-ssh "$GHE_HOSTNAME" -- "sudo enterprise-configure" 1>&3 2>&3
+  fi
+fi
+
+# Start cron. Timerd will start automatically as part of the config run.
+if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
+  echo "Starting cron ..."
+  if $cluster; then
+    if ! ghe-ssh "$GHE_HOSTNAME" -- "ghe-cluster-each -- sudo service cron start"; then
+      echo "* Warning: Failed to start cron on one or more nodes"
+    fi
+  else
+    if ! ghe-ssh "$GHE_HOSTNAME" -- "sudo service cron start"; then
+      echo "* Warning: Failed to start cron"
+    fi
   fi
 fi
 

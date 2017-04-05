@@ -1,14 +1,33 @@
 #!/usr/bin/env bash
-#/ Usage: ghe-backup [-v] [--version]
+#/ Usage: ghe-backup [-h] [-v] [--version]
 #/ Take snapshots of all GitHub Enterprise data, including Git repository data,
 #/ the MySQL database, instance settings, GitHub Pages data, etc.
 #/
-#/ With -v, enable verbose output and show more information about what's being
-#/ transferred.
+#/ Options:
+#/   --version         Display version information.
+#/   -v                Enable verbose output.
+#/   -h                Show this message.
 set -e
 
 # Bring in the backup configuration
 . $( dirname "${BASH_SOURCE[0]}" )/../share/github-backup-utils/ghe-backup-config
+
+# Parse arguments
+while true; do
+    case "$1" in
+        -h)
+            print_usage
+            exit
+            ;;
+        -*)
+            echo "Error: invalid argument: '$1'" 1>&2
+            exit 1
+            ;;
+        *)
+            break
+            ;;
+    esac
+done
 
 # Used to record failed backup steps
 failures=

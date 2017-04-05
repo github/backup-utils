@@ -95,14 +95,14 @@ mkdir -p "$backup_dir"
 # on the remote instance.
 cleanup() {
   for pid in $(jobs -p); do
-    wait $pid
+    kill -KILL $pid > /dev/null 2>&1 || true
   done
 
   # Enable remote GC operations
   for hostname in $hostnames; do
     ghe-gc-enable -F $config_file $hostname:$port
   done
-  
+
   rm -f $config_file
   rm -rf $tempdir
 }

@@ -33,10 +33,10 @@ fi
 # rsync: link_stat "/data/user/repositories/d/nw/da/b5/35/47687" failed: No such file or directory (2)
 if [ $res = 23 ]; then
   res=0
-  if [ -n $TMPOUT -o -n $TMPOUT ]; then
+  if [ -s $TMPOUT -o -s $TMPOUT ]; then
     echo "==== the following errors mention routes that don't exist on disk ==="
-    [ -n $TMPERR ] && cat $TMPERR || true
-    [ -n $TMPOUT ] && cat $TMPOUT || true
+    [ -s $TMPERR ] && cat $TMPERR || true
+    [ -s $TMPOUT ] && cat $TMPOUT || true
   fi
 fi
 

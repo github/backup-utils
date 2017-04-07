@@ -34,11 +34,15 @@ fi
 current_index=audit_log-$(ghe-ssh "$host" 'date +"%Y-%m"')
 
 for index in $indices; do
-  if [ -f $GHE_DATA_DIR/current/audit-log/$index.gz -a $index \< $current_index ]; then
-    # Hard link any older indices since they are read only and won't change
+  if [ -f $GHE_DATA_DIR/current/audit-log/$index.gz -a -f $GHE_DATA_DIR/current/audit-log/$index.gz.complete -a $index \< $current_index ]; then
+    # Hard link any older indices that are complete, since these won't change
     ln $GHE_DATA_DIR/current/audit-log/$index.gz $GHE_SNAPSHOT_DIR/audit-log/$index.gz
+    ln $GHE_DATA_DIR/current/audit-log/$index.gz.complete $GHE_SNAPSHOT_DIR/audit-log/$index.gz.complete
   else
     ghe-ssh "$host" "/usr/local/share/enterprise/ghe-es-dump-json \"http://localhost:$es_port/$index\"" | gzip > $GHE_SNAPSHOT_DIR/audit-log/$index.gz
+    if [ $index \< $current_index ]; then
+      touch $GHE_SNAPSHOT_DIR/audit-log/$index.gz.complete
+    fi
   fi
 done
 

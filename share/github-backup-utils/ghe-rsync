@@ -18,7 +18,7 @@ CAPTUREOUT='^(rsync: link_stat)'
 TMPOUT=$(mktemp -t ghe-backup-rsync-XXXXXX)
 TMPERR=$(mktemp -t ghe-backup-rsync-XXXXXX)
 (rsync $GHE_EXTRA_RSYNC_OPTS "${@}" 3>&1 1>&2 2>&3 3>&- |
-  (egrep -v "$IGNOREOUT" || true) | tee >(egrep "$CAPTUREOUT" || true > $TMERR)) 3>&1 1>&2 2>&3 3>&- |
+  (egrep -v "$IGNOREOUT" || true) | tee >(egrep "$CAPTUREOUT" || true > $TMPERR)) 3>&1 1>&2 2>&3 3>&- |
   (egrep -v "$IGNOREOUT" || true) | tee >(egrep "$CAPTUREOUT" || true > $TMPOUT)
 res=$?
 

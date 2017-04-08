@@ -19,6 +19,9 @@
 # TODO: Auto-merge the release PR
 # TODO: Tag the release
 # TODO: Build and upload the binaries to the release draft
+# TODO: Preflight check: make sure auth works and provide a friendly error otherwise
+# TODO: Preflight check: Make sure the target owner/repo exists
+#
 require 'json'
 require 'net/http'
 require 'time'

@@ -266,6 +266,9 @@ if dry_run
   if can_auth?
     puts "Changelog:"
     release_changes.each { |c| puts "  * #{c}"}
+  else
+    $stderr.puts "Release Failed: Please set a GH_RELEASE_TOKEN"
+    exit 1
   end
   exit
 end

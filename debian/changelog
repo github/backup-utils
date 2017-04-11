@@ -1,3 +1,13 @@
+github-backup-utils (2.9.0) UNRELEASED; urgency=medium
+
+  * Block restores to appliances with HA configured #291
+  * Add a `--version` flag #284
+  * Check backup-utils are not being run on GitHub Enterprise host #286
+  * Backup and restore custom CA certificates #281
+  * Hookshot backup/restores optimisations #276
+
+ -- Sergio Rubio <rubiojr@github.com>  Wed, 01 Mar 2017 09:39:26 -0800
+
 github-backup-utils (2.8.3) UNRELEASED; urgency=medium
 
   * Set restore status on all cluster nodes #274

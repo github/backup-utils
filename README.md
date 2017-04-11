@@ -75,6 +75,9 @@ supported. We strongly recommend upgrading to the latest release if you're
 running a version prior to 11.10.342. Visit [enterprise.github.com][5] to
 download the most recent GitHub Enterprise version.
 
+Note: You can restore a snapshot that's at most two feature releases behind the restore target's version of GitHub Enterprise. For example, to restore a snapshot of GitHub Enterprise 2.4, the target GitHub Enterprise appliance must be running GitHub Enterprise 2.5.x or 2.6.x. You can't restore a snapshot from 2.4 to 2.7, because that's three releases ahead.
+
+
 ### Getting started
 
  1. [Download the latest release version][release] and extract *or* clone the

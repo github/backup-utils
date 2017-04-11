@@ -607,3 +607,24 @@ EOF
   echo $output | grep -q "The snapshot that is being restored contains a leaked SSH host key."
 )
 end_test
+
+begin_test "ghe-restore fails when restore to an active HA pair"
+(
+    set -e
+
+    if [ "$GHE_VERSION_MAJOR" -le 1 ]; then
+      # noop GHE < 2.0, does not support replication
+      exit 0
+    fi
+
+    rm -rf "$GHE_REMOTE_ROOT_DIR"
+    setup_remote_metadata
+
+    echo "rsync" > "$GHE_DATA_DIR/current/strategy"
+    touch "$GHE_REMOTE_ROOT_DIR/etc/github/repl-state"
+
+    ! output=$(ghe-restore -v -f localhost 2>&1)
+
+    echo $output | grep -q "Error: Restoring to an appliance with replication enabled is not supported."
+)
+end_test

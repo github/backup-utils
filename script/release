@@ -226,6 +226,11 @@ def can_auth?
   !ENV["GH_RELEASE_TOKEN"].nil?
 end
 
+def repo_exists?(owner, repo)
+  res = get("/repos/#{owner}/#{repo}")
+  res.kind_of? Net::HTTPSuccess
+end
+
 args = ARGV.dup
 dry_run = false
 if args.include?("--dry-run")
@@ -247,6 +252,11 @@ begin
   version = Gem::Version.new(args[0])
 rescue ArgumentError
   $stderr.puts "Error parsing version #{args[0]}"
+  exit 1
+end
+
+if !repo_exists?(GH_OWNER, GH_REPO)
+  $stderr.puts "The repo #{GH_REPO} does not exist for #{GH_OWNER}"
   exit 1
 end
 

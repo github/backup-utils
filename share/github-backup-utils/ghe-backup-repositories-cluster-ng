@@ -355,23 +355,4 @@ RULES
 done
 bm_end "$(basename $0) - Special Data Directories Sync"
 
-bm_start "$(basename $0) - Archived Repos"
-ghe-ssh "$GHE_HOSTNAME" github-env ./bin/dgit-cluster-backup-archived-repos-routes \
-  | while read route; do
-  ar_route=$(dirname $route)
-  ghe_verbose "Got archived route $ar_route"
-  echo "$ar_route" >> $tempdir/archived_repos.rsync
-done
-
-if ! test -f $tempdir/archived_repos.rsync; then
-  echo "* No archived repositories found to backup."
-  exit 0
-fi
-
-for h in $hostnames; do
-  echo "* Transferring archived routes from $h"
-  sync_data $h $tempdir/archived_repos.rsync 2>/dev/null || true
-done
-bm_end "$(basename $0) - Archived Repos"
-
 bm_end "$(basename $0)"

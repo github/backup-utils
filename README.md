@@ -275,7 +275,7 @@ site setup or recovery, please contact our [Enterprise support team][7] instead.
 
 [1]: https://enterprise.github.com
 [2]: https://github.com/github/enterprise-backup-site/blob/master/backup.config-example
-[3]: https://enterprise.github.com/help/articles/adding-an-ssh-key-for-shell-access
+[3]: https://help.github.com/articles/connecting-to-github-with-ssh/
 [4]: http://rsync.samba.org/
 [5]: https://enterprise.github.com/download
 [6]: https://enterprise.github.com/help/articles/upgrading-to-a-newer-release

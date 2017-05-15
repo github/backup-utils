@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+#/ Usage: ghe-backup-es-hookshot
+#/ Take a backup of hookshot logs in ElasticSearch.
+#/
+#/ Note: This command typically isn't called directly. It's invoked by
+#/ ghe-backup.
+set -e
+
+# Bring in the backup configuration
+. $( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config
+
+bm_start "$(basename $0)"
+
+# Set up remote host and root elastic backup directory based on config
+host="$GHE_HOSTNAME"
+
+# Perform a host-check and establish GHE_REMOTE_XXX variables.
+ghe_remote_version_required "$host"
+
+# Make sure root backup dir exists if this is the first run
+mkdir -p "$GHE_SNAPSHOT_DIR/hookshot"
+
+indices=$(ghe-ssh "$host" 'curl -s "localhost:9201/_cat/indices/hookshot-logs-*"' | cut -d ' ' -f 3)
+current_index=hookshot-logs-$(ghe-ssh "$host" 'date +"%Y-%m-%d"')
+
+for index in $indices; do
+  if [ -f $GHE_DATA_DIR/current/hookshot/$index.gz -a $index \< $current_index ]; then
+    # Hard link any older indices since they are read only and won't change
+    ln $GHE_DATA_DIR/current/hookshot/$index.gz $GHE_SNAPSHOT_DIR/hookshot/$index.gz
+  else
+    ghe-ssh "$host" "/usr/local/share/enterprise/ghe-es-dump-json 'http://localhost:9201/$index'" | gzip > $GHE_SNAPSHOT_DIR/hookshot/$index.gz
+  fi
+done
+
+bm_end "$(basename $0)"

@@ -1,5 +1,5 @@
-#!/bin/sh
-# Usage: script/cibuild
+#!/usr/bin/env bash
+# Usage: script/cibuild [--no-package]
 set -e
 
 # GHE appliance versions to run tests against. Remote metadata files are put in
@@ -9,6 +9,8 @@ set -e
 REMOTE_VERSIONS="
   11.10.344
   2.0.0
+  2.2.0
+  2.5.0
 "
 
 # Enable verbose logging of ssh commands
@@ -20,7 +22,7 @@ for version in $REMOTE_VERSIONS
 do
     echo "==> Running testsuite with GHE_TEST_REMOTE_VERSION=$version"
     export GHE_TEST_REMOTE_VERSION="$version"
-    if ! ls -1 test/test-*.sh | xargs -P 4 -n 1 /bin/sh; then
+    if ! ls -1 test/test-*.sh | xargs -P 4 -n 1 /bin/bash; then
         res=false
     fi
     echo
@@ -28,3 +30,38 @@ done
 
 # If any of the version tests failed, exit non-zero
 $res
+
+# Bail out when --no-package given
+[ "$1" = "--no-package" ] && exit 0
+
+# files we'll md5sum at the end
+pkg_files=
+
+# Build the tarball
+echo "Building tar.gz package ..."
+if script/package-tarball 1>package-tarball.txt 2>&1; then
+    pkg_files=$(grep '^Package ' < package-tarball.txt | cut -f 2 -d ' ')
+else
+    echo "Packaging tar.gz failed:"
+    cat package-tarball.txt | sed 's/^/    /' 1>&2
+    exit 1
+fi
+
+# Skip deb packaging if debuild not installed
+if ! type debuild 1>/dev/null 2>&1; then
+    echo "debuild not installed, skipping deb packaging ..."
+    exit 0
+fi
+
+# Build the deb related packages
+echo "Building deb package ..."
+if script/package-deb 1>package-deb-out.txt 2>package-deb-err.txt; then
+    pkg_files="$pkg_files $(cat package-deb-out.txt)"
+else
+    echo "Package build failed:"
+    cat package-tarball.txt | sed 's/^/    /' 1>&2
+    exit 1
+fi
+
+# Generate md5sums
+md5sum $pkg_files

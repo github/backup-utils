@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 # Usage: script/package-tarball
 # Script to build a tarball release package from the current HEAD version.
 # The package version comes from `git-describe --tags' so the release tag should

@@ -1,0 +1,91 @@
+#!/usr/bin/env bash
+#/ Usage: ghe-backup-alambic-cluster
+#/ Take an online, incremental snapshot of all Alambic Storage data
+#/
+#/ Note: This command typically isn't called directly. It's invoked by
+#/ ghe-backup when the cluster strategy is used.
+set -e
+
+# Bring in the backup configuration
+. $( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config
+
+bm_start "$(basename $0)"
+
+# Set up remote host and root backup snapshot directory based on config
+host="$GHE_HOSTNAME"
+backup_dir="$GHE_SNAPSHOT_DIR/storage"
+
+# Verify rsync is available.
+if ! rsync --version 1>/dev/null 2>&1; then
+    echo "Error: rsync not found." 1>&2
+    exit 1
+fi
+
+# Perform a host-check and establish GHE_REMOTE_XXX variables.
+ghe_remote_version_required "$host"
+
+# Generate SSH config for forwarding
+
+config=""
+
+# Split host:port into parts
+port=$(ssh_port_part "$GHE_HOSTNAME")
+host=$(ssh_host_part "$GHE_HOSTNAME")
+
+# Add user / -l option
+user="${host%@*}"
+[ "$user" = "$host" ] && user="admin"
+
+# git server hostnames
+hostnames=$(ghe_cluster_online_nodes "storage-server")
+
+for hostname in $hostnames; do
+  config="$config
+Host $hostname
+  ProxyCommand ssh -q $GHE_EXTRA_SSH_OPTS -p $port $user@$host nc.openbsd %h %p
+  StrictHostKeyChecking=no
+"
+done
+
+config_file=$(mktemp -t cluster-backup-restore-XXXXXX)
+echo "$config" > "$config_file"
+
+opts="$GHE_EXTRA_SSH_OPTS -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no"
+
+# Make sure root backup dir exists if this is the first run
+mkdir -p "$backup_dir"
+
+# Removes the remote sync-in-progress file on exit, re-enabling GC operations
+# on the remote instance.
+cleanup() {
+  rm -f $config_file
+}
+trap 'cleanup' EXIT INT
+
+# If we have a previous increment and it is not empty, avoid transferring existing files via rsync's
+# --link-dest support. This also decreases physical space usage considerably.
+if [ -d "$GHE_DATA_DIR/current/storage" ] && [ "$(ls -A $GHE_DATA_DIR/current/storage)" ]; then
+  link_dest="--link-dest=../../current/storage"
+fi
+
+for hostname in $hostnames; do
+  bm_start "$(basename $0) - $hostname"
+  echo 1>&3
+  echo "* Starting backup for host: $hostname"
+  # Sync all auxiliary repository data. This includes files and directories like
+  # HEAD, audit_log, config, description, info/, etc. No refs or object data
+  # should be transferred here.
+  echo 1>&3
+  echo "* Transferring storage files ..." 1>&3
+
+  # Transfer all data from the user data directory using rsync.
+  ghe-rsync -avz \
+      -e "ssh -q $opts -p 122 -F $config_file -l $user" \
+      --rsync-path='sudo -u git rsync' \
+      $link_dest \
+      "$hostname:$GHE_REMOTE_DATA_USER_DIR/storage/" \
+      "$GHE_SNAPSHOT_DIR/storage" 1>&3
+  bm_end "$(basename $0) - $hostname"
+done
+
+bm_end "$(basename $0)"

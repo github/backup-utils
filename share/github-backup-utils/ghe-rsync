@@ -7,13 +7,19 @@
 
 set -o pipefail
 
+# Bring in the backup configuration
+. $( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config
+
 # Filter vanished file warnings from both stdout (rsync versions < 3.x) and
 # stderr (rsync versions >= 3.x). The complex redirections are necessary to
 # filter stderr while also keeping stdout and stderr separated.
 IGNOREOUT='^(file has vanished: |rsync warning: some files vanished before they could be transferred)'
-(rsync "${@}" 3>&1 1>&2 2>&3 3>&- |
-  (egrep -v "$IGNOREOUT" || true)) 3>&1 1>&2 2>&3 3>&- |
-  (egrep -v "$IGNOREOUT" || true)
+CAPTUREOUT='^(rsync: link_stat)'
+TMPOUT=$(mktemp -t ghe-backup-rsync-XXXXXX)
+TMPERR=$(mktemp -t ghe-backup-rsync-XXXXXX)
+(rsync $GHE_EXTRA_RSYNC_OPTS "${@}" 3>&1 1>&2 2>&3 3>&- |
+  (egrep -v "$IGNOREOUT" || true) | tee >(egrep "$CAPTUREOUT" || true > $TMPERR)) 3>&1 1>&2 2>&3 3>&- |
+  (egrep -v "$IGNOREOUT" || true) | tee >(egrep "$CAPTUREOUT" || true > $TMPOUT)
 res=$?
 
 # rsync exits with 24 when vanished files are detected.
@@ -21,4 +27,19 @@ if [ $res = 24 ]; then
     res=0
 fi
 
+# this can happen when repos are listed in the db, but don't exist on disk.
+# don't blow up the backup because the database might need a cleaning
+# example:
+# rsync: link_stat "/data/user/repositories/d/nw/da/b5/35/47687" failed: No such file or directory (2)
+if [ $res = 23 ]; then
+  res=0
+  if [ -s $TMPOUT -o -s $TMPOUT ]; then
+    echo "==== the following errors mention routes that don't exist on disk ==="
+    [ -s $TMPERR ] && cat $TMPERR || true
+    [ -s $TMPOUT ] && cat $TMPOUT || true
+  fi
+fi
+
+rm -f $TMPOUT
+rm -f $TMPERR
 exit $res

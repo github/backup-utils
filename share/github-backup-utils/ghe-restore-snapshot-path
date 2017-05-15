@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 #/ Usage: ghe-restore-snapshot-path [snapshot]
 #/
 #/ Print the path to the given snapshot. Defaults to current if no argument given.
@@ -6,10 +6,8 @@
 
 set -e
 
-# Bring in the backup configuration.
-cd $(dirname "$0")/../..
-. share/github-backup-utils/ghe-backup-config
-
+# Bring in the backup configuration
+. $( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config
 
 if [ -n "$1" ]; then
   GHE_RESTORE_SNAPSHOT="$(basename "$1")"

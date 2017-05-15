@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 # Usage: . testlib.sh
 # Simple shell command language test library.
 #
@@ -22,7 +22,7 @@
 set -e
 
 # Setting basic paths
-ROOTDIR="$(cd $(dirname "$0")/.. && pwd)"
+ROOTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 PATH="$ROOTDIR/test/bin:$ROOTDIR/bin:$ROOTDIR/share/github-backup-utils:$PATH"
 
 # create a temporary work space
@@ -36,8 +36,8 @@ export GIT_AUTHOR_NAME=make GIT_AUTHOR_EMAIL=make GIT_COMMITTER_NAME=make GIT_CO
 # Point commands at the test backup.config file
 GHE_BACKUP_CONFIG="$ROOTDIR/test/backup.config"
 GHE_DATA_DIR="$TRASHDIR/data"
-GHE_REMOTE_DATA_DIR="$TRASHDIR/remote"
-GHE_REMOTE_ROOT_DIR="$TRASHDIR/root"
+GHE_REMOTE_DATA_DIR="$TRASHDIR/remote/data"
+GHE_REMOTE_ROOT_DIR="$TRASHDIR/remote"
 export GHE_BACKUP_CONFIG GHE_DATA_DIR GHE_REMOTE_DATA_DIR GHE_REMOTE_ROOT_DIR
 
 # The default remote appliance version. This may be set in the environment prior
@@ -47,7 +47,7 @@ export GHE_TEST_REMOTE_VERSION
 
 # Source in the backup config and set GHE_REMOTE_XXX variables based on the
 # remote version established above or in the environment.
-. ghe-backup-config
+. $( dirname "${BASH_SOURCE[0]}" )/../share/github-backup-utils/ghe-backup-config
 ghe_parse_remote_version "$GHE_TEST_REMOTE_VERSION"
 ghe_remote_version_config "$GHE_TEST_REMOTE_VERSION"
 
@@ -62,6 +62,12 @@ failures=0
 # this runs at process exit
 atexit () {
     res=$?
+
+    # cleanup injected test key
+    shared_path=$(dirname $(which ghe-detect-leaked-ssh-keys))
+    sed -i.bak '/98:d8:99:d3:be:c0:55:05:db:b0:53:2f:1f:ad:b3:60/d' "$shared_path/ghe-ssh-leaked-host-keys-list.txt"
+    rm -f "$shared_path/ghe-ssh-leaked-host-keys-list.txt.bak"
+
     [ -z "$KEEPTRASH" ] && rm -rf "$TRASHDIR"
     if [ $failures -gt 0 ]
     then exit 1
@@ -103,6 +109,15 @@ setup_remote_license () {
 }
 setup_remote_license
 
+setup_remote_cluster () {
+    if [ "$GHE_VERSION_MAJOR" -lt 2 ] || \
+       ([ "$GHE_VERSION_MAJOR" -eq 2 ] && [ "$GHE_VERSION_MINOR" -le 4 ]); then
+      return 1
+    fi
+
+    mkdir -p "$GHE_REMOTE_ROOT_DIR/etc/github"
+    touch "$GHE_REMOTE_ROOT_DIR/etc/github/cluster"
+}
 
 # Mark the beginning of a test. A subshell should immediately follow this
 # statement.

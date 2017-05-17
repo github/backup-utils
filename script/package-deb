@@ -24,7 +24,7 @@ git clone -q . "$distdir"
 cd "$distdir"
 git checkout -q "$PKG_HEAD"
 
-debuild -uc -us 1>&2
+DEB_BUILD_OPTIONS=nocheck debuild -uc -us 1>&2
 cd ..
 files=$(ls -1 *.deb *.tar.gz *.dsc *.changes)
 mv $files ../

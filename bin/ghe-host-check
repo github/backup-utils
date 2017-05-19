@@ -36,7 +36,7 @@ set -e
 if [ $rc -ne 0 ]; then
     case $rc in
         255)
-            if echo "$output" | grep -i "port 22: connection refused\|port 22: no route to host\|ssh_exchange_identification: Connection closed by remote host\|Connection timed out during banner exchange" >/dev/null; then
+            if echo "$output" | grep -i "port 22: connection refused\|port 22: no route to host\|ssh_exchange_identification: Connection closed by remote host\|Connection timed out during banner exchange\|port 22: Connection timed out" >/dev/null; then
                 exec "$(basename $0)" "$hostname:122"
             fi
 

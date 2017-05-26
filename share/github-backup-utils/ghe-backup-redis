@@ -22,13 +22,13 @@ sudo=
 ghe-ssh "$GHE_HOSTNAME" /bin/bash <<EOF
     set -e
     timestamp=\$(redis-cli LASTSAVE)
-    for i in $(seq 10); do
+    for i in \$(seq 10); do
       if ! redis-cli BGSAVE | grep -q ERR; then
         break
       fi
       sleep 15
     done
-    for n in $(seq 240); do
+    for n in \$(seq 240); do
       if [ "\$(redis-cli LASTSAVE)" != "\$timestamp" ]; then
         break
       fi

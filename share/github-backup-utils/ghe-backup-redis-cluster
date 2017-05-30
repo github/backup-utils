@@ -32,10 +32,11 @@ ghe-ssh "$GHE_HOSTNAME" /bin/bash <<EOF
       sleep 15
     done
     for n in \$(seq 240); do
+      sleep 1
       if [ "\$(redis-cli -h \$redis_host LASTSAVE)" != "\$timestamp" ]; then
         break
       fi
-      sleep 15
+      sleep 14
     done
     [ "\$(redis-cli -h \$redis_host LASTSAVE)" != "\$timestamp" ] # exits 1 if bgsave didn't work
 

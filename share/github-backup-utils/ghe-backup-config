@@ -160,10 +160,6 @@ GHE_SNAPSHOT_DIR="$GHE_DATA_DIR"/"$GHE_SNAPSHOT_TIMESTAMP"
 # allows the location to be overridden in tests.
 : ${GHE_REMOTE_METADATA_FILE:="$GHE_REMOTE_DATA_DIR/enterprise/chef_metadata.json"}
 
-# CPU and IO throttling to keep backups and restores from thrashing around.
-: ${GHE_NICE:="nice -n 19"}
-: ${GHE_IONICE:="ionice -c 3"}
-
 # The number of seconds to wait for in progress git-gc processes to complete
 # before starting the sync of git data. See share/github-backup-utils/ghe-backup-repositories-rsync
 # for more information. Default: 10 minutes.

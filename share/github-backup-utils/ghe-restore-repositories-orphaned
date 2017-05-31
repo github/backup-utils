@@ -1,0 +1,84 @@
+#!/usr/bin/env bash
+#/ Usage: ghe-restore-repositories-orphaned [--dry-run]
+#/ Detects and isolates orphaned repositories. Orphaned repositories can lead
+#/ to repository ID conflicts, as the database is captured before the
+#/ repositories.
+#/
+#/ Options:
+#/   --dry-run         Isolate orphaned repositories by moving them to the
+#/                     repositories-orphaned directory.
+
+set -e
+
+# Parse arguments
+dryrun=false
+while true; do
+    case "$1" in
+        --dry-run)
+            dryrun=true
+            export GHE_VERBOSE=true
+            shift
+            ;;
+        -*)
+            echo "Error: invalid argument: '$1'" 1>&2
+            print_usage
+            ;;
+        *)
+            break
+            ;;
+    esac
+done
+
+# Bring in the backup configuration
+. $( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config
+
+# The snapshot to restore should be set by the ghe-restore command but this lets
+# us run this script directly.
+: ${GHE_RESTORE_SNAPSHOT:=current}
+
+# Path to snapshot dir we're restoring from
+GHE_RESTORE_SNAPSHOT_PATH="$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT"
+
+bm_start "$(basename $0)"
+
+# Check that the snapshot contains repositories and a mysql backup.
+if [ ! -d "$GHE_RESTORE_SNAPSHOT_PATH/repositories" ] && [ ! -e "$GHE_RESTORE_SNAPSHOT_PATH/mysql.sql.gz" ]; then
+  echo "Error: $GHE_RESTORE_SNAPSHOT_PATH is not a valid snapshot." >&2
+  exit 1
+fi
+
+valid=0
+orphans=0
+
+auto_increment="$(gunzip -c $GHE_RESTORE_SNAPSHOT_PATH/mysql.sql.gz | grep -m 1 -A 200 'CREATE TABLE `repositories`' | grep -m 1 'AUTO_INCREMENT=' | sed 's/.*AUTO_INCREMENT=\([0-9]*\).*/\1/')"
+
+repositories="$(find $GHE_RESTORE_SNAPSHOT_PATH/repositories -mindepth 6 -maxdepth 7 -type d -name \*.git | grep '/nw/' | grep -v '/network.git' || true)"
+
+for repository in $repositories; do
+  repository_id="$(echo $repository | sed -n 's/.*\/\([0-9]*\)\(.wiki\)\{0,1\}\.git/\1/p')"
+  if [ -n "$repository_id" ]; then
+    if [ "$repository_id" -ge "$auto_increment" ]; then
+      orphans=$(($orphans+1))
+      if $dryrun; then
+        ghe_verbose "* Detected orphaned repository: $repository"
+      else
+        ghe_verbose "* Isolating orphaned repository: $repository"
+
+        mkdir -p "${repository/\/repositories\//\/repositories-orphaned\/}"
+        mv "$repository" "${repository/\/repositories\//\/repositories-orphaned\/}/.."
+
+        parent_dir=$(dirname $repository)
+        if [ -d "$parent_dir/network.git" ] && [ "$(ls -1 $parent_dir | wc -l)" -eq "1" ]; then
+          ghe_verbose "* Isolating orphaned repository: $parent_dir/network.git"
+          mv "$parent_dir/network.git" "${parent_dir/\/repositories\//\/repositories-orphaned\/}"
+        fi
+      fi
+    else
+      valid=$(($valid+1))
+    fi
+  fi
+done
+
+ghe_verbose "* Finished. Valid repositories found: $valid. Orphaned repositories found: $orphans."
+
+bm_end "$(basename $0)"

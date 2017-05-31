@@ -206,6 +206,11 @@ fi
 # Create benchmark file
 bm_init > /dev/null
 
+if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
+  echo "Detecting and isolating orphaned repositories ..."
+  ghe-restore-repositories-orphaned
+fi
+
 ghe-backup-store-version  ||
 echo "Warning: storing backup-utils version remotely failed."
 

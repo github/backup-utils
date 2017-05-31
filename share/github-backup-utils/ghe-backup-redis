@@ -28,12 +28,11 @@ ghe-ssh "$GHE_HOSTNAME" /bin/bash <<EOF
       fi
       sleep 15
     done
-    for n in \$(seq 240); do
-      sleep 1
+    for n in \$(seq 3600); do
       if [ "\$(redis-cli LASTSAVE)" != "\$timestamp" ]; then
         break
       fi
-      sleep 14
+      sleep 1
     done
     [ "\$(redis-cli LASTSAVE)" != "\$timestamp" ] # exits 1 if bgsave didn't work
     $sudo cat '$GHE_REMOTE_DATA_USER_DIR/redis/dump.rdb'

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #/ Usage: ghe-restore-repositories-orphaned [--dry-run]
-#/ Detects and isolates orphaned repositories. Orphaned repositories can lead
-#/ to repository ID conflicts, as the database is captured before the
+#/ Identifies and isolates orphaned repositories. Orphaned repositories can
+#/ lead to repository ID conflicts, as the database is captured before the
 #/ repositories.
 #/
 #/ Options:
@@ -68,7 +68,7 @@ for repository in $repositories; do
 
         parent_dir=$(dirname $repository)
         if [ -d "$parent_dir/network.git" ] && [ "$(ls -1 $parent_dir | wc -l)" -eq "1" ]; then
-          ghe_verbose "* Isolating orphaned repository: $parent_dir/network.git"
+          ghe_verbose "* Isolating orphaned network repository: $parent_dir/network.git"
           mv "$parent_dir/network.git" "${parent_dir/\/repositories\//\/repositories-orphaned\/}"
         fi
       fi

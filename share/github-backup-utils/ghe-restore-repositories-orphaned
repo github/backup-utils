@@ -54,7 +54,7 @@ repositories="$(find $GHE_RESTORE_SNAPSHOT_PATH/repositories -mindepth 6 -maxdep
 
 # If the database contains no repositories, then the auto increment value will be null.
 if [ -z "$auto_increment" ]; then
-  auto_increment="1"
+  auto_increment=1
 fi
 
 for repository in $repositories; do

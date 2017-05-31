@@ -72,7 +72,7 @@ for repository in $repositories; do
 
         parent_dir=$(dirname $repository)
         if [ -d "$parent_dir/network.git" ] && [ "$(ls -1 $parent_dir | wc -l)" -eq "1" ]; then
-          ghe_verbose "* Isolating redundunt network repository: $parent_dir/network.git"
+          ghe_verbose "* Isolating redundant network repository: $parent_dir/network.git"
           mv "$parent_dir/network.git" "${parent_dir/\/repositories\//\/repositories-orphaned\/}"
         fi
       fi

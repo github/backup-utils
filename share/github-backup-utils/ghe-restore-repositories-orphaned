@@ -5,8 +5,7 @@
 #/ repositories.
 #/
 #/ Options:
-#/   --dry-run         Isolate orphaned repositories by moving them to the
-#/                     repositories-orphaned directory.
+#/   --dry-run         Identify, but not isolate, orphaned repositories.
 
 set -e
 

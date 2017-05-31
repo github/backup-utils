@@ -49,9 +49,14 @@ fi
 valid=0
 orphans=0
 
-auto_increment="$(gunzip -c $GHE_RESTORE_SNAPSHOT_PATH/mysql.sql.gz | grep -m 1 -A 200 'CREATE TABLE `repositories`' | grep -m 1 'AUTO_INCREMENT=' | sed 's/.*AUTO_INCREMENT=\([0-9]*\).*/\1/')"
+auto_increment="$(gunzip -c $GHE_RESTORE_SNAPSHOT_PATH/mysql.sql.gz | sed -n '/^CREATE TABLE `repositories` ($/,/;$/p' | sed -n 's/.*AUTO_INCREMENT=\([0-9]*\).*/\1/p')"
 
 repositories="$(find $GHE_RESTORE_SNAPSHOT_PATH/repositories -mindepth 6 -maxdepth 7 -type d -name \*.git | grep '/nw/' | grep -v '/network.git' || true)"
+
+# If the database contains no repositories, then the auto increment value will be null.
+if [ -z "$auto_increment" ]; then
+  auto_increment="1"
+fi
 
 for repository in $repositories; do
   repository_id="$(echo $repository | sed -n 's/.*\/\([0-9]*\)\(.wiki\)\{0,1\}\.git/\1/p')"

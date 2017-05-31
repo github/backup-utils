@@ -9,7 +9,6 @@
 
 set -e
 
-# Parse arguments
 dryrun=false
 while true; do
     case "$1" in
@@ -28,21 +27,21 @@ while true; do
     esac
 done
 
-# Bring in the backup configuration
+# Bring in the backup configuration.
 . $( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config
 
 # The snapshot to restore should be set by the ghe-restore command but this lets
 # us run this script directly.
 : ${GHE_RESTORE_SNAPSHOT:=current}
 
-# Path to snapshot dir we're restoring from
+# Path to snapshot dir we're restoring from.
 GHE_RESTORE_SNAPSHOT_PATH="$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT"
 
 bm_start "$(basename $0)"
 
 # Check that the snapshot contains repositories and a mysql backup.
 if [ ! -d "$GHE_RESTORE_SNAPSHOT_PATH/repositories" ] && [ ! -e "$GHE_RESTORE_SNAPSHOT_PATH/mysql.sql.gz" ]; then
-  echo "Error: $GHE_RESTORE_SNAPSHOT_PATH is not a valid snapshot." >&2
+  echo "Error: $GHE_RESTORE_SNAPSHOT is not a valid snapshot." >&2
   exit 1
 fi
 

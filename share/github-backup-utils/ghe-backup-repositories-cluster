@@ -138,7 +138,7 @@ for hostname in $hostnames; do
   # should be transferred here.
   echo 1>&3
   echo "* Transferring auxiliary files ..." 1>&3
-  rsync_repository_data $hostname:122 -z <<RULES
+  rsync_repository_data $hostname:122 <<RULES
 - /__*__/
 - /info/
 
@@ -175,7 +175,7 @@ RULES
   # loose refs trump packed-refs information.
   echo 1>&3
   echo "* Transferring packed-refs files ..." 1>&3
-  rsync_repository_data $hostname:122 -z <<RULES
+  rsync_repository_data $hostname:122 <<RULES
 - /__*__/
 - /info/
 
@@ -202,7 +202,7 @@ RULES
   # transferred to ensure that all referenced objects are included.
   echo 1>&3
   echo "* Transferring refs and reflogs ..."  1>&3
-  rsync_repository_data $hostname:122 -z <<RULES
+  rsync_repository_data $hostname:122 <<RULES
 - /__*__/
 - /info/
 

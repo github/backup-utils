@@ -37,8 +37,8 @@ if [ -d "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/$dirname" ]; then
   if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
     ghe-ssh "$GHE_HOSTNAME" -- "sudo -u git mkdir -p $GHE_REMOTE_DATA_USER_DIR/$dirname"
   fi
-  
-  ghe-rsync -avz --delete \
+
+  ghe-rsync -av --delete \
       -e "ghe-ssh -p $(ssh_port_part "$GHE_HOSTNAME")" \
       --rsync-path="sudo -u git rsync" \
       "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/$dirname/" \

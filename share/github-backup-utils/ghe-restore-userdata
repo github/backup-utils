@@ -45,4 +45,4 @@ if [ -d "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/$dirname" ]; then
       "$(ssh_host_part "$GHE_HOSTNAME"):$GHE_REMOTE_DATA_USER_DIR/$dirname" 1>&3
 fi
 
-bm_start "$(basename $0) - $1"
+bm_end "$(basename $0) - $1"

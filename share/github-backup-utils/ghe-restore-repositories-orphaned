@@ -45,12 +45,17 @@ if [ ! -d "$GHE_RESTORE_SNAPSHOT_PATH/repositories" ] && [ ! -e "$GHE_RESTORE_SN
   exit 1
 fi
 
+# Exit it not a network layout
+if [ ! -e "$GHE_RESTORE_SNAPSHOT_PATH/repositories/info/nw-layout" ]; then
+  exit 0
+fi
+
 valid=0
 orphans=0
 
 auto_increment="$(gunzip -c $GHE_RESTORE_SNAPSHOT_PATH/mysql.sql.gz | sed -n '/^CREATE TABLE `repositories` ($/,/;$/p' | sed -n 's/.*AUTO_INCREMENT=\([0-9]*\).*/\1/p')"
 
-repositories="$(find $GHE_RESTORE_SNAPSHOT_PATH/repositories -mindepth 6 -maxdepth 7 -type d -name \*.git | grep -v '/gist/' | grep -v '/network.git' || true)"
+repositories="$(find $GHE_RESTORE_SNAPSHOT_PATH/repositories -mindepth 6 -maxdepth 7 -type d -name \*.git | grep '/nw/' | grep -v '/network.git' || true)"
 
 # If the database contains no repositories, then the auto increment value will be null.
 if [ -z "$auto_increment" ]; then

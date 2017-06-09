@@ -9,7 +9,7 @@
 
 set -e
 
-# Bring in the backup configuration.
+# Bring in the backup configuration to load print_usage.
 . $( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config
 
 # Parse arguements
@@ -31,6 +31,9 @@ while true; do
     esac
 done
 
+# Bring in the backup configuration again to update ghe_verbose.
+. $( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config
+
 # The snapshot to restore should be set by the ghe-restore command but this lets
 # us run this script directly.
 : ${GHE_RESTORE_SNAPSHOT:=current}
@@ -46,7 +49,7 @@ if [ ! -d "$GHE_RESTORE_SNAPSHOT_PATH/repositories" ] && [ ! -e "$GHE_RESTORE_SN
   exit 1
 fi
 
-# Exit it not a network layout
+# Exit it not a network layout.
 if [ ! -e "$GHE_RESTORE_SNAPSHOT_PATH/repositories/info/nw-layout" ]; then
   exit 0
 fi

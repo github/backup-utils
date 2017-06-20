@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#/ Usage: ghe-restore [-v] [-s <snapshot-id>] [<host>]
+#/ Usage: ghe-restore [-h] [-v] [--version] [-f] [-c] [-s <snapshot-id>] [<host>]
 #/ Restores a GitHub instance from local backup snapshots. The <host> is the
 #/ hostname or IP of the GitHub instance. The <host> may be omitted when
 #/ the GHE_RESTORE_HOST config variable is set in backup.config. When a <host>
@@ -15,6 +15,7 @@
 #/   -s <snapshot-id>  Restore from the snapshot with the given id. Available
 #/                     snapshots may be listed under the data directory.
 #/   -v                Enable verbose output.
+#/   -h                Show this message.
 #/
 #/ Note that the host must be reachable and your SSH key must be setup as
 #/ described in the following help article:
@@ -41,6 +42,10 @@ while true; do
         -c)
             restore_settings=true
             shift
+            ;;
+        -h)
+            print_usage
+            exit
             ;;
         -*)
             echo "Error: invalid argument: '$1'" 1>&2

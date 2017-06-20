@@ -45,7 +45,7 @@ storage and must have network connectivity with the GitHub Enterprise appliance.
 ##### Backup host requirements
 
 Backup host software requirements are modest: Linux or other modern Unix
-operating system with [bash][13], [git][14], [OpenSSH][15] and [rsync][4] v2.6.4 or newer.
+operating system with [bash][13], [git][14], [OpenSSH][15], and [rsync][4] v2.6.4 or newer.
 
 The backup host must be able to establish network connections outbound to the
 GitHub appliance over SSH. TCP port 122 is used to backup GitHub Enterprise 2.0

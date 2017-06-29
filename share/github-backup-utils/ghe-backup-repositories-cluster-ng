@@ -94,10 +94,15 @@ mkdir -p "$backup_dir"
 # Removes the remote sync-in-progress file on exit, re-enabling GC operations
 # on the remote instance.
 cleanup() {
+  for pid in $(jobs -p); do
+    kill -KILL $pid > /dev/null 2>&1 || true
+  done
+
   # Enable remote GC operations
   for hostname in $hostnames; do
     ghe-gc-enable -F $config_file $hostname:$port
   done
+
   rm -f $config_file
   rm -rf $tempdir
 }
@@ -322,7 +327,10 @@ for file_list in $tempdir/*.rsync; do
 
   sync_data $hostname $file_list &
 done
-wait
+
+for pid in $(jobs -p); do
+  wait $pid
+done
 bm_end "$(basename $0) - Repo sync"
 
 # Since there are no routes for special data directories

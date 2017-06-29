@@ -11,7 +11,7 @@ set -e
 # Show usage and bail with no arguments
 [ $# -lt 2 ] && print_usage
 
-bm_start "$(basename $0)"
+bm_start "$(basename $0) - $1"
 
 # Grab userdata directory name and host args
 dirname="$1"
@@ -37,7 +37,7 @@ if [ -d "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/$dirname" ]; then
   if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
     ghe-ssh "$GHE_HOSTNAME" -- "sudo -u git mkdir -p $GHE_REMOTE_DATA_USER_DIR/$dirname"
   fi
-  
+
   ghe-rsync -avz --delete \
       -e "ghe-ssh -p $(ssh_port_part "$GHE_HOSTNAME")" \
       --rsync-path="sudo -u git rsync" \
@@ -45,4 +45,4 @@ if [ -d "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/$dirname" ]; then
       "$(ssh_host_part "$GHE_HOSTNAME"):$GHE_REMOTE_DATA_USER_DIR/$dirname" 1>&3
 fi
 
-bm_end "$(basename $0)"
+bm_end "$(basename $0) - $1"

@@ -1,12 +1,11 @@
 #!/usr/bin/env bash
-#/ Usage: ghe-restore [-v] [-s <snapshot-id>] [<host>]
+#/ Usage: ghe-restore [-h] [-v] [--version] [-s <snapshot-id>] [<host>]
 #/ Restores a GitHub instance from local backup snapshots. The <host> is the
 #/ hostname or IP of the GitHub instance. The <host> may be omitted when
 #/ the GHE_RESTORE_HOST config variable is set in backup.config. When a <host>
 #/ argument is provided, it always overrides the configured restore host.
 #/
 #/ Options:
-#/   --version         Display version information.
 #/   -f                Don't prompt for confirmation before restoring.
 #/   -c                Restore appliance settings and license in addition to
 #/                     datastores. Settings are not restored by default to
@@ -15,6 +14,8 @@
 #/   -s <snapshot-id>  Restore from the snapshot with the given id. Available
 #/                     snapshots may be listed under the data directory.
 #/   -v                Enable verbose output.
+#/   --version         Display version information and exit.
+#/   -h                Show this message.
 #/
 #/ Note that the host must be reachable and your SSH key must be setup as
 #/ described in the following help article:
@@ -22,35 +23,47 @@
 #/ <https://enterprise.github.com/help/articles/adding-an-ssh-key-for-shell-access>
 set -e
 
-# Bring in the backup configuration
-. $( dirname "${BASH_SOURCE[0]}" )/../share/github-backup-utils/ghe-backup-config
-
 # Parse arguments
 restore_settings=false
 force=false
 while true; do
-    case "$1" in
-        -f|--force)
-            force=true
-            shift
-            ;;
-        -s)
-            snapshot_id="$(basename "$2")"
-            shift 2
-            ;;
-        -c)
-            restore_settings=true
-            shift
-            ;;
-        -*)
-            echo "Error: invalid argument: '$1'" 1>&2
-            exit 1
-            ;;
-        *)
-            break
-            ;;
-    esac
+  case "$1" in
+    -f|--force)
+      force=true
+      shift
+      ;;
+    -s)
+      snapshot_id="$(basename "$2")"
+      shift 2
+      ;;
+    -c)
+      restore_settings=true
+      shift
+      ;;
+    -h|--help)
+      export GHE_SHOW_HELP=true
+      shift
+      ;;
+    --version)
+      export GHE_SHOW_VERSION=true
+      shift
+      ;;
+    -v)
+      export GHE_VERBOSE=true
+      shift
+      ;;
+    -*)
+      echo "Error: invalid argument: '$1'" 1>&2
+      exit 1
+      ;;
+    *)
+      break
+      ;;
+  esac
 done
+
+# Bring in the backup configuration
+. $( dirname "${BASH_SOURCE[0]}" )/../share/github-backup-utils/ghe-backup-config
 
 # Grab the host arg
 GHE_HOSTNAME="${1:-$GHE_RESTORE_HOST}"

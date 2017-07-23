@@ -1,8 +1,33 @@
 #!/usr/bin/env bash
-#/ Usage: ghe-host-check [<host>]
+#/ Usage: ghe-host-check [-h] [--version] [<host>] 
 #/ Verify connectivity with the GitHub Enterprise host. When no <host> is
 #/ provided, the $GHE_HOSTNAME configured in backup.config is assumed.
+#/
+#/ Options:
+#/   --version         Display version information.
+#/   -h                Show this message.
+
 set -e
+
+while true; do
+  case "$1" in
+    -h|--help)
+      export GHE_SHOW_HELP=true
+      shift
+      ;;
+    --version)
+      export GHE_SHOW_VERSION=true
+      shift
+      ;;
+    -*)
+      echo "Error: invalid argument: '$1'" 1>&2
+      exit 1
+      ;;
+    *)
+      break
+      ;;
+  esac
+done
 
 # Bring in the backup configuration
 . $( dirname "${BASH_SOURCE[0]}" )/../share/github-backup-utils/ghe-backup-config

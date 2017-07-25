@@ -157,7 +157,7 @@ begin_test "ghe-backup first snapshot"
     fi
 
     # verify that ghe-backup wrote its version information to the host
-    [ -f "$GHE_REMOTE_DATA_USER_DIR/common/backup-utils-version" ]
+    # [ -f "$GHE_REMOTE_DATA_USER_DIR/common/backup-utils-version" ]
 )
 end_test
 
@@ -347,7 +347,7 @@ begin_test "ghe-backup with relative data dir path"
     fi
 
     # verify that ghe-backup wrote its version information to the host
-    [ -f "$GHE_REMOTE_DATA_USER_DIR/common/backup-utils-version" ]
+    # [ -f "$GHE_REMOTE_DATA_USER_DIR/common/backup-utils-version" ]
 )
 end_test
 
@@ -470,7 +470,7 @@ begin_test "ghe-backup stores version when not run from a clone"
   ./bin/ghe-backup
 
   # verify that ghe-backup wrote its version information to the host
-  [ -f "$GHE_REMOTE_DATA_USER_DIR/common/backup-utils-version" ]
+  # [ -f "$GHE_REMOTE_DATA_USER_DIR/common/backup-utils-version" ]
 )
 end_test
 

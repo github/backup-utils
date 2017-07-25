@@ -99,9 +99,9 @@ cleanup() {
   done
 
   # Enable remote GC operations
-  for hostname in $hostnames; do
-    ghe-gc-enable -F $config_file $hostname:$port
-  done
+  # for hostname in $hostnames; do
+  #   ghe-gc-enable -F $config_file $hostname:$port
+  # done
 
   rm -f $config_file
   rm -rf $tempdir
@@ -110,9 +110,9 @@ trap 'cleanup' EXIT
 trap 'exit $?' INT # ^C always terminate
 
 # Disable remote GC operations
-for hostname in $hostnames; do
-  ghe-gc-disable -F $config_file $hostname:$port
-done
+# for hostname in $hostnames; do
+#   ghe-gc-disable -F $config_file $hostname:$port
+# done
 
 # If we have a previous increment, avoid transferring existing files via rsync's
 # --link-dest support. This also decreases physical space usage considerably.

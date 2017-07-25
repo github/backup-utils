@@ -107,8 +107,8 @@ fi
 # Create benchmark file
 bm_init > /dev/null
 
-ghe-backup-store-version  ||
-echo "Warning: storing backup-utils version remotely failed."
+# ghe-backup-store-version  ||
+# echo "Warning: storing backup-utils version remotely failed."
 
 echo "Backing up GitHub settings ..."
 ghe-backup-settings ||

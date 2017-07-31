@@ -14,6 +14,7 @@ matrix:
           packages:
             - devscripts
             - moreutils
+            - fakeroot
       before_script: git fetch --unshallow
       script: debuild -uc -us
     - os: linux
@@ -25,4 +26,5 @@ matrix:
             - devscripts
             - debhelper
             - moreutils
+            - fakeroot
       script: debuild -uc -us

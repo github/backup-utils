@@ -80,8 +80,11 @@ Note: You can restore a snapshot that's at most two feature releases behind the 
 
 ### Getting started
 
- 1. [Download the latest release version][release] and extract *or* clone the
-    repository using Git:
+ 1. [Download the latest release version][release] and extract the repository using `tar`:
+ 
+    `tar -xvf /path/to/github-backup-utils-vMAJOR.MINOR.PATCH.tar.gz`
+ 
+    *or* clone the repository using Git:
 
     `git clone -b stable https://github.com/github/backup-utils.git`
 

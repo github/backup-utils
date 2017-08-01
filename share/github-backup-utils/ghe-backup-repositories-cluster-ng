@@ -333,9 +333,8 @@ for pid in $(jobs -p); do
 done
 bm_end "$(basename $0) - Repo sync"
 
-# Since there are no routes for special data directories
-# or archived repositories, we need to do this serially
-# for all hostnames. Good candidate for future optimizations.
+# Since there are no routes for special data directories, we need to do this
+# serially for all hostnames. Good candidate for future optimizations.
 
 bm_start "$(basename $0) - Special Data Directories Sync"
 for h in $hostnames; do

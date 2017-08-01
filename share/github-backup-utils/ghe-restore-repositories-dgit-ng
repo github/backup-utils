@@ -105,6 +105,7 @@ done
 # ...
 #
 # One network path per line.
+bm_start "$(basename $0) - Building network list"
 OLDIFS=$IFS; IFS=$'\n'
 for path in $network_paths; do
    # Get the network ID
@@ -114,6 +115,7 @@ for path in $network_paths; do
    echo $path
 done > $tmp_list
 IFS=$OLDIFS
+bm_end "$(basename $0) - Building network list"
 
 # The server returns a list of routes:
 #
@@ -123,6 +125,7 @@ IFS=$OLDIFS
 # ...
 #
 # One route per line.
+bm_start "$(basename $0) - Obtaining routes"
 cat $tmp_list | ghe-ssh "$GHE_HOSTNAME" github-env ./bin/dgit-cluster-restore-routes \
  | while read route; do
   ghe_verbose "Received route $route"
@@ -137,11 +140,13 @@ cat $tmp_list | ghe-ssh "$GHE_HOSTNAME" github-env ./bin/dgit-cluster-restore-ro
   ghe_verbose "Route: $network_id /data/repositories/$network_path $servers"
   echo "$network_id /data/repositories/$network_path $servers" >> $to_restore
 done
+bm_end "$(basename $0) - Obtaining routes"
 
+bm_start "$(basename $0) - Restoring repository networks"
 # rsync all the repositories
 for file_list in $tempdir/*.rsync; do
   server=$(basename $file_list .rsync)
-  ghe_verbose "* Transferring repositories to $server"
+  ghe_verbose "* Transferring repository networks to $server"
   ghe-rsync -avrHR --delete \
     -e "ssh -q $opts -p $port -F $ssh_config_file -l $user" \
     --rsync-path="sudo -u git rsync" \
@@ -149,8 +154,10 @@ for file_list in $tempdir/*.rsync; do
     "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/repositories/./" \
     "$server:$GHE_REMOTE_DATA_USER_DIR/repositories/" 1>&3
 done
+bm_end "$(basename $0) - Restoring repository networks"
 
 # Tell dgit about the repositories restored
+bm_start "$(basename $0) - Finalizing routes"
 ghe-ssh "$GHE_HOSTNAME" -- /bin/sh >&3 <<EOF
   tempdir=\$(mktemp -d)
   echo "$(cat $to_restore)" | split -l 1000 -d - \$tempdir/chunk
@@ -158,7 +165,9 @@ ghe-ssh "$GHE_HOSTNAME" -- /bin/sh >&3 <<EOF
   parallel -i /bin/sh -c "cat {} | github-env ./bin/dgit-cluster-restore-finalize" -- \$chunks
   rm -rf \$tempdir
 EOF
+bm_end "$(basename $0) - Finalizing routes"
 
+bm_start "$(basename $0) - Updating repository info data"
 if [ -d $GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/repositories/info ]; then
   ghe_verbose "* Transferring repository info data"
   sync_repo_info
@@ -166,5 +175,6 @@ else
   ghe_verbose "* Removing repository info data"
   ghe-ssh "$GHE_HOSTNAME" ghe-cluster-each -r git -- rm -f /data/repositories/info/*
 fi
+bm_end "$(basename $0) - Updating repository info data"
 
 bm_end "$(basename $0)"

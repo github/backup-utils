@@ -14,6 +14,7 @@ matrix:
         apt:
           packages:
             - devscripts
+            - debhelper
             - moreutils
             - fakeroot
       before_script: git fetch --unshallow

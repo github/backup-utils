@@ -8,7 +8,8 @@ matrix:
         - brew install moreutils
       script: make test
     - os: linux
-      sudo: false
+      dist: precise
+      sudo: required
       addons:
         apt:
           packages:

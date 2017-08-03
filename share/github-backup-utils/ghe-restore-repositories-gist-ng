@@ -86,4 +86,10 @@ for route in $tempdir/*.rsync; do
     "$(basename $route .rsync):$GHE_REMOTE_DATA_USER_DIR/repositories/" 1>&3
 done
 
-cat $to_restore | ghe-ssh "$GHE_HOSTNAME" github-env ./bin/gist-cluster-restore-finalize
+ghe-ssh "$GHE_HOSTNAME" -- /bin/sh >&3 <<EOF
+	tempdir=\$(mktemp -d)
+	echo "$(cat $to_restore)" | split -l 1000 -d - \$tempdir/chunk
+	chunks=\$(find \$tempdir/ -name chunk\*)
+	parallel -i /bin/sh -c "cat {} | github-env ./bin/gist-cluster-restore-finalize" -- \$chunks
+	rm -rf \$tempdir
+EOF

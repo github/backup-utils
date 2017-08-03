@@ -152,11 +152,11 @@ done
 
 # Tell dgit about the repositories restored
 ghe-ssh "$GHE_HOSTNAME" -- /bin/sh >&3 <<EOF
-	tempdir=\$(mktemp -d)
-	echo "$(cat $to_restore)" | split -l 1000 -d - \$tempdir/chunk
-	chunks=\$(find \$tempdir/ -name chunk\*)
-	parallel -i /bin/sh -c "cat {} | github-env ./bin/dgit-cluster-restore-finalize" -- \$chunks
-	rm -rf \$tempdir
+  tempdir=\$(mktemp -d)
+  echo "$(cat $to_restore)" | split -l 1000 -d - \$tempdir/chunk
+  chunks=\$(find \$tempdir/ -name chunk\*)
+  parallel -i /bin/sh -c "cat {} | github-env ./bin/dgit-cluster-restore-finalize" -- \$chunks
+  rm -rf \$tempdir
 EOF
 
 if [ -d $GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/repositories/info ]; then

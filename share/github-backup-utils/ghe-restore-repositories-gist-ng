@@ -12,6 +12,8 @@ set -e
 # Show usage and bail with no arguments
 [ -z "$*" ] && print_usage
 
+bm_start "$(basename $0)"
+
 # Grab host arg
 GHE_HOSTNAME="$1"
 
@@ -59,12 +61,15 @@ cleanup() {
 trap cleanup EXIT
 
 # Find the routes (servers) for each gist available locally
+bm_start "$(basename $0) - Building gist list"
 OLDIFS=$IFS; IFS=$'\n'
 for path in $gist_paths; do
    echo $path
 done > $tmp_list
 IFS=$OLDIFS
+bm_end "$(basename $0) - Building gist list"
 
+bm_start "$(basename $0) - Obtaining routes"
 cat $tmp_list | ghe-ssh "$GHE_HOSTNAME" github-env ./bin/gist-cluster-restore-routes \
  | while read route; do
   servers=$(echo $route | cut -d ' ' -f2-)
@@ -78,8 +83,10 @@ cat $tmp_list | ghe-ssh "$GHE_HOSTNAME" github-env ./bin/gist-cluster-restore-ro
  ghe_verbose "Route: $gist_id /data/repositories/$gist $servers"
  echo "$gist_id /data/repositories/$gist $servers" >> $to_restore
 done
+bm_end "$(basename $0) - Obtaining routes"
 
 # rsync all the gist repositories
+bm_start "$(basename $0) - Restoring gists"
 for route in $tempdir/*.rsync; do
   ghe-rsync -avrHR --delete \
     -e "ssh -q $opts -p $port -F $ssh_config_file -l $user" \
@@ -88,5 +95,10 @@ for route in $tempdir/*.rsync; do
     "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/repositories/./" \
     "$(basename $route .rsync):$GHE_REMOTE_DATA_USER_DIR/repositories/" 1>&3
 done
+bm_end "$(basename $0) - Restoring gists"
 
+bm_start "$(basename $0) - Finalizing routes"
 cat $to_restore | ghe-ssh "$GHE_HOSTNAME" github-env ./bin/gist-cluster-restore-finalize
+bm_end "$(basename $0) - Finalizing routes"
+
+bm_end "$(basename $0)"

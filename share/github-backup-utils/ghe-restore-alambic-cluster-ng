@@ -77,6 +77,7 @@ trap 'cleanup' EXIT
 # b65f657194ca6202c17b5062e4afc11843fc892a3f2febef8ac10971db7689a8 5591634
 # b63c30f6f885e59282c2aa22cfca846516b5e72621c10a58140fb04d133e2c17 5592492
 # ...
+bm_start "$(basename $0) - Building object list"
 OLDIFS=$IFS; IFS=$'\n'
 for path in $storage_paths; do
   oid=$(echo $path | awk -F/ '{print $(NF)}')
@@ -84,6 +85,7 @@ for path in $storage_paths; do
   echo $oid $size
 done > $tmp_list
 IFS=$OLDIFS
+bm_end "$(basename $0) - Building object list"
 
 ghe_verbose "* Sending the object list to the server..."
 
@@ -93,6 +95,7 @@ ghe_verbose "* Sending the object list to the server..."
 # # OID SERVER1 SERVER2 SERVER2
 # b8a48b6b122b4ef8175348d1d6fbd846d3b3ccc8fd7552b79f91125c4958e43b server1 server2 server3
 # bc4cdd292e6b5387df2a42a907fcd5f3b6804a5d5ab427184faea5ef118d635e server1 server2 server3
+bm_start "$(basename $0) - Obtaining routes"
 cat $tmp_list | ghe-ssh "$GHE_HOSTNAME" github-env ./bin/storage-cluster-restore-routes \
  | while read obj; do
   ghe_verbose "Received route: $obj"
@@ -106,9 +109,11 @@ cat $tmp_list | ghe-ssh "$GHE_HOSTNAME" github-env ./bin/storage-cluster-restore
   done
   echo "$obj" >> $to_restore
 done
+bm_end "$(basename $0) - Obtaining routes"
 
 # rsync all the objects to the storage server where they belong.
 # One rsync invocation per server available.
+bm_start "$(basename $0) - Restoring objects"
 for route in $tempdir/*.rsync; do
   ghe_verbose "* rsync data to $(basename $route .rsync) ..."
   ghe-rsync -arHR --delete \
@@ -118,8 +123,11 @@ for route in $tempdir/*.rsync; do
     "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/storage/./" \
     "$(basename $route .rsync):$GHE_REMOTE_DATA_USER_DIR/storage/"
 done
+bm_end "$(basename $0) - Restoring objects"
 
+bm_start "$(basename $0) - Finalizing routes"
 ghe_verbose "* Update storage database after the restore ..."
 cat $to_restore | ghe-ssh "$GHE_HOSTNAME" github-env ./bin/storage-cluster-restore-finalize
+bm_end "$(basename $0) - Finalizing routes"
 
 bm_end "$(basename $0)"

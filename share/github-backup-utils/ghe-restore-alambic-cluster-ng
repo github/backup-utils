@@ -120,6 +120,12 @@ for route in $tempdir/*.rsync; do
 done
 
 ghe_verbose "* Update storage database after the restore ..."
-cat $to_restore | ghe-ssh "$GHE_HOSTNAME" github-env ./bin/storage-cluster-restore-finalize
+ghe-ssh "$GHE_HOSTNAME" -- /bin/sh >&3 <<EOF
+	tempdir=\$(mktemp -d)
+	echo "$(cat $to_restore)" | split -l 1000 -d - \$tempdir/chunk
+	chunks=\$(find \$tempdir/ -name chunk\*)
+	parallel -i /bin/sh -c "cat {} | github-env ./bin/storage-cluster-restore-finalize" -- \$chunks
+	rm -rf \$tempdir
+EOF
 
 bm_end "$(basename $0)"

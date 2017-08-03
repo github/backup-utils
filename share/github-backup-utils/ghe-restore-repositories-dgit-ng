@@ -141,7 +141,7 @@ ghe-ssh "$GHE_HOSTNAME" -- cat $routes_list > $routes_list
 bm_end "$(basename $0) - Transferring routes"
 
 bm_start "$(basename $0) - Processing routes"
-cat $routes_list | awk -vtempdir="$tempdir" '{ for(i=2;i<=NF;i++){ print $1 > (tempdir"/"$i".rsync") }}'
+cat $routes_list | awk -v tempdir="$tempdir" '{ for(i=2;i<=NF;i++){ print $1 > (tempdir"/"$i".rsync") }}'
 cat $routes_list | awk '{ n = split($1, p, "/"); printf p[n] " /data/repositories/" $1; $1=""; print $0}' > $to_restore
 bm_end "$(basename $0) - Processing routes"
 

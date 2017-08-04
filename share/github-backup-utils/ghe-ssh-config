@@ -23,10 +23,14 @@ proxy_port=$(ssh_port_part "$GHE_HOSTNAME")
 proxy_user="${host%@*}"
 [ "$proxy_user" = "$proxy_host" ] && proxy_user="admin"
 
+opts="$GHE_EXTRA_SSH_OPTS"
+
+[ -z "$GHE_DISABLE_SSH_MUX" ] && opts="-o ControlMaster=auto -o ControlPath=\"$GHE_DATA_DIR/.sshmux-$(echo -n "$proxy_user@$proxy_host:$proxy_port" | sha256sum | cut -c 1-8)\" -o ControlPersist=10m -o ServerAliveInterval=10 $opts"
+
 for host in $hosts; do
   cat <<EOF
 Host $hostname
-  ProxyCommand ssh -q $GHE_EXTRA_SSH_OPTS -p $proxy_port $proxy_user@$proxy_host nc.openbsd %h %p
+  ProxyCommand ssh -q $opts -p $proxy_port $proxy_user@$proxy_host nc.openbsd %h %p
   StrictHostKeyChecking=no
 EOF
 done

@@ -20,7 +20,7 @@ hosts="$@"
 
 proxy_host=$(ssh_host_part "$GHE_HOSTNAME")
 proxy_port=$(ssh_port_part "$GHE_HOSTNAME")
-proxy_user="${host%@*}"
+proxy_user="${proxy_host%@*}"
 [ "$proxy_user" = "$proxy_host" ] && proxy_user="admin"
 
 opts="$GHE_EXTRA_SSH_OPTS"
@@ -29,7 +29,7 @@ opts="$GHE_EXTRA_SSH_OPTS"
 
 for host in $hosts; do
   cat <<EOF
-Host $hostname
+Host $host
   ProxyCommand ssh -q $opts -p $proxy_port $proxy_user@$proxy_host nc.openbsd %h %p
   StrictHostKeyChecking=no
 EOF

@@ -82,18 +82,8 @@ ghe-ssh "$GHE_HOSTNAME" -- cat $routes_list > $routes_list
 bm_end "$(basename $0) - Transferring routes"
 
 bm_start "$(basename $0) - Processing routes"
-cat $routes_list | while read route; do
-  servers=$(echo $route | cut -d ' ' -f2-)
-  for server in $servers; do
-    gist=$(echo $route | cut -d ' ' -f1)
-    ghe_verbose "Adding $gist to $tempdir/$server.rsync"
-    echo "$gist" >> $tempdir/$server.rsync
-  done
-
-  gist_id=$(basename $(echo $route | cut -d ' ' -f 1) .git)
-  ghe_verbose "Route: $gist_id /data/repositories/$gist $servers"
-  echo "$gist_id /data/repositories/$gist $servers" >> $to_restore
-done
+cat $routes_list | awk -v tempdir="$tempdir" '{ for(i=2;i<=NF;i++){ print $1 > (tempdir"/"$i".rsync") }}'
+cat $routes_list | awk '{ n = split($1, p, "/"); i = p[n]; sub(/\.git/, "", i); printf i " /data/repositories/" $1; $1=""; print $0}' > $to_restore
 bm_end "$(basename $0) - Processing routes"
 
 # rsync all the gist repositories

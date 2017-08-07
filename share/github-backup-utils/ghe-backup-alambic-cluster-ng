@@ -39,7 +39,10 @@ ssh_config_file=$tempdir/ssh_config
 opts="$GHE_EXTRA_SSH_OPTS -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no"
 routes_list=$tempdir/routes_list
 
-for hostname in $(ghe-cluster-hostnames "$GHE_HOSTNAME" "storage-server"); do
+# storage server hostnames
+hostnames=$(ghe-cluster-hostnames "$GHE_HOSTNAME" "storage-server")
+
+for hostname in $hostnames; do
   echo "
 Host $hostname
   ServerAliveInterval 60
@@ -52,10 +55,20 @@ mkdir -p "$backup_dir"
 # Removes the remote sync-in-progress file on exit, re-enabling GC operations
 # on the remote instance.
 cleanup() {
+  # Enable remote maintenance operations
+  for hostname in $hostnames; do
+    ghe-gc-enable -F $ssh_config_file $hostname:$port
+  done
+
   ghe-ssh "$GHE_HOSTNAME" -- rm -rf $tempdir
   rm -rf $tempdir
 }
 trap 'cleanup' EXIT INT
+
+# Disable remote maintenance operations
+for hostname in $hostnames; do
+  ghe-gc-disable -F $ssh_config_file $hostname:$port
+done
 
 # If we have a previous increment and it is not empty, avoid transferring existing files via rsync's
 # --link-dest support. This also decreases physical space usage considerably.

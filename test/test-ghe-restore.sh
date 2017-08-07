@@ -647,7 +647,7 @@ begin_test "ghe-restore honours --help and -h flags"
   arg_h=`ghe-restore -h | grep -o 'Usage: ghe-restore'`
 
   # Make sure a Usage: string is returned and that it's the same for -h and --help
-  [ $arg_help = $arg_h ] && echo $arg_help | grep -q "Usage: ghe-restore"
+  [ "$arg_help" = "$arg_h" ] && echo $arg_help | grep -q "Usage: ghe-restore"
 
 )
 end_test

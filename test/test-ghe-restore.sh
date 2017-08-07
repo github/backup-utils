@@ -628,3 +628,26 @@ begin_test "ghe-restore fails when restore to an active HA pair"
     echo $output | grep -q "Error: Restoring to an appliance with replication enabled is not supported."
 )
 end_test
+
+begin_test "ghe-restore honours --version flag"
+(
+  set -e
+
+  # Make sure a partial version string is returned
+  ghe-restore --version | grep "GitHub backup-utils v"
+
+)
+end_test
+
+begin_test "ghe-restore honours --help and -h flags"
+(
+  set -e
+
+  arg_help=`ghe-restore --help | grep 'Usage:'`
+  arg_h=`ghe-restore -h | grep 'Usage:'`
+
+  # Make sure a Usage: string is returned and that it's the same for -h and --help
+  [ $arg_help = $arg_h ] && echo $arg_help | grep -q "Usage:"
+
+)
+end_test

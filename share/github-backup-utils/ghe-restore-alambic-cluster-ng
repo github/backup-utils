@@ -51,7 +51,6 @@ ghe-ssh-config "$GHE_HOSTNAME" "$hostnames" > "$ssh_config_file"
 opts="$GHE_EXTRA_SSH_OPTS -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no"
 tmp_list=$tempdir/tmp_list
 routes_list=$tempdir/routes_list
-to_restore=$tempdir/to_restore
 
 echo "$config" > "$config_file"
 
@@ -98,18 +97,7 @@ ghe-ssh "$GHE_HOSTNAME" -- cat $routes_list > $routes_list
 bm_end "$(basename $0) - Transferring routes"
 
 bm_start "$(basename $0) - Processing routes"
-cat $routes_list | while read obj; do
-  ghe_verbose "Received route: $obj"
-  oid=$(echo $obj | cut -d ' ' -f1)
-  oid_c1=$(echo $oid | cut -c1)
-  oid_c2=$(echo $oid | cut -c1-2)
-  oid_c3=$(echo $oid | cut -c3-4)
-  for server in $(echo $obj | cut -d ' ' -f2-); do
-    ghe_verbose "Adding $oid_c1/$oid_c2/$oid_c3/$oid to $tempdir/$server.rsync"
-    echo "$oid_c1/$oid_c2/$oid_c3/$oid" >> $tempdir/$server.rsync
-  done
-  echo "$obj" >> $to_restore
-done
+cat $routes_list | awk -v tempdir="$tempdir" '{ for(i=2;i<=NF;i++){ print substr($1,1,1) "/" substr($1,1,2) "/" substr($1,3,2) "/" $1 > (tempdir"/"$i".rsync") }}'
 bm_end "$(basename $0) - Processing routes"
 
 # rsync all the objects to the storage server where they belong.
@@ -128,9 +116,8 @@ done
 bm_end "$(basename $0) - Restoring objects"
 
 bm_start "$(basename $0) - Finalizing routes"
-cat $to_restore | ghe-ssh "$GHE_HOSTNAME" -- sponge $to_restore
 ghe-ssh "$GHE_HOSTNAME" -- /bin/bash >&3 <<EOF
-  split -l 1000 -d $to_restore $tempdir/chunk
+  split -l 1000 -d $routes_list $tempdir/chunk
   chunks=\$(find $tempdir/ -name chunk\*)
   parallel -i /bin/sh -c "cat {} | github-env ./bin/storage-cluster-restore-finalize" -- \$chunks
 EOF

@@ -62,7 +62,7 @@ to_restore=$tempdir/to_restore
 echo "$config" > "$config_file"
 
 cleanup() {
-  rm -rf $tempdir $config_file $tmp_list $to_restore
+  rm -rf $tempdir
   ghe-ssh "$GHE_HOSTNAME" -- rm -rf $tempdir
   true
 }

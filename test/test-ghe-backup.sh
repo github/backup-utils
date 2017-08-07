@@ -527,11 +527,11 @@ begin_test "ghe-backup honours --help and -h flags"
 (
   set -e
 
-  arg_help=`ghe-backup --help | grep 'Usage:'`
-  arg_h=`ghe-backup -h | grep 'Usage:'`
+  arg_help=`ghe-backup --help | grep -o 'Usage: ghe-backup'`
+  arg_h=`ghe-backup -h | grep -o 'Usage: ghe-backup'`
 
   # Make sure a Usage: string is returned and that it's the same for -h and --help
-  [ $arg_help = $arg_h ] && echo $arg_help | grep -q "Usage:"
+  [ $arg_help = $arg_h ] && echo $arg_help | grep -q "Usage: ghe-backup"
 
 )
 end_test

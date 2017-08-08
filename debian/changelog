@@ -1,3 +1,26 @@
+github-backup-utils (2.10.0) UNRELEASED; urgency=medium
+
+  * Include the user data directory in the benchmark name #311
+  * Use existing Elasticsearch indices to speed up transfer during a restore #310
+  * Improve detection of failures in cluster backup rsync threads #301
+  * Improve redis backup robustness #306
+  * Use default niceness for restores #308
+  * Add additional case to SSH port detection logic #304
+  * Suppress additional dd output noise #289
+  * Track completeness of Elasticsearch JSON dumps #298
+
+ -- Steven Honson <snh@github.com>  Thu, 08 Jun 2017 09:06:16 +1000
+
+github-backup-utils (2.9.0) UNRELEASED; urgency=medium
+
+  * Block restores to appliances with HA configured #291
+  * Add a `--version` flag #284
+  * Check backup-utils are not being run on GitHub Enterprise host #286
+  * Backup and restore custom CA certificates #281
+  * Hookshot backup/restores optimisations #276
+
+ -- Sergio Rubio <rubiojr@github.com>  Wed, 01 Mar 2017 09:39:26 -0800
+
 github-backup-utils (2.8.3) UNRELEASED; urgency=medium
 
   * Set restore status on all cluster nodes #274

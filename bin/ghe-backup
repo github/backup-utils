@@ -13,6 +13,10 @@ set -e
 # Used to record failed backup steps
 failures=
 
+# CPU and IO throttling to keep backups from thrashing around.
+export GHE_NICE=${GHE_NICE:-"nice -n 19"}
+export GHE_IONICE=${GHE_IONICE:-"ionice -c 3"}
+
 # Create the timestamped snapshot directory where files for this run will live,
 # change into it, and mark the snapshot as incomplete by touching the
 # 'incomplete' file. If the backup succeeds, this file will be removed

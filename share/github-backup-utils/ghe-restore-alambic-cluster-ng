@@ -52,8 +52,6 @@ opts="$GHE_EXTRA_SSH_OPTS -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecki
 tmp_list=$tempdir/tmp_list
 routes_list=$tempdir/routes_list
 
-echo "$config" > "$config_file"
-
 cleanup() {
   rm -rf $tempdir
   ghe-ssh "$GHE_HOSTNAME" -- rm -rf $tempdir

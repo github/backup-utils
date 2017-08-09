@@ -53,6 +53,9 @@ if echo "$*" | grep "[|;]" >/dev/null || [ $(echo "$*" | wc -l) -gt 1 ]; then
     exit 1
 fi
 
+
+[ -z "$GHE_DISABLE_SSH_MUX" ] && opts="-o ControlMaster=auto -o ControlPath=\"$GHE_DATA_DIR/.sshmux-$(echo -n "$user@$host:$port" | sha256sum | cut -c 1-8)\" -o ControlPersist=10m -o ServerAliveInterval=10 $opts"
+
 # Turn on verbose SSH logging if needed
 $GHE_VERBOSE_SSH && set -x
 

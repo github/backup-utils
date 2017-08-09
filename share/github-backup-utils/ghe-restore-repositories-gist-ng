@@ -50,12 +50,9 @@ tmp_list=$tempdir/tmp_list
 routes_list=$tempdir/routes_list
 to_restore=$tempdir/to_restore
 
-for hostname in $(ghe-cluster-hostnames "$GHE_HOSTNAME" "git-server"); do
-  echo "
-Host $hostname
-  ServerAliveInterval 60
-  ProxyCommand ssh -q $GHE_EXTRA_SSH_OPTS -p $port $user@$host nc.openbsd %h %p" >> $ssh_config_file
-done
+hostnames=$(ghe-cluster-hostnames "$GHE_HOSTNAME" "git-server")
+
+ghe-ssh-config "$GHE_HOSTNAME" "$hostnames" > "$ssh_config_file"
 
 cleanup() {
   ghe-ssh "$GHE_HOSTNAME" -- rm -rf $tempdir

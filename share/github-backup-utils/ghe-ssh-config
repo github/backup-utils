@@ -24,6 +24,7 @@ proxy_user="${proxy_host%@*}"
 [ "$proxy_user" = "$proxy_host" ] && proxy_user="admin"
 
 opts="$GHE_EXTRA_SSH_OPTS"
+GHE_DISABLE_SSH_MUX=1
 
 [ -z "$GHE_DISABLE_SSH_MUX" ] && opts="-o ControlMaster=auto -o ControlPath=\"$TMPDIR/.ghe-sshmux-$(echo -n "$proxy_user@$proxy_host:$proxy_port" | sha256sum | cut -c 1-8)\" -o ControlPersist=10m -o ServerAliveInterval=10 $opts"
 

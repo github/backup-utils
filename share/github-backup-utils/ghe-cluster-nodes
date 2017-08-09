@@ -2,8 +2,8 @@
 #/ Usage: ghe-cluster-nodes <host> <prefix>
 #/
 #/ Finds all nodes of the cluster using the config on <host>.
-#/ If it is a 2.8 and later cluster version the results are returned as prefix-uuid,
-#/ otherwise the configured hostnames are returned.
+#/ If it is a 2.8 and later cluster version the results are returned as
+#/ prefix-uuid, otherwise the configured hostnames are returned.
 #/ Also filters nodes based on the prefix role.
 #/
 #/ Note: This script typically isn't called directly. It's invoked by the
@@ -32,7 +32,7 @@ if ghe-ssh "$GHE_HOSTNAME" test -f "$GHE_REMOTE_DATA_USER_DIR/common/uuid"; then
     hostnames+="$prefix-$uuid "
   done
 else
-  hostnames=$(ghe-ssh "$GHE_HOSTNAME" ghe-config --get-regexp cluster.*.hostname | cut -d ' ' -f 2)
+  hostnames=$(echo "ghe-config --get-regexp cluster.*.$role | egrep 'true$' | awk '{ print \$1; }' | awk 'BEGIN { FS=\".\" }; { print \$2 };' | xargs -I{} -n1 bash -c 'if [ \"\$(ghe-config cluster.{}.offline)\" != true ]; then ghe-config cluster.{}.hostname; fi'" | ghe-ssh "$GHE_HOSTNAME" /bin/bash)
 fi
 
 echo "$hostnames"

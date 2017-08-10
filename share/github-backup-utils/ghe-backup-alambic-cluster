@@ -60,7 +60,7 @@ mkdir -p "$backup_dir"
 cleanup() {
   # Enable remote maintenance operations
   for hostname in $hostnames; do
-    ghe-gc-enable -F $config_file $hostname:$port
+    ghe-gc-enable -F $ssh_config_file $hostname:$port
   done
 
   rm -f $config_file
@@ -69,7 +69,7 @@ trap 'cleanup' EXIT INT
 
 # Disable remote maintenance operations
 for hostname in $hostnames; do
-  ghe-gc-disable -F $config_file $hostname:$port
+  ghe-gc-disable -F $ssh_config_file $hostname:$port
 done
 
 # If we have a previous increment and it is not empty, avoid transferring existing files via rsync's

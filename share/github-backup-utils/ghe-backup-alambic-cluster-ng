@@ -33,21 +33,15 @@ host=$(ssh_host_part "$GHE_HOSTNAME")
 user="${host%@*}"
 [ "$user" = "$host" ] && user="admin"
 
-tempdir=$(mktemp -d -t backup-utils-restore-XXXXXX)
-ghe-ssh "$GHE_HOSTNAME" -- mkdir -p $tempdir
-ssh_config_file=$tempdir/ssh_config
-opts="$GHE_EXTRA_SSH_OPTS -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no"
-routes_list=$tempdir/routes_list
-
 # storage server hostnames
 hostnames=$(ghe-cluster-hostnames "$GHE_HOSTNAME" "storage-server")
 
-for hostname in $hostnames; do
-  echo "
-Host $hostname
-  ServerAliveInterval 60
-  ProxyCommand ssh -q $GHE_EXTRA_SSH_OPTS -p $port $user@$host nc.openbsd %h %p" >> $ssh_config_file
-done
+tempdir=$(mktemp -d -t backup-utils-restore-XXXXXX)
+ghe-ssh "$GHE_HOSTNAME" -- mkdir -p $tempdir
+ssh_config_file=$tempdir/ssh_config
+ghe-ssh-config "$GHE_HOSTNAME" "$hostnames" > "$ssh_config_file"
+opts="$GHE_EXTRA_SSH_OPTS -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no"
+routes_list=$tempdir/routes_list
 
 # Make sure root backup dir exists if this is the first run
 mkdir -p "$backup_dir"

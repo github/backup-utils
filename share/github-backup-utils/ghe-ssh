@@ -53,7 +53,6 @@ if echo "$*" | grep "[|;]" >/dev/null || [ $(echo "$*" | wc -l) -gt 1 ]; then
     exit 1
 fi
 
-GHE_DISABLE_SSH_MUX=1
 
 [ -z "$GHE_DISABLE_SSH_MUX" ] && opts="-o ControlMaster=auto -o ControlPath=\"$TMPDIR/.ghe-sshmux-$(echo -n "$user@$host:$port" | sha256sum | cut -c 1-8)\" -o ControlPersist=10m -o ServerAliveInterval=10 $opts"
 

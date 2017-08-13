@@ -40,7 +40,7 @@ if [ "$1" = "--" ]; then
     shift
 fi
 
-# Split host:port into parts
+# Split host:port into parts. The port is only used if not specified earlier.
 port=${port:-$(ssh_port_part "$host")}
 host=$(ssh_host_part "$host")
 

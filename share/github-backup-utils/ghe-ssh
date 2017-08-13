@@ -12,7 +12,11 @@ set -e
 opts="$GHE_EXTRA_SSH_OPTS"
 while true; do
     case "$1" in
-        -p|-l|-o|-F)
+        -p)
+            port="$2"
+            shift 2
+            ;;
+        -l|-o|-F)
             opts="$opts $1 $2"
             shift 2
             ;;
@@ -36,8 +40,8 @@ if [ "$1" = "--" ]; then
     shift
 fi
 
-# Split host:port into parts
-port=$(ssh_port_part "$host")
+# Split host:port into parts. The port is only used if not specified earlier.
+port=${port:-$(ssh_port_part "$host")}
 host=$(ssh_host_part "$host")
 
 # Add user / -l option

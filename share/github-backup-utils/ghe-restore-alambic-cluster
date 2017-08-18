@@ -79,6 +79,7 @@ for storage_path in $storage_paths; do
     ghe-rsync -aHR --delete \
       -e "ssh -q $opts -p $port -F $ssh_config_file -l $user" \
       --rsync-path="sudo -u git rsync" \
+      --size-only \
       "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/storage/./$storage_path" \
       "$route:$GHE_REMOTE_DATA_USER_DIR/storage" &
   done

@@ -61,7 +61,7 @@ and growth over time.
 The backup utilities use [hard links][12] to store data efficiently, so the backup
 snapshots must be written to a filesystem with support for hard links.
 
-Using a [case sensitive][26] file system is strongly recommended to avoid conflicts.
+Using a [case sensitive][16] file system is strongly recommended to avoid conflicts.
 
 ##### GitHub Enterprise version requirements
 

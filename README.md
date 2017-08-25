@@ -61,6 +61,8 @@ and growth over time.
 The backup utilities use [hard links][12] to store data efficiently, so the backup
 snapshots must be written to a filesystem with support for hard links.
 
+Using a [case sensitive][26] file system is strongly recommended to avoid conflicts.
+
 ##### GitHub Enterprise version requirements
 
 The backup utilities are fully supported under GitHub Enterprise 2.0 or
@@ -291,3 +293,4 @@ site setup or recovery, please contact our [Enterprise support team][7] instead.
 [13]: https://www.gnu.org/software/bash/
 [14]: https://git-scm.com/
 [15]: https://www.openssh.com/
+[16]: https://en.wikipedia.org/wiki/Case_sensitivity

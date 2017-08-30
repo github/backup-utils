@@ -486,6 +486,18 @@ begin_test "ghe-backup stores version when not run from a clone"
 )
 end_test
 
+begin_test "ghe-backup stores verbose output in a file when GHE_VERBOSE_LOG is set"
+(
+  set -e
+
+  verbose_log=$(mktemp $TRASHDIR/verbose-test.XXXXXX)
+  export GHE_VERBOSE_LOG="$verbose_log"
+
+  ghe-backup -v
+  [ -s "$verbose_log" ]
+)
+end_test
+
 begin_test "ghe-backup with leaked SSH host key detection for current backup"
 (
   set -e

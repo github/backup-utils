@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #/ Usage: ghe-backup-es-audit-log
-#/ Take a backup of audit logs in ElasticSearch.
+#/ Take a backup of audit logs in Elasticsearch.
 #/
 #/ Note: This command typically isn't called directly. It's invoked by
 #/ ghe-backup.

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #/ Usage: ghe-restore-es-hookshot
-#/ Restores a backup of hookshot logs to ElasticSearch.
+#/ Restores a backup of hookshot logs to Elasticsearch.
 #/
 #/ Note: This command typically isn't called directly. It's invoked by
 #/ ghe-restore.

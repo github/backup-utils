@@ -329,7 +329,7 @@ elif [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
 fi
 
 if $cluster; then
-  echo "Restoring ElasticSearch Audit logs"
+  echo "Restoring Elasticsearch Audit logs"
   ghe-restore-es-audit-log "$GHE_HOSTNAME" 1>&3
 
   echo "Restoring hookshot logs ..."

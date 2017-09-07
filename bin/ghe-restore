@@ -349,6 +349,11 @@ else
   ghe-restore-es-${GHE_BACKUP_STRATEGY} "$GHE_HOSTNAME" 1>&3
 fi
 
+# Restore the audit log migration sentinel file, if it exists in the snapshot
+if test -f $GHE_RESTORE_SNAPSHOT_PATH/es-scan-complete; then
+  ghe-ssh "$GHE_HOSTNAME" -- "sudo touch $GHE_REMOTE_DATA_USER_DIR/common/es-scan-complete"
+fi
+
 # Restart an already running memcached to reset the cache after restore
 if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
     echo "Restarting memcached ..." 1>&3

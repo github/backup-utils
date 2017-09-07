@@ -83,6 +83,9 @@ echo "fake ghe-export-ssl-ca-certificates data" > "$GHE_DATA_DIR/current/ssl-ca-
 echo "fake license data" > "$GHE_DATA_DIR/current/enterprise.ghl"
 echo "fake manage password hash data" > "$GHE_DATA_DIR/current/manage-password"
 echo "rsync" > "$GHE_DATA_DIR/current/strategy"
+if [ "$GHE_VERSION_MAJOR" -eq 2 ]; then
+  touch "$GHE_DATA_DIR/current/es-scan-complete"
+fi
 
 begin_test "ghe-restore into configured vm"
 (
@@ -152,6 +155,11 @@ begin_test "ghe-restore into configured vm"
 
         # verify the UUID was transferred
         diff -ru "$GHE_DATA_DIR/current/uuid" "$GHE_REMOTE_DATA_USER_DIR/common/uuid"
+
+        # verify the audit log migration sentinel file has been created on 2.9 and above
+        if [ "$GHE_VERSION_MAJOR" -eq 2 ] && [ "$GHE_VERSION_MINOR" -ge 9 ]; then
+          [ -f "$GHE_REMOTE_DATA_USER_DIR/common/es-scan-complete" ]
+        fi
     fi
 )
 end_test
@@ -292,6 +300,11 @@ begin_test "ghe-restore -c into unconfigured vm"
 
         # verify ghe-export-ssl-ca-certificates was run
         grep -q "fake ghe-export-ssl-ca-certificates data" "$TRASHDIR/restore-out"
+
+        # verify the audit log migration sentinel file has been created on 2.9 and above
+        if [ "$GHE_VERSION_MAJOR" -eq 2 ] && [ "$GHE_VERSION_MINOR" -ge 9 ]; then
+          [ -f "$GHE_REMOTE_DATA_USER_DIR/common/es-scan-complete" ]
+        fi
     fi
 )
 end_test
@@ -365,6 +378,11 @@ begin_test "ghe-restore into unconfigured vm"
 
         # verify no config run after restore on unconfigured instance
         ! grep -q "ghe-config-apply OK" "$TRASHDIR/restore-out"
+
+        # verify the audit log migration sentinel file has been created on 2.9 and above
+        if [ "$GHE_VERSION_MAJOR" -eq 2 ] && [ "$GHE_VERSION_MINOR" -ge 9 ]; then
+          [ -f "$GHE_REMOTE_DATA_USER_DIR/common/es-scan-complete" ]
+        fi
     fi
 )
 end_test
@@ -418,6 +436,11 @@ begin_test "ghe-restore with host arg"
 
         # verify the UUID was transferred
         diff -ru "$GHE_DATA_DIR/current/uuid" "$GHE_REMOTE_DATA_USER_DIR/common/uuid"
+
+        # verify the audit log migration sentinel file has been created on 2.9 and above
+        if [ "$GHE_VERSION_MAJOR" -eq 2 ] && [ "$GHE_VERSION_MINOR" -ge 9 ]; then
+          [ -f "$GHE_REMOTE_DATA_USER_DIR/common/es-scan-complete" ]
+        fi
     fi
 )
 end_test

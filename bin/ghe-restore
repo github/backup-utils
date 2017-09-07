@@ -123,6 +123,16 @@ if ghe-ssh "$GHE_HOSTNAME" -- \
   exit 1
 fi
 
+# Only allow restores of 2.9 and 2.10 to 2.11 and above, after running the audit log migration
+if ! test -f $GHE_RESTORE_SNAPSHOT_PATH/es-scan-complete && \
+   ! echo $snapshot_instance_version | grep -Eq "v2\.[1-9][1-9]" && \
+   echo $GHE_REMOTE_VERSION | grep -Eq "v2\.[1-9][1-9]"; then
+      echo "Error: Snapshot must be from GitHub Enterprise v2.9 or v.2.10 after running the" >&2
+      echo "       audit log migration, or from 2.11.0 or above." >&2
+      echo "Please see https://git.io/v5rCE for the audit log migration procedure." >&2
+      exit 1
+fi
+
 # Prompt to verify the restore host given is correct. Restoring overwrites
 # important data on the destination appliance that cannot be recovered. This is
 # mostly to prevent accidents where the backup host is given to restore instead

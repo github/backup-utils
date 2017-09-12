@@ -7,6 +7,7 @@
 #/ * Updates the package changelog
 #/ * Bumps the backup-utils version if required
 #/ * Creates the release pull request
+#/ * Merges the release pull request
 #/ * Creates the release draft
 #/ * Tags the release
 #/ * Builds the release assets and uploads them
@@ -15,11 +16,9 @@
 #/ * Needs GH_RELEASE_TOKEN available in the environment.
 #/ * Export GH_OWNER, GH_AUTHOR and GH_REPO if you want to tweak the build
 #/   changelog or use a different  owner/repo
-#/ * Only pull requests labeled with bug or feature will show up in the
+#/ * Only pull requests labeled with bug, feature or enhancement will show up in the
 #/   release page and the changelog.
 #/
-# TODO: Use the constants we define rather than passing variables.
-#
 require 'json'
 require 'net/http'
 require 'time'

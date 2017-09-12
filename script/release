@@ -116,7 +116,7 @@ def bug_or_feature?(issue_hash)
 end
 
 def issue_from(issue)
-  res = get("/repos/github/#{GH_REPO}/issues/#{issue}")
+  res = get("/repos/#{GH_OWNER}/#{GH_REPO}/issues/#{issue}")
   raise "Issue ##{issue} not found in #{GH_OWNER}/#{GH_REPO}" unless res.is_a? Net::HTTPSuccess
 
   JSON.parse(res.body)

@@ -110,9 +110,8 @@ def tag(name, sha)
 end
 
 def bug_or_feature?(issue_hash)
-  true
-  #return true if issue_hash["labels"].find { |l| ["bug", "feature", "enhancement"].include?(l["name"]) }
-  #false
+  return true if issue_hash['labels'].find { |label| ['bug', 'feature', 'enhancement'].include?(label['name']) }
+  false
 end
 
 def issue_from(issue)

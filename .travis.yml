@@ -5,12 +5,18 @@ matrix:
       before_install:
         - brew update
         - brew install gnu-tar
+        - brew install moreutils
       script: make test
     - os: linux
-      sudo: false
+      dist: precise
+      sudo: required
       addons:
         apt:
-          packages: devscripts
+          packages:
+            - devscripts
+            - debhelper
+            - moreutils
+            - fakeroot
       before_script: git fetch --unshallow
       script: debuild -uc -us
     - os: linux
@@ -21,4 +27,6 @@ matrix:
           packages:
             - devscripts
             - debhelper
+            - moreutils
+            - fakeroot
       script: debuild -uc -us

@@ -83,6 +83,10 @@ echo "fake ghe-export-ssl-ca-certificates data" > "$GHE_DATA_DIR/current/ssl-ca-
 echo "fake license data" > "$GHE_DATA_DIR/current/enterprise.ghl"
 echo "fake manage password hash data" > "$GHE_DATA_DIR/current/manage-password"
 echo "rsync" > "$GHE_DATA_DIR/current/strategy"
+echo "$GHE_REMOTE_VERSION" >  "$GHE_DATA_DIR/current/version"
+if [ "$GHE_VERSION_MAJOR" -eq 2 ]; then
+  touch "$GHE_DATA_DIR/current/es-scan-complete"
+fi
 
 begin_test "ghe-restore into configured vm"
 (
@@ -152,6 +156,11 @@ begin_test "ghe-restore into configured vm"
 
         # verify the UUID was transferred
         diff -ru "$GHE_DATA_DIR/current/uuid" "$GHE_REMOTE_DATA_USER_DIR/common/uuid"
+
+        # verify the audit log migration sentinel file has been created on 2.9 and above
+        if [ "$GHE_VERSION_MAJOR" -eq 2 ] && [ "$GHE_VERSION_MINOR" -ge 9 ]; then
+          [ -f "$GHE_REMOTE_DATA_USER_DIR/common/es-scan-complete" ]
+        fi
     fi
 )
 end_test
@@ -292,6 +301,11 @@ begin_test "ghe-restore -c into unconfigured vm"
 
         # verify ghe-export-ssl-ca-certificates was run
         grep -q "fake ghe-export-ssl-ca-certificates data" "$TRASHDIR/restore-out"
+
+        # verify the audit log migration sentinel file has been created on 2.9 and above
+        if [ "$GHE_VERSION_MAJOR" -eq 2 ] && [ "$GHE_VERSION_MINOR" -ge 9 ]; then
+          [ -f "$GHE_REMOTE_DATA_USER_DIR/common/es-scan-complete" ]
+        fi
     fi
 )
 end_test
@@ -365,6 +379,11 @@ begin_test "ghe-restore into unconfigured vm"
 
         # verify no config run after restore on unconfigured instance
         ! grep -q "ghe-config-apply OK" "$TRASHDIR/restore-out"
+
+        # verify the audit log migration sentinel file has been created on 2.9 and above
+        if [ "$GHE_VERSION_MAJOR" -eq 2 ] && [ "$GHE_VERSION_MINOR" -ge 9 ]; then
+          [ -f "$GHE_REMOTE_DATA_USER_DIR/common/es-scan-complete" ]
+        fi
     fi
 )
 end_test
@@ -418,6 +437,11 @@ begin_test "ghe-restore with host arg"
 
         # verify the UUID was transferred
         diff -ru "$GHE_DATA_DIR/current/uuid" "$GHE_REMOTE_DATA_USER_DIR/common/uuid"
+
+        # verify the audit log migration sentinel file has been created on 2.9 and above
+        if [ "$GHE_VERSION_MAJOR" -eq 2 ] && [ "$GHE_VERSION_MINOR" -ge 9 ]; then
+          [ -f "$GHE_REMOTE_DATA_USER_DIR/common/es-scan-complete" ]
+        fi
     fi
 )
 end_test
@@ -626,5 +650,57 @@ begin_test "ghe-restore fails when restore to an active HA pair"
     ! output=$(ghe-restore -v -f localhost 2>&1)
 
     echo $output | grep -q "Error: Restoring to an appliance with replication enabled is not supported."
+)
+end_test
+
+begin_test "ghe-restore fails when restore 2.9/2.10 snapshot without audit log migration sentinel file to 2.11"
+(
+  set -e
+
+  # noop if not testing against 2.11
+  if [ "$GHE_VERSION_MAJOR" -le 1 ] || [ "$GHE_VERSION_MINOR" -ne 11 ]; then
+    exit 0
+  fi
+
+  rm -rf "$GHE_REMOTE_ROOT_DIR"
+  setup_remote_metadata
+
+  echo "rsync" > "$GHE_DATA_DIR/current/strategy"
+  echo "v2.9.10" > "$GHE_DATA_DIR/current/version"
+  rm "$GHE_DATA_DIR/current/es-scan-complete"
+
+  ! output=$(ghe-restore -v localhost 2>&1)
+
+  echo $output | grep -q "Error: Snapshot must be from GitHub Enterprise v2.9 or v2.10 after running the"
+
+  echo "v2.10.5" > "$GHE_DATA_DIR/current/version"
+  ! output=$(ghe-restore -v localhost 2>&1)
+
+  echo $output | grep -q "Error: Snapshot must be from GitHub Enterprise v2.9 or v2.10 after running the"
+)
+end_test
+
+begin_test "ghe-restore force restore of 2.9/2.10 snapshot without audit log migration sentinel file to 2.11"
+(
+  set -e
+
+  # noop if not testing against 2.11
+  if [ "$GHE_VERSION_MAJOR" -le 1 ] || [ "$GHE_VERSION_MINOR" -ne 11 ]; then
+    exit 0
+  fi
+
+  rm -rf "$GHE_REMOTE_ROOT_DIR"
+  setup_remote_metadata
+
+  echo "rsync" > "$GHE_DATA_DIR/current/strategy"
+  echo "v2.9.10" > "$GHE_DATA_DIR/current/version"
+
+  # Create fake remote repositories dir
+  mkdir -p "$GHE_REMOTE_DATA_USER_DIR/repositories"
+
+  ghe-restore -v -f localhost
+
+  echo "v2.10.5" > "$GHE_DATA_DIR/current/version"
+  ghe-restore -v -f localhost
 )
 end_test

@@ -45,7 +45,7 @@ storage and must have network connectivity with the GitHub Enterprise appliance.
 ##### Backup host requirements
 
 Backup host software requirements are modest: Linux or other modern Unix
-operating system with [bash][13], [git][14], and [rsync][4] v2.6.4 or newer.
+operating system with [bash][13], [git][14], [OpenSSH][15], and [rsync][4] v2.6.4 or newer.
 
 The backup host must be able to establish network connections outbound to the
 GitHub appliance over SSH. TCP port 122 is used to backup GitHub Enterprise 2.0
@@ -60,6 +60,8 @@ and growth over time.
 
 The backup utilities use [hard links][12] to store data efficiently, so the backup
 snapshots must be written to a filesystem with support for hard links.
+
+Using a [case sensitive][16] file system is strongly recommended to avoid conflicts.
 
 ##### GitHub Enterprise version requirements
 
@@ -80,8 +82,11 @@ Note: You can restore a snapshot that's at most two feature releases behind the 
 
 ### Getting started
 
- 1. [Download the latest release version][release] and extract *or* clone the
-    repository using Git:
+ 1. [Download the latest release version][release] and extract the repository using `tar`:
+ 
+    `tar -xzvf /path/to/github-backup-utils-vMAJOR.MINOR.PATCH.tar.gz`
+ 
+    *or* clone the repository using Git:
 
     `git clone -b stable https://github.com/github/backup-utils.git`
 
@@ -287,3 +292,5 @@ site setup or recovery, please contact our [Enterprise support team][7] instead.
 [12]: https://en.wikipedia.org/wiki/Hard_link
 [13]: https://www.gnu.org/software/bash/
 [14]: https://git-scm.com/
+[15]: https://www.openssh.com/
+[16]: https://en.wikipedia.org/wiki/Case_sensitivity

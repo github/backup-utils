@@ -21,6 +21,7 @@
 # TODO: Build and upload the binaries to the release draft
 # TODO: Preflight check: make sure auth works and provide a friendly error otherwise
 # TODO: Preflight check: Make sure the target owner/repo exists
+# TODO: Use the constants we define rather than passing variables.
 #
 require 'json'
 require 'net/http'
@@ -34,14 +35,13 @@ GH_OWNER = ENV["GH_OWNER"] || "github"
 GH_AUTHOR = ENV["GH_AUTHOR"] || "Sergio Rubio <rubiojr@github.com>"
 DEB_PKG_NAME = "github-backup-utils"
 
-CHANGELOG_TMPL = """
-<%G= package_name %> (<%= package_version %>) UNRELEASED; urgency=medium
+CHANGELOG_TMPL = """<%= package_name %> (<%= package_version %>) UNRELEASED; urgency=medium
 
 <%- changes.each do |ch| -%>
   * <%= ch.strip.chomp %>
 <% end -%>
 
- -- <%= author %> <%= Time.now.utc.strftime('%a, %d %b %Y %H:%M:%S %z') %>
+ -- <%= author %>  <%= Time.now.utc.strftime('%a, %d %b %Y %H:%M:%S %z') %>
 
 """
 
@@ -52,19 +52,12 @@ def warn(msg)
   end
 end
 
-def client
+def client(host = API_HOST, port = API_PORT)
   @http ||= begin
-    c = Net::HTTP.new(API_HOST, API_PORT)
+    c = Net::HTTP.new(host, port)
     c.use_ssl = true
     c
   end
-end
-
-def release_token
-  token = ENV["GH_RELEASE_TOKEN"]
-  raise "GH_RELEASE_TOKEN not set" if token.nil?
-
-  token
 end
 
 def get(path)
@@ -80,29 +73,39 @@ def post(path, body)
   client.request(req)
 end
 
-#
-# tag "v0.0.1", "foo tag",
-#     "e1d0d72078f7fbef653e705bfb0fe018bd9c772e",
-#     "foolano", "test",
-#     "Foolano Garcia", "foolano@garciagarcia.com"
-def tag(name, message, sha, owner, repo, tagger_name, tagger_email)
-  r = {
-    "tag": name,
-    "message": "#{message}\n",
-    "object": sha,
-    "type": "commit",
-    "tagger": {
-      "name": tagger_name,
-      "email": tagger_email,
-      "date": Time.now.utc.iso8601.to_s
-    }
-  }.to_json
-  res = post("/repos/#{owner}/#{repo}/git/tags", r)
+def post_file(path, body)
+  req = Net::HTTP::Post.new(path)
+  req['Authorization'] = "token #{release_token}"
+  req['Content-Type'] = path.match(/.*\.tar\.gz$/) ? "application/tar+gzip" : "application/vnd.debian.binary-package"
+  req.body = body
+  client.request(req)
+end
 
-  raise "Creating tag object failed (#{res.code})" unless res.kind_of? Net::HTTPSuccess
+def put(path, body)
+  req = Net::HTTP::Put.new(path)
+  req['Authorization'] = "token #{release_token}"
+  req.body = body
+  client.request(req)
+end
 
+def patch(path, body)
+  req = Net::HTTP::Patch.new(path)
+  req['Authorization'] = "token #{release_token}"
+  req.body = body
+  client.request(req)
+end
+
+def release_token
+  token = ENV["GH_RELEASE_TOKEN"]
+  raise "GH_RELEASE_TOKEN not set" if token.nil?
+
+  token
+end
+
+# Create a lightweight tag
+def tag(name, sha, owner, repo)
   body = {
-    "ref": "refs/heads/#{name}",
+    "ref": "refs/tags/#{name}",
     "sha": sha
   }.to_json
   res = post("/repos/#{owner}/#{repo}/git/refs", body)
@@ -111,12 +114,13 @@ def tag(name, message, sha, owner, repo, tagger_name, tagger_email)
 end
 
 def bug_or_feature?(issue_hash)
-  return true if issue_hash["labels"].find { |l| ["bug", "feature"].include?(l["name"]) }
+  return true
+  #return true if issue_hash["labels"].find { |l| ["bug", "feature", "enhancement"].include?(l["name"]) }
   false
 end
 
 def issue_from(owner, repo, issue)
-  res = get("/repos/#{owner}/#{repo}/issues/#{issue}")
+  res = get("/repos/github/#{repo}/issues/#{issue}")
   raise "Issue ##{issue} not found in #{owner}/#{repo}" unless res.kind_of? Net::HTTPSuccess
 
   JSON.parse(res.body)
@@ -129,7 +133,7 @@ def beautify_changes(changes, owner, repo)
       begin
         j = issue_from(owner, repo, $1)
         if bug_or_feature?(j)
-          c << "#{j['title']} ##{$1}"
+          c << "#{j['title'].capitalize} ##{$1}"
         end
       rescue => e
         warn "Warning: #{e.message}"
@@ -141,7 +145,7 @@ def beautify_changes(changes, owner, repo)
 end
 
 def changelog()
-  changes = `git log --pretty=oneline origin/stable...origin/master | grep "Merge pull request"`.lines
+  changes = `git log --pretty=oneline origin/stable...origin/master --reverse --grep "Merge pull request" | sort -t\# -k2`.lines.map(&:strip)
   raise "Building the changelog failed" if $? != 0
 
   changes
@@ -170,6 +174,19 @@ def create_release(tag_name, branch, owner, repo, rel_name, rel_body, draft = tr
     "prerelease": false
   }.to_json
   res = post("/repos/#{owner}/#{repo}/releases", body)
+
+  raise "Failed to create release (#{res.code})" unless res.kind_of? Net::HTTPSuccess
+
+  JSON.parse(res.body)
+end
+
+def publish_release(owner, repo, release_id)
+  body = {
+    "draft": false
+  }.to_json
+  res = patch("/repos/#{owner}/#{repo}/releases/#{release_id}", body)
+
+  raise "Failed to update release (#{res.code})" unless res.kind_of? Net::HTTPSuccess
 end
 
 def list_releases(owner, repo)
@@ -198,16 +215,16 @@ def bump_version(new_version, path = "share/github-backup-utils/version")
 end
 
 def push_release_branch(version, changes)
-  if !system("git checkout --quiet -b release-#{version}")
-    raise "Creating release branch failed"
+  unless out = `git checkout --quiet -b release-#{version}`
+    raise "Creating release branch failed:\n\n#{out}"
   end
 
-  if !system("git commit --quiet -m 'Bump version: #{version}\n#{changes}' debian/changelog share/github-backup-utils/version")
-    raise "Error commiting changelog and version"
+  unless out = `git commit --quiet -m 'Bump version: #{version} [ci skip]' debian/changelog share/github-backup-utils/version`
+    raise "Error commiting changelog and version:\n\n#{out}"
   end
 
-  if !system("git push --quiet origin release-#{version}")
-    raise "Failed pushing the release branch"
+  unless out = `git push --quiet origin release-#{version}`
+    raise "Failed pushing the release branch:\n\n#{out}"
   end
 end
 
@@ -220,6 +237,44 @@ def create_release_pr(version, owner, repo, release_body)
   }.to_json
   res = post("/repos/#{owner}/#{repo}/pulls", body)
   raise "Creating release PR failed (#{res.code})" unless res.kind_of? Net::HTTPSuccess
+
+  JSON.parse(res.body)
+end
+
+def merge_pr(number, sha, owner, repo, version)
+  body = {
+    "commit_title": "Merge pull request ##{number} from github/release-#{version}",
+    "commit_message": "Bump version: #{version}",
+    "sha": sha,
+    "merge_method": "merge"
+  }.to_json
+
+  pr_mergeable?(owner, repo, number)
+
+  res = put("/repos/#{owner}/#{repo}/pulls/#{number}/merge", body)
+
+  raise "Merging PR failed (#{res.code})" unless res.kind_of? Net::HTTPSuccess
+
+  JSON.parse(res.body)
+end
+
+class RetryError < StandardError
+end
+
+def pr_mergeable?(owner, repo, number)
+  mergeable = false
+  begin
+    retries ||= 5
+    res = get("/repos/#{owner}/#{repo}/pulls/#{number}")
+    raise RetryError if JSON.parse(res.body)["mergeable"].nil?
+    mergeable = JSON.parse(res.body)["mergeable"]
+  rescue RetryError
+    sleep 1
+    retry unless (retries -= 1).zero?
+    raise "PR is unmergable."
+  end
+
+  mergeable
 end
 
 def can_auth?
@@ -231,87 +286,170 @@ def repo_exists?(owner, repo)
   res.kind_of? Net::HTTPSuccess
 end
 
-args = ARGV.dup
-dry_run = false
-if args.include?("--dry-run")
-  dry_run = true
-  args.delete '--dry-run'
+def can_build_deb?
+  system("which debuild > /dev/null 2>&1")
 end
 
-if args.include?("--no-warn")
-  $no_warn = true
-  args.delete '--no-warn'
-end
-
-if args.size < 1
-  $stderr.puts "Usage: release [--dry-run] <version>"
-  exit 1
-end
-
-begin
-  version = Gem::Version.new(args[0])
-rescue ArgumentError
-  $stderr.puts "Error parsing version #{args[0]}"
-  exit 1
-end
-
-if !repo_exists?(GH_OWNER, GH_REPO)
-  $stderr.puts "The repo #{GH_REPO} does not exist for #{GH_OWNER}"
-  exit 1
-end
-
-release_changes = []
-release_a = false
-if dry_run
-  if can_auth?
-    release_changes = beautify_changes(changelog, GH_OWNER, GH_REPO)
-    release_a = release_available?(GH_OWNER, GH_REPO, "v#{version}")
-    puts "Existing release: #{release_a}"
+def package_tarball
+  unless out = `script/package-tarball 2>&1`
+    raise "Failed to package tarball:\n\n#{out}"
   end
-  puts "New version: #{version}"
-  puts "Owner: #{GH_OWNER}"
-  puts "Repo: #{GH_REPO}"
-  puts "Author: #{GH_AUTHOR}"
-  puts "Token: #{ENV['GH_RELEASE_TOKEN'] && "set" || "unset"}"
-  if can_auth?
-    puts "Changelog:"
-    release_changes.each { |c| puts "  * #{c}"}
-  else
-    $stderr.puts "Release Failed: Please set a GH_RELEASE_TOKEN"
+  out
+end
+
+def package_deb
+  unless out = `DEB_BUILD_OPTIONS=nocheck script/package-deb 2>&1`
+    raise "Failed to package Debian package:\n\n#{out}"
+  end
+  out
+end
+
+def attach_assets_to_release(upload_url, owner, repo, release_id, files)
+  @http = nil
+  client(URI(upload_url.gsub(/{.*}/, '')).host)
+  begin
+    files.each do |file|
+      raw_file = File.open(file).read
+      res = post_file("/repos/#{owner}/#{repo}/releases/#{release_id}/assets?name=#{File.basename(file)}", raw_file)
+      raise "Failed to attach #{file} to release (#{res.code})" unless res.kind_of? Net::HTTPSuccess
+    end
+  rescue => e
+    raise e
+  end
+  @http = nil
+end
+
+def clean_up(version)
+  #`git checkout --quiet origin/release-automation`
+  `git checkout --quiet master`
+  `git fetch --quiet origin --prune`
+  `git pull --quiet origin master --prune`
+  `git branch --quiet -D release-#{version} >/dev/null 2>&1`
+  `git push --quiet origin :release-#{version} >/dev/null 2>&1`
+  `git branch --quiet -D tmp-packging >/dev/null 2>&1`
+end
+
+#### All the action starts ####
+if $0 == __FILE__
+  begin
+    args = ARGV.dup
+    dry_run = false
+    if args.include?("--dry-run")
+      dry_run = true
+      args.delete '--dry-run'
+    end
+
+    if args.include?("--no-warn")
+      $no_warn = true
+      args.delete '--no-warn'
+    end
+
+    if args.size < 1
+      raise "Usage: release [--dry-run] <version>"
+    end
+
+    begin
+      version = Gem::Version.new(args[0])
+    rescue ArgumentError
+      raise "Error parsing version #{args[0]}"
+    end
+
+    unless repo_exists?(GH_OWNER, GH_REPO)
+      raise "The repo #{GH_REPO} does not exist for #{GH_OWNER}"
+    end
+
+    unless can_build_deb?
+      raise "Unable to build Debian pkg: 'debuild' not found."
+    end
+
+    release_changes = []
+    release_a = false
+    release_a = release_available?(GH_OWNER, GH_REPO, "v#{version}")
+    if can_auth?
+      release_changes = beautify_changes(changelog, GH_OWNER, GH_REPO)
+    end
+
+    if dry_run
+      puts "Existing release?: #{release_a}"
+      puts "New version: #{version}"
+      puts "Owner: #{GH_OWNER}"
+      puts "Repo: #{GH_REPO}"
+      puts "Author: #{GH_AUTHOR}"
+      puts "Token: #{ENV['GH_RELEASE_TOKEN'] && "set" || "unset"}"
+      if can_auth?
+        puts "Changelog:"
+        if release_changes.empty?
+          puts " => No new bug fixes, enhancements or features."
+        else
+          release_changes.each { |c| puts "  * #{c}"}
+        end
+      else
+        raise "Release Failed: Please set a GH_RELEASE_TOKEN"
+      end
+      exit
+    end
+
+    if release_a
+      raise "Release #{version} already exists."
+    end
+
+    `git fetch --quiet origin --prune`
+    branches = `git branch --all | grep release-#{version}$`
+    if !branches.empty?
+      out = "Release branch release-#{version} already exists. "
+      out += "Branches found:"
+      branches.each_line { |l| out += "\n* #{l.strip.chomp}" }
+      raise out
+    end
+
+    puts "Bumping version to #{version}..."
+    bump_version(version)
+
+    puts "Updating changelog..."
+    update_changelog(release_changes, DEB_PKG_NAME, version, GH_AUTHOR, GH_OWNER, GH_REPO)
+    release_body = "Includes general improvements, bug fixes and support for GitHub Enterprise v#{version}"
+    release_changes.each do |c|
+      release_body += "\n* #{c}"
+    end
+
+    puts "Creating and publishing the release branch..."
+    push_release_branch(version, release_changes)
+    res = create_release_pr(version, GH_OWNER, GH_REPO, "#{release_body}\n\n/cc github/backup-utils")
+
+    puts "Merging release PR..."
+    res = merge_pr(res['number'], res['head']['sha'], GH_OWNER, GH_REPO, version)
+
+    puts "Tagging and publishing the release..."
+    res = tag("v#{version}", res['sha'], GH_OWNER, GH_REPO)
+
+    puts "Creating release..."
+    release_title = "GitHub Enterprise Backup Utilities v#{version}"
+    res = create_release "v#{version}", "master", GH_OWNER, GH_REPO, release_title, release_body, true
+
+    # Tidy up before building tarball and deb pkg
+    clean_up version
+
+    puts "Building release tarball..."
+    package_tarball
+
+    puts "Building Debian pkg..."
+    package_deb
+
+    puts "Attaching Debian pkg and tarball to release..."
+    base_dir = File.expand_path(File.join(File.dirname(__FILE__), '..'))
+    attach_assets_to_release(res['upload_url'], GH_OWNER, GH_REPO, res['id'], ["#{base_dir}/dist/#{DEB_PKG_NAME}-v#{version}.tar.gz"])
+    attach_assets_to_release(res['upload_url'], GH_OWNER, GH_REPO, res['id'], ["#{base_dir}/dist/#{DEB_PKG_NAME}_#{version}_amd64.deb"])
+
+    puts "Publishing release..."
+    publish_release(GH_OWNER, GH_REPO, res['id'])
+
+    puts "Cleaning up..."
+    clean_up version
+
+    puts "Released!"
+  rescue RuntimeError => e
+    clean_up version
+    $stderr.puts e
     exit 1
   end
-  exit
 end
-
-if release_a
-  $stderr.puts "Release #{version} already exists."
-  exit 1
-end
-
-`git fetch --quiet origin --prune`
-branches = `git branch --all | grep release-#{version}$`
-if !branches.empty?
-  $stderr.puts "Release branch release-#{version} already exists."
-  $stderr.puts "Branches found:"
-  branches.each_line { |l| puts "* #{l.strip.chomp}" }
-  exit 1
-end
-
-puts "Bumping version to #{version}"
-bump_version(version)
-
-puts "Updating changelog"
-update_changelog release_changes, DEB_PKG_NAME, version, GH_AUTHOR, GH_OWNER, GH_REPO
-
-puts "Creating release"
-release_title = "GitHub Enterprise Backup Utilities v#{version}"
-release_body = "Includes general improvements, bug fixes and support for GitHub Enterprise v#{version}"
-release_changes.each do |c|
-  release_body += "\n* #{c}"
-end
-create_release "v#{version}", "master", GH_OWNER, GH_REPO, release_title, release_body
-
-puts "Creating and publishing the release branch"
-push_release_branch(version, release_changes)
-create_release_pr(version, GH_OWNER, GH_REPO, release_body)
-puts "Released!"

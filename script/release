@@ -381,14 +381,14 @@ if $PROGRAM_NAME == __FILE__
       release_body += "\n* #{c}"
     end
 
-    puts 'Creating and publishing the release branch...'
+    puts 'Pushing release branch and creating release PR...'
     push_release_branch version
     res = create_release_pr(version, "#{release_body}\n\n/cc github/backup-utils")
 
     puts 'Merging release PR...'
     res = merge_pr res['number'], res['head']['sha'], version
 
-    puts 'Tagging and publishing the release...'
+    puts 'Tagging and publishing release...'
     tag "v#{version}", res['sha']
 
     puts 'Creating release...'

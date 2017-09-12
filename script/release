@@ -41,7 +41,7 @@ CHANGELOG_TMPL = """<%= package_name %> (<%= package_version %>) UNRELEASED; urg
   * <%= ch.strip.chomp %>
 <% end -%>
 
- -- <%= author %>  <%= Time.now.utc.strftime('%a, %d %b %Y %H:%M:%S %z') %>
+ -- <%= GH_AUTHOR %>  <%= Time.now.utc.strftime('%a, %d %b %Y %H:%M:%S %z') %>
 
 """
 
@@ -103,12 +103,12 @@ def release_token
 end
 
 # Create a lightweight tag
-def tag(name, sha, owner, repo)
+def tag(name, sha)
   body = {
     "ref": "refs/tags/#{name}",
     "sha": sha
   }.to_json
-  res = post("/repos/#{owner}/#{repo}/git/refs", body)
+  res = post("/repos/#{GH_OWNER}/#{GH_REPO}/git/refs", body)
 
   raise "Creating tag ref failed (#{res.code})" unless res.kind_of? Net::HTTPSuccess
 end
@@ -119,19 +119,19 @@ def bug_or_feature?(issue_hash)
   false
 end
 
-def issue_from(owner, repo, issue)
-  res = get("/repos/github/#{repo}/issues/#{issue}")
-  raise "Issue ##{issue} not found in #{owner}/#{repo}" unless res.kind_of? Net::HTTPSuccess
+def issue_from(issue)
+  res = get("/repos/github/#{GH_REPO}/issues/#{issue}")
+  raise "Issue ##{issue} not found in #{GH_OWNER}/#{GH_REPO}" unless res.kind_of? Net::HTTPSuccess
 
   JSON.parse(res.body)
 end
 
-def beautify_changes(changes, owner, repo)
+def beautify_changes(changes)
   c = []
   changes.each do |ch|
     if ch =~ /#(\d+)/
       begin
-        j = issue_from(owner, repo, $1)
+        j = issue_from($1)
         if bug_or_feature?(j)
           c << "#{j['title'].capitalize} ##{$1}"
         end
@@ -151,20 +151,20 @@ def changelog()
   changes
 end
 
-def build_changelog(changes, package_name, package_version, author, owner, repo)
+def build_changelog(changes, package_name, package_version)
   ERB.new(CHANGELOG_TMPL, nil, "-").result(binding)
 end
 
-def update_changelog(changes, name, version, author, owner, repo, path = "debian/changelog")
+def update_changelog(changes, name, version, path = "debian/changelog")
   raise "debian/changelog not found" unless File.exist?(path)
   File.open("#{path}.new", 'w') do |f|
-    f.puts build_changelog changes, name, version, author, owner, repo
+    f.puts build_changelog changes, name, version
     f.puts(File.read(path))
   end
   File.rename("#{path}.new", path)
 end
 
-def create_release(tag_name, branch, owner, repo, rel_name, rel_body, draft = true)
+def create_release(tag_name, branch, rel_name, rel_body, draft = true)
   body = {
     "tag_name": tag_name,
     "target_commitish": branch,
@@ -173,32 +173,31 @@ def create_release(tag_name, branch, owner, repo, rel_name, rel_body, draft = tr
     "draft": draft,
     "prerelease": false
   }.to_json
-  res = post("/repos/#{owner}/#{repo}/releases", body)
+  res = post("/repos/#{GH_OWNER}/#{GH_REPO}/releases", body)
 
   raise "Failed to create release (#{res.code})" unless res.kind_of? Net::HTTPSuccess
 
   JSON.parse(res.body)
 end
 
-def publish_release(owner, repo, release_id)
+def publish_release(release_id)
   body = {
     "draft": false
   }.to_json
-  res = patch("/repos/#{owner}/#{repo}/releases/#{release_id}", body)
+  res = patch("/repos/#{GH_OWNER}/#{GH_REPO}/releases/#{release_id}", body)
 
   raise "Failed to update release (#{res.code})" unless res.kind_of? Net::HTTPSuccess
 end
 
-def list_releases(owner, repo)
-  res = get("/repos/#{owner}/#{repo}/releases")
+def list_releases
+  res = get("/repos/#{GH_OWNER}/#{GH_REPO}/releases")
   raise "Error retrieving releases" unless res.kind_of? Net::HTTPSuccess
 
   JSON.parse(res.body)
 end
 
-def release_available?(owner, repo, tag_name)
-   releases = list_releases owner, repo
-   return true if releases.find { |r| r["tag_name"] == tag_name }
+def release_available?(tag_name)
+   return true if list_releases.find { |r| r["tag_name"] == tag_name }
 
    false
 end
@@ -228,20 +227,20 @@ def push_release_branch(version, changes)
   end
 end
 
-def create_release_pr(version, owner, repo, release_body)
+def create_release_pr(version, release_body)
   body = {
     "title": "Bump version: #{version}",
     "body": release_body,
     "head": "release-#{version}",
     "base": "master"
   }.to_json
-  res = post("/repos/#{owner}/#{repo}/pulls", body)
+  res = post("/repos/#{GH_OWNER}/#{GH_REPO}/pulls", body)
   raise "Creating release PR failed (#{res.code})" unless res.kind_of? Net::HTTPSuccess
 
   JSON.parse(res.body)
 end
 
-def merge_pr(number, sha, owner, repo, version)
+def merge_pr(number, sha, version)
   body = {
     "commit_title": "Merge pull request ##{number} from github/release-#{version}",
     "commit_message": "Bump version: #{version}",
@@ -249,9 +248,9 @@ def merge_pr(number, sha, owner, repo, version)
     "merge_method": "merge"
   }.to_json
 
-  pr_mergeable?(owner, repo, number)
+  pr_mergeable? number
 
-  res = put("/repos/#{owner}/#{repo}/pulls/#{number}/merge", body)
+  res = put("/repos/#{GH_OWNER}/#{GH_REPO}/pulls/#{number}/merge", body)
 
   raise "Merging PR failed (#{res.code})" unless res.kind_of? Net::HTTPSuccess
 
@@ -261,11 +260,11 @@ end
 class RetryError < StandardError
 end
 
-def pr_mergeable?(owner, repo, number)
+def pr_mergeable?(number)
   mergeable = false
   begin
     retries ||= 5
-    res = get("/repos/#{owner}/#{repo}/pulls/#{number}")
+    res = get("/repos/#{GH_OWNER}/#{GH_REPO}/pulls/#{number}")
     raise RetryError if JSON.parse(res.body)["mergeable"].nil?
     mergeable = JSON.parse(res.body)["mergeable"]
   rescue RetryError
@@ -281,8 +280,8 @@ def can_auth?
   !ENV["GH_RELEASE_TOKEN"].nil?
 end
 
-def repo_exists?(owner, repo)
-  res = get("/repos/#{owner}/#{repo}")
+def repo_exists?
+  res = get("/repos/#{GH_OWNER}/#{GH_REPO}")
   res.kind_of? Net::HTTPSuccess
 end
 
@@ -304,13 +303,13 @@ def package_deb
   out
 end
 
-def attach_assets_to_release(upload_url, owner, repo, release_id, files)
+def attach_assets_to_release(upload_url, release_id, files)
   @http = nil
   client(URI(upload_url.gsub(/{.*}/, '')).host)
   begin
     files.each do |file|
       raw_file = File.open(file).read
-      res = post_file("/repos/#{owner}/#{repo}/releases/#{release_id}/assets?name=#{File.basename(file)}", raw_file)
+      res = post_file("/repos/#{GH_OWNER}/#{GH_REPO}/releases/#{release_id}/assets?name=#{File.basename(file)}", raw_file)
       raise "Failed to attach #{file} to release (#{res.code})" unless res.kind_of? Net::HTTPSuccess
     end
   rescue => e
@@ -354,7 +353,7 @@ if $0 == __FILE__
       raise "Error parsing version #{args[0]}"
     end
 
-    unless repo_exists?(GH_OWNER, GH_REPO)
+    unless repo_exists?
       raise "The repo #{GH_REPO} does not exist for #{GH_OWNER}"
     end
 
@@ -364,9 +363,9 @@ if $0 == __FILE__
 
     release_changes = []
     release_a = false
-    release_a = release_available?(GH_OWNER, GH_REPO, "v#{version}")
+    release_a = release_available? "v#{version}"
     if can_auth?
-      release_changes = beautify_changes(changelog, GH_OWNER, GH_REPO)
+      release_changes = beautify_changes changelog
     end
 
     if dry_run
@@ -403,28 +402,28 @@ if $0 == __FILE__
     end
 
     puts "Bumping version to #{version}..."
-    bump_version(version)
+    bump_version version
 
     puts "Updating changelog..."
-    update_changelog(release_changes, DEB_PKG_NAME, version, GH_AUTHOR, GH_OWNER, GH_REPO)
+    update_changelog release_changes, DEB_PKG_NAME, version
     release_body = "Includes general improvements, bug fixes and support for GitHub Enterprise v#{version}"
     release_changes.each do |c|
       release_body += "\n* #{c}"
     end
 
     puts "Creating and publishing the release branch..."
-    push_release_branch(version, release_changes)
-    res = create_release_pr(version, GH_OWNER, GH_REPO, "#{release_body}\n\n/cc github/backup-utils")
+    push_release_branch version, release_changes
+    res = create_release_pr(version, "#{release_body}\n\n/cc github/backup-utils")
 
     puts "Merging release PR..."
-    res = merge_pr(res['number'], res['head']['sha'], GH_OWNER, GH_REPO, version)
+    res = merge_pr res['number'], res['head']['sha'], version
 
     puts "Tagging and publishing the release..."
-    res = tag("v#{version}", res['sha'], GH_OWNER, GH_REPO)
+    res = tag "v#{version}", res['sha']
 
     puts "Creating release..."
     release_title = "GitHub Enterprise Backup Utilities v#{version}"
-    res = create_release "v#{version}", "master", GH_OWNER, GH_REPO, release_title, release_body, true
+    res = create_release "v#{version}", "master", release_title, release_body, true
 
     # Tidy up before building tarball and deb pkg
     clean_up version
@@ -437,11 +436,11 @@ if $0 == __FILE__
 
     puts "Attaching Debian pkg and tarball to release..."
     base_dir = File.expand_path(File.join(File.dirname(__FILE__), '..'))
-    attach_assets_to_release(res['upload_url'], GH_OWNER, GH_REPO, res['id'], ["#{base_dir}/dist/#{DEB_PKG_NAME}-v#{version}.tar.gz"])
-    attach_assets_to_release(res['upload_url'], GH_OWNER, GH_REPO, res['id'], ["#{base_dir}/dist/#{DEB_PKG_NAME}_#{version}_amd64.deb"])
+    attach_assets_to_release res['upload_url'], res['id'], ["#{base_dir}/dist/#{DEB_PKG_NAME}-v#{version}.tar.gz"]
+    attach_assets_to_release res['upload_url'], res['id'], ["#{base_dir}/dist/#{DEB_PKG_NAME}_#{version}_amd64.deb"]
 
     puts "Publishing release..."
-    publish_release(GH_OWNER, GH_REPO, res['id'])
+    publish_release res['id']
 
     puts "Cleaning up..."
     clean_up version

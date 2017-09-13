@@ -1,3 +1,12 @@
+github-backup-utils (2.11.0) UNRELEASED; urgency=medium
+
+  * Use calculated routes when backing up storage data from a cluster #318
+  * Add SSH multiplexing support #321
+  * Optimise route generation and finalisation during cluster restores #322
+  * Prefer the SSH port specified on the command line #324
+
+ -- Colin Seymour <colin@github.com>  Wed, 13 Sep 2017 16:31:20 +0000
+
 github-backup-utils (2.10.0) UNRELEASED; urgency=medium
 
   * Include the user data directory in the benchmark name #311

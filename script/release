@@ -216,6 +216,16 @@ def push_release_branch(version)
   end
 end
 
+def update_stable_branch
+  `git checkout --quiet stable`
+  unless (out = `git merge --quiet --ff-only origin/master`)
+    warn "Merging master into stable failed:\n\n#{out}"
+  end
+  unless (out = `git push --quiet origin stable`)
+    warn "Failed pushing the stable branch:\n\n#{out}"
+  end
+end
+
 def create_release_pr(version, release_body)
   body = {
     'title': "Bump version: #{version}",
@@ -414,6 +424,9 @@ if $PROGRAM_NAME == __FILE__
 
     puts 'Cleaning up...'
     clean_up version
+
+    puts 'Updating stable branch...'
+    update_stable_branch
 
     puts 'Released!'
   rescue RuntimeError => e

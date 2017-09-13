@@ -126,7 +126,7 @@ def beautify_changes(changes)
     next unless chg =~ /#(\d+)/
     begin
       issue = issue_from Regexp.last_match(1)
-      out << "#{issue['title'].capitalize} ##{Regexp.last_match(1)}" if bug_or_feature?(issue)
+      out << "#{issue['title']} ##{Regexp.last_match(1)}" if bug_or_feature?(issue)
     rescue => e
       warn "Warning: #{e.message}"
     end

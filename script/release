@@ -393,7 +393,7 @@ if $PROGRAM_NAME == __FILE__
 
     puts 'Pushing release branch and creating release PR...'
     push_release_branch version
-    res = create_release_pr(version, "#{release_body}\n\n/cc github/backup-utils")
+    res = create_release_pr(version, "#{release_body}\n\n/cc @github/backup-utils")
 
     puts 'Merging release PR...'
     res = merge_pr res['number'], res['head']['sha'], version

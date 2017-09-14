@@ -8,7 +8,7 @@
 
 1. Install the Debian `devscripts` package:
   `sudo apt-get install devscripts`
-2. Run `script/release 2.12.0`
+2. Run `GH_AUTHOR="Bob Smith <bob@example.com>" GH_RELEASE_TOKEN=your-amazing-secure-token script/release 2.12.0`
 
 ## Manual Process
 

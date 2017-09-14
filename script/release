@@ -370,6 +370,8 @@ if $PROGRAM_NAME == __FILE__
       exit
     end
 
+    raise 'Unable to build Debian pkg: "debuild" not found.' unless can_build_deb?
+
     raise "Release #{version} already exists." if release_a
 
     `git fetch --quiet origin --prune`

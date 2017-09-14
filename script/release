@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-#/ Usage: GH_RELEASE_TOKEN=your-amazing-secure-token release [--dry-run] <version>
+#/ Usage: release [--dry-run] <version>
 #/
 #/ Publish a backup-utils release:
 #/ * Updates the package changelog
@@ -13,9 +13,8 @@
 #/ * Builds the release assets and uploads them
 #/
 #/ Notes:
-#/ * Needs GH_RELEASE_TOKEN available in the environment.
-#/ * Export GH_OWNER, GH_AUTHOR and GH_REPO if you want to tweak the build
-#/   changelog or use a different  owner/repo
+#/ * Needs GH_RELEASE_TOKEN and GH_AUTHOR set in the environment.
+#/ * Export GH_OWNER and GH_REPO if you want to use a different owner/repo
 #/ * Only pull requests labeled with bug, feature or enhancement will show up in the
 #/   release page and the changelog.
 #/

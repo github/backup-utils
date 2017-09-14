@@ -29,7 +29,7 @@ API_HOST = ENV['GH_HOST'] || 'api.github.com'
 API_PORT = 443
 GH_REPO = ENV['GH_REPO'] || 'backup-utils'
 GH_OWNER = ENV['GH_OWNER'] || 'github'
-GH_AUTHOR = ENV['GH_AUTHOR'] || 'Sergio Rubio <rubiojr@github.com>'
+GH_AUTHOR = ENV['GH_AUTHOR']
 DEB_PKG_NAME = 'github-backup-utils'
 
 CHANGELOG_TMPL = '''<%= package_name %> (<%= package_version %>) UNRELEASED; urgency=medium
@@ -347,7 +347,7 @@ if $PROGRAM_NAME == __FILE__
 
     raise "The repo #{GH_REPO} does not exist for #{GH_OWNER}" unless repo_exists?
 
-    raise 'Unable to build Debian pkg: "debuild" not found.' unless can_build_deb?
+    raise 'GH_AUTHOR environment variable is not set' if GH_AUTHOR.nil?
 
     release_changes = []
     release_changes = beautify_changes changelog if can_auth?

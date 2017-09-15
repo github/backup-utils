@@ -25,7 +25,7 @@ proxy_user="${proxy_host%@*}"
 
 opts="$GHE_EXTRA_SSH_OPTS"
 
-[ -z "$GHE_DISABLE_SSH_MUX" ] && opts="-o ControlMaster=auto -o ControlPath=\"$TMPDIR/.ghe-sshmux-$(echo -n "$proxy_user@$proxy_host:$proxy_port" | md5sum | cut -c 1-8)\" -o ControlPersist=10m -o ServerAliveInterval=10 $opts"
+[ -z "$GHE_DISABLE_SSH_MUX" ] && opts="-o ControlMaster=auto -o ControlPath=\"$TMPDIR/.ghe-sshmux-$(echo -n "$proxy_user@$proxy_host:$proxy_port" | git hash-object --stdin --literally | cut -c 1-8)\" -o ControlPersist=10m -o ServerAliveInterval=10 $opts"
 
 for host in $hosts; do
   cat <<EOF

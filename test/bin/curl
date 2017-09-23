@@ -1,7 +1,12 @@
-#!/bin/sh
+#!/usr/bin/env bash
 # Usage: curl ...
 # Fake curl command stub for tests.
 set -e
+
+# Return empty list of indexes for ghe-backup-es-audit-log
+if echo "$@" | grep -q '_cat/indices/audit_log\*?h=index$'; then
+  exit 0
+fi
 
 # Write args to stdout
 echo "$@"

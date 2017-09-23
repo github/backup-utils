@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 #/ Usage: ghe-backup-repositories-rsync
 #/ Take an online, incremental snapshot of all Git repository data.
 #/
@@ -32,8 +32,9 @@ set -e
 #      <http://rsync.samba.org/ftp/rsync/rsync.html>
 
 # Bring in the backup configuration
-cd $(dirname "$0")/../..
-. share/github-backup-utils/ghe-backup-config
+. $( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config
+
+bm_start "$(basename $0)"
 
 # Set up remote host and root backup snapshot directory based on config
 host="$GHE_HOSTNAME"
@@ -51,46 +52,20 @@ fi
 # Perform a host-check and establish GHE_REMOTE_XXX variables.
 ghe_remote_version_required "$host"
 
-# Remote sync-in-progress file location. When this file exists, Git GC
-# operations are disabled on the GitHub instance.
-sync_in_progress_file="$GHE_REMOTE_DATA_USER_DIR/repositories/.sync_in_progress"
-
 # Make sure root backup dir exists if this is the first run
 mkdir -p "$backup_dir"
 
 # Removes the remote sync-in-progress file on exit, re-enabling GC operations
 # on the remote instance.
 cleanup() {
-  ghe-ssh "$host" -- "sudo rm -f '$sync_in_progress_file'"
+  # Enable remote GC operations
+  ghe-gc-enable $host
 }
 trap 'cleanup' EXIT
 trap 'exit $?' INT # ^C always terminate
 
-# Touch the sync-in-progress file, disabling GC operations, and wait for all
-# active GC processes to finish on the remote side.
-echo "
-    set -e
-    sudo -u git touch '$sync_in_progress_file'
-
-    sanity=0
-    while [ \$sanity -lt $GHE_GIT_COOLDOWN_PERIOD ]; do
-        # note: the bracket synta[x] below is to prevent matches against the
-        # grep process itself.
-        if ps axo pid,args | grep -q -e 'git[ -].*nw-repac[k]' -e 'git[ -].*g[c]'; then
-            sleep 1
-            sanity=\$(( sanity + 1 ))
-        else
-            exit 0
-        fi
-    done
-    exit 7
-" | ghe-ssh "$host" -- /bin/sh || {
-    res=$?
-    if [ $res = 7 ]; then
-        echo "Error: Git GC processes remain after $GHE_GIT_COOLDOWN_PERIOD seconds. Aborting..." 1>&2
-    fi
-    exit $res
-}
+# Disable remote GC operations
+ghe-gc-disable $host
 
 # Transfer repository data from a GitHub instance to the current snapshot
 # directory, using a previous snapshot to avoid transferring files that have
@@ -119,6 +94,8 @@ echo 1>&3
 echo "* Transferring auxiliary files ..." 1>&3
 rsync_repository_data -z <<RULES
 - /__*__/
+- /info/
+
 + /*/
 + /*/*.git
 - /*/*.git/objects
@@ -126,6 +103,26 @@ rsync_repository_data -z <<RULES
 - /*/*.git/packed-refs
 - /*/*.git/logs
 + /*/*.git/**
+
++ /*/??/
++ /*/??/??/
++ /*/??/??/??/
++ /*/??/??/??/gist/
++ /*/??/??/??/gist/*.git
+- /*/??/??/??/gist/*.git/objects
+- /*/??/??/??/gist/*.git/refs
+- /*/??/??/??/gist/*.git/packed-refs
+- /*/??/??/??/gist/*.git/logs
++ /*/??/??/??/gist/*.git/**
+
++ /*/nw/??/??/??/
++ /*/nw/??/??/??/*/
++ /*/nw/??/??/??/*/*.git
+- /*/nw/??/??/??/*/*.git/objects
+- /*/nw/??/??/??/*/*.git/refs
+- /*/nw/??/??/??/*/*.git/packed-refs
+- /*/nw/??/??/??/*/*.git/logs
++ /*/nw/??/??/??/*/*.git/**
 RULES
 
 # Sync packed refs files. This is performed before sync'ing loose refs since
@@ -134,9 +131,25 @@ echo 1>&3
 echo "* Transferring packed-refs files ..." 1>&3
 rsync_repository_data -z <<RULES
 - /__*__/
+- /info/
+
 + /*/
 + /*/*.git
 + /*/*.git/packed-refs
+
++ /*/??/
++ /*/??/??/
++ /*/??/??/??/
++ /*/??/??/??/gist/
++ /*/??/??/??/gist/*.git
++ /*/??/??/??/gist/*.git/packed-refs
+
++ /*/nw/??/
++ /*/nw/??/??/
++ /*/nw/??/??/??/
++ /*/nw/??/??/??/*/
++ /*/nw/??/??/??/*/*.git
++ /*/nw/??/??/??/*/*.git/packed-refs
 RULES
 
 # Sync loose refs and reflogs. This must be performed before object data is
@@ -145,25 +158,67 @@ echo 1>&3
 echo "* Transferring refs and reflogs ..."  1>&3
 rsync_repository_data -z <<RULES
 - /__*__/
+- /info/
+
 + /*/
 + /*/*.git
 + /*/*.git/refs
 + /*/*.git/refs/**
 + /*/*.git/logs
 + /*/*.git/logs/**
+
++ /*/??/
++ /*/??/??/
++ /*/??/??/??/
++ /*/??/??/??/gist/
++ /*/??/??/??/gist/*.git
++ /*/??/??/??/gist/*.git/refs
++ /*/??/??/??/gist/*.git/refs/**
++ /*/??/??/??/gist/*.git/logs
++ /*/??/??/??/gist/*.git/logs/**
+
++ /*/nw/??/
++ /*/nw/??/??/
++ /*/nw/??/??/??/
++ /*/nw/??/??/??/*/
++ /*/nw/??/??/??/*/*.git
++ /*/nw/??/??/??/*/*.git/refs
++ /*/nw/??/??/??/*/*.git/refs/**
++ /*/nw/??/??/??/*/*.git/logs
++ /*/nw/??/??/??/*/*.git/logs/**
 RULES
 
-# Sync git objects and pack files. Compressing is disabled during this phase
+# Sync git objects and pack files. Compression is disabled during this phase
 # since these files are already well compressed.
 echo 1>&3
 echo "* Transferring objects and packs ..." 1>&3
 rsync_repository_data -H <<RULES
 - /__*__/
+- /info/
+
 + /*/
 + /*/*.git
 + /*/*.git/objects
-- tmp_*
+- /*/*.git/objects/**/tmp_*
 + /*/*.git/objects/**
+
++ /*/??/
++ /*/??/??/
++ /*/??/??/??/
++ /*/??/??/??/gist/
++ /*/??/??/??/gist/*.git
++ /*/??/??/??/gist/*.git/objects
+- /*/??/??/??/gist/*.git/objects/**/tmp_*
++ /*/??/??/??/gist/*.git/objects/**
+
++ /*/nw/??/
++ /*/nw/??/??/
++ /*/nw/??/??/??/
++ /*/nw/??/??/??/*/
++ /*/nw/??/??/??/*/*.git
++ /*/nw/??/??/??/*/*.git/objects
+- /*/nw/??/??/??/*/*.git/objects/**/tmp_*
++ /*/nw/??/??/??/*/*.git/objects/**
 RULES
 
 # Sync __special__ data directories, including the __alambic_assets__,
@@ -182,5 +237,10 @@ rsync_repository_data <<RULES
 - /__render__/
 + /__*__/
 + /__*__/**
++ /info/
+- /info/lost+found/
++ /info/*
 RULES
 echo 1>&3
+
+bm_end "$(basename $0)"

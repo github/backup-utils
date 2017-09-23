@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 #/ Usage: ghe-restore-repositories-tarball <host>
 #/ Restore a tarball snapshot of all Git repository data to a GitHub instance.
 #/
@@ -7,8 +7,9 @@
 set -e
 
 # Bring in the backup configuration
-cd $(dirname "$0")/../..
-. share/github-backup-utils/ghe-backup-config
+. $( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config
+
+bm_start "$(basename $0)"
 
 # Grab the host arg
 GHE_HOSTNAME="$1"
@@ -23,3 +24,5 @@ GHE_HOSTNAME="$1"
 # Restore Git repository data from tarball snapshot.
 ghe-ssh "$GHE_HOSTNAME" -- 'ghe-import-repositories' \
     < "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/repositories.tar" 1>&3
+
+bm_end "$(basename $0)"

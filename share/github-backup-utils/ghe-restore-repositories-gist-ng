@@ -1,0 +1,92 @@
+#!/usr/bin/env bash
+#/ Usage: ghe-restore-repositories-gist-ng <host>
+#/ Restore repositories fron an rsync snapshot of all Git repository data to a GitHub cluster.
+#/
+#/ Note: This script typically isn't called directly. It's invoked by the
+#/ ghe-restore command when restoring into a cluster.
+set -e
+
+# Bring in the backup configuration
+. $( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config
+
+# Show usage and bail with no arguments
+[ -z "$*" ] && print_usage
+
+# Grab host arg
+GHE_HOSTNAME="$1"
+
+# The snapshot to restore should be set by the ghe-restore command but this lets
+# us run this script directly.
+: ${GHE_RESTORE_SNAPSHOT:=current}
+
+# Find the gists to restore
+gist_paths=$(cd $GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/  && find repositories -mindepth 6 -maxdepth 7 -name \*.git | grep gist | cut -d / -f2-)
+
+# No need to restore anything, early exit
+if [ -z "$gist_paths" ]; then
+  echo "Warning: Gist backup missing. Skipping ..."
+  exit 0
+fi
+
+# Perform a host-check and establish GHE_REMOTE_XXX variables.
+ghe_remote_version_required "$GHE_HOSTNAME"
+
+# Generate SSH config for forwarding
+# Split host:port into parts
+port=$(ssh_port_part "$GHE_HOSTNAME")
+host=$(ssh_host_part "$GHE_HOSTNAME")
+
+# Add user / -l option
+user="${host%@*}"
+[ "$user" = "$host" ] && user="admin"
+
+tempdir=$(mktemp -d)
+ssh_config_file=$tempdir/ssh_config
+opts="$GHE_EXTRA_SSH_OPTS -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no"
+tmp_list=$tempdir/tmp_list
+to_restore=$tempdir/to_restore
+
+for hostname in $(ghe-cluster-hostnames "$GHE_HOSTNAME" "git-server"); do
+  echo "
+Host $hostname
+  ServerAliveInterval 60
+  ProxyCommand ssh -q $GHE_EXTRA_SSH_OPTS -p $port $user@$host nc.openbsd %h %p" >> $ssh_config_file
+done
+
+cleanup() {
+  rm -rf $tempdir
+}
+trap cleanup EXIT
+
+# Find the routes (servers) for each gist available locally
+OLDIFS=$IFS; IFS=$'\n'
+for path in $gist_paths; do
+   echo $path
+done > $tmp_list
+IFS=$OLDIFS
+
+cat $tmp_list | ghe-ssh "$GHE_HOSTNAME" github-env ./bin/gist-cluster-restore-routes \
+ | while read route; do
+  servers=$(echo $route | cut -d ' ' -f2-)
+  for server in $servers; do
+    gist=$(echo $route | cut -d ' ' -f1)
+    ghe_verbose "Adding $gist to $tempdir/$server.rsync"
+    echo "$gist" >> $tempdir/$server.rsync
+ done
+
+ gist_id=$(basename $(echo $route | cut -d ' ' -f 1) .git)
+ ghe_verbose "Route: $gist_id /data/repositories/$gist $servers"
+ echo "$gist_id /data/repositories/$gist $servers" >> $to_restore
+done
+
+# rsync all the gist repositories
+for route in $tempdir/*.rsync; do
+  ghe-rsync -avrHR --delete \
+    -e "ssh -q $opts -p $port -F $ssh_config_file -l $user" \
+    --rsync-path="sudo -u git rsync" \
+    --files-from=$route \
+    "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/repositories/./" \
+    "$(basename $route .rsync):$GHE_REMOTE_DATA_USER_DIR/repositories/" 1>&3
+done
+
+cat $to_restore | ghe-ssh "$GHE_HOSTNAME" github-env ./bin/gist-cluster-restore-finalize

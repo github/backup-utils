@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 # Usage: redis-cli ...
 # Fake redis-cli command stub for tests. The redis-cli utlity is run on the
 # remote side by libexec/ghe-backup-redis to force a background save of redis

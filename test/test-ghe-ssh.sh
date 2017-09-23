@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 # ghe-ssh command tests
 
 # Bring in testlib

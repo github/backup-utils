@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 # ghe-host-check command tests
 
 # Bring in testlib

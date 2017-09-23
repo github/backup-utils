@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 # Usage: ssh [-o opt=val]... <host> <command>...
 # Fake ssh command that executes <command> locally. This is placed on PATH
 # during tests to fake out a remote host. Both normal ssh invocations and rsync
@@ -33,9 +33,9 @@ cd "$(dirname "$0")"/..
 # Scrub sudo commands from command arguments.
 sh="$(echo "$@" | sed 's/sudo -u [a-z]* //g' | sed 's/sudo //g')"
 
-# Also scrub sudo commands from stdin if just executing /bin/sh and
+# Also scrub sudo commands from stdin if just executing /bin/sh or /bin/bash and
 # piping commands in on standard input.
-if echo "$*" | grep -q "/bin/sh$"; then
+if echo "$*" | grep -q "/bin/sh$\|/bin/bash$"; then
     sed 's/sudo -u [a-z]* //g' | sed 's/sudo //g' | /bin/sh -c "$sh"
 else
     /bin/sh -c "$sh"

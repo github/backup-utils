@@ -1,0 +1,28 @@
+---
+matrix:
+  include:
+    - os: osx
+      before_install:
+        - brew update
+        - brew install gnu-tar
+        - brew install moreutils
+      script: make test
+    - os: linux
+      sudo: false
+      addons:
+        apt:
+          packages:
+            - devscripts
+            - moreutils
+      before_script: git fetch --unshallow
+      script: debuild -uc -us
+    - os: linux
+      dist: trusty
+      sudo: required
+      addons:
+        apt:
+          packages:
+            - devscripts
+            - debhelper
+            - moreutils
+      script: debuild -uc -us

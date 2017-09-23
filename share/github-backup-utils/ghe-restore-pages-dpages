@@ -1,0 +1,127 @@
+#!/usr/bin/env bash
+#/ Usage: ghe-restore-pages-dpages <host>
+#/ Restore repositories fron an rsync snapshot of all Git repository data to a GitHub cluster.
+#/
+#/ Note: This script typically isn't called directly. It's invoked by the
+#/ ghe-restore command when restoring into a cluster.
+set -e
+
+# Bring in the backup configuration
+. $( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config
+
+# Show usage and bail with no arguments
+[ -z "$*" ] && print_usage
+
+bm_start "$(basename $0)"
+
+# Grab host arg
+GHE_HOSTNAME="$1"
+
+# The snapshot to restore should be set by the ghe-restore command but this lets
+# us run this script directly.
+: ${GHE_RESTORE_SNAPSHOT:=current}
+
+# Find the pages to restore
+pages_paths=$(cd $GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/ && find pages -mindepth 5 -maxdepth 5 | cut -d / -f2-)
+
+# No need to restore anything, early exit
+if [ -z "$pages_paths" ]; then
+  echo "Warning: Pages backup missing. Skipping ..."
+  exit 0
+fi
+
+# Perform a host-check and establish GHE_REMOTE_XXX variables.
+ghe_remote_version_required "$GHE_HOSTNAME"
+
+# Generate SSH config for forwarding
+
+config=""
+
+# Split host:port into parts
+port=$(ssh_port_part "$GHE_HOSTNAME")
+host=$(ssh_host_part "$GHE_HOSTNAME")
+
+# Add user / -l option
+user="${host%@*}"
+[ "$user" = "$host" ] && user="admin"
+
+for hostname in $(ghe-cluster-hostnames "$GHE_HOSTNAME" "pages-server"); do
+  config="$config
+Host $hostname
+  ServerAliveInterval 60
+  ProxyCommand ssh -q $GHE_EXTRA_SSH_OPTS -p $port $user@$host nc.openbsd %h %p"
+done
+
+config_file=$(mktemp -t cluster-backup-restore-XXXXXX)
+echo "$config" > "$config_file"
+
+opts="$GHE_EXTRA_SSH_OPTS -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no"
+
+cleanup() {
+  for pid in $(jobs -p); do
+    kill -KILL $pid > /dev/null 2>&1 || true
+  done
+  rm -rf $config_file ssh_routes_in ssh_routes_out ssh_finalize_in ssh_finalize_out
+}
+
+trap 'cleanup' INT TERM EXIT
+
+rm -rf ssh_routes_in ssh_routes_out ssh_finalize_in ssh_finalize_out
+mkfifo ssh_routes_in
+mkfifo ssh_routes_out
+mkfifo ssh_finalize_in
+mkfifo ssh_finalize_out
+
+ghe-ssh "$GHE_HOSTNAME" github-env ./bin/dpages-cluster-import-routes - < ssh_routes_out > ssh_routes_in &
+ssh_routes_pid=$!
+ghe-ssh "$GHE_HOSTNAME" github-env ./bin/dpages-cluster-import-finalize - < ssh_finalize_out > ssh_finalize_in &
+ssh_finalize_pid=$!
+
+exec 4> ssh_routes_out
+exec 5> ssh_finalize_out
+
+for pages_path in $pages_paths; do
+  page_id=$(echo $pages_path | awk -F/ '{print $(NF)}')
+  echo "$page_id" >&4
+  read routes < ssh_routes_in
+
+  if [ "$routes" = 'page-id-not-found' ]; then
+    echo "  Warning: page ID $page_id not found in the database, ignoring."
+    continue
+  fi
+
+  for route in $routes; do
+    ghe-rsync -aHR --delete \
+      -e "ssh -q $opts -p $port -F $config_file -l $user" \
+      --rsync-path="sudo -u git rsync" \
+      "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/pages/./$pages_path" \
+      "$route:$GHE_REMOTE_DATA_USER_DIR/pages" &
+  done
+
+  for pid in $(jobs -p); do
+    if [ $pid = $ssh_routes_pid -o $pid = $ssh_finalize_pid ]; then
+      continue
+    fi
+    wait $pid
+    ret_code=$?
+    if [ "$ret_code" != "0" ]; then
+      echo "$pid exited $ret_code"
+      exit $ret_code
+    fi
+  done
+
+  echo "$page_id $routes" >&5
+  read output < ssh_finalize_in
+done
+
+exec 4>&-
+exec 5>&-
+
+# Ensure to flush these and close the pipes
+cat ssh_routes_in > /dev/null &
+cat ssh_finalize_in > /dev/null &
+
+wait $ssh_routes_pid > /dev/null 2>&1 || true
+wait $ssh_finalize_pid > /dev/null 2>&1 || true
+
+bm_end "$(basename $0)"

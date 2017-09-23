@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 # Fake chown command for tests. Avoids needing to creating special users for
 # utlities that chown on the remote side.
 true

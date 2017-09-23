@@ -22,3 +22,24 @@ GHE_NUM_SNAPSHOTS=10
 # ghe-restore so use of this variable isn't strictly required.
 #
 #GHE_RESTORE_HOST="github-standby.example.com"
+
+# Any extra options passed to the SSH command.
+# In a single instance environment, nothing is required by default.
+# In a clustering environment, "-i abs-path-to-ssh-private-key" is required.
+#
+#GHE_EXTRA_SSH_OPTS=""
+
+# Any extra options passed to the rsync command. Nothing required by default.
+#
+#GHE_EXTRA_RSYNC_OPTS=""
+
+# If set to 'no', GHE_DATA_DIR will not be created automatically
+# and restore/backup will exit 8
+#
+#GHE_CREATE_DATA_DIR=yes
+
+# If set to 'yes', git fsck will run on the repositories
+# and print some additional info.
+#
+# WARNING: do not enable this, only useful for debugging/development
+#GHE_BACKUP_FSCK=no

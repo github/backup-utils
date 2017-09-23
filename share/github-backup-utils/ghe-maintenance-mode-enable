@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 #/ Usage: ghe-maintenance-mode-enable [-w] <host>
 #/ Enable maintenance mode on GitHub appliance at <host>. This locks down all
 #/ access to the appliance to prevent writes to datastores and waits for all
@@ -6,8 +6,7 @@
 set -e
 
 # Bring in the backup configuration
-cd $(dirname "$0")/../..
-. share/github-backup-utils/ghe-backup-config
+. $( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config
 
 # Parse args
 wait_procs=true

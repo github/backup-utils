@@ -69,7 +69,7 @@ fi
 # otherwise, redirect it to /dev/null. Write verbose output to fd 3.
 if [ -n "$GHE_VERBOSE" ]; then
   if [ -n "$GHE_VERBOSE_LOG" ]; then
-    exec 3<> "$GHE_VERBOSE_LOG"
+    exec 3>> "$GHE_VERBOSE_LOG"
   else
     exec 3>&1
   fi

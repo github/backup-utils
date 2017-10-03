@@ -69,7 +69,7 @@ if [ -f ../in-progress ]; then
   progress=$(cat ../in-progress)
   snapshot=$(echo "$progress" | cut -d ' ' -f 1)
   pid=$(echo "$progress" | cut -d ' ' -f 2)
-  if ! ps -p $pid -o command= 2>/dev/null | grep ghe-backup; then
+  if ! ps -p $pid | grep ghe-backup; then
     # We can safely remove in-progress, ghe-prune-snapshots
     # will clean up the failed backup.
     unlink ../in-progress

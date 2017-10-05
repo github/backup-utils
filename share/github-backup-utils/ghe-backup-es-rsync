@@ -96,4 +96,9 @@ ghe-rsync -avz \
     "$(ssh_host_part "$host"):$GHE_REMOTE_DATA_USER_DIR/elasticsearch/" \
     "$GHE_SNAPSHOT_DIR/elasticsearch" 1>&3
 
+# "Backup" audit log migration sentinel file
+if ghe-ssh "$host" -- "test -f $GHE_REMOTE_DATA_USER_DIR/common/es-scan-complete"; then
+  touch $GHE_SNAPSHOT_DIR/es-scan-complete
+fi
+
 bm_end "$(basename $0)"

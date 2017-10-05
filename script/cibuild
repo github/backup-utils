@@ -11,6 +11,7 @@ REMOTE_VERSIONS="
   2.0.0
   2.2.0
   2.5.0
+  2.11.0
 "
 
 # Enable verbose logging of ssh commands

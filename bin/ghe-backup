@@ -69,7 +69,7 @@ if [ -f ../in-progress ]; then
   progress=$(cat ../in-progress)
   snapshot=$(echo "$progress" | cut -d ' ' -f 1)
   pid=$(echo "$progress" | cut -d ' ' -f 2)
-  if ! ps -p $pid -o command= | grep ghe-backup; then
+  if ! ps -p $pid | grep ghe-backup; then
     # We can safely remove in-progress, ghe-prune-snapshots
     # will clean up the failed backup.
     unlink ../in-progress
@@ -171,33 +171,36 @@ ghe-backup-pages-${GHE_BACKUP_STRATEGY} ||
 failures="$failures pages"
 
 if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
-    if [ "$GHE_BACKUP_STRATEGY" = "cluster" ]; then
-        echo "Backing up asset attachments ..."
-        ghe-backup-alambic-cluster ||
-        failures="$failures alambic_assets"
-
-        echo "Backing up custom Git hooks ..."
-        ghe-backup-git-hooks-cluster ||
-        failures="$failures git-hooks"
+  if [ "$GHE_BACKUP_STRATEGY" = "cluster" ]; then
+    echo "Backing up storage data ..."
+    if ghe-ssh "$GHE_HOSTNAME" test -f /data/github/current/bin/storage-cluster-backup-routes; then
+      ghe-backup-alambic-cluster-ng || failures="$failure alambic"
     else
-        echo "Backing up asset attachments ..."
-        ghe-backup-userdata alambic_assets ||
-        failures="$failures alambic_assets"
-
-        echo "Backing up storage data ..."
-        ghe-backup-userdata storage ||
-        failures="$failures storage"
-
-        echo "Backing up hook deliveries ..."
-        ghe-backup-userdata hookshot ||
-        failures="$failures hookshot"
-
-        echo "Backing up custom Git hooks ..."
-        ghe-backup-userdata git-hooks/environments/tarballs ||
-        failures="$failures git-hooks-environments"
-        ghe-backup-userdata git-hooks/repos ||
-        failures="$failures git-hooks-repos"
+      ghe-backup-alambic-cluster || failures="$failures alambic"
     fi
+
+    echo "Backing up custom Git hooks ..."
+    ghe-backup-git-hooks-cluster ||
+    failures="$failures git-hooks"
+  else
+    echo "Backing up asset attachments ..."
+    ghe-backup-userdata alambic_assets ||
+    failures="$failures alambic_assets"
+
+    echo "Backing up storage data ..."
+    ghe-backup-userdata storage ||
+    failures="$failures storage"
+
+    echo "Backing up hook deliveries ..."
+    ghe-backup-userdata hookshot ||
+    failures="$failures hookshot"
+
+    echo "Backing up custom Git hooks ..."
+    ghe-backup-userdata git-hooks/environments/tarballs ||
+    failures="$failures git-hooks-environments"
+    ghe-backup-userdata git-hooks/repos ||
+    failures="$failures git-hooks-repos"
+  fi
 fi
 
 if [ "$GHE_BACKUP_STRATEGY" != "cluster" ]; then

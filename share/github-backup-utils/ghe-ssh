@@ -12,7 +12,11 @@ set -e
 opts="$GHE_EXTRA_SSH_OPTS"
 while true; do
     case "$1" in
-        -p|-l|-o|-F)
+        -p)
+            port="$2"
+            shift 2
+            ;;
+        -l|-o|-F)
             opts="$opts $1 $2"
             shift 2
             ;;
@@ -36,8 +40,8 @@ if [ "$1" = "--" ]; then
     shift
 fi
 
-# Split host:port into parts
-port=$(ssh_port_part "$host")
+# Split host:port into parts. The port is only used if not specified earlier.
+port=${port:-$(ssh_port_part "$host")}
 host=$(ssh_host_part "$host")
 
 # Add user / -l option
@@ -51,6 +55,13 @@ if echo "$*" | grep "[|;]" >/dev/null || [ $(echo "$*" | wc -l) -gt 1 ]; then
     echo "fatal: ghe-ssh: Attempt to invoke complex command with simple command form." 1>&2
     echo "See ghe-ssh --help for more on correcting." 1>&2
     exit 1
+fi
+
+if [ -z "$GHE_DISABLE_SSH_MUX" ]; then
+  controlpath="$TMPDIR/.ghe-sshmux-$(echo -n "$user@$host:$port" | git hash-object --stdin | cut -c 1-8)"
+  opts="-o ControlMaster=auto -o ControlPath=\"$controlpath\" -o ControlPersist=10m -o ServerAliveInterval=10 $opts"
+  # Workaround for https://bugzilla.mindrot.org/show_bug.cgi?id=1988
+  [ -S $controlpath ] || ssh -f -p $port $opts -o BatchMode=yes "$host" -- /bin/true 1>/dev/null 2>&1 || true
 fi
 
 # Turn on verbose SSH logging if needed

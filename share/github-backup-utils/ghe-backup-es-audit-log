@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #/ Usage: ghe-backup-es-audit-log
-#/ Take a backup of audit logs in ElasticSearch.
+#/ Take a backup of audit logs in Elasticsearch.
 #/
 #/ Note: This command typically isn't called directly. It's invoked by
 #/ ghe-backup.
@@ -29,6 +29,13 @@ fi
 if ! indices=$(ghe-ssh "$host" "curl -s \"localhost:$es_port/_cat/indices/audit_log*?h=index"\"); then
   echo "Error: failed to retrieve audit log indices." 1>&2
   exit 1
+fi
+
+# Determine if the audit log migration has occurred or is needed.
+if echo 'set -o pipefail; ! test -e /data/user/common/es-scan-complete && test -f /usr/local/share/enterprise/run-audit-log-transitions.sh' | ghe-ssh "$host" /bin/bash; then
+  if echo 'set -o pipefail; echo n | /usr/local/share/enterprise/run-audit-log-transitions.sh > /dev/null 2>&1 && touch /data/user/common/es-scan-complete' | ghe-ssh "$host" /bin/bash; then
+    touch $GHE_SNAPSHOT_DIR/es-scan-complete
+  fi
 fi
 
 current_index=audit_log-$(ghe-ssh "$host" 'date +"%Y-%m"')

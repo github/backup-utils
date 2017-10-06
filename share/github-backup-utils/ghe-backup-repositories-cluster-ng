@@ -61,10 +61,6 @@ fi
 # Perform a host-check and establish GHE_REMOTE_XXX variables.
 ghe_remote_version_required "$host"
 
-# Generate SSH config for forwarding
-
-config=""
-
 # Split host:port into parts
 port=$(ssh_port_part "$GHE_HOSTNAME")
 host=$(ssh_host_part "$GHE_HOSTNAME")
@@ -75,16 +71,9 @@ user="${host%@*}"
 
 # git server hostnames
 hostnames=$(ghe-cluster-hostnames "$GHE_HOSTNAME" "git-server")
-for hostname in $hostnames; do
-  config="$config
-Host $hostname
-  ProxyCommand ssh -q $GHE_EXTRA_SSH_OPTS -p $port $user@$host nc.openbsd %h %p
-  StrictHostKeyChecking=no
-"
-done
 
-config_file=$(mktemp -t cluster-backup-restore-XXXXXX)
-echo "$config" > "$config_file"
+ssh_config_file=$(mktemp -t cluster-backup-restore-XXXXXX)
+ghe-ssh-config "$GHE_HOSTNAME" "$hostnames" > "$ssh_config_file"
 
 opts="$GHE_EXTRA_SSH_OPTS -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no"
 
@@ -100,10 +89,10 @@ cleanup() {
 
   # Enable remote GC operations
   for hostname in $hostnames; do
-    ghe-gc-enable -F $config_file $hostname:$port
+    ghe-gc-enable -F $ssh_config_file $hostname:$port
   done
 
-  rm -f $config_file
+  rm -f $ssh_config_file
   rm -rf $tempdir
 }
 trap 'cleanup' EXIT
@@ -111,7 +100,7 @@ trap 'exit $?' INT # ^C always terminate
 
 # Disable remote GC operations
 for hostname in $hostnames; do
-  ghe-gc-disable -F $config_file $hostname:$port
+  ghe-gc-disable -F $ssh_config_file $hostname:$port
 done
 
 # If we have a previous increment, avoid transferring existing files via rsync's
@@ -159,7 +148,7 @@ rsync_repository_data () {
     shift
     shift
     ghe-rsync -avr \
-      -e "ssh -q $opts -p $port -F $config_file -l $user" \
+      -e "ssh -q $opts -p $port -F $ssh_config_file -l $user" \
       $link_dest "$@" \
       --rsync-path='sudo -u git rsync' \
       --include-from=- --exclude=\* \
@@ -169,7 +158,7 @@ rsync_repository_data () {
   else
     shift
     ghe-rsync -avr \
-      -e "ssh -q $opts -p $port -F $config_file -l $user" \
+      -e "ssh -q $opts -p $port -F $ssh_config_file -l $user" \
       $link_dest "$@" \
       --rsync-path='sudo -u git rsync' \
       --include-from=- --exclude=\* \

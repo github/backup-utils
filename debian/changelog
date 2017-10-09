@@ -1,3 +1,13 @@
+github-backup-utils (2.11.1) UNRELEASED; urgency=medium
+
+  * Refresh the existing indices when restoring Elasticsearch indices to cluster #328
+  * Fix failure to restore 2.9/2.10 backups to 2.11 prevented by incorrect detection of the audit log migration #333
+  * Use git to generate short name for SSH multiplex control path  #335
+  * Remove use of --literally when computing arbitrary shasum #338
+  * Remove -o option from ps use #341
+
+ -- Colin Seymour <colin@github.com>  Thu, 05 Oct 2017 14:47:56 +0000
+
 github-backup-utils (2.11.0) UNRELEASED; urgency=medium
 
   * Use calculated routes when backing up storage data from a cluster #318

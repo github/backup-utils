@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #/ Usage: ghe-restore-es-hookshot
-#/ Restores a backup of hookshot logs to ElasticSearch.
+#/ Restores a backup of hookshot logs to Elasticsearch.
 #/
 #/ Note: This command typically isn't called directly. It's invoked by
 #/ ghe-restore.
@@ -19,7 +19,7 @@ GHE_HOSTNAME="$1"
 # Perform a host-check and establish GHE_REMOTE_XXX variables.
 ghe_remote_version_required "$GHE_HOSTNAME"
 
-last_index=$(ghe-ssh "$GHE_HOSTNAME" 'curl -s "localhost:9201/_cat/indices/hookshot-logs-*"' | cut -d ' ' -f 3 | sort | tail -1)
+last_index=$(ghe-ssh "$GHE_HOSTNAME" 'curl -s "localhost:9201/_cat/indices/hookshot-logs-*"' | cut -d ' ' -f 3 | sort | tail -2 | head -1)
 
 indices=$(ls -1 $GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/hookshot/*.gz 2>/dev/null | xargs -I{} -n1 basename {} .gz)
 

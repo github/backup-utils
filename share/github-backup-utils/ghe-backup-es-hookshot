@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #/ Usage: ghe-backup-es-hookshot
-#/ Take a backup of hookshot logs in ElasticSearch.
+#/ Take a backup of hookshot logs in Elasticsearch.
 #/
 #/ Note: This command typically isn't called directly. It's invoked by
 #/ ghe-backup.

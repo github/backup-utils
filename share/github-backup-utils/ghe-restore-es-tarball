@@ -21,7 +21,7 @@ bm_start "$(basename $0)"
 # us run this script directly.
 : ${GHE_RESTORE_SNAPSHOT:=current}
 
-# Restore ElasticSearch indices from tarball snapshot.
+# Restore Elasticsearch indices from tarball snapshot.
 ghe-ssh "$GHE_HOSTNAME" -- 'ghe-import-es-indices' \
     < "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/elasticsearch.tar" 1>&3
 

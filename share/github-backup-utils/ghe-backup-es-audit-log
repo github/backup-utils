@@ -31,16 +31,16 @@ if ! indices=$(ghe-ssh "$host" "curl -s \"localhost:$es_port/_cat/indices/audit_
   exit 1
 fi
 
-current_index=audit_log-$(ghe-ssh "$host" 'date +"%Y-%m"')
+current_index="audit_log(-[0-9]+)?-$(ghe-ssh "$host" 'date +"%Y-%m"')(-[0-9]+)?"
 
 for index in $indices; do
-  if [ -f $GHE_DATA_DIR/current/audit-log/$index.gz -a -f $GHE_DATA_DIR/current/audit-log/$index.gz.complete -a $index \< $current_index ]; then
+  if [[ -f $GHE_DATA_DIR/current/audit-log/$index.gz && -f $GHE_DATA_DIR/current/audit-log/$index.gz.complete && ! $index =~ $current_index ]]; then
     # Hard link any older indices that are complete, since these won't change
     ln $GHE_DATA_DIR/current/audit-log/$index.gz $GHE_SNAPSHOT_DIR/audit-log/$index.gz
     ln $GHE_DATA_DIR/current/audit-log/$index.gz.complete $GHE_SNAPSHOT_DIR/audit-log/$index.gz.complete
   else
     ghe-ssh "$host" "/usr/local/share/enterprise/ghe-es-dump-json \"http://localhost:$es_port/$index\"" | gzip > $GHE_SNAPSHOT_DIR/audit-log/$index.gz
-    if [ $index \< $current_index ]; then
+    if [[ ! $index =~ $current_index ]]; then
       touch $GHE_SNAPSHOT_DIR/audit-log/$index.gz.complete
     fi
   fi

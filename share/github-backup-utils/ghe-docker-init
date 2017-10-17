@@ -1,0 +1,17 @@
+#!/bin/bash
+
+set -e
+
+mkdir -p /etc/github-backup-utils
+
+touch /etc/github-backup-utils/backup.config
+
+for VAR in `env`; do
+    if [[ $VAR =~ ^GHE_ ]]; then
+        backuputils_name=`echo "$VAR" | sed -r "s/GHE_(.*)=.*/\1/g" | tr '[:upper:]' '[:lower:]'`
+        backuputils_value=`echo "$VAR" | sed -r "s/.*=(.*)/\1/g"`
+        echo "${backuputils_name}=${backuputils_value}" >> /etc/github-backup-utils/backup.config
+    fi
+done
+
+exec $@

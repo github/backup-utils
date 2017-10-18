@@ -14,4 +14,4 @@ for VAR in `env`; do
     fi
 done
 
-exec $@
+exec "$@"

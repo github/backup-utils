@@ -2,7 +2,7 @@
 
 set -e
 
-PATH=$PATH:/backup-utils-stable/bin
+PATH=$PATH:/backup-utils/bin
 
 mkdir -p /etc/github-backup-utils
 

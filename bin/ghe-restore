@@ -93,8 +93,6 @@ cluster=false
 if ghe-ssh "$GHE_HOSTNAME" -- \
   "[ -f '$GHE_REMOTE_ROOT_DIR/etc/github/cluster' ]"; then
   cluster=true
-  instance_configured=true
-  restore_settings=false
 fi
 
 # Restoring a cluster backup to a standalone appliance is not supported

@@ -62,8 +62,7 @@ if [ -z "$GHE_DISABLE_SSH_MUX" ]; then
   opts="-o ControlMaster=auto -o ControlPath=\"$controlpath\" -o ControlPersist=10m -o ServerAliveInterval=10 $opts"
   # Workaround for https://bugzilla.mindrot.org/show_bug.cgi?id=1988
   if ! [ -S $controlpath ]; then
-    cd "$TMPDIR"
-    ssh -f -p $port $opts -o BatchMode=yes "$host" -- /bin/true 1>/dev/null 2>&1 || true
+    ( cd "$TMPDIR" && ssh -f -p $port $opts -o BatchMode=yes "$host" -- /bin/true 1>/dev/null 2>&1 || true )
   fi
 fi
 

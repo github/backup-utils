@@ -49,6 +49,9 @@ if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
 
     # Create a fake UUID
     echo "fake uuid" > "$GHE_REMOTE_DATA_USER_DIR/common/uuid"
+
+    # Create fake audit log migration sentinel file
+    touch "$GHE_REMOTE_DATA_USER_DIR/common/es-scan-complete"
 fi
 
 # Create some fake elasticsearch data in the remote data directory
@@ -154,6 +157,9 @@ begin_test "ghe-backup first snapshot"
 
         # check that ca certificates were backed up
         [ "$(cat "$GHE_DATA_DIR/current/ssl-ca-certificates.tar")" = "fake ghe-export-ssl-ca-certificates data" ]
+
+        # verify the audit log migration sentinel file has been created
+        [ -f "$GHE_DATA_DIR/current/es-scan-complete" ]
     fi
 
     # verify that ghe-backup wrote its version information to the host
@@ -241,6 +247,9 @@ begin_test "ghe-backup subsequent snapshot"
 
         # check that ca certificates were backed up
         [ "$(cat "$GHE_DATA_DIR/current/ssl-ca-certificates.tar")" = "fake ghe-export-ssl-ca-certificates data" ]
+
+        # verify the audit log migration sentinel file has been created
+        [ -f "$GHE_DATA_DIR/current/es-scan-complete" ]
     fi
 )
 end_test
@@ -344,6 +353,9 @@ begin_test "ghe-backup with relative data dir path"
 
         # check that ca certificates were backed up
         [ "$(cat "$GHE_DATA_DIR/current/ssl-ca-certificates.tar")" = "fake ghe-export-ssl-ca-certificates data" ]
+
+        # verify the audit log migration sentinel file has been created
+        [ -f "$GHE_DATA_DIR/current/es-scan-complete" ]
     fi
 
     # verify that ghe-backup wrote its version information to the host

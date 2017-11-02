@@ -1,6 +1,4 @@
-#!/bin/bash
-
-set -e
+#!/usr/bin/env bash
 
 PATH=$PATH:/backup-utils/bin
 

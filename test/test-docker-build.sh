@@ -3,10 +3,7 @@
 
 # If docker is not installed, skip the whole docker test
 # Travis CI does not currently support docker on OSX (https://docs.travis-ci.com/user/docker/)
-if [ ! $(which docker) ]; then
-  echo "Docker is not installed on this host"
-  exit 1
-fi
+docker -v || exit 0
 
 # Bring in testlib
 . $(dirname "$0")/testlib.sh

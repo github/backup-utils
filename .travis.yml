@@ -10,6 +10,8 @@ matrix:
     - os: linux
       dist: precise
       sudo: required
+      services:
+        - docker
       addons:
         apt:
           packages:

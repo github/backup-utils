@@ -1,6 +1,13 @@
 #!/usr/bin/env bash
 # Docker image build tests
 
+# If docker is not installed, skip the whole docker test
+# Travis CI does not currently support docker on OSX (https://docs.travis-ci.com/user/docker/)
+if [ ! $(which docker) ]; then
+  echo "Docker is not installed on this host"
+  exit 1
+fi
+
 # Bring in testlib
 . $(dirname "$0")/testlib.sh
 
@@ -14,12 +21,10 @@ export GHE_DATA_DIR GHE_REMOTE_DATA_DIR
 cd "$ROOTDIR"
 . "share/github-backup-utils/ghe-backup-config"
 
-begin_test "ghe-backup logs the benchmark"
+begin_test "docker build completes successfully"
 (
   set -e
 
   docker build -q -t github/backup-utils:test . | grep "sha256:"
 )
 end_test
-
-docker build -t github/backup-utils:test .

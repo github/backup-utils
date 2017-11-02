@@ -18,7 +18,7 @@ begin_test "ghe-backup logs the benchmark"
 (
   set -e
 
-  docker build -t github/backup-utils:test . | grep "Successfully built"
+  docker build -q -t github/backup-utils:test . | grep "sha256:"
 )
 end_test
 

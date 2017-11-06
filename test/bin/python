@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Usage: python -c '...'
 # Fake python command stub for tests. Python is used on the remote side
-# only to parse JSON data retreived from the maintenance status API and produce
+# only to parse JSON data retrieved from the maintenance status API and produce
 # a number of active writing processes. Verify that python code passes syntax
 # checks and fake a 0 process count.
 set -e

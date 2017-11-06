@@ -21,7 +21,7 @@ EOF
 
 SHARED_UTILS_PATH=$(dirname $(which ghe-detect-leaked-ssh-keys))
 
-begin_test "ghe-detect-leaked-ssh-keys check -h dispays help message"
+begin_test "ghe-detect-leaked-ssh-keys check -h displays help message"
 (
   set -e
 

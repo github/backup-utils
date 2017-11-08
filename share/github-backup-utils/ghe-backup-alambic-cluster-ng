@@ -85,6 +85,7 @@ bm_end "$(basename $0) - Processing routes"
 # rsync all the repositories
 bm_start "$(basename $0) - Storage object sync"
 for file_list in $tempdir/*.rsync; do
+  [[ -f "$file_list" ]] || continue
   hostname=$(basename $file_list .rsync)
 
   object_num=$(cat $file_list | wc -l)

@@ -12,9 +12,9 @@ The `backup.config` file is dynamically populated at runtime with all `GHE_` env
 ```
 $ docker run -it -e "GHE_HOSTNAME=hostname" \
 -e "GHE_DATA_DIR=/data" \
--e "GHE_EXTRA_SSH_OPTS=-i /ghe-ssh/id_rsa -o UserKnownHostsFile=/ghe-ssh/known_hosts \
+-e "GHE_EXTRA_SSH_OPTS=-i /ghe-ssh/id_rsa -o UserKnownHostsFile=/ghe-ssh/known_hosts" \
 -e "GHE_NUM_SNAPSHOTS=15" \
--v ghe-backup-data:/data \
+-v "ghe-backup-data:/data" \
 -v "$HOME/.ssh/known_hosts:/ghe-ssh/known_hosts" \
 -v "$HOME/.ssh/id_rsa:/ghe-ssh/id_rsa" \
 --rm \
@@ -25,10 +25,10 @@ It is also possible to specify a `-e GHE_BACKUP_CONFIG` flag and volume mount in
 
 ```
 $ docker run -it  -e "GHE_BACKUP_CONFIG=/mnt/backup.config" \
--v ghe-backup-data:/data \
+-v "ghe-backup-data:/data" \
 -v "$HOME/.ssh/known_hosts:/ghe-ssh/known_hosts" \
 -v "$HOME/.ssh/id_rsa:/ghe-ssh/id_rsa" \
--v $HOME/backup-utils/backup.config:/mnt/backup.config \
+-v "$HOME/backup-utils/backup.config:/mnt/backup.config" \
 --rm \
 github/backup-utils ghe-backup
 ```
@@ -40,8 +40,8 @@ A SSH private key that has been added to the GitHub Enterprise [Management Conso
 ```
 $ docker run -it -e "GHE_HOSTNAME=hostname" \
 -e "GHE_DATA_DIR=/data" \
--e "GHE_EXTRA_SSH_OPTS=-i /ghe-ssh/id_rsa -o UserKnownHostsFile=/ghe-ssh/known_hosts \
--v ghe-backup-data:/data \
+-e "GHE_EXTRA_SSH_OPTS=-i /ghe-ssh/id_rsa -o UserKnownHostsFile=/ghe-ssh/known_hosts" \
+-v "ghe-backup-data:/data" \
 -v "$HOME/.ssh/known_hosts:/ghe-ssh/known_hosts" \
 -v "$HOME/.ssh/id_rsa:/ghe-ssh/id_rsa" \
 --rm \
@@ -76,9 +76,9 @@ drwxr-xr-x   11 root     root          4096 Oct 24 19:49 20171024T194921
 lrwxrwxrwx    1 root     root            15 Oct 24 19:49 current -> 20171024T194921
 ```
 
-The volume's filesystem must support hard links. This works fine on Docker for Mac with the default local driver in my testing so far.
+* The volume's filesystem must support hard links.
 
-Bind mounting a volume is supported, as long as the Docker host supports them and allows hardlinks.
+* Bind mounting a volume is supported, as long as the Docker host supports them and allows hard links.
 
 #### Scheduling backups using crontab with Docker
 
@@ -89,7 +89,7 @@ To schedule hourly backup snapshots with verbose informational output written to
 ```
 MAILTO=admin@example.com
 
-0 * * * * /usr/local/bin/docker run -i -e "GHE_HOSTNAME=hostname" -e "GHE_DATA_DIR=/data" -e "GHE_EXTRA_SSH_OPTS=-i /ghe-ssh/ghelocal -o UserKnownHostsFile=/ghe-ssh/known_hosts" -v ghe-backup-data:/data -v "$HOME/.ssh/ghelocal:/ghe-ssh/ghelocal" -v "$HOME/.ssh/known_hosts:/ghe-ssh/known_hosts" --rm github/backup-utils ghe-backup -v 1>>/opt/backup-utils/backup.log 2>&1
+0 * * * * /usr/local/bin/docker run -i -e "GHE_HOSTNAME=hostname" -e "GHE_DATA_DIR=/data" -e "GHE_EXTRA_SSH_OPTS=-i /ghe-ssh/ghelocal -o UserKnownHostsFile=/ghe-ssh/known_hosts" -v "ghe-backup-data:/data" -v "$HOME/.ssh/ghelocal:/ghe-ssh/ghelocal" -v "$HOME/.ssh/known_hosts:/ghe-ssh/known_hosts" --rm github/backup-utils ghe-backup -v 1>>/opt/backup-utils/backup.log 2>&1
 ```
 
 To schedule nightly backup snapshots instead, use:
@@ -97,5 +97,5 @@ To schedule nightly backup snapshots instead, use:
 ```
 MAILTO=admin@example.com
 
-0 0 * * * /usr/local/bin/docker run -i -e "GHE_HOSTNAME=hostname" -e "GHE_DATA_DIR=/data" -e "GHE_EXTRA_SSH_OPTS=-i /ghe-ssh/ghelocal -o UserKnownHostsFile=/ghe-ssh/known_hosts" -v ghe-backup-data:/data -v "$HOME/.ssh/ghelocal:/ghe-ssh/ghelocal" -v "$HOME/.ssh/known_hosts:/ghe-ssh/known_hosts" --rm github/backup-utils ghe-backup -v 1>>/opt/backup-utils/backup.log 2>&1
+0 0 * * * /usr/local/bin/docker run -i -e "GHE_HOSTNAME=hostname" -e "GHE_DATA_DIR=/data" -e "GHE_EXTRA_SSH_OPTS=-i /ghe-ssh/ghelocal -o UserKnownHostsFile=/ghe-ssh/known_hosts" -v "ghe-backup-data:/data" -v "$HOME/.ssh/ghelocal:/ghe-ssh/ghelocal" -v "$HOME/.ssh/known_hosts:/ghe-ssh/known_hosts" --rm github/backup-utils ghe-backup -v 1>>/opt/backup-utils/backup.log 2>&1
 ```

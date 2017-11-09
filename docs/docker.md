@@ -48,6 +48,39 @@ $ docker run -it -e "GHE_HOSTNAME=hostname" \
 github/backup-utils ghe-backup
 ```
 
+##### Using ssh-agent
+
+If your SSH private key is protected with a passphrase, you can mount the `ssh-agent` socket from the Docker host into the GitHub Enterprise backup utilities image.
+
+1. Start the ssh-agent in the background.
+
+  ```
+  $ eval "$(ssh-agent -s)"
+  Agent pid 59566
+  ```
+
+2. Add your SSH private key to the ssh-agent. If you created your key with a different name, or if you are adding an existing key that has a different name, replace *id_rsa* in the command with the name of your private key file.
+
+  ```
+  $ ssh-add ~/.ssh/id_rsa
+  ```
+
+3. Run the container setting the `SSH_AUTH_SOCK` environment variable, and mounting the socket into the container as a volume:
+
+  ```
+  docker run -it -e "GHE_HOSTNAME=hostname" \
+  -e "GHE_DATA_DIR=/data" \
+  -e "GHE_EXTRA_SSH_OPTS=-i /ghe-ssh/id_rsa -o UserKnownHostsFile=/ghe-ssh/known_hosts" \
+  -e "GHE_NUM_SNAPSHOTS=15" \
+  -v "ghe-backup-data:/data" \
+  -v "$HOME/.ssh/known_hosts:/ghe-ssh/known_hosts" \
+  -v "$HOME/.ssh/id_rsa:/ghe-ssh/id_rsa" \
+  -v "$(dirname $SSH_AUTH_SOCK):$(dirname $SSH_AUTH_SOCK)" \
+  -e "SSH_AUTH_SOCK=$SSH_AUTH_SOCK"
+  --rm \
+  github/backup-utils ghe-backup
+  ```
+
 #### Managing backup data
 
 Data persistence is achieved by using [Docker volumes](https://docs.docker.com/engine/admin/volumes/volumes/), which are managed with [`docker volume` commands](https://docs.docker.com/engine/reference/commandline/volume/). Prior to running the container for the first time, a volume can be created if you need to specify additional options. The named volume will be automatically created at runtime if it does not exist:

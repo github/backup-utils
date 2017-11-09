@@ -1,3 +1,10 @@
+github-backup-utils (2.11.2) UNRELEASED; urgency=medium
+
+  * Allow the restoration of configuration to Cluster #347
+  * Switch to TMPDIR before initiating SSH multiplexing workaround to prevent locking the destination filesystem #348
+
+ -- Colin Seymour <colin@github.com>  Thu, 09 Nov 2017 12:16:23 +0000
+
 github-backup-utils (2.11.1) UNRELEASED; urgency=medium
 
   * Refresh the existing indices when restoring Elasticsearch indices to cluster #328

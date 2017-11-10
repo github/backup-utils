@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
-#/ Usage: ghe-backup [-h] [-v] [--version]
+#/ Usage: ghe-backup [-hv] [--version]
+#/
 #/ Take snapshots of all GitHub Enterprise data, including Git repository data,
 #/ the MySQL database, instance settings, GitHub Pages data, etc.
 #/
-#/ Options:
-#/   -v                Enable verbose output.
-#/   --version         Display version information.
-#/   -h                Show this message.
+#/ OPTIONS:
+#/   -v | --verbose    Enable verbose output
+#/   -h | --help       Show this message
+#/        --version    Display version information
+#/
 
 set -e
 
@@ -21,7 +23,7 @@ while true; do
       export GHE_SHOW_VERSION=true
       shift
       ;;
-    -v)
+    -v|--verbose)
       export GHE_VERBOSE=true
       shift
       ;;

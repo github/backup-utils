@@ -1,26 +1,31 @@
 #!/usr/bin/env bash
-#/ Usage: ghe-restore [-h] [-v] [--version] [-s <snapshot-id>] [<host>]
-#/ Restores a GitHub instance from local backup snapshots. The <host> is the
-#/ hostname or IP of the GitHub instance. The <host> may be omitted when
-#/ the GHE_RESTORE_HOST config variable is set in backup.config. When a <host>
-#/ argument is provided, it always overrides the configured restore host.
+#/ Usage: ghe-restore [-fchv] [--version] [-s <snapshot-id>] [<host>]
 #/
-#/ Options:
-#/   -f                Don't prompt for confirmation before restoring.
-#/   -c                Restore appliance settings and license in addition to
+#/ Restores a GitHub instance from local backup snapshots.
+#/
+#/ Note that the GitHub Enterprise host must be reachable and your SSH key must
+#/ be setup asdescribed in the following help article:
+#/
+#/ <https://enterprise.github.com/help/articles/adding-an-ssh-key-for-shell-access>
+#/
+#/ OPTIONS:
+#/   -f | --force      Don't prompt for confirmation before restoring.
+#/   -c | --config     Restore appliance settings and license in addition to
 #/                     datastores. Settings are not restored by default to
 #/                     prevent overwriting different configuration on the
 #/                     restore host.
+#/   -v | --verbose    Enable verbose output.
+#/   -h | --help       Show this message.
+#/        --version    Display version information and exit.
 #/   -s <snapshot-id>  Restore from the snapshot with the given id. Available
 #/                     snapshots may be listed under the data directory.
-#/   -v                Enable verbose output.
-#/   --version         Display version information and exit.
-#/   -h                Show this message.
+#/   <host>            The <host> is the hostname or IP of the GitHub Enterprise
+#/                     instance. The <host> may be omitted when the
+#/                     GHE_RESTORE_HOST config variable is set in backup.config.
+#/                     When a <host> argument is provided, it always overrides
+#/                     the configured restore host.
 #/
-#/ Note that the host must be reachable and your SSH key must be setup as
-#/ described in the following help article:
-#/
-#/ <https://enterprise.github.com/help/articles/adding-an-ssh-key-for-shell-access>
+
 set -e
 
 # Parse arguments
@@ -36,7 +41,7 @@ while true; do
       snapshot_id="$(basename "$2")"
       shift 2
       ;;
-    -c)
+    -c|--config)
       restore_settings=true
       shift
       ;;
@@ -48,7 +53,7 @@ while true; do
       export GHE_SHOW_VERSION=true
       shift
       ;;
-    -v)
+    -v|--verbose)
       export GHE_VERBOSE=true
       shift
       ;;

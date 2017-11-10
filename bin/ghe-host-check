@@ -1,11 +1,15 @@
 #!/usr/bin/env bash
-#/ Usage: ghe-host-check [-h] [--version] [<host>] 
-#/ Verify connectivity with the GitHub Enterprise host. When no <host> is
-#/ provided, the $GHE_HOSTNAME configured in backup.config is assumed.
+#/ Usage: ghe-host-check [-h] [--version] [<host>]
 #/
-#/ Options:
-#/   --version         Display version information.
-#/   -h                Show this message.
+#/ Verify connectivity with the GitHub Enterprise host.
+#/
+#/ OPTIONS:
+#/   -h | --help       Show this message.
+#/        --version    Display version information.
+#/   <host>            The GitHub Enterprise host to check. When no <host> is
+#/                     provided, the $GHE_HOSTNAME configured in backup.config
+#/                     is assumed.
+#/
 
 set -e
 

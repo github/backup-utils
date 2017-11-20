@@ -5,9 +5,9 @@
 #/ the MySQL database, instance settings, GitHub Pages data, etc.
 #/
 #/ OPTIONS:
-#/   -v | --verbose    Enable verbose output
-#/   -h | --help       Show this message
-#/        --version    Display version information
+#/   -v | --verbose    Enable verbose output.
+#/   -h | --help       Show this message.
+#/        --version    Display version information.
 #/
 
 set -e

@@ -4,7 +4,7 @@
 #/ Restores a GitHub instance from local backup snapshots.
 #/
 #/ Note that the GitHub Enterprise host must be reachable and your SSH key must
-#/ be setup asdescribed in the following help article:
+#/ be setup as described in the following help article:
 #/
 #/ <https://enterprise.github.com/help/articles/adding-an-ssh-key-for-shell-access>
 #/

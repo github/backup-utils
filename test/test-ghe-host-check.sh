@@ -39,8 +39,8 @@ begin_test "ghe-host-check honours --help and -h flags"
 (
   set -e
 
-  arg_help=`ghe-host-check --help | grep -o 'Usage: ghe-host-check'`
-  arg_h=`ghe-host-check -h | grep -o 'Usage: ghe-host-check'`
+  arg_help=$(ghe-host-check --help | grep -o 'Usage: ghe-host-check')
+  arg_h=$(ghe-host-check -h | grep -o 'Usage: ghe-host-check')
 
   # Make sure a Usage: string is returned and that it's the same for -h and --help
   [ "$arg_help" = "$arg_h" ] && echo $arg_help | grep -q "Usage: ghe-host-check"

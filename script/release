@@ -207,7 +207,7 @@ def push_release_branch(version)
   end
 
   unless (out = `git commit --quiet -m 'Bump version: #{version} [ci skip]' debian/changelog share/github-backup-utils/version`)
-    raise "Error commiting changelog and version:\n\n#{out}"
+    raise "Error committing changelog and version:\n\n#{out}"
   end
 
   unless (out = `git push --quiet origin release-#{version}`)

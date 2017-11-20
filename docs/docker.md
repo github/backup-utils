@@ -76,7 +76,7 @@ If your SSH private key is protected with a passphrase, you can mount the `ssh-a
   -v "$HOME/.ssh/known_hosts:/ghe-ssh/known_hosts" \
   -v "$HOME/.ssh/id_rsa:/ghe-ssh/id_rsa" \
   -v "$(dirname $SSH_AUTH_SOCK):$(dirname $SSH_AUTH_SOCK)" \
-  -e "SSH_AUTH_SOCK=$SSH_AUTH_SOCK"
+  -e "SSH_AUTH_SOCK=$SSH_AUTH_SOCK" \
   --rm \
   github/backup-utils ghe-backup
   ```

@@ -18,7 +18,7 @@ cat >/dev/null
 # verify the python compiles at least. if this fails then the python code passed
 # to -c failed basic syntax checks.
 echo "$2" |
-/usr/bin/python -c "import sys; __import__('compiler').parse(sys.stdin.read())"
+/usr/bin/python2.7 -c "import sys; __import__('compiler').parse(sys.stdin.read())"
 
 # pretend we found zero processes.
 echo 0

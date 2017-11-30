@@ -530,3 +530,26 @@ begin_test "ghe-backup with no leaked keys"
 
 )
 end_test
+
+begin_test "ghe-backup honours --version flag"
+(
+  set -e
+
+  # Make sure a partial version string is returned
+  ghe-backup --version | grep "GitHub backup-utils v"
+
+)
+end_test
+
+begin_test "ghe-backup honours --help and -h flags"
+(
+  set -e
+
+  arg_help=$(ghe-backup --help | grep -o 'Usage: ghe-backup')
+  arg_h=$(ghe-backup -h | grep -o 'Usage: ghe-backup')
+
+  # Make sure a Usage: string is returned and that it's the same for -h and --help
+  [ "$arg_help" = "$arg_h" ] && echo $arg_help | grep -q "Usage: ghe-backup"
+
+)
+end_test

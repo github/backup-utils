@@ -653,6 +653,28 @@ begin_test "ghe-restore fails when restore to an active HA pair"
 )
 end_test
 
+begin_test "ghe-restore honours --version flag"
+(
+  set -e
+
+  # Make sure a partial version string is returned
+  ghe-restore --version | grep "GitHub backup-utils v"
+
+)
+end_test
+
+begin_test "ghe-restore honours --help and -h flags"
+(
+  set -e
+
+  arg_help=$(ghe-restore --help | grep -o 'Usage: ghe-restore')
+  arg_h=$(ghe-restore -h | grep -o 'Usage: ghe-restore')
+
+  # Make sure a Usage: string is returned and that it's the same for -h and --help
+  [ "$arg_help" = "$arg_h" ] && echo $arg_help | grep -q "Usage: ghe-restore"
+)
+end_test
+
 begin_test "ghe-restore fails when restore 2.9/2.10 snapshot without audit log migration sentinel file to 2.11"
 (
   set -e

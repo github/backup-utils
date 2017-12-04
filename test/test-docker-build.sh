@@ -41,7 +41,7 @@ begin_test "GHE_ env variables set in backup.config"
 (
   set -e
 
-  docker run --rm -e "GHE_TEST_VAR=test" -t github/backup-utils:test grep "GHE_TEST_VAR=test" /etc/github-backup-utils/backup.config
+  docker run --rm -e "GHE_TEST_VAR=test" -t github/backup-utils:test cat /etc/github-backup-utils/backup.config | grep "GHE_TEST_VAR=test"
 )
 end_test
 

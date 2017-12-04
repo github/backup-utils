@@ -28,3 +28,27 @@ begin_test "docker build completes successfully"
   docker build -q -t github/backup-utils:test . | grep "sha256:"
 )
 end_test
+
+begin_test "docker run completes successfully"
+(
+  set -e
+
+  docker run --rm -t github/backup-utils:test ghe-host-check --version | grep "GitHub backup-utils "
+)
+end_test
+
+begin_test "GHE_ env variables set in backup.config"
+(
+  set -e
+
+  docker run --rm -e "GHE_TEST_VAR=test" -t github/backup-utils:test grep "GHE_TEST_VAR=test" /etc/github-backup-utils/backup.config
+)
+end_test
+
+begin_test "Non GHE_ env variables not set in backup.config"
+(
+  set -e
+
+  docker run --rm -e "GHE_TEST_VAR=test" -e "NGHE_TEST_VAR=test" -t github/backup-utils:test grep -L "NGHE_TEST_VAR=test" /etc/github-backup-utils/backup.config | grep /etc/github-backup-utils/backup.config
+)
+end_test

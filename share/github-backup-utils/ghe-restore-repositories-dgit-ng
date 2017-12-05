@@ -107,7 +107,7 @@ bm_start "$(basename $0) - Building network list"
 OLDIFS=$IFS; IFS=$'\n'
 for path in $network_paths; do
    # Get the network ID
-   # The nework id from a repository is the last component of the path
+   # The network id from a repository is the last component of the path
    # i.e. /data/repositories/a/nw/a5/bf/c9/37 network ID would be 37
    ghe_verbose "Adding network_path $path to the list of networks to send"
    echo $path

@@ -14,7 +14,7 @@ prune_snapshot() {
   while read prune_dir; do
     [ -n "$prune_dir" ] || return
     touch "$prune_dir/incomplete"
-    find "$prune_dir" -mindepth 1 -maxdepth 1 -not -path "$prune_dir/incomplete" | xargs rm -rf
+    find "$prune_dir" -mindepth 1 -maxdepth 1 -not -path "$prune_dir/incomplete" -print0 | xargs -0 rm -rf
     rm -rf "$prune_dir"
   done
 }

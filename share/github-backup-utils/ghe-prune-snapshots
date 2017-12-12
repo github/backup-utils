@@ -12,7 +12,7 @@ set -e
 prune_snapshot() {
   local prune_dir
   while read prune_dir; do
-    [ -n $prune_dir ] || return
+    [ -n "$prune_dir" ] || return
     touch "$prune_dir/incomplete"
     find "$prune_dir" -not -path "$prune_dir/incomplete" | xargs rm -rf
     rm -rf "$prune_dir"

@@ -37,7 +37,7 @@ begin_test "docker run completes successfully"
 )
 end_test
 
-begin_test "GHE_ env variables set in backup.config"
+begin_test "docker GHE_ env variables set in backup.config"
 (
   set -e
 
@@ -45,7 +45,7 @@ begin_test "GHE_ env variables set in backup.config"
 )
 end_test
 
-begin_test "GHE_ env variables with spaces set in backup.config"
+begin_test "docker GHE_ env variables with spaces set in backup.config"
 (
   set -e
 
@@ -53,7 +53,7 @@ begin_test "GHE_ env variables with spaces set in backup.config"
 )
 end_test
 
-begin_test "Non GHE_ env variables not set in backup.config"
+begin_test "docker Non GHE_ env variables not set in backup.config"
 (
   set -e
 

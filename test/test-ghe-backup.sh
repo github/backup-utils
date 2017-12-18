@@ -475,14 +475,20 @@ begin_test "ghe-backup stores version when not run from a clone"
   # Make sure this doesn't exist
   rm -f "$GHE_REMOTE_DATA_USER_DIR/common/backup-utils-version"
 
-  tmpdir=$(mktemp -d $TRASHDIR/foo.XXXXXX)
-  git clone $ROOTDIR $tmpdir/backup-utils
-  cd $tmpdir/backup-utils
-  rm -rf .git
-  ./bin/ghe-backup
+  tmpdir=$(mktemp -d "$TRASHDIR/foo.XXXXXX")
 
-  # verify that ghe-backup wrote its version information to the host
-  [ -f "$GHE_REMOTE_DATA_USER_DIR/common/backup-utils-version" ]
+  # If user is running the tests extracted from a release tarball, git clone will fail.
+  if GIT_DIR="$ROOTDIR/.git" git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+      git clone "$ROOTDIR" "$tmpdir/backup-utils"
+      cd "$tmpdir/backup-utils"
+      rm -rf .git
+      ./bin/ghe-backup
+
+      # Verify that ghe-backup wrote its version information to the host
+      [ -f "$GHE_REMOTE_DATA_USER_DIR/common/backup-utils-version" ]
+  else
+      echo ".git directory not found, skipping ghe-backup not from a clone test"
+  fi
 )
 end_test
 
@@ -521,6 +527,29 @@ begin_test "ghe-backup with no leaked keys"
 
   # Make sure there are no leaked key messages
   ! ghe-backup -v | grep "Leaked key"
+
+)
+end_test
+
+begin_test "ghe-backup honours --version flag"
+(
+  set -e
+
+  # Make sure a partial version string is returned
+  ghe-backup --version | grep "GitHub backup-utils v"
+
+)
+end_test
+
+begin_test "ghe-backup honours --help and -h flags"
+(
+  set -e
+
+  arg_help=$(ghe-backup --help | grep -o 'Usage: ghe-backup')
+  arg_h=$(ghe-backup -h | grep -o 'Usage: ghe-backup')
+
+  # Make sure a Usage: string is returned and that it's the same for -h and --help
+  [ "$arg_help" = "$arg_h" ] && echo $arg_help | grep -q "Usage: ghe-backup"
 
 )
 end_test

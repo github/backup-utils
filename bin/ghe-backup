@@ -82,6 +82,9 @@ cleanup () {
   if $GHE_MAINTENANCE_MODE_ENABLED; then
     ghe-maintenance-mode-disable "$GHE_HOSTNAME"
   fi
+
+  # Cleanup SSH multiplexing
+  ghe-ssh --clean "$GHE_HOSTNAME"
 }
 
 # Setup exit traps

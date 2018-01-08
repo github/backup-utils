@@ -67,6 +67,15 @@ while true; do
   esac
 done
 
+cleanup () {
+  if [ -n "$1" ]; then
+    update_restore_status "$1"
+  fi
+
+  # Cleanup SSH multiplexing
+  ghe-ssh --clean "$GHE_HOSTNAME"
+}
+
 # Bring in the backup configuration
 . $( dirname "${BASH_SOURCE[0]}" )/../share/github-backup-utils/ghe-backup-config
 
@@ -205,7 +214,7 @@ update_restore_status () {
 }
 
 # Update remote restore state file and setup failure trap
-trap "update_restore_status failed" EXIT
+trap "cleanup failed" EXIT
 update_restore_status "restoring"
 
 # Verify the host has been fully configured at least once if when running
@@ -414,7 +423,7 @@ fi
 # Update the remote status to "complete". This has to happen before importing
 # ssh host keys because subsequent commands will fail due to the host key
 # changing otherwise.
-trap "" EXIT
+trap "cleanup" EXIT
 update_restore_status "complete"
 
 # Log restore complete message in /var/log/syslog on remote instance

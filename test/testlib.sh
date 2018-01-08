@@ -158,8 +158,15 @@ end_test () {
 
     if [ "$test_status" -eq 0 ]; then
       printf "test: %-60s OK\n" "$test_description ..."
+    elif [ "$test_status" -eq 254 ]; then
+      printf "test: %-60s SKIPPED\n" "$test_description ..."
     else
       report_failure "FAILED" "$test_description ..."
     fi
+
     unset test_description
+}
+
+skip_test() {
+  exit 254
 }

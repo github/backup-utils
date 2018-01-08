@@ -77,7 +77,8 @@ cleanup () {
 }
 
 # Bring in the backup configuration
-. $( dirname "${BASH_SOURCE[0]}" )/../share/github-backup-utils/ghe-backup-config
+# shellcheck source=share/github-backup-utils/ghe-backup-config
+. "$( dirname "${BASH_SOURCE[0]}" )/../share/github-backup-utils/ghe-backup-config"
 
 # Grab the host arg
 GHE_HOSTNAME="${1:-$GHE_RESTORE_HOST}"

@@ -38,7 +38,8 @@ while true; do
 done
 
 # Bring in the backup configuration
-. $( dirname "${BASH_SOURCE[0]}" )/../share/github-backup-utils/ghe-backup-config
+# shellcheck source=share/github-backup-utils/ghe-backup-config
+. "$( dirname "${BASH_SOURCE[0]}" )/../share/github-backup-utils/ghe-backup-config"
 
 # Used to record failed backup steps
 failures=
@@ -74,7 +75,7 @@ cleanup () {
     progress=$(cat ../in-progress)
     snapshot=$(echo "$progress" | cut -d ' ' -f 1)
     pid=$(echo "$progress" | cut -d ' ' -f 2)
-    if [ "$snapshot" = "$GHE_SNAPSHOT_TIMESTAMP" -a "$$" = $pid ]; then
+    if [ "$snapshot" = "$GHE_SNAPSHOT_TIMESTAMP" ] && [ "$$" = $pid ]; then
       unlink ../in-progress
     fi
   fi

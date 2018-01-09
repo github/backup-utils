@@ -51,6 +51,7 @@ elif [ "$GHE_VERSION_MAJOR" -gt 1 ]; then
     ghe-rsync -avz --delete \
         -e "ghe-ssh -p $(ssh_port_part "$GHE_HOSTNAME")" \
         --rsync-path="sudo -u elasticsearch rsync" \
+        --copy-dest="$GHE_REMOTE_DATA_USER_DIR/elasticsearch" \
         "$snapshot_dir/elasticsearch/" \
         "$(ssh_host_part "$GHE_HOSTNAME"):$GHE_REMOTE_DATA_USER_DIR/elasticsearch-restore" 1>&3
 

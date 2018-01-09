@@ -9,5 +9,9 @@ set -e
 # Bring in the backup configuration
 . $( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config
 
+bm_start "$(basename $0)"
+
 # Snapshot all Git repository data
 ghe-ssh "$GHE_HOSTNAME" -- 'ghe-export-repositories' > "$GHE_SNAPSHOT_DIR"/repositories.tar
+
+bm_end "$(basename $0)"

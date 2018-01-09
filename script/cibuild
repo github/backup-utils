@@ -11,6 +11,7 @@ REMOTE_VERSIONS="
   2.0.0
   2.2.0
   2.5.0
+  2.11.0
 "
 
 # Enable verbose logging of ssh commands
@@ -62,12 +63,6 @@ else
     cat package-tarball.txt | sed 's/^/    /' 1>&2
     exit 1
 fi
-
-# Publish package files on wcat.io
-echo "Uploading packages ..."
-for f in $pkg_files; do
-    printf "%-32s %-s\n" "$(curl -sT- https://wcat.io <"$f" || true)" "$f"
-done
 
 # Generate md5sums
 md5sum $pkg_files

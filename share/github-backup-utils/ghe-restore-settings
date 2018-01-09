@@ -47,14 +47,8 @@ ghe-ssh "$GHE_HOSTNAME" -- 'ghe-import-license' < "$GHE_RESTORE_SNAPSHOT_PATH/en
 # Restore management console password hash if present.
 if [ -f "$GHE_RESTORE_SNAPSHOT_PATH/manage-password" ]; then
     echo "Restoring management console password ..."
-    cat "$GHE_RESTORE_SNAPSHOT_PATH/manage-password" |
-    ghe-ssh "$GHE_HOSTNAME" -- "ghe-import-passwords"
-fi
-
-if [ "$GHE_BACKUP_STRATEGY" = "cluster" ]; then
-  echo "Restoring cluster configuration ..."
-    cat "$GHE_RESTORE_SNAPSHOT_PATH/cluster.conf" |
-    ghe-ssh "$GHE_HOSTNAME" -- "sudo tee $GHE_REMOTE_CLUSTER_CONF_FILE >/dev/null"
+    echo "ghe-config secrets.manage '$(cat "$GHE_RESTORE_SNAPSHOT_PATH/manage-password")'" |
+    ghe-ssh "$GHE_HOSTNAME" -- /bin/bash
 fi
 
 # Restore SAML keys if present.
@@ -62,6 +56,13 @@ if [ -f "$GHE_RESTORE_SNAPSHOT_PATH/saml-keys.tar" ]; then
     echo "Restoring SAML keys ..."
     cat "$GHE_RESTORE_SNAPSHOT_PATH/saml-keys.tar" |
     ghe-ssh "$GHE_HOSTNAME" -- "sudo tar -C $GHE_REMOTE_DATA_USER_DIR/common/ -xf -"
+fi
+
+# Restore CA certificates if present.
+if [ -f "$GHE_RESTORE_SNAPSHOT_PATH/ssl-ca-certificates.tar" ]; then
+    echo "Restoring CA certificates ..."
+    cat "$GHE_RESTORE_SNAPSHOT_PATH/ssl-ca-certificates.tar" |
+    ghe-ssh "$GHE_HOSTNAME" -- "ghe-import-ssl-ca-certificates"
 fi
 
 bm_start "$(basename $0)"

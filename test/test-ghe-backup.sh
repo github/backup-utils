@@ -15,28 +15,43 @@ touch alice/index.html bob/index.html
 
 # Create a fake manage password file
 mkdir -p "$GHE_REMOTE_DATA_USER_DIR/common"
-echo "fake password hash data" > "$GHE_REMOTE_DATA_USER_DIR/common/manage-password"
+git config -f "$GHE_REMOTE_DATA_USER_DIR/common/secrets.conf" secrets.manage "fake password hash data"
 
-# Create some fake hookshot data in the remote data directory
 if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
+    # Create some fake data in the remote data directory
     mkdir -p "$GHE_REMOTE_DATA_USER_DIR/hookshot"
     cd "$GHE_REMOTE_DATA_USER_DIR/hookshot"
     mkdir -p repository-123 repository-456
     touch repository-123/test.bpack repository-456/test.bpack
 
-    mkdir -p "$GHE_REMOTE_DATA_USER_DIR/git-hooks"
-    cd "$GHE_REMOTE_DATA_USER_DIR/git-hooks"
-    mkdir -p repository-123 repository-456
-    touch repository-123/script.sh repository-456/foo.sh
-fi
+    # Create some fake hooks in the remote data directory
+    mkdir -p "$GHE_REMOTE_DATA_USER_DIR/git-hooks/environments/tarballs"
+    mkdir -p "$GHE_REMOTE_DATA_USER_DIR/git-hooks/repos"
 
-# Create some fake alambic data in the remote data directory
-if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
+    cd "$GHE_REMOTE_DATA_USER_DIR/git-hooks/environments"
+    mkdir -p 123/abcdef 456/fed314
+    touch 123/abcdef/script.sh 456/fed314/foo.sh
+
+    cd "$GHE_REMOTE_DATA_USER_DIR/git-hooks/environments/tarballs"
+    mkdir -p 123/abcdef 456/fed314
+    touch 123/abcdef/script.tar.gz 456/fed314/foo.tar.gz
+
+    cd "$GHE_REMOTE_DATA_USER_DIR/git-hooks/repos"
+    mkdir -p 321 654
+    touch 321/script.sh 654/foo.sh
+
+    # Create some fake alambic data in the remote data directory
     mkdir -p "$GHE_REMOTE_DATA_USER_DIR/alambic_assets/github-enterprise-assets/0000"
     touch "$GHE_REMOTE_DATA_USER_DIR/alambic_assets/github-enterprise-assets/0000/test.png"
 
     mkdir -p "$GHE_REMOTE_DATA_USER_DIR/alambic_assets/github-enterprise-releases/0001"
     touch "$GHE_REMOTE_DATA_USER_DIR/alambic_assets/github-enterprise-releases/0001/1ed78298-522b-11e3-9dc0-22eed1f8132d"
+
+    # Create a fake UUID
+    echo "fake uuid" > "$GHE_REMOTE_DATA_USER_DIR/common/uuid"
+
+    # Create fake audit log migration sentinel file
+    touch "$GHE_REMOTE_DATA_USER_DIR/common/es-scan-complete"
 fi
 
 # Create some fake elasticsearch data in the remote data directory
@@ -121,17 +136,30 @@ begin_test "ghe-backup first snapshot"
     # verify manage-password file was backed up under v2.x VMs
     if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
         [ "$(cat "$GHE_DATA_DIR/current/manage-password")" = "fake password hash data" ]
-    fi
 
-    if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
         # verify all hookshot user data was transferred
         diff -ru "$GHE_REMOTE_DATA_USER_DIR/hookshot" "$GHE_DATA_DIR/current/hookshot"
 
-        # verify all git hooks data was transferred
-        diff -ru "$GHE_REMOTE_DATA_USER_DIR/git-hooks" "$GHE_DATA_DIR/current/git-hooks"
+        # verify all git hooks tarballs were transferred
+        diff -ru "$GHE_REMOTE_DATA_USER_DIR/git-hooks/environments/tarballs" "$GHE_DATA_DIR/current/git-hooks/environments/tarballs"
+
+        # verify the extracted environments were not transferred
+        ! diff -ru "$GHE_REMOTE_DATA_USER_DIR/git-hooks/environments" "$GHE_DATA_DIR/current/git-hooks/environments"
+
+        # verify the extracted repositories were transferred
+        diff -ru "$GHE_REMOTE_DATA_USER_DIR/git-hooks/repos" "$GHE_DATA_DIR/current/git-hooks/repos"
 
         # verify all alambic assets user data was transferred
         diff -ru "$GHE_REMOTE_DATA_USER_DIR/alambic_assets" "$GHE_DATA_DIR/current/alambic_assets"
+
+        # verify the UUID was transferred
+        diff -ru "$GHE_REMOTE_DATA_USER_DIR/common/uuid" "$GHE_DATA_DIR/current/uuid"
+
+        # check that ca certificates were backed up
+        [ "$(cat "$GHE_DATA_DIR/current/ssl-ca-certificates.tar")" = "fake ghe-export-ssl-ca-certificates data" ]
+
+        # verify the audit log migration sentinel file has been created
+        [ -f "$GHE_DATA_DIR/current/es-scan-complete" ]
     fi
 
     # verify that ghe-backup wrote its version information to the host
@@ -198,18 +226,46 @@ begin_test "ghe-backup subsequent snapshot"
     # verify manage-password file was backed up under v2.x VMs
     if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
         [ "$(cat "$GHE_DATA_DIR/current/manage-password")" = "fake password hash data" ]
-    fi
 
-    if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
         # verify all hookshot user data was transferred
         diff -ru "$GHE_REMOTE_DATA_USER_DIR/hookshot" "$GHE_DATA_DIR/current/hookshot"
 
-        # verify all git hooks data was transferred
-        diff -ru "$GHE_REMOTE_DATA_USER_DIR/git-hooks" "$GHE_DATA_DIR/current/git-hooks"
+        # verify all git hooks tarballs were transferred
+        diff -ru "$GHE_REMOTE_DATA_USER_DIR/git-hooks/environments/tarballs" "$GHE_DATA_DIR/current/git-hooks/environments/tarballs"
+
+        # verify the extracted environments were not transferred
+        ! diff -ru "$GHE_REMOTE_DATA_USER_DIR/git-hooks/environments" "$GHE_DATA_DIR/current/git-hooks/environments"
+
+        # verify the extracted repositories were transferred
+        diff -ru "$GHE_REMOTE_DATA_USER_DIR/git-hooks/repos" "$GHE_DATA_DIR/current/git-hooks/repos"
 
         # verify all alambic assets user data was transferred
         diff -ru "$GHE_REMOTE_DATA_USER_DIR/alambic_assets" "$GHE_DATA_DIR/current/alambic_assets"
+
+        # verify the UUID was transferred
+        diff -ru "$GHE_REMOTE_DATA_USER_DIR/common/uuid" "$GHE_DATA_DIR/current/uuid"
+
+        # check that ca certificates were backed up
+        [ "$(cat "$GHE_DATA_DIR/current/ssl-ca-certificates.tar")" = "fake ghe-export-ssl-ca-certificates data" ]
+
+        # verify the audit log migration sentinel file has been created
+        [ -f "$GHE_DATA_DIR/current/es-scan-complete" ]
     fi
+)
+end_test
+
+begin_test "ghe-backup logs the benchmark"
+(
+  set -e
+
+  # wait a second for snapshot timestamp
+  sleep 1
+
+  export BM_TIMESTAMP=foo
+
+  ghe-backup
+
+  [ $(grep took $GHE_DATA_DIR/current/benchmarks/benchmark.foo.log | wc -l) -gt 1 ]
 )
 end_test
 
@@ -276,17 +332,30 @@ begin_test "ghe-backup with relative data dir path"
     # verify manage-password file was backed up under v2.x VMs
     if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
         [ "$(cat "$GHE_DATA_DIR/current/manage-password")" = "fake password hash data" ]
-    fi
 
-    if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
         # verify all hookshot user data was transferred
         diff -ru "$GHE_REMOTE_DATA_USER_DIR/hookshot" "$GHE_DATA_DIR/current/hookshot"
 
-        # verify all git hooks data was transferred
-        diff -ru "$GHE_REMOTE_DATA_USER_DIR/git-hooks" "$GHE_DATA_DIR/current/git-hooks"
+        # verify all git hooks tarballs were transferred
+        diff -ru "$GHE_REMOTE_DATA_USER_DIR/git-hooks/environments/tarballs" "$GHE_DATA_DIR/current/git-hooks/environments/tarballs"
+
+        # verify the extracted environments were not transferred
+        ! diff -ru "$GHE_REMOTE_DATA_USER_DIR/git-hooks/environments" "$GHE_DATA_DIR/current/git-hooks/environments"
+
+        # verify the extracted repositories were transferred
+        diff -ru "$GHE_REMOTE_DATA_USER_DIR/git-hooks/repos" "$GHE_DATA_DIR/current/git-hooks/repos"
 
         # verify all alambic assets user data was transferred
         diff -ru "$GHE_REMOTE_DATA_USER_DIR/alambic_assets" "$GHE_DATA_DIR/current/alambic_assets"
+
+        # verify the UUID was transferred
+        diff -ru "$GHE_REMOTE_DATA_USER_DIR/common/uuid" "$GHE_DATA_DIR/current/uuid"
+
+        # check that ca certificates were backed up
+        [ "$(cat "$GHE_DATA_DIR/current/ssl-ca-certificates.tar")" = "fake ghe-export-ssl-ca-certificates data" ]
+
+        # verify the audit log migration sentinel file has been created
+        [ -f "$GHE_DATA_DIR/current/es-scan-complete" ]
     fi
 
     # verify that ghe-backup wrote its version information to the host
@@ -347,11 +416,11 @@ begin_test "ghe-backup cleans up stale in-progress file"
 )
 end_test
 
-begin_test "ghe-backup without manage-password file"
+begin_test "ghe-backup without management console password"
 (
     set -e
 
-    unlink "$GHE_REMOTE_DATA_USER_DIR/common/manage-password"
+    git config -f "$GHE_REMOTE_DATA_USER_DIR/common/secrets.conf" secrets.manage ""
     ghe-backup
 
     [ ! -f "$GHE_DATA_DIR/current/manage-password" ]
@@ -375,8 +444,8 @@ begin_test "ghe-backup empty git-hooks directory"
 (
   set -e
 
-  rm -rf $GHE_REMOTE_DATA_USER_DIR/git-hooks/repository-*
-  rm -rf $GHE_DATA_DIR/current/git-hooks/repository-*
+  rm -rf $GHE_REMOTE_DATA_USER_DIR/git-hooks/*
+  rm -rf $GHE_DATA_DIR/current/git-hooks/*
   ghe-backup
 
   # Check that the "--link-dest arg does not exist" message hasn't occurred.
@@ -396,5 +465,91 @@ begin_test "ghe-backup fsck"
 
   export GHE_BACKUP_FSCK=no
   ! ghe-backup | grep -q "Repos verified:"
+)
+end_test
+
+begin_test "ghe-backup stores version when not run from a clone"
+(
+  set -e
+
+  # Make sure this doesn't exist
+  rm -f "$GHE_REMOTE_DATA_USER_DIR/common/backup-utils-version"
+
+  tmpdir=$(mktemp -d "$TRASHDIR/foo.XXXXXX")
+
+  # If user is running the tests extracted from a release tarball, git clone will fail.
+  if GIT_DIR="$ROOTDIR/.git" git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+      git clone "$ROOTDIR" "$tmpdir/backup-utils"
+      cd "$tmpdir/backup-utils"
+      rm -rf .git
+      ./bin/ghe-backup
+
+      # Verify that ghe-backup wrote its version information to the host
+      [ -f "$GHE_REMOTE_DATA_USER_DIR/common/backup-utils-version" ]
+  else
+      echo ".git directory not found, skipping ghe-backup not from a clone test"
+  fi
+)
+end_test
+
+begin_test "ghe-backup with leaked SSH host key detection for current backup"
+(
+  set -e
+
+  SHARED_UTILS_PATH=$(dirname $(which ghe-detect-leaked-ssh-keys))
+  # Inject the fingerprint into the blacklist
+  echo 98:d8:99:d3:be:c0:55:05:db:b0:53:2f:1f:ad:b3:60 >> "$SHARED_UTILS_PATH/ghe-ssh-leaked-host-keys-list.txt"
+
+  # Re-link ghe-export-ssh-keys to generate a fake ssh
+  unlink  "$ROOTDIR/test/bin/ghe-export-ssh-host-keys"
+  cd "$ROOTDIR/test/bin"
+  ln -s ghe-gen-fake-ssh-tar ghe-export-ssh-host-keys
+  cd -
+
+  # Run it
+  output=$(ghe-backup -v)
+
+  # Set the export ssh link back
+  unlink  "$ROOTDIR/test/bin/ghe-export-ssh-host-keys"
+  cd "$ROOTDIR/test/bin"
+  ln -s ghe-fake-export-command ghe-export-ssh-host-keys
+  cd -
+
+  # Test the output for leaked key detection
+  echo $output| grep "The current backup contains leaked SSH host keys"
+
+)
+end_test
+
+begin_test "ghe-backup with no leaked keys"
+(
+  set -e
+
+  # Make sure there are no leaked key messages
+  ! ghe-backup -v | grep "Leaked key"
+
+)
+end_test
+
+begin_test "ghe-backup honours --version flag"
+(
+  set -e
+
+  # Make sure a partial version string is returned
+  ghe-backup --version | grep "GitHub backup-utils v"
+
+)
+end_test
+
+begin_test "ghe-backup honours --help and -h flags"
+(
+  set -e
+
+  arg_help=$(ghe-backup --help | grep -o 'Usage: ghe-backup')
+  arg_h=$(ghe-backup -h | grep -o 'Usage: ghe-backup')
+
+  # Make sure a Usage: string is returned and that it's the same for -h and --help
+  [ "$arg_help" = "$arg_h" ] && echo $arg_help | grep -q "Usage: ghe-backup"
+
 )
 end_test

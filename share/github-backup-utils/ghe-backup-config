@@ -20,25 +20,40 @@ GHE_BACKUP_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/../.." && pwd )"
 # Get the version from the version file.
 BACKUP_UTILS_VERSION="$(cat $GHE_BACKUP_ROOT/share/github-backup-utils/version)"
 
-# Add the bin and share/github-backup-utils dirs to PATH
-PATH="$GHE_BACKUP_ROOT/bin:$GHE_BACKUP_ROOT/share/github-backup-utils:$PATH"
-
-. $GHE_BACKUP_ROOT/share/github-backup-utils/bm.sh
-
-# Parse out -v (verbose) argument
-if [ "$1" = "-v" ]; then
-    GHE_VERBOSE=true
-    shift
+# If a version check was requested, show the current version and exit
+if [ -n "$GHE_SHOW_VERSION" ]; then
+  echo "GitHub backup-utils v$BACKUP_UTILS_VERSION"
+  exit 0
 fi
-export GHE_VERBOSE
 
 # If verbose logging is enabled, redirect fd 3 to stdout; otherwise, redirect it
 # to /dev/null. Write verbose output to fd 3.
 if [ -n "$GHE_VERBOSE" ]; then
-    exec 3>&1
+  exec 3>&1
 else
-    exec 3>/dev/null
+  exec 3>/dev/null
 fi
+
+# Check for "--help|-h" in args or GHE_SHOW_HELP=true and show usage
+print_usage () {
+    grep '^#/' <"$0" | cut -c 4-
+    exit ${1:-1}
+}
+
+if [ -n "$GHE_SHOW_HELP" ]; then
+  print_usage
+else
+  for a in "$@"; do
+    if [ "$a" = "--help" ] || [ "$a" = "-h" ]; then
+      print_usage
+    fi
+  done
+fi
+
+# Add the bin and share/github-backup-utils dirs to PATH
+PATH="$GHE_BACKUP_ROOT/bin:$GHE_BACKUP_ROOT/share/github-backup-utils:$PATH"
+
+. $GHE_BACKUP_ROOT/share/github-backup-utils/bm.sh
 
 # Save off GHE_HOSTNAME from the environment since we want it to override the
 # backup.config value when set.
@@ -76,11 +91,29 @@ if [ -z "$GHE_HOSTNAME" ]; then
     exit 2
 fi
 
+# Check that the GHE data directory is set.
+if [ -z "$GHE_DATA_DIR" ]; then
+    echo "Error: GHE_DATA_DIR not set in config file." 1>&2
+    exit 2
+fi
+
 # Convert the data directory path to an absolute path, basing any relative
 # paths on the backup-utils root, and using readlink, if available, to
 # canonicalize the path.
 if [ ${GHE_DATA_DIR:0:1} != "/" ]; then
   GHE_DATA_DIR="$( cd "$GHE_BACKUP_ROOT" && readlink -m "$GHE_DATA_DIR" 2> /dev/null || echo "$GHE_BACKUP_ROOT/$GHE_DATA_DIR" )"
+fi
+
+# Assign the Release File path if it hasn't been provided (eg: by test suite)
+: ${GHE_RELEASE_FILE:="/etc/github/enterprise-release"}
+
+# Check that utils are not being run directly on GHE appliance.
+if [ -f "$GHE_RELEASE_FILE" ]; then
+  echo "Error: Backup Utils cannot be run on the GitHub Enterprise host." 1>&2
+  echo "       The backup utilities should be run on a host dedicated to" 1>&2
+  echo "       long-term permanent storage and must have network connectivity" 1>&2
+  echo "       with the GitHub Enterprise appliance." 1>&2
+  exit 1
 fi
 
 GHE_CREATE_DATA_DIR=${GHE_CREATE_DATA_DIR:-yes}
@@ -136,10 +169,6 @@ GHE_SNAPSHOT_DIR="$GHE_DATA_DIR"/"$GHE_SNAPSHOT_TIMESTAMP"
 # allows the location to be overridden in tests.
 : ${GHE_REMOTE_METADATA_FILE:="$GHE_REMOTE_DATA_DIR/enterprise/chef_metadata.json"}
 
-# CPU and IO throttling to keep backups and restores from thrashing around.
-: ${GHE_NICE:="nice -n 19"}
-: ${GHE_IONICE:="ionice -c 3"}
-
 # The number of seconds to wait for in progress git-gc processes to complete
 # before starting the sync of git data. See share/github-backup-utils/ghe-backup-repositories-rsync
 # for more information. Default: 10 minutes.
@@ -155,6 +184,9 @@ GHE_SNAPSHOT_DIR="$GHE_DATA_DIR"/"$GHE_SNAPSHOT_TIMESTAMP"
 
 # The location of the file used to disable GC operations on the remote side.
 : ${SYNC_IN_PROGRESS_FILE:="$GHE_REMOTE_DATA_USER_DIR/repositories/.sync_in_progress"}
+
+# Base path for temporary directories and files.
+: ${TMPDIR:="/tmp"}
 
 # Exit 1 if remote fsck fails (unhealthy repositories)
 : ${GHE_REMOTE_GIT_FSCK_ABORT_ON_ERROR:="yes"}
@@ -175,19 +207,6 @@ ghe_remote_version_config () {
 
 ###############################################################################
 ### Utility functions
-
-# Function to print usage embedded in a script's opening doc comments.
-print_usage () {
-    grep '^#/' <"$0" | cut -c 4-
-    exit ${1:-1}
-}
-
-# Check for a "--help" arg and show usage
-for a in "$@"; do
-    if [ "$a" = "--help" ]; then
-        print_usage
-    fi
-done
 
 # If we don't have a readlink command, parse ls -l output.
 if ! type readlink 1>/dev/null 2>&1; then
@@ -274,7 +293,7 @@ ghe_remote_logger () {
 # Returns the online nodes with a certain role in cluster
 ghe_cluster_online_nodes () {
     role=$1
-    echo "ghe-config --get-regexp cluster.*.$role | egrep 'true$' | awk '{ print \$1; }' | awk 'BEGIN { FS=\".\" }; { print \$2 };' | xargs -I{} -n1 bash -c 'if [ \"\$(ghe-config cluster.\$hostname.offline)\" != true ]; then ghe-config cluster.{}.hostname; fi'" | ghe-ssh "$GHE_HOSTNAME" /bin/bash
+    echo "ghe-config --get-regexp cluster.*.$role | egrep 'true$' | awk '{ print \$1; }' | awk 'BEGIN { FS=\".\" }; { print \$2 };' | xargs -I{} -n1 bash -c 'if [ \"\$(ghe-config cluster.{}.offline)\" != true ]; then ghe-config cluster.{}.hostname; fi'" | ghe-ssh "$GHE_HOSTNAME" /bin/bash
 }
 
 # Usage: ghe_verbose <message>

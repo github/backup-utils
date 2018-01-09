@@ -8,6 +8,8 @@ set -e
 # Bring in the backup configuration
 . $( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config
 
+bm_start "$(basename $0) - $1"
+
 # Verify rsync is available.
 if ! rsync --version 1>/dev/null 2>&1; then
     echo "Error: rsync not found." 1>&2
@@ -23,13 +25,36 @@ ghe_remote_version_required "$host"
 
 # Verify that the user data directory exists. Bail out if not, which may be due
 # to an older version of GHE or no data has been added to this directory yet.
-ghe-ssh "$host" -- "[ -d '$GHE_REMOTE_DATA_USER_DIR/$dirname' ]" || exit 0
+if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
+  ghe-ssh "$host" -- "sudo -u git [ -d '$GHE_REMOTE_DATA_USER_DIR/$dirname' ]" || exit 0
+else
+  ghe-ssh "$host" -- "[ -d '$GHE_REMOTE_DATA_USER_DIR/$dirname' ]" || exit 0
+fi
 
 # If we have a previous increment and it is not empty, avoid transferring existing files via rsync's
 # --link-dest support. This also decreases physical space usage considerably.
 if [ -d "$GHE_DATA_DIR/current/$dirname" ] && [ "$(ls -A $GHE_DATA_DIR/current/$dirname)" ]; then
-    link_dest="--link-dest=../../current/$dirname"
+
+  subdir=$dirname
+  link_path=".."
+  while true; do
+    if [ $(dirname $subdir) = "." ]; then
+      break
+    fi
+
+    if [ $(dirname $subdir) = "/" ]; then
+      break
+    fi
+
+    link_path="../$link_path"
+    subdir=$(dirname $subdir)
+  done
+
+  link_dest="--link-dest=../${link_path}/current/$dirname"
 fi
+
+# Ensure target directory exists, is needed with subdirectories
+mkdir -p "$GHE_SNAPSHOT_DIR/$dirname"
 
 # Transfer all data from the user data directory using rsync.
 ghe-rsync -avz \
@@ -38,3 +63,5 @@ ghe-rsync -avz \
     $link_dest \
     "$(ssh_host_part "$host"):$GHE_REMOTE_DATA_USER_DIR/$dirname/" \
     "$GHE_SNAPSHOT_DIR/$dirname" 1>&3
+
+bm_end "$(basename $0) - $1"

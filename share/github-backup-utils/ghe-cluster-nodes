@@ -7,11 +7,11 @@
 #/ Also filters nodes based on the prefix role.
 #/
 #/ Note: This script typically isn't called directly. It's invoked by the
-#/ ghe-restore-* commands when restoring into a cluster.
+#/ ghe-backup-* and ghe-restore-* commands in cluster environments.
 set -e
 
 # Bring in the backup configuration
-. $( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config
+. "$( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config"
 
 # Check if the REMOTE DATA USER directory is set
 if [ -z $GHE_REMOTE_DATA_USER_DIR ]; then
@@ -21,6 +21,7 @@ fi
 
 # Show usage and bail with no arguments
 [ -z "$*" ] && print_usage
+
 GHE_HOSTNAME="$1"
 prefix="$2"
 role=$(echo "$prefix" | cut -d '-' -f1)

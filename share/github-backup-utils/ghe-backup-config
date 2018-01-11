@@ -20,31 +20,40 @@ GHE_BACKUP_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/../.." && pwd )"
 # Get the version from the version file.
 BACKUP_UTILS_VERSION="$(cat $GHE_BACKUP_ROOT/share/github-backup-utils/version)"
 
-# Add the bin and share/github-backup-utils dirs to PATH
-PATH="$GHE_BACKUP_ROOT/bin:$GHE_BACKUP_ROOT/share/github-backup-utils:$PATH"
-
-. $GHE_BACKUP_ROOT/share/github-backup-utils/bm.sh
-
-# Display version string if flag present for any command
-if [ "$1" = "--version" ]; then
-    echo "GitHub backup-utils v$BACKUP_UTILS_VERSION"
-    exit 0
+# If a version check was requested, show the current version and exit
+if [ -n "$GHE_SHOW_VERSION" ]; then
+  echo "GitHub backup-utils v$BACKUP_UTILS_VERSION"
+  exit 0
 fi
-
-# Parse out -v (verbose) argument
-if [ "$1" = "-v" ]; then
-    GHE_VERBOSE=true
-    shift
-fi
-export GHE_VERBOSE
 
 # If verbose logging is enabled, redirect fd 3 to stdout; otherwise, redirect it
 # to /dev/null. Write verbose output to fd 3.
 if [ -n "$GHE_VERBOSE" ]; then
-    exec 3>&1
+  exec 3>&1
 else
-    exec 3>/dev/null
+  exec 3>/dev/null
 fi
+
+# Check for "--help|-h" in args or GHE_SHOW_HELP=true and show usage
+print_usage () {
+    grep '^#/' <"$0" | cut -c 4-
+    exit ${1:-1}
+}
+
+if [ -n "$GHE_SHOW_HELP" ]; then
+  print_usage
+else
+  for a in "$@"; do
+    if [ "$a" = "--help" ] || [ "$a" = "-h" ]; then
+      print_usage
+    fi
+  done
+fi
+
+# Add the bin and share/github-backup-utils dirs to PATH
+PATH="$GHE_BACKUP_ROOT/bin:$GHE_BACKUP_ROOT/share/github-backup-utils:$PATH"
+
+. $GHE_BACKUP_ROOT/share/github-backup-utils/bm.sh
 
 # Save off GHE_HOSTNAME from the environment since we want it to override the
 # backup.config value when set.
@@ -176,6 +185,9 @@ GHE_SNAPSHOT_DIR="$GHE_DATA_DIR"/"$GHE_SNAPSHOT_TIMESTAMP"
 # The location of the file used to disable GC operations on the remote side.
 : ${SYNC_IN_PROGRESS_FILE:="$GHE_REMOTE_DATA_USER_DIR/repositories/.sync_in_progress"}
 
+# Base path for temporary directories and files.
+: ${TMPDIR:="/tmp"}
+
 ###############################################################################
 ### Dynamic remote version config
 
@@ -192,19 +204,6 @@ ghe_remote_version_config () {
 
 ###############################################################################
 ### Utility functions
-
-# Function to print usage embedded in a script's opening doc comments.
-print_usage () {
-    grep '^#/' <"$0" | cut -c 4-
-    exit ${1:-1}
-}
-
-# Check for a "--help" arg and show usage
-for a in "$@"; do
-    if [ "$a" = "--help" ]; then
-        print_usage
-    fi
-done
 
 # If we don't have a readlink command, parse ls -l output.
 if ! type readlink 1>/dev/null 2>&1; then

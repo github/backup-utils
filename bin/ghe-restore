@@ -1,56 +1,74 @@
 #!/usr/bin/env bash
-#/ Usage: ghe-restore [-v] [-s <snapshot-id>] [<host>]
-#/ Restores a GitHub instance from local backup snapshots. The <host> is the
-#/ hostname or IP of the GitHub instance. The <host> may be omitted when
-#/ the GHE_RESTORE_HOST config variable is set in backup.config. When a <host>
-#/ argument is provided, it always overrides the configured restore host.
+#/ Usage: ghe-restore [-fchv] [--version] [-s <snapshot-id>] [<host>]
 #/
-#/ Options:
-#/   --version         Display version information.
-#/   -f                Don't prompt for confirmation before restoring.
-#/   -c                Restore appliance settings and license in addition to
+#/ Restores a GitHub instance from local backup snapshots.
+#/
+#/ Note that the GitHub Enterprise host must be reachable and your SSH key must
+#/ be setup as described in the following help article:
+#/
+#/ <https://enterprise.github.com/help/articles/adding-an-ssh-key-for-shell-access>
+#/
+#/ OPTIONS:
+#/   -f | --force      Don't prompt for confirmation before restoring.
+#/   -c | --config     Restore appliance settings and license in addition to
 #/                     datastores. Settings are not restored by default to
 #/                     prevent overwriting different configuration on the
 #/                     restore host.
+#/   -v | --verbose    Enable verbose output.
+#/   -h | --help       Show this message.
+#/        --version    Display version information and exit.
 #/   -s <snapshot-id>  Restore from the snapshot with the given id. Available
 #/                     snapshots may be listed under the data directory.
-#/   -v                Enable verbose output.
+#/   <host>            The <host> is the hostname or IP of the GitHub Enterprise
+#/                     instance. The <host> may be omitted when the
+#/                     GHE_RESTORE_HOST config variable is set in backup.config.
+#/                     When a <host> argument is provided, it always overrides
+#/                     the configured restore host.
 #/
-#/ Note that the host must be reachable and your SSH key must be setup as
-#/ described in the following help article:
-#/
-#/ <https://enterprise.github.com/help/articles/adding-an-ssh-key-for-shell-access>
-set -e
 
-# Bring in the backup configuration
-. $( dirname "${BASH_SOURCE[0]}" )/../share/github-backup-utils/ghe-backup-config
+set -e
 
 # Parse arguments
 restore_settings=false
 force=false
 while true; do
-    case "$1" in
-        -f|--force)
-            force=true
-            shift
-            ;;
-        -s)
-            snapshot_id="$(basename "$2")"
-            shift 2
-            ;;
-        -c)
-            restore_settings=true
-            shift
-            ;;
-        -*)
-            echo "Error: invalid argument: '$1'" 1>&2
-            exit 1
-            ;;
-        *)
-            break
-            ;;
-    esac
+  case "$1" in
+    -f|--force)
+      force=true
+      shift
+      ;;
+    -s)
+      snapshot_id="$(basename "$2")"
+      shift 2
+      ;;
+    -c|--config)
+      restore_settings=true
+      shift
+      ;;
+    -h|--help)
+      export GHE_SHOW_HELP=true
+      shift
+      ;;
+    --version)
+      export GHE_SHOW_VERSION=true
+      shift
+      ;;
+    -v|--verbose)
+      export GHE_VERBOSE=true
+      shift
+      ;;
+    -*)
+      echo "Error: invalid argument: '$1'" 1>&2
+      exit 1
+      ;;
+    *)
+      break
+      ;;
+  esac
 done
+
+# Bring in the backup configuration
+. $( dirname "${BASH_SOURCE[0]}" )/../share/github-backup-utils/ghe-backup-config
 
 # Grab the host arg
 GHE_HOSTNAME="${1:-$GHE_RESTORE_HOST}"
@@ -93,8 +111,6 @@ cluster=false
 if ghe-ssh "$GHE_HOSTNAME" -- \
   "[ -f '$GHE_REMOTE_ROOT_DIR/etc/github/cluster' ]"; then
   cluster=true
-  instance_configured=true
-  restore_settings=false
 fi
 
 # Restoring a cluster backup to a standalone appliance is not supported
@@ -109,7 +125,7 @@ if $cluster; then
   snapshot_instance_version=$(cat $GHE_RESTORE_SNAPSHOT_PATH/version)
   if ! echo $snapshot_instance_version | \
     grep -Eq "v2\.[5-9]|v2\.[1-9][0-9]|v[3-9]|v[1-9][0-9]"; then
-    echo "Error: Snapshot must be from GitHub Enterprise v2.5.0 or above to be restored"
+    echo "Error: Snapshot must be from GitHub Enterprise v2.5.0 or above to be restored" >&2
     echo "       into a cluster (detected $snapshot_instance_version).  Aborting." >&2
     exit 1
   fi
@@ -121,6 +137,21 @@ if ghe-ssh "$GHE_HOSTNAME" -- \
   echo "Error: Restoring to an appliance with replication enabled is not supported." >&2
   echo "       Please teardown replication before restoring." >&2
   exit 1
+fi
+
+# Only allow restores of 2.9 and 2.10 snapshots that have run the audit log migration to 2.11 and above
+if ! $force; then
+  snapshot_instance_version=$(cat $GHE_RESTORE_SNAPSHOT_PATH/version)
+  snapshot_version_major=$(echo "${snapshot_instance_version#v}" | cut -f 1 -d .)
+  snapshot_version_minor=$(echo "$snapshot_instance_version"     | cut -f 2 -d .)
+  if ! test -f $GHE_RESTORE_SNAPSHOT_PATH/es-scan-complete && \
+     [ "$snapshot_version_major" -eq 2 ] && [ "$snapshot_version_minor" -lt 11 ] && \
+     [ "$GHE_VERSION_MAJOR" -eq 2 ] && [ "$GHE_VERSION_MINOR" -ge 11 ]; then
+        echo "Error: Snapshot must be from GitHub Enterprise v2.9 or v2.10 after running the" >&2
+        echo "       audit log migration, or from v2.11.0 or above." >&2
+        echo "Please see https://git.io/v5rCE for the audit log migration procedure." >&2
+        exit 1
+  fi
 fi
 
 # Prompt to verify the restore host given is correct. Restoring overwrites
@@ -329,7 +360,7 @@ elif [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
 fi
 
 if $cluster; then
-  echo "Restoring ElasticSearch Audit logs"
+  echo "Restoring Elasticsearch Audit logs"
   ghe-restore-es-audit-log "$GHE_HOSTNAME" 1>&3
 
   echo "Restoring hookshot logs ..."
@@ -337,6 +368,11 @@ if $cluster; then
 else
   echo "Restoring Elasticsearch indices ..."
   ghe-restore-es-${GHE_BACKUP_STRATEGY} "$GHE_HOSTNAME" 1>&3
+fi
+
+# Restore the audit log migration sentinel file, if it exists in the snapshot
+if test -f $GHE_RESTORE_SNAPSHOT_PATH/es-scan-complete; then
+  ghe-ssh "$GHE_HOSTNAME" -- "sudo touch $GHE_REMOTE_DATA_USER_DIR/common/es-scan-complete"
 fi
 
 # Restart an already running memcached to reset the cache after restore

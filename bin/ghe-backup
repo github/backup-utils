@@ -1,11 +1,41 @@
 #!/usr/bin/env bash
-#/ Usage: ghe-backup [-v] [--version]
+#/ Usage: ghe-backup [-hv] [--version]
+#/
 #/ Take snapshots of all GitHub Enterprise data, including Git repository data,
 #/ the MySQL database, instance settings, GitHub Pages data, etc.
 #/
-#/ With -v, enable verbose output and show more information about what's being
-#/ transferred.
+#/ OPTIONS:
+#/   -v | --verbose    Enable verbose output.
+#/   -h | --help       Show this message.
+#/        --version    Display version information.
+#/
+
 set -e
+
+# Parse arguments
+while true; do
+  case "$1" in
+    -h|--help)
+      export GHE_SHOW_HELP=true
+      shift
+      ;;
+    --version)
+      export GHE_SHOW_VERSION=true
+      shift
+      ;;
+    -v|--verbose)
+      export GHE_VERBOSE=true
+      shift
+      ;;
+    -*)
+      echo "Error: invalid argument: '$1'" 1>&2
+      exit 1
+      ;;
+    *)
+      break
+      ;;
+  esac
+done
 
 # Bring in the backup configuration
 . $( dirname "${BASH_SOURCE[0]}" )/../share/github-backup-utils/ghe-backup-config
@@ -69,7 +99,7 @@ if [ -f ../in-progress ]; then
   progress=$(cat ../in-progress)
   snapshot=$(echo "$progress" | cut -d ' ' -f 1)
   pid=$(echo "$progress" | cut -d ' ' -f 2)
-  if ! ps -p $pid -o command= | grep ghe-backup; then
+  if ! ps -p $pid | grep ghe-backup; then
     # We can safely remove in-progress, ghe-prune-snapshots
     # will clean up the failed backup.
     unlink ../in-progress
@@ -156,7 +186,7 @@ echo "Backing up Git repositories ..."
 if [ "$GHE_BACKUP_STRATEGY" = "cluster" ]; then
   if ghe-ssh "$GHE_HOSTNAME" test -f /data/github/current/bin/dgit-cluster-backup-routes ; then
     echo "* Using calculated routes method..."
-    ghe-backup-repositories-cluster-ng || failures="$failure repositories"
+    ghe-backup-repositories-cluster-ng || failures="$failures repositories"
   else
     echo "* Using legacy method. A faster backup method is available on enterprise 2.7 and up."
     ghe-backup-repositories-cluster || failures="$failures repositories"
@@ -171,33 +201,36 @@ ghe-backup-pages-${GHE_BACKUP_STRATEGY} ||
 failures="$failures pages"
 
 if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
-    if [ "$GHE_BACKUP_STRATEGY" = "cluster" ]; then
-        echo "Backing up asset attachments ..."
-        ghe-backup-alambic-cluster ||
-        failures="$failures alambic_assets"
-
-        echo "Backing up custom Git hooks ..."
-        ghe-backup-git-hooks-cluster ||
-        failures="$failures git-hooks"
+  if [ "$GHE_BACKUP_STRATEGY" = "cluster" ]; then
+    echo "Backing up storage data ..."
+    if ghe-ssh "$GHE_HOSTNAME" test -f /data/github/current/bin/storage-cluster-backup-routes; then
+      ghe-backup-alambic-cluster-ng || failures="$failures alambic"
     else
-        echo "Backing up asset attachments ..."
-        ghe-backup-userdata alambic_assets ||
-        failures="$failures alambic_assets"
-
-        echo "Backing up storage data ..."
-        ghe-backup-userdata storage ||
-        failures="$failures storage"
-
-        echo "Backing up hook deliveries ..."
-        ghe-backup-userdata hookshot ||
-        failures="$failures hookshot"
-
-        echo "Backing up custom Git hooks ..."
-        ghe-backup-userdata git-hooks/environments/tarballs ||
-        failures="$failures git-hooks-environments"
-        ghe-backup-userdata git-hooks/repos ||
-        failures="$failures git-hooks-repos"
+      ghe-backup-alambic-cluster || failures="$failures alambic"
     fi
+
+    echo "Backing up custom Git hooks ..."
+    ghe-backup-git-hooks-cluster ||
+    failures="$failures git-hooks"
+  else
+    echo "Backing up asset attachments ..."
+    ghe-backup-userdata alambic_assets ||
+    failures="$failures alambic_assets"
+
+    echo "Backing up storage data ..."
+    ghe-backup-userdata storage ||
+    failures="$failures storage"
+
+    echo "Backing up hook deliveries ..."
+    ghe-backup-userdata hookshot ||
+    failures="$failures hookshot"
+
+    echo "Backing up custom Git hooks ..."
+    ghe-backup-userdata git-hooks/environments/tarballs ||
+    failures="$failures git-hooks-environments"
+    ghe-backup-userdata git-hooks/repos ||
+    failures="$failures git-hooks-repos"
+  fi
 fi
 
 if [ "$GHE_BACKUP_STRATEGY" != "cluster" ]; then

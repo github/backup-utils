@@ -60,9 +60,7 @@ if DEB_BUILD_OPTIONS=nocheck script/package-deb 1>package-deb-out.txt 2>package-
     pkg_files="$pkg_files $(cat package-deb-out.txt)"
 else
     echo "Package build failed:"
-    cat package-deb-out.txt package-deb-err.txt >&2
-    echo >&2
-    cat dist/debuild/github-backup-utils*.build >&2
+    cat package-tarball.txt | sed 's/^/    /' 1>&2
     exit 1
 fi
 

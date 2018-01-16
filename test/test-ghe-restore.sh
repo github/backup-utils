@@ -648,7 +648,7 @@ begin_test "ghe-restore fails when restore to an active HA pair"
 
     if [ "$GHE_VERSION_MAJOR" -le 1 ]; then
       # noop GHE < 2.0, does not support replication
-      exit 0
+      skip_test
     fi
 
     rm -rf "$GHE_REMOTE_ROOT_DIR"
@@ -691,7 +691,7 @@ begin_test "ghe-restore fails when restore 2.9/2.10 snapshot without audit log m
 
   # noop if not testing against 2.11
   if [ "$GHE_VERSION_MAJOR" -le 1 ] || [ "$GHE_VERSION_MINOR" -ne 11 ]; then
-    exit 0
+    skip_test
   fi
 
   rm -rf "$GHE_REMOTE_ROOT_DIR"
@@ -718,7 +718,7 @@ begin_test "ghe-restore force restore of 2.9/2.10 snapshot without audit log mig
 
   # noop if not testing against 2.11
   if [ "$GHE_VERSION_MAJOR" -le 1 ] || [ "$GHE_VERSION_MINOR" -ne 11 ]; then
-    exit 0
+    skip_test
   fi
 
   rm -rf "$GHE_REMOTE_ROOT_DIR"

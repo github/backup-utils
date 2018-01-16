@@ -42,7 +42,7 @@ host=$(ssh_host_part "$GHE_HOSTNAME")
 user="${host%@*}"
 [ "$user" = "$host" ] && user="admin"
 
-hostnames=$(ghe-cluster-hostnames "$GHE_HOSTNAME" "storage-server")
+hostnames=$(ghe-cluster-nodes "$GHE_HOSTNAME" "storage-server")
 
 tempdir=$(mktemp -d -t backup-utils-restore-XXXXXX)
 ghe-ssh "$GHE_HOSTNAME" -- mkdir -p $tempdir

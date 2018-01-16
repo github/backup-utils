@@ -74,7 +74,7 @@ tmp_list=$tempdir/tmp_list
 routes_list=$tempdir/routes_list
 to_restore=$tempdir/to_restore
 
-hostnames=$(ghe-cluster-hostnames "$GHE_HOSTNAME" "git-server")
+hostnames=$(ghe-cluster-nodes "$GHE_HOSTNAME" "git-server")
 
 ghe-ssh-config "$GHE_HOSTNAME" "$hostnames" > "$ssh_config_file"
 

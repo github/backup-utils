@@ -56,7 +56,7 @@ fi
 
 # Build the deb related packages
 echo "Building deb package ..."
-if script/package-deb 1>package-deb-out.txt 2>package-deb-err.txt; then
+if DEB_BUILD_OPTIONS=nocheck script/package-deb 1>package-deb-out.txt 2>package-deb-err.txt; then
     pkg_files="$pkg_files $(cat package-deb-out.txt)"
 else
     echo "Package build failed:"

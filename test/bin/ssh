@@ -35,7 +35,7 @@ sh="$(echo "$@" | sed 's/sudo -u [a-z]* //g' | sed 's/sudo //g')"
 
 # Also scrub sudo commands from stdin if just executing /bin/sh or /bin/bash and
 # piping commands in on standard input.
-if echo "$*" | grep -q "/bin/sh$\|/bin/bash$"; then
+if echo "$*" | grep -Eq "/bin/(ba)?sh$"; then
     sed 's/sudo -u [a-z]* //g' | sed 's/sudo //g' | /bin/sh -c "$sh"
 else
     /bin/sh -c "$sh"

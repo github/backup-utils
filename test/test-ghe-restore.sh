@@ -23,41 +23,39 @@ touch gh-enterprise-es/node/0/stuff2
 mkdir -p "$GHE_REMOTE_DATA_USER_DIR/common"
 git config -f "$GHE_REMOTE_DATA_USER_DIR/common/secrets.conf" secrets.manage "foobar"
 
-if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
-    # Create some fake hookshot data in the remote data directory
-    mkdir -p "$GHE_DATA_DIR/1/hookshot"
-    cd "$GHE_DATA_DIR/1/hookshot"
-    mkdir -p repository-123 repository-456
-    touch repository-123/test.bpack repository-456/test.bpack
+# Create some fake hookshot data in the remote data directory
+mkdir -p "$GHE_DATA_DIR/1/hookshot"
+cd "$GHE_DATA_DIR/1/hookshot"
+mkdir -p repository-123 repository-456
+touch repository-123/test.bpack repository-456/test.bpack
 
-    # Create some fake environments
-    mkdir -p "$GHE_DATA_DIR/1/git-hooks/environments/tarballs"
-    cd "$GHE_DATA_DIR/1/git-hooks/environments/tarballs"
-    mkdir -p 123 456
-    touch 123/script.sh 456/foo.sh
-    cd 123
-    tar -czf script.tar.gz script.sh
-    cd ../456
-    tar -czf foo.tar.gz foo.sh
-    cd ..
-    rm 123/script.sh 456/foo.sh
-    mkdir -p "$GHE_DATA_DIR/1/git-hooks/repos/1"
-    touch "$GHE_DATA_DIR/1/git-hooks/repos/1/bar.sh"
+# Create some fake environments
+mkdir -p "$GHE_DATA_DIR/1/git-hooks/environments/tarballs"
+cd "$GHE_DATA_DIR/1/git-hooks/environments/tarballs"
+mkdir -p 123 456
+touch 123/script.sh 456/foo.sh
+cd 123
+tar -czf script.tar.gz script.sh
+cd ../456
+tar -czf foo.tar.gz foo.sh
+cd ..
+rm 123/script.sh 456/foo.sh
+mkdir -p "$GHE_DATA_DIR/1/git-hooks/repos/1"
+touch "$GHE_DATA_DIR/1/git-hooks/repos/1/bar.sh"
 
-    cd "$GHE_DATA_DIR/1/git-hooks/environments"
-    mkdir -p 123 456
-    touch 123/script.sh 456/foo.sh
+cd "$GHE_DATA_DIR/1/git-hooks/environments"
+mkdir -p 123 456
+touch 123/script.sh 456/foo.sh
 
-    # Create some fake alambic data in the remote data directory
-    mkdir -p "$GHE_DATA_DIR/1/alambic_assets/github-enterprise-assets/0000"
-    touch "$GHE_DATA_DIR/1/alambic_assets/github-enterprise-assets/0000/test.png"
+# Create some fake alambic data in the remote data directory
+mkdir -p "$GHE_DATA_DIR/1/alambic_assets/github-enterprise-assets/0000"
+touch "$GHE_DATA_DIR/1/alambic_assets/github-enterprise-assets/0000/test.png"
 
-    mkdir -p "$GHE_DATA_DIR/1/alambic_assets/github-enterprise-releases/0001"
-    touch "$GHE_DATA_DIR/1/alambic_assets/github-enterprise-releases/0001/1ed78298-522b-11e3-9dc0-22eed1f8132d"
+mkdir -p "$GHE_DATA_DIR/1/alambic_assets/github-enterprise-releases/0001"
+touch "$GHE_DATA_DIR/1/alambic_assets/github-enterprise-releases/0001/1ed78298-522b-11e3-9dc0-22eed1f8132d"
 
-    # Create a fake uuid
-    echo "fake uuid" > "$GHE_DATA_DIR/1/uuid"
-fi
+# Create a fake uuid
+echo "fake uuid" > "$GHE_DATA_DIR/1/uuid"
 
 # Add some fake repositories to the snapshot
 mkdir -p "$GHE_DATA_DIR/1/repositories"
@@ -75,22 +73,17 @@ done
 ln -s 1 "$GHE_DATA_DIR/current"
 
 # create a fake backups for each datastore
-echo "fake ghe-export-pages data" > "$GHE_DATA_DIR/current/pages.tar"
 echo "fake ghe-export-mysql data" | gzip > "$GHE_DATA_DIR/current/mysql.sql.gz"
 echo "fake ghe-export-redis data" > "$GHE_DATA_DIR/current/redis.rdb"
 echo "fake ghe-export-authorized-keys data" > "$GHE_DATA_DIR/current/authorized-keys.json"
-echo "fake ghe-export-es-indices data" > "$GHE_DATA_DIR/current/elasticsearch.tar"
 echo "fake ghe-export-ssh-host-keys data" > "$GHE_DATA_DIR/current/ssh-host-keys.tar"
-echo "fake ghe-export-repositories data" > "$GHE_DATA_DIR/current/repositories.tar"
 echo "fake ghe-export-settings data" > "$GHE_DATA_DIR/current/settings.json"
 echo "fake ghe-export-ssl-ca-certificates data" > "$GHE_DATA_DIR/current/ssl-ca-certificates.tar"
 echo "fake license data" > "$GHE_DATA_DIR/current/enterprise.ghl"
 echo "fake password hash data" > "$GHE_DATA_DIR/current/manage-password"
 echo "rsync" > "$GHE_DATA_DIR/current/strategy"
 echo "$GHE_REMOTE_VERSION" >  "$GHE_DATA_DIR/current/version"
-if [ "$GHE_VERSION_MAJOR" -eq 2 ]; then
-  touch "$GHE_DATA_DIR/current/es-scan-complete"
-fi
+touch "$GHE_DATA_DIR/current/es-scan-complete"
 
 begin_test "ghe-restore into configured vm"
 (
@@ -99,11 +92,7 @@ begin_test "ghe-restore into configured vm"
     setup_remote_metadata
 
     # create file used to determine if instance has been configured.
-    if [ "$GHE_VERSION_MAJOR" -le 1 ]; then
-        touch "$GHE_REMOTE_DATA_DIR/enterprise/dna.json"
-    else
-        touch "$GHE_REMOTE_ROOT_DIR/etc/github/configured"
-    fi
+    touch "$GHE_REMOTE_ROOT_DIR/etc/github/configured"
 
     # create file used to determine if instance is in maintenance mode.
     mkdir -p "$GHE_REMOTE_DATA_DIR/github/current/public/system"
@@ -146,28 +135,26 @@ begin_test "ghe-restore into configured vm"
     # verify all pages data was transferred to the restore location
     diff -ru "$GHE_DATA_DIR/current/pages" "$GHE_REMOTE_DATA_USER_DIR/pages"
 
-    if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
-        # verify management console password was *not* restored
-        ! grep -q "fake password hash data" "$GHE_REMOTE_DATA_USER_DIR/common/secrets.conf"
+    # verify management console password was *not* restored
+    ! grep -q "fake password hash data" "$GHE_REMOTE_DATA_USER_DIR/common/secrets.conf"
 
-        # verify all hookshot user data was transferred
-        diff -ru "$GHE_DATA_DIR/current/hookshot" "$GHE_REMOTE_DATA_USER_DIR/hookshot"
+    # verify all hookshot user data was transferred
+    diff -ru "$GHE_DATA_DIR/current/hookshot" "$GHE_REMOTE_DATA_USER_DIR/hookshot"
 
-        # verify all git hooks data was transferred
-        diff -ru "$GHE_DATA_DIR/current/git-hooks/environments/tarballs" "$GHE_REMOTE_DATA_USER_DIR/git-hooks/environments/tarballs"
-        ! diff -ru "$GHE_DATA_DIR/current/git-hooks/environments" "$GHE_REMOTE_DATA_USER_DIR/git-hooks/environments"
-        diff -ru "$GHE_DATA_DIR/current/git-hooks/repos" "$GHE_REMOTE_DATA_USER_DIR/git-hooks/repos"
+    # verify all git hooks data was transferred
+    diff -ru "$GHE_DATA_DIR/current/git-hooks/environments/tarballs" "$GHE_REMOTE_DATA_USER_DIR/git-hooks/environments/tarballs"
+    ! diff -ru "$GHE_DATA_DIR/current/git-hooks/environments" "$GHE_REMOTE_DATA_USER_DIR/git-hooks/environments"
+    diff -ru "$GHE_DATA_DIR/current/git-hooks/repos" "$GHE_REMOTE_DATA_USER_DIR/git-hooks/repos"
 
-        # verify all alambic assets user data was transferred
-        diff -ru "$GHE_DATA_DIR/current/alambic_assets" "$GHE_REMOTE_DATA_USER_DIR/alambic_assets"
+    # verify all alambic assets user data was transferred
+    diff -ru "$GHE_DATA_DIR/current/alambic_assets" "$GHE_REMOTE_DATA_USER_DIR/alambic_assets"
 
-        # verify the UUID was transferred
-        diff -ru "$GHE_DATA_DIR/current/uuid" "$GHE_REMOTE_DATA_USER_DIR/common/uuid"
+    # verify the UUID was transferred
+    diff -ru "$GHE_DATA_DIR/current/uuid" "$GHE_REMOTE_DATA_USER_DIR/common/uuid"
 
-        # verify the audit log migration sentinel file has been created on 2.9 and above
-        if [ "$GHE_VERSION_MAJOR" -eq 2 ] && [ "$GHE_VERSION_MINOR" -ge 9 ]; then
-          [ -f "$GHE_REMOTE_DATA_USER_DIR/common/es-scan-complete" ]
-        fi
+    # verify the audit log migration sentinel file has been created on 2.9 and above
+    if [ "$GHE_VERSION_MAJOR" -eq 2 ] && [ "$GHE_VERSION_MINOR" -ge 9 ]; then
+      [ -f "$GHE_REMOTE_DATA_USER_DIR/common/es-scan-complete" ]
     fi
 )
 end_test
@@ -190,11 +177,7 @@ begin_test "ghe-restore aborts without user verification"
     setup_remote_metadata
 
     # create file used to determine if instance has been configured.
-    if [ "$GHE_VERSION_MAJOR" -le 1 ]; then
-        touch "$GHE_REMOTE_DATA_DIR/enterprise/dna.json"
-    else
-        touch "$GHE_REMOTE_ROOT_DIR/etc/github/configured"
-    fi
+    touch "$GHE_REMOTE_ROOT_DIR/etc/github/configured"
 
     # create file used to determine if instance is in maintenance mode.
     mkdir -p "$GHE_REMOTE_DATA_DIR/github/current/public/system"
@@ -224,11 +207,7 @@ begin_test "ghe-restore accepts user verification"
     setup_remote_metadata
 
     # create file used to determine if instance has been configured.
-    if [ "$GHE_VERSION_MAJOR" -le 1 ]; then
-        touch "$GHE_REMOTE_DATA_DIR/enterprise/dna.json"
-    else
-        touch "$GHE_REMOTE_ROOT_DIR/etc/github/configured"
-    fi
+    touch "$GHE_REMOTE_ROOT_DIR/etc/github/configured"
 
     # create file used to determine if instance is in maintenance mode.
     mkdir -p "$GHE_REMOTE_DATA_DIR/github/current/public/system"
@@ -291,31 +270,29 @@ begin_test "ghe-restore -c into unconfigured vm"
     # verify all pages data was transferred to the restore location
     diff -ru "$GHE_DATA_DIR/current/pages" "$GHE_REMOTE_DATA_USER_DIR/pages"
 
-    if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
-        # verify management console password
-        grep -q "fake password hash data" "$GHE_REMOTE_DATA_USER_DIR/common/secrets.conf"
+    # verify management console password
+    grep -q "fake password hash data" "$GHE_REMOTE_DATA_USER_DIR/common/secrets.conf"
 
-        # verify all hookshot user data was transferred
-        diff -ru "$GHE_DATA_DIR/current/hookshot" "$GHE_REMOTE_DATA_USER_DIR/hookshot"
+    # verify all hookshot user data was transferred
+    diff -ru "$GHE_DATA_DIR/current/hookshot" "$GHE_REMOTE_DATA_USER_DIR/hookshot"
 
-        # verify all git hooks data was transferred
-        diff -ru "$GHE_DATA_DIR/current/git-hooks/environments/tarballs" "$GHE_REMOTE_DATA_USER_DIR/git-hooks/environments/tarballs"
-        ! diff -ru "$GHE_DATA_DIR/current/git-hooks/environments" "$GHE_REMOTE_DATA_USER_DIR/git-hooks/environments"
-        diff -ru "$GHE_DATA_DIR/current/git-hooks/repos" "$GHE_REMOTE_DATA_USER_DIR/git-hooks/repos"
+    # verify all git hooks data was transferred
+    diff -ru "$GHE_DATA_DIR/current/git-hooks/environments/tarballs" "$GHE_REMOTE_DATA_USER_DIR/git-hooks/environments/tarballs"
+    ! diff -ru "$GHE_DATA_DIR/current/git-hooks/environments" "$GHE_REMOTE_DATA_USER_DIR/git-hooks/environments"
+    diff -ru "$GHE_DATA_DIR/current/git-hooks/repos" "$GHE_REMOTE_DATA_USER_DIR/git-hooks/repos"
 
-        # verify all alambic assets user data was transferred
-        diff -ru "$GHE_DATA_DIR/current/alambic_assets" "$GHE_REMOTE_DATA_USER_DIR/alambic_assets"
+    # verify all alambic assets user data was transferred
+    diff -ru "$GHE_DATA_DIR/current/alambic_assets" "$GHE_REMOTE_DATA_USER_DIR/alambic_assets"
 
-        # verify the UUID was transferred
-        diff -ru "$GHE_DATA_DIR/current/uuid" "$GHE_REMOTE_DATA_USER_DIR/common/uuid"
+    # verify the UUID was transferred
+    diff -ru "$GHE_DATA_DIR/current/uuid" "$GHE_REMOTE_DATA_USER_DIR/common/uuid"
 
-        # verify ghe-export-ssl-ca-certificates was run
-        grep -q "fake ghe-export-ssl-ca-certificates data" "$TRASHDIR/restore-out"
+    # verify ghe-export-ssl-ca-certificates was run
+    grep -q "fake ghe-export-ssl-ca-certificates data" "$TRASHDIR/restore-out"
 
-        # verify the audit log migration sentinel file has been created on 2.9 and above
-        if [ "$GHE_VERSION_MAJOR" -eq 2 ] && [ "$GHE_VERSION_MINOR" -ge 9 ]; then
-          [ -f "$GHE_REMOTE_DATA_USER_DIR/common/es-scan-complete" ]
-        fi
+    # verify the audit log migration sentinel file has been created on 2.9 and above
+    if [ "$GHE_VERSION_MAJOR" -eq 2 ] && [ "$GHE_VERSION_MINOR" -ge 9 ]; then
+      [ -f "$GHE_REMOTE_DATA_USER_DIR/common/es-scan-complete" ]
     fi
 )
 end_test
@@ -337,63 +314,52 @@ begin_test "ghe-restore into unconfigured vm"
     # Create fake remote repositories dir
     mkdir -p "$GHE_REMOTE_DATA_USER_DIR/repositories"
 
-    if [ "$GHE_VERSION_MAJOR" -le 1 ]; then
-        # run ghe-restore and write output to file for asserting against
-        # this should fail due to the appliance being in an unconfigured state
-        ! ghe-restore -v > "$TRASHDIR/restore-out" 2>&1
+    # ghe-restore into an unconfigured vm implies -c
+    ghe-restore -v -f > "$TRASHDIR/restore-out" 2>&1
+    cat "$TRASHDIR/restore-out"
 
-        cat $TRASHDIR/restore-out
+    # verify connect to right host
+    grep -q "Connect 127.0.0.1:22 OK" "$TRASHDIR/restore-out"
 
-        # verify that ghe-restore failed due to the appliance not being configured
-        grep -q -e "Error: $GHE_RESTORE_HOST not configured" "$TRASHDIR/restore-out"
-    else
-        # under version >= 2.0, ghe-restore into an unconfigured vm implies -c
-        ghe-restore -v -f > "$TRASHDIR/restore-out" 2>&1
-        cat "$TRASHDIR/restore-out"
+    # verify all import scripts were run
+    grep -q "alice/index.html" "$TRASHDIR/restore-out"
+    grep -q "fake ghe-export-mysql data" "$TRASHDIR/restore-out"
+    grep -q "fake ghe-export-redis data" "$TRASHDIR/restore-out"
+    grep -q "fake ghe-export-authorized-keys data" "$TRASHDIR/restore-out"
+    grep -q "fake ghe-export-ssh-host-keys data" "$TRASHDIR/restore-out"
 
-        # verify connect to right host
-        grep -q "Connect 127.0.0.1:22 OK" "$TRASHDIR/restore-out"
+    # verify settings were imported
+    grep -q "fake ghe-export-settings data" "$TRASHDIR/restore-out"
 
-        # verify all import scripts were run
-        grep -q "alice/index.html" "$TRASHDIR/restore-out"
-        grep -q "fake ghe-export-mysql data" "$TRASHDIR/restore-out"
-        grep -q "fake ghe-export-redis data" "$TRASHDIR/restore-out"
-        grep -q "fake ghe-export-authorized-keys data" "$TRASHDIR/restore-out"
-        grep -q "fake ghe-export-ssh-host-keys data" "$TRASHDIR/restore-out"
+    # verify all repository data was transferred to the restore location
+    diff -ru "$GHE_DATA_DIR/current/repositories" "$GHE_REMOTE_DATA_USER_DIR/repositories"
 
-        # verify settings were imported
-        grep -q "fake ghe-export-settings data" "$TRASHDIR/restore-out"
+    # verify all pages data was transferred to the restore location
+    diff -ru "$GHE_DATA_DIR/current/pages" "$GHE_REMOTE_DATA_USER_DIR/pages"
 
-        # verify all repository data was transferred to the restore location
-        diff -ru "$GHE_DATA_DIR/current/repositories" "$GHE_REMOTE_DATA_USER_DIR/repositories"
+    # verify all hookshot user data was transferred
+    diff -ru "$GHE_DATA_DIR/current/hookshot" "$GHE_REMOTE_DATA_USER_DIR/hookshot"
 
-        # verify all pages data was transferred to the restore location
-        diff -ru "$GHE_DATA_DIR/current/pages" "$GHE_REMOTE_DATA_USER_DIR/pages"
+    # verify all git hooks data was transferred
+    diff -ru "$GHE_DATA_DIR/current/git-hooks/environments/tarballs" "$GHE_REMOTE_DATA_USER_DIR/git-hooks/environments/tarballs"
+    ! diff -ru "$GHE_DATA_DIR/current/git-hooks/environments" "$GHE_REMOTE_DATA_USER_DIR/git-hooks/environments"
+    diff -ru "$GHE_DATA_DIR/current/git-hooks/repos" "$GHE_REMOTE_DATA_USER_DIR/git-hooks/repos"
 
-        # verify all hookshot user data was transferred
-        diff -ru "$GHE_DATA_DIR/current/hookshot" "$GHE_REMOTE_DATA_USER_DIR/hookshot"
+    # verify all alambic assets user data was transferred
+    diff -ru "$GHE_DATA_DIR/current/alambic_assets" "$GHE_REMOTE_DATA_USER_DIR/alambic_assets"
 
-        # verify all git hooks data was transferred
-        diff -ru "$GHE_DATA_DIR/current/git-hooks/environments/tarballs" "$GHE_REMOTE_DATA_USER_DIR/git-hooks/environments/tarballs"
-        ! diff -ru "$GHE_DATA_DIR/current/git-hooks/environments" "$GHE_REMOTE_DATA_USER_DIR/git-hooks/environments"
-        diff -ru "$GHE_DATA_DIR/current/git-hooks/repos" "$GHE_REMOTE_DATA_USER_DIR/git-hooks/repos"
+    # verify the UUID was transferred
+    diff -ru "$GHE_DATA_DIR/current/uuid" "$GHE_REMOTE_DATA_USER_DIR/common/uuid"
 
-        # verify all alambic assets user data was transferred
-        diff -ru "$GHE_DATA_DIR/current/alambic_assets" "$GHE_REMOTE_DATA_USER_DIR/alambic_assets"
+    # verify ghe-export-ssl-ca-certificates was run
+    grep -q "fake ghe-export-ssl-ca-certificates data" "$TRASHDIR/restore-out"
 
-        # verify the UUID was transferred
-        diff -ru "$GHE_DATA_DIR/current/uuid" "$GHE_REMOTE_DATA_USER_DIR/common/uuid"
+    # verify no config run after restore on unconfigured instance
+    ! grep -q "ghe-config-apply OK" "$TRASHDIR/restore-out"
 
-        # verify ghe-export-ssl-ca-certificates was run
-        grep -q "fake ghe-export-ssl-ca-certificates data" "$TRASHDIR/restore-out"
-
-        # verify no config run after restore on unconfigured instance
-        ! grep -q "ghe-config-apply OK" "$TRASHDIR/restore-out"
-
-        # verify the audit log migration sentinel file has been created on 2.9 and above
-        if [ "$GHE_VERSION_MAJOR" -eq 2 ] && [ "$GHE_VERSION_MINOR" -ge 9 ]; then
-          [ -f "$GHE_REMOTE_DATA_USER_DIR/common/es-scan-complete" ]
-        fi
+    # verify the audit log migration sentinel file has been created on 2.9 and above
+    if [ "$GHE_VERSION_MAJOR" -eq 2 ] && [ "$GHE_VERSION_MINOR" -ge 9 ]; then
+      [ -f "$GHE_REMOTE_DATA_USER_DIR/common/es-scan-complete" ]
     fi
 )
 end_test
@@ -405,11 +371,7 @@ begin_test "ghe-restore with host arg"
     setup_remote_metadata
 
     # create file used to determine if instance has been configured.
-    if [ "$GHE_VERSION_MAJOR" -le 1 ]; then
-        touch "$GHE_REMOTE_DATA_DIR/enterprise/dna.json"
-    else
-        touch "$GHE_REMOTE_ROOT_DIR/etc/github/configured"
-    fi
+    touch "$GHE_REMOTE_ROOT_DIR/etc/github/configured"
 
     # create file used to determine if instance is in maintenance mode.
     mkdir -p "$GHE_REMOTE_DATA_DIR/github/current/public/system"
@@ -434,24 +396,22 @@ begin_test "ghe-restore with host arg"
     # verify all pages data was transferred to the restore location
     diff -ru "$GHE_DATA_DIR/current/pages" "$GHE_REMOTE_DATA_USER_DIR/pages"
 
-    if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
-        # verify all hookshot user data was transferred
-        diff -ru "$GHE_DATA_DIR/current/hookshot" "$GHE_REMOTE_DATA_USER_DIR/hookshot"
+    # verify all hookshot user data was transferred
+    diff -ru "$GHE_DATA_DIR/current/hookshot" "$GHE_REMOTE_DATA_USER_DIR/hookshot"
 
-        diff -ru "$GHE_DATA_DIR/current/git-hooks/environments/tarballs" "$GHE_REMOTE_DATA_USER_DIR/git-hooks/environments/tarballs"
-        ! diff -ru "$GHE_DATA_DIR/current/git-hooks/environments" "$GHE_REMOTE_DATA_USER_DIR/git-hooks/environments"
-        diff -ru "$GHE_DATA_DIR/current/git-hooks/repos" "$GHE_REMOTE_DATA_USER_DIR/git-hooks/repos"
+    diff -ru "$GHE_DATA_DIR/current/git-hooks/environments/tarballs" "$GHE_REMOTE_DATA_USER_DIR/git-hooks/environments/tarballs"
+    ! diff -ru "$GHE_DATA_DIR/current/git-hooks/environments" "$GHE_REMOTE_DATA_USER_DIR/git-hooks/environments"
+    diff -ru "$GHE_DATA_DIR/current/git-hooks/repos" "$GHE_REMOTE_DATA_USER_DIR/git-hooks/repos"
 
-        # verify all alambic assets user data was transferred
-        diff -ru "$GHE_DATA_DIR/current/alambic_assets" "$GHE_REMOTE_DATA_USER_DIR/alambic_assets"
+    # verify all alambic assets user data was transferred
+    diff -ru "$GHE_DATA_DIR/current/alambic_assets" "$GHE_REMOTE_DATA_USER_DIR/alambic_assets"
 
-        # verify the UUID was transferred
-        diff -ru "$GHE_DATA_DIR/current/uuid" "$GHE_REMOTE_DATA_USER_DIR/common/uuid"
+    # verify the UUID was transferred
+    diff -ru "$GHE_DATA_DIR/current/uuid" "$GHE_REMOTE_DATA_USER_DIR/common/uuid"
 
-        # verify the audit log migration sentinel file has been created on 2.9 and above
-        if [ "$GHE_VERSION_MAJOR" -eq 2 ] && [ "$GHE_VERSION_MINOR" -ge 9 ]; then
-          [ -f "$GHE_REMOTE_DATA_USER_DIR/common/es-scan-complete" ]
-        fi
+    # verify the audit log migration sentinel file has been created on 2.9 and above
+    if [ "$GHE_VERSION_MAJOR" -eq 2 ] && [ "$GHE_VERSION_MINOR" -ge 9 ]; then
+      [ -f "$GHE_REMOTE_DATA_USER_DIR/common/es-scan-complete" ]
     fi
 )
 end_test
@@ -463,11 +423,7 @@ begin_test "ghe-restore no host arg or configured restore host"
     setup_remote_metadata
 
     # create file used to determine if instance has been configured.
-    if [ "$GHE_VERSION_MAJOR" -le 1 ]; then
-        touch "$GHE_REMOTE_DATA_DIR/enterprise/dna.json"
-    else
-        touch "$GHE_REMOTE_ROOT_DIR/etc/github/configured"
-    fi
+    touch "$GHE_REMOTE_ROOT_DIR/etc/github/configured"
 
     # create file used to determine if instance is in maintenance mode.
     mkdir -p "$GHE_REMOTE_DATA_DIR/github/current/public/system"
@@ -491,11 +447,7 @@ begin_test "ghe-restore with no pages backup"
     setup_remote_metadata
 
     # create file used to determine if instance has been configured.
-    if [ "$GHE_VERSION_MAJOR" -le 1 ]; then
-        touch "$GHE_REMOTE_DATA_DIR/enterprise/dna.json"
-    else
-        touch "$GHE_REMOTE_ROOT_DIR/etc/github/configured"
-    fi
+    touch "$GHE_REMOTE_ROOT_DIR/etc/github/configured"
 
     # create file used to determine if instance is in maintenance mode.
     mkdir -p "$GHE_REMOTE_DATA_DIR/github/current/public/system"
@@ -509,35 +461,6 @@ begin_test "ghe-restore with no pages backup"
 
     # run it
     ghe-restore -v -f localhost
-)
-end_test
-
-begin_test "ghe-restore with tarball strategy"
-(
-    set -e
-    rm -rf "$GHE_REMOTE_ROOT_DIR"
-    setup_remote_metadata
-
-    # create file used to determine if instance has been configured.
-    if [ "$GHE_VERSION_MAJOR" -le 1 ]; then
-        touch "$GHE_REMOTE_DATA_DIR/enterprise/dna.json"
-    else
-        touch "$GHE_REMOTE_ROOT_DIR/etc/github/configured"
-    fi
-
-    # create file used to determine if instance is in maintenance mode.
-    mkdir -p "$GHE_REMOTE_DATA_DIR/github/current/public/system"
-    touch "$GHE_REMOTE_DATA_DIR/github/current/public/system/maintenance.html"
-
-    # Create fake remote repositories dir
-    mkdir -p "$GHE_REMOTE_DATA_USER_DIR/repositories"
-
-    # run it
-    echo "tarball" > "$GHE_DATA_DIR/current/strategy"
-    output=$(ghe-restore -v -f localhost)
-
-    # verify ghe-import-repositories was run on remote side with fake tarball
-    echo "$output" | grep -q 'fake ghe-export-repositories data'
 )
 end_test
 
@@ -585,11 +508,7 @@ begin_test "ghe-restore cluster backup to non-cluster appliance"
     setup_remote_metadata
 
     # create file used to determine if instance has been configured.
-    if [ "$GHE_VERSION_MAJOR" -le 1 ]; then
-        touch "$GHE_REMOTE_DATA_DIR/enterprise/dna.json"
-    else
-        touch "$GHE_REMOTE_ROOT_DIR/etc/github/configured"
-    fi
+    touch "$GHE_REMOTE_ROOT_DIR/etc/github/configured"
 
     # create file used to determine if instance is in maintenance mode.
     mkdir -p "$GHE_REMOTE_DATA_DIR/github/current/public/system"
@@ -646,11 +565,6 @@ begin_test "ghe-restore fails when restore to an active HA pair"
 (
     set -e
 
-    if [ "$GHE_VERSION_MAJOR" -le 1 ]; then
-      # noop GHE < 2.0, does not support replication
-      skip_test
-    fi
-
     rm -rf "$GHE_REMOTE_ROOT_DIR"
     setup_remote_metadata
 
@@ -690,7 +604,7 @@ begin_test "ghe-restore fails when restore 2.9/2.10 snapshot without audit log m
   set -e
 
   # noop if not testing against 2.11
-  if [ "$GHE_VERSION_MAJOR" -le 1 ] || [ "$GHE_VERSION_MINOR" -ne 11 ]; then
+  if [ "$GHE_VERSION_MAJOR" -ne 2 ] && [ "$GHE_VERSION_MINOR" -ne 11 ]; then
     skip_test
   fi
 
@@ -717,7 +631,7 @@ begin_test "ghe-restore force restore of 2.9/2.10 snapshot without audit log mig
   set -e
 
   # noop if not testing against 2.11
-  if [ "$GHE_VERSION_MAJOR" -le 1 ] || [ "$GHE_VERSION_MINOR" -ne 11 ]; then
+  if [ "$GHE_VERSION_MAJOR" -ne 2 ] && [ "$GHE_VERSION_MINOR" -ne 11 ]; then
     skip_test
   fi
 

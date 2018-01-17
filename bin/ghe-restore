@@ -108,9 +108,7 @@ ghe_remote_version_required "$GHE_HOSTNAME"
 
 # Figure out if this instance has been configured or is entirely new.
 instance_configured=false
-if ghe-ssh "$GHE_HOSTNAME" -- \
-    "[ -f '$GHE_REMOTE_DATA_DIR/enterprise/dna.json' -o \
-       -f '$GHE_REMOTE_ROOT_DIR/etc/github/configured' ]"; then
+if ghe-ssh "$GHE_HOSTNAME" -- "[ -f '$GHE_REMOTE_ROOT_DIR/etc/github/configured' ]"; then
     instance_configured=true
 elif [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
     restore_settings=true
@@ -203,38 +201,18 @@ ghe_remote_logger "Starting restore from $(hostname) / snapshot $GHE_RESTORE_SNA
 # "failed"    - restore has failed
 # "complete"  - restore has completed successfully
 update_restore_status () {
-    if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
-      if $cluster; then
-        echo "ghe-cluster-each -- \"echo '$1' | sudo sponge '$GHE_REMOTE_DATA_USER_DIR/common/ghe-restore-status' >/dev/null\"" |
-        ghe-ssh "$GHE_HOSTNAME" /bin/bash
-      else
-        echo "$1" |
-        ghe-ssh "$GHE_HOSTNAME" -- "sudo sponge '$GHE_REMOTE_DATA_USER_DIR/common/ghe-restore-status' >/dev/null"
-      fi
+    if $cluster; then
+      echo "ghe-cluster-each -- \"echo '$1' | sudo sponge '$GHE_REMOTE_DATA_USER_DIR/common/ghe-restore-status' >/dev/null\"" |
+      ghe-ssh "$GHE_HOSTNAME" /bin/bash
+    else
+      echo "$1" |
+      ghe-ssh "$GHE_HOSTNAME" -- "sudo sponge '$GHE_REMOTE_DATA_USER_DIR/common/ghe-restore-status' >/dev/null"
     fi
 }
 
 # Update remote restore state file and setup failure trap
 trap "cleanup failed" EXIT
 update_restore_status "restoring"
-
-# Verify the host has been fully configured at least once if when running
-# against v11.10.x appliances and the -c option wasn't specified.
-if [ "$GHE_VERSION_MAJOR" -le 1 ] && ! $restore_settings && ! $instance_configured; then
-    echo "Error: $hostname not configured." 1>&2
-    echo "Please visit https://$hostname/setup/settings to configure base appliance settings before continuing." 1>&2
-    exit 1
-fi
-
-# Restoring Elasticsearch to 11.10.3x via rsync requires GNU tar
-if [ "$GHE_VERSION_MAJOR" -le 1 ] && [ "$GHE_BACKUP_STRATEGY" = "rsync" ]; then
-    if ! tar --version | grep GNU >/dev/null; then
-        if ! command -v gtar >/dev/null 2>&1; then
-            echo "GNU tar is required.  Aborting." >&2
-            exit 1
-        fi
-    fi
-fi
 
 # Make sure the GitHub appliance is in maintenance mode.
 if $instance_configured; then
@@ -251,26 +229,25 @@ ghe-backup-store-version  ||
 echo "Warning: storing backup-utils version remotely failed."
 
 # Stop cron and timerd, as scheduled jobs may disrupt the restore process.
-if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
-  echo "Stopping cron and github-timerd ..."
-  if $cluster; then
-    if ! ghe-ssh "$GHE_HOSTNAME" -- "ghe-cluster-each -- sudo service cron stop"; then
-      ghe_verbose "* Warning: Failed to stop cron on one or more nodes"
-    fi
+echo "Stopping cron and github-timerd ..."
+if $cluster; then
+  if ! ghe-ssh "$GHE_HOSTNAME" -- "ghe-cluster-each -- sudo service cron stop"; then
+    ghe_verbose "* Warning: Failed to stop cron on one or more nodes"
+  fi
 
-    if ! ghe-ssh "$GHE_HOSTNAME" -- "ghe-cluster-each -- sudo service github-timerd stop"; then
-      ghe_verbose "* Warning: Failed to stop github-timerd on one or more nodes"
-    fi
-  else
-    if ! ghe-ssh "$GHE_HOSTNAME" -- "sudo service cron stop"; then
-      ghe_verbose "* Warning: Failed to stop cron"
-    fi
+  if ! ghe-ssh "$GHE_HOSTNAME" -- "ghe-cluster-each -- sudo service github-timerd stop"; then
+    ghe_verbose "* Warning: Failed to stop github-timerd on one or more nodes"
+  fi
+else
+  if ! ghe-ssh "$GHE_HOSTNAME" -- "sudo service cron stop"; then
+    ghe_verbose "* Warning: Failed to stop cron"
+  fi
 
-    if ! ghe-ssh "$GHE_HOSTNAME" -- "sudo service github-timerd stop"; then
-      ghe_verbose "* Warning: Failed to stop github-timerd"
-    fi
+  if ! ghe-ssh "$GHE_HOSTNAME" -- "sudo service github-timerd stop"; then
+    ghe_verbose "* Warning: Failed to stop github-timerd"
   fi
 fi
+
 
 # Restore settings and license if restoring to an unconfigured appliance or when
 # specified manually.
@@ -282,10 +259,8 @@ fi
 # appliances v2.x or greater. These services will not have been started on appliances
 # that have not been configured yet.
 if ! $cluster; then
-  if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
-    echo "sudo ghe-service-ensure-mysql && sudo ghe-service-ensure-elasticsearch" |
-    ghe-ssh "$GHE_HOSTNAME" -- /bin/sh 1>&3
-  fi
+  echo "sudo ghe-service-ensure-mysql && sudo ghe-service-ensure-elasticsearch" |
+  ghe-ssh "$GHE_HOSTNAME" -- /bin/sh 1>&3
 fi
 
 # Restore UUID if present and not restoring to cluster.
@@ -322,10 +297,6 @@ if $cluster; then
     ghe-restore-repositories-gist "$GHE_HOSTNAME" 1>&3
   fi
 else
-  # Remove temporary 2.2 storage migration directory if it exists
-  echo "if [ -d /data/user/repositories-nw-backup ]; then sudo rm -rf /data/user/repositories-nw-backup; fi" |
-  ghe-ssh "$GHE_HOSTNAME" -- /bin/sh 1>&3
-
   echo "Restoring Git repositories ..."
   ghe-restore-repositories-${GHE_BACKUP_STRATEGY} "$GHE_HOSTNAME" 1>&3
 fi
@@ -353,7 +324,7 @@ if $cluster; then
   fi
   echo "Restoring custom Git hooks ..."
   ghe-restore-git-hooks-cluster "$GHE_HOSTNAME" 1>&3
-elif [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
+else
   echo "Restoring asset attachments ..."
   ghe-restore-userdata alambic_assets "$GHE_HOSTNAME" 1>&3
 
@@ -386,11 +357,9 @@ if test -f $GHE_RESTORE_SNAPSHOT_PATH/es-scan-complete; then
 fi
 
 # Restart an already running memcached to reset the cache after restore
-if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
-    echo "Restarting memcached ..." 1>&3
-    echo "sudo restart -q memcached 2>/dev/null || true" |
-        ghe-ssh "$GHE_HOSTNAME" -- /bin/sh
-fi
+echo "Restarting memcached ..." 1>&3
+echo "sudo restart -q memcached 2>/dev/null || true" |
+    ghe-ssh "$GHE_HOSTNAME" -- /bin/sh
 
 # When restoring to a host that has already been configured, kick off a
 # config run to perform data migrations.
@@ -399,27 +368,21 @@ if $cluster; then
   ghe-ssh "$GHE_HOSTNAME" -- "ghe-cluster-config-apply" 1>&3 2>&3
 elif $instance_configured; then
   echo "Configuring storage ..."
-  if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
-    ghe-ssh "$GHE_HOSTNAME" -- "ghe-config-apply --full" 1>&3 2>&3
-  else
-    echo "   This will take several minutes to complete..."
-    ghe-ssh "$GHE_HOSTNAME" -- "sudo enterprise-configure" 1>&3 2>&3
-  fi
+  ghe-ssh "$GHE_HOSTNAME" -- "ghe-config-apply --full" 1>&3 2>&3
 fi
 
 # Start cron. Timerd will start automatically as part of the config run.
-if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
-  echo "Starting cron ..."
-  if $cluster; then
-    if ! ghe-ssh "$GHE_HOSTNAME" -- "ghe-cluster-each -- sudo service cron start"; then
-      echo "* Warning: Failed to start cron on one or more nodes"
-    fi
-  else
-    if ! ghe-ssh "$GHE_HOSTNAME" -- "sudo service cron start"; then
-      echo "* Warning: Failed to start cron"
-    fi
+echo "Starting cron ..."
+if $cluster; then
+  if ! ghe-ssh "$GHE_HOSTNAME" -- "ghe-cluster-each -- sudo service cron start"; then
+    echo "* Warning: Failed to start cron on one or more nodes"
+  fi
+else
+  if ! ghe-ssh "$GHE_HOSTNAME" -- "sudo service cron start"; then
+    echo "* Warning: Failed to start cron"
   fi
 fi
+
 
 # Update the remote status to "complete". This has to happen before importing
 # ssh host keys because subsequent commands will fail due to the host key

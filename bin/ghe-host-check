@@ -54,12 +54,6 @@ hostname=$(ssh_host_part "$host")
 set +e
 output=$(echo "ghe-negotiate-version backup-utils $BACKUP_UTILS_VERSION" | ghe-ssh -o BatchMode=no $options $host -- /bin/sh 2>&1)
 rc=$?
-if [ $rc = 127 ]; then
-  # ghe-negotiate-version not found, fallback to reading version file
-  legacy_version_output="1"
-  output=$(echo "cat \"$GHE_REMOTE_METADATA_FILE\" 2>/dev/null || exit 101" | ghe-ssh -o BatchMode=no $options $host -- /bin/sh 2>&1)
-  rc=$?
-fi
 set -e
 
 if [ $rc -ne 0 ]; then
@@ -89,11 +83,7 @@ if [ $rc -ne 0 ]; then
     exit $rc
 fi
 
-if [ -z "$legacy_version_output" ]; then
-  version=$(echo "$output" | sed -n 's/GitHub Enterprise version \(.*\)/\1/p')
-else
-  version=$(echo "$output" | grep version | cut -d'"' -f4)
-fi
+version=$(echo "$output" | sed -n 's/GitHub Enterprise version \(.*\)/\1/p')
 
 if [ -z "$version" ]; then
     echo "Error: failed to parse version on '$host' or this isn't a GitHub appliance." 1>&2

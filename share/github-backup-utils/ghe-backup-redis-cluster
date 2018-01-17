@@ -17,8 +17,6 @@ bm_start "$(basename $0)"
 ghe_remote_version_required "$GHE_HOSTNAME"
 
 # Force a redis BGSAVE, and wait for it to complete.
-sudo=
-[ "$GHE_VERSION_MAJOR" -ge 2 ] && sudo="sudo"
 ghe-ssh "$GHE_HOSTNAME" /bin/bash <<EOF
     set -e
 
@@ -40,9 +38,9 @@ ghe-ssh "$GHE_HOSTNAME" /bin/bash <<EOF
     [ "\$(redis-cli -h \$redis_host LASTSAVE)" != "\$timestamp" ] # exits 1 if bgsave didn't work
 
     if [ "\$redis_host" != "localhost" ]; then
-      ssh \$redis_host $sudo cat '$GHE_REMOTE_DATA_USER_DIR/redis/dump.rdb'
+      ssh \$redis_host sudo cat '$GHE_REMOTE_DATA_USER_DIR/redis/dump.rdb'
     else
-      $sudo cat '$GHE_REMOTE_DATA_USER_DIR/redis/dump.rdb'
+      sudo cat '$GHE_REMOTE_DATA_USER_DIR/redis/dump.rdb'
     fi
 EOF
 

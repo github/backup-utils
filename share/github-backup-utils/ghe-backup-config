@@ -247,19 +247,12 @@ ghe_remote_version_required () {
 # ghe_remote_version_required so shouldn't be used directly.
 #
 # Scripts use these variables to alter behavior based on what's supported on the
-# appliance version. The version parts are modified somewhat to make dealing
-# with the 11.10.x version scheme more sane. The "11.10" part of the remote
-# version is normalized to "1.0" so "11.10.340" would have parts "1.0.340".
+# appliance version.
 ghe_parse_remote_version () {
     GHE_VERSION_MAJOR=$(echo "${1#v}" | cut -f 1 -d .)
     GHE_VERSION_MINOR=$(echo "$1"     | cut -f 2 -d .)
     GHE_VERSION_PATCH=$(echo "$1"     | cut -f 3 -d .)
     GHE_VERSION_PATCH=${GHE_VERSION_PATCH%%[a-zA-Z]*}
-
-    if [ "$GHE_VERSION_MAJOR.$GHE_VERSION_MINOR" = "11.10" ]; then
-        GHE_VERSION_MAJOR=1
-        GHE_VERSION_MINOR=0
-    fi
 
     export GHE_VERSION_MAJOR GHE_VERSION_MINOR GHE_VERSION_PATCH
 }

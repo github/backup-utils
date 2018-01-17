@@ -8,13 +8,14 @@ ROOTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 # Add some fake pages data to the snapshot
 mkdir -p "$GHE_DATA_DIR/1/pages"
 cd "$GHE_DATA_DIR/1/pages"
-mkdir -p alice bob
-touch alice/index.html bob/index.html
+pages1="4/c8/1e/72/2/legacy"
+pages2="4/c1/6a/53/31/dd3a9a0faa88c714ef2dd638b67587f92f109f96"
+mkdir -p "$pages1" "$pages2"
+touch "$pages1/index.html" "$pages2/index.html"
 
 # Add some fake elasticsearch data to the snapshot
 mkdir -p "$GHE_DATA_DIR/1/elasticsearch"
 cd "$GHE_DATA_DIR/1/elasticsearch"
-echo "fake ES yml file" > elasticsearch.yml
 mkdir -p gh-enterprise-es/node/0
 touch gh-enterprise-es/node/0/stuff1
 touch gh-enterprise-es/node/0/stuff2
@@ -59,15 +60,32 @@ echo "fake uuid" > "$GHE_DATA_DIR/1/uuid"
 
 # Add some fake repositories to the snapshot
 mkdir -p "$GHE_DATA_DIR/1/repositories"
+mkdir -p "$TRASHDIR/hooks"
 cd "$GHE_DATA_DIR/1/repositories"
-mkdir alice bob
-mkdir alice/repo1.git alice/repo2.git bob/repo3.git
+repo1="0/nw/01/aa/3f/1234/1234.git"
+repo2="0/nw/01/aa/3f/1234/1235.git"
+repo3="1/nw/23/bb/4c/2345/2345.git"
+mkdir -p "$repo1" "$repo2" "$repo3"
+
+wiki1="0/nw/01/aa/3f/1234/1234.wiki.git"
+mkdir -p "$wiki1"
+
+gist1="0/01/aa/3f/gist/93069ad4c391b6203f183e147d52a97a.git"
+gist2="1/23/bb/4c/gist/1234.git"
+mkdir -p "$gist1" "$gist2"
 
 # Initialize test repositories with a fake commit
-for repo in */*.git; do
+for repo in $(find . -type d -name '*.git' -prune); do
     git init -q --bare "$repo"
     git --git-dir="$repo" --work-tree=. commit -q --allow-empty -m 'test commit'
+    rm -rf "$repo/hooks"
+    ln -s "$TRASHDIR/hooks" "$repo/hooks"
 done
+
+# Add some fake svn data to repo3
+echo "fake svn history data" > "$repo3/svn.history.msgpack"
+mkdir "$repo3/svn_data"
+echo "fake property history data" > "$repo3/svn_data/property_history.msgpack"
 
 # Make the current symlink
 ln -s 1 "$GHE_DATA_DIR/current"
@@ -119,7 +137,7 @@ begin_test "ghe-restore into configured vm"
     grep -q "Connect 127.0.0.1:22 OK" "$TRASHDIR/restore-out"
 
     # verify all import scripts were run
-    grep -q "alice/index.html" "$TRASHDIR/restore-out"
+    grep -q "$pages1/index.html" "$TRASHDIR/restore-out"
     grep -q "fake ghe-export-mysql data" "$TRASHDIR/restore-out"
     grep -q "fake ghe-export-redis data" "$TRASHDIR/restore-out"
     grep -q "fake ghe-export-authorized-keys data" "$TRASHDIR/restore-out"
@@ -255,7 +273,7 @@ begin_test "ghe-restore -c into unconfigured vm"
     grep -q "Connect 127.0.0.1:22 OK" "$TRASHDIR/restore-out"
 
     # verify all import scripts were run
-    grep -q "alice/index.html" "$TRASHDIR/restore-out"
+    grep -q "$pages1/index.html" "$TRASHDIR/restore-out"
     grep -q "fake ghe-export-mysql data" "$TRASHDIR/restore-out"
     grep -q "fake ghe-export-redis data" "$TRASHDIR/restore-out"
     grep -q "fake ghe-export-authorized-keys data" "$TRASHDIR/restore-out"
@@ -322,7 +340,7 @@ begin_test "ghe-restore into unconfigured vm"
     grep -q "Connect 127.0.0.1:22 OK" "$TRASHDIR/restore-out"
 
     # verify all import scripts were run
-    grep -q "alice/index.html" "$TRASHDIR/restore-out"
+    grep -q "$pages1/index.html" "$TRASHDIR/restore-out"
     grep -q "fake ghe-export-mysql data" "$TRASHDIR/restore-out"
     grep -q "fake ghe-export-redis data" "$TRASHDIR/restore-out"
     grep -q "fake ghe-export-authorized-keys data" "$TRASHDIR/restore-out"

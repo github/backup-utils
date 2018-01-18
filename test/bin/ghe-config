@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Usage: ghe-config
+# Emulates the remote GitHub ghe-config secrets.manage command. Tests use this
+# to assert that the command was executed.
+set -e
+if [ $# -eq 1 ]; then
+  git config -f "$GHE_REMOTE_DATA_USER_DIR/common/secrets.conf" "$1"
+else
+  git config -f "$GHE_REMOTE_DATA_USER_DIR/common/secrets.conf" "$1" "$2"
+fi

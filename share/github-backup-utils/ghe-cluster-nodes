@@ -26,14 +26,10 @@ GHE_HOSTNAME="$1"
 prefix="$2"
 role=$(echo "$prefix" | cut -d '-' -f1)
 
-if ghe-ssh "$GHE_HOSTNAME" test -f "$GHE_REMOTE_DATA_USER_DIR/common/uuid"; then
-  node_uuids=$(ghe-ssh "$GHE_HOSTNAME" ghe-cluster-each -r "$role" -u)
-  hostnames=''
-  for uuid in $node_uuids; do
-    hostnames+="$prefix-$uuid "
-  done
-else
-  hostnames=$(ghe-ssh "$GHE_HOSTNAME" ghe-cluster-each -r "$role" -p)
-fi
+node_uuids=$(ghe-ssh "$GHE_HOSTNAME" ghe-cluster-each -r "$role" -u)
+hostnames=''
+for uuid in $node_uuids; do
+  hostnames+="$prefix-$uuid "
+done
 
 echo "$hostnames"

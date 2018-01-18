@@ -112,11 +112,6 @@ setup_remote_license () {
 setup_remote_license
 
 setup_remote_cluster () {
-    if [ "$GHE_VERSION_MAJOR" -lt 2 ] || \
-       ([ "$GHE_VERSION_MAJOR" -eq 2 ] && [ "$GHE_VERSION_MINOR" -le 4 ]); then
-      return 1
-    fi
-
     mkdir -p "$GHE_REMOTE_ROOT_DIR/etc/github"
     touch "$GHE_REMOTE_ROOT_DIR/etc/github/cluster"
 }

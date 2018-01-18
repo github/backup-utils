@@ -173,13 +173,7 @@ failures="$failures hookshot"
 
 echo "Backing up Git repositories ..."
 if [ "$GHE_BACKUP_STRATEGY" = "cluster" ]; then
-  if ghe-ssh "$GHE_HOSTNAME" test -f /data/github/current/bin/dgit-cluster-backup-routes ; then
-    echo "* Using calculated routes method..."
-    ghe-backup-repositories-cluster-ng || failures="$failures repositories"
-  else
-    echo "* Using legacy method. A faster backup method is available on enterprise 2.7 and up."
-    ghe-backup-repositories-cluster || failures="$failures repositories"
-  fi
+  ghe-backup-repositories-cluster-ng || failures="$failures repositories"
 else
   ghe-backup-repositories-${GHE_BACKUP_STRATEGY} ||
   failures="$failures repositories"
@@ -191,11 +185,7 @@ failures="$failures pages"
 
 if [ "$GHE_BACKUP_STRATEGY" = "cluster" ]; then
   echo "Backing up storage data ..."
-  if ghe-ssh "$GHE_HOSTNAME" test -f /data/github/current/bin/storage-cluster-backup-routes; then
-    ghe-backup-alambic-cluster-ng || failures="$failures alambic"
-  else
-    ghe-backup-alambic-cluster || failures="$failures alambic"
-  fi
+  ghe-backup-alambic-cluster-ng || failures="$failures alambic"
 
   echo "Backing up custom Git hooks ..."
   ghe-backup-git-hooks-cluster ||

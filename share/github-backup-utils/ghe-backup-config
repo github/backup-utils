@@ -195,9 +195,7 @@ GHE_SNAPSHOT_DIR="$GHE_DATA_DIR"/"$GHE_SNAPSHOT_TIMESTAMP"
 # called immediately after the remote version is obtained by
 # ghe_remote_version_required(). Child processes inherit the values set here.
 ghe_remote_version_config () {
-    if [ "$GHE_VERSION_MAJOR" -gt 1 ]; then
-        GHE_REMOTE_DATA_USER_DIR="$GHE_REMOTE_DATA_DIR/user"
-    fi
+    GHE_REMOTE_DATA_USER_DIR="$GHE_REMOTE_DATA_DIR/user"
     export GHE_REMOTE_DATA_DIR GHE_REMOTE_DATA_USER_DIR
     export GHE_REMOTE_LICENSE_FILE GHE_REMOTE_METADATA_FILE
 }

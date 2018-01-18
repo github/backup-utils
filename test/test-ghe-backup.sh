@@ -2,7 +2,8 @@
 # ghe-backup command tests
 
 # Bring in testlib
-. $(dirname "$0")/testlib.sh
+# shellcheck source=test/testlib.sh
+. "$(dirname "$0")/testlib.sh"
 
 # Create the backup data dir and fake remote repositories dirs
 mkdir -p "$GHE_DATA_DIR" "$GHE_REMOTE_DATA_USER_DIR"
@@ -88,11 +89,11 @@ begin_test "ghe-backup first snapshot"
 
     # check that the version file was written
     [ -f "$GHE_DATA_DIR/current/version" ]
-    [ $(cat "$GHE_DATA_DIR/current/version") = "v$GHE_TEST_REMOTE_VERSION" ]
+    [ "$(cat "$GHE_DATA_DIR/current/version")" = "v$GHE_TEST_REMOTE_VERSION" ]
 
     # check that the strategy file was written
     [ -f "$GHE_DATA_DIR/current/strategy" ]
-    [ $(cat "$GHE_DATA_DIR/current/strategy") = "rsync" ]
+    [ "$(cat "$GHE_DATA_DIR/current/strategy")" = "rsync" ]
 
     # check that settings were backed up
     [ "$(cat "$GHE_DATA_DIR/current/settings.json")" = "fake ghe-export-settings data" ]
@@ -255,7 +256,7 @@ begin_test "ghe-backup logs the benchmark"
 
   ghe-backup
 
-  [ $(grep took $GHE_DATA_DIR/current/benchmarks/benchmark.foo.log | wc -l) -gt 1 ]
+  [ "$(grep took $GHE_DATA_DIR/current/benchmarks/benchmark.foo.log | wc -l)" -gt 1 ]
 )
 end_test
 
@@ -267,7 +268,8 @@ begin_test "ghe-backup with relative data dir path"
     sleep 1
 
     # generate a timestamp
-    export GHE_SNAPSHOT_TIMESTAMP="relative-$(date +"%Y%m%dT%H%M%S")"
+    GHE_SNAPSHOT_TIMESTAMP="relative-$(date +"%Y%m%dT%H%M%S")"
+    export GHE_SNAPSHOT_TIMESTAMP
 
     # change working directory to the root directory
     cd $ROOTDIR
@@ -276,15 +278,15 @@ begin_test "ghe-backup with relative data dir path"
     GHE_DATA_DIR=$(echo $GHE_DATA_DIR | sed 's|'$ROOTDIR'/||') ghe-backup
 
     # check that current symlink points to new snapshot
-    ls -ld "$GHE_DATA_DIR/current" | grep -q "$GHE_SNAPSHOT_TIMESTAMP"
+    [ "$(ls -ld "$GHE_DATA_DIR/current" | sed 's/.*-> //')" = "$GHE_SNAPSHOT_TIMESTAMP" ]
 
     # check that the version file was written
     [ -f "$GHE_DATA_DIR/current/version" ]
-    [ $(cat "$GHE_DATA_DIR/current/version") = "v$GHE_TEST_REMOTE_VERSION" ]
+    [ "$(cat "$GHE_DATA_DIR/current/version")" = "v$GHE_TEST_REMOTE_VERSION" ]
 
     # check that the strategy file was written
     [ -f "$GHE_DATA_DIR/current/strategy" ]
-    [ $(cat "$GHE_DATA_DIR/current/strategy") = "rsync" ]
+    [ "$(cat "$GHE_DATA_DIR/current/strategy")" = "rsync" ]
 
     # check that settings were backed up
     [ "$(cat "$GHE_DATA_DIR/current/settings.json")" = "fake ghe-export-settings data" ]
@@ -453,7 +455,7 @@ begin_test "ghe-backup with leaked SSH host key detection for current backup"
 (
   set -e
 
-  SHARED_UTILS_PATH=$(dirname $(which ghe-detect-leaked-ssh-keys))
+  SHARED_UTILS_PATH=$(dirname "$(which ghe-detect-leaked-ssh-keys)")
   # Inject the fingerprint into the blacklist
   echo 98:d8:99:d3:be:c0:55:05:db:b0:53:2f:1f:ad:b3:60 >> "$SHARED_UTILS_PATH/ghe-ssh-leaked-host-keys-list.txt"
 

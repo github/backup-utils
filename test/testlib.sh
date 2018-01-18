@@ -47,7 +47,8 @@ export GHE_TEST_REMOTE_VERSION
 
 # Source in the backup config and set GHE_REMOTE_XXX variables based on the
 # remote version established above or in the environment.
-. $( dirname "${BASH_SOURCE[0]}" )/../share/github-backup-utils/ghe-backup-config
+# shellcheck source=share/github-backup-utils/ghe-backup-config
+. "$( dirname "${BASH_SOURCE[0]}" )/../share/github-backup-utils/ghe-backup-config"
 ghe_parse_remote_version "$GHE_TEST_REMOTE_VERSION"
 ghe_remote_version_config "$GHE_TEST_REMOTE_VERSION"
 
@@ -64,7 +65,7 @@ atexit () {
     res=$?
 
     # cleanup injected test key
-    shared_path=$(dirname $(which ghe-detect-leaked-ssh-keys))
+    shared_path=$(dirname "$(which ghe-detect-leaked-ssh-keys)")
     sed -i.bak '/98:d8:99:d3:be:c0:55:05:db:b0:53:2f:1f:ad:b3:60/d' "$shared_path/ghe-ssh-leaked-host-keys-list.txt"
     rm -f "$shared_path/ghe-ssh-leaked-host-keys-list.txt.bak"
 
@@ -85,6 +86,7 @@ cd "$TRASHDIR"
 # Put remote metadata file in place for ghe-host-check which runs with pretty
 # much everything. You can pass a version number in the first argument to test
 # with different remote versions.
+# shellcheck disable=SC2120
 setup_remote_metadata () {
     mkdir -p "$GHE_REMOTE_DATA_DIR" "$GHE_REMOTE_DATA_USER_DIR"
     mkdir -p "$(dirname "$GHE_REMOTE_METADATA_FILE")"
@@ -141,7 +143,7 @@ report_failure () {
   msg=$1
   desc=$2
   failures=$(( failures + 1 ))
-  printf "test: %-73s $msg\n" "$desc ..."
+  printf "test: %-73s $msg\\n" "$desc ..."
   (
       sed 's/^/    /' <"$TRASHDIR/out" |
       grep -a -v -e '^\+ end_test' -e '^+ set +x' <"$TRASHDIR/out" |
@@ -157,9 +159,9 @@ end_test () {
     exec 1>&3 2>&4
 
     if [ "$test_status" -eq 0 ]; then
-      printf "test: %-60s OK\n" "$test_description ..."
+      printf "test: %-60s OK\\n" "$test_description ..."
     elif [ "$test_status" -eq 254 ]; then
-      printf "test: %-60s SKIPPED\n" "$test_description ..."
+      printf "test: %-60s SKIPPED\\n" "$test_description ..."
     else
       report_failure "FAILED" "$test_description ..."
     fi

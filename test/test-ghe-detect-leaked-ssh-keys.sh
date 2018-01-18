@@ -2,9 +2,8 @@
 # ghe-detect-leaked-ssh-keys command tests
 
 # Bring in testlib
-ROOTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 # shellcheck source=test/testlib.sh
-. $ROOTDIR/test/testlib.sh
+. "$(dirname "$0")/testlib.sh"
 
 # Add some fake repositories to the snapshot
 mkdir -p "$GHE_DATA_DIR/1"

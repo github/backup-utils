@@ -2,8 +2,8 @@
 # ghe-restore command tests
 
 # Bring in testlib
-ROOTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
-. $ROOTDIR/test/testlib.sh
+# shellcheck source=test/testlib.sh
+. "$(dirname "$0")/testlib.sh"
 
 # Add some fake pages data to the snapshot
 mkdir -p "$GHE_DATA_DIR/1/pages"
@@ -75,12 +75,12 @@ gist2="1/23/bb/4c/gist/1234.git"
 mkdir -p "$gist1" "$gist2"
 
 # Initialize test repositories with a fake commit
-for repo in $(find . -type d -name '*.git' -prune); do
-    git init -q --bare "$repo"
-    git --git-dir="$repo" --work-tree=. commit -q --allow-empty -m 'test commit'
-    rm -rf "$repo/hooks"
-    ln -s "$TRASHDIR/hooks" "$repo/hooks"
-done
+while IFS= read -r -d '' repo; do
+  git init -q --bare "$repo"
+  git --git-dir="$repo" --work-tree=. commit -q --allow-empty -m 'test commit'
+  rm -rf "$repo/hooks"
+  ln -s "$TRASHDIR/hooks" "$repo/hooks"
+done <   <(find . -type d -name '*.git' -prune -print0)
 
 # Add some fake svn data to repo3
 echo "fake svn history data" > "$repo3/svn.history.msgpack"
@@ -184,7 +184,7 @@ begin_test "ghe-restore logs the benchmark"
   export BM_TIMESTAMP=foo
   export GHE_RESTORE_HOST=127.0.0.1
   ghe-restore -v -f
-  [ $(grep took $GHE_DATA_DIR/current/benchmarks/benchmark.foo.log | wc -l) -gt 1 ]
+  [ "$(grep took $GHE_DATA_DIR/current/benchmarks/benchmark.foo.log | wc -l)" -gt 1 ]
 )
 end_test
 
@@ -563,7 +563,7 @@ EOF
   # Add custom key to tar file
   tar -cf "$GHE_DATA_DIR/current/ssh-host-keys.tar" --directory="$GHE_DATA_DIR" ssh_host_dsa_key.pub
 
-  SHARED_UTILS_PATH=$(dirname $(which ghe-detect-leaked-ssh-keys))
+  SHARED_UTILS_PATH=$(dirname "$(which ghe-detect-leaked-ssh-keys)")
   # Inject the fingerprint into the blacklist
   echo 98:d8:99:d3:be:c0:55:05:db:b0:53:2f:1f:ad:b3:60 >> "$SHARED_UTILS_PATH/ghe-ssh-leaked-host-keys-list.txt"
 

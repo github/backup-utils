@@ -2,11 +2,12 @@
 # ghe-prune-snapshots command tests
 
 # Bring in testlib
-. $(dirname "$0")/testlib.sh
+# shellcheck source=test/testlib.sh
+. "$(dirname "$0")/testlib.sh"
 
 # helper for generating dirs to clean up
 generate_prune_files() {
-  rm -rf "$GHE_DATA_DIR"/*
+  rm -rf "${GHE_DATA_DIR:?}"/*
   prune_file_num=${1:-10}
   for i in $(seq -f '%02g' 1 $prune_file_num); do
     mkdir -p "$GHE_DATA_DIR/$i"
@@ -25,8 +26,8 @@ begin_test "ghe-prune-snapshots using default GHE_NUM_SNAPSHOTS"
     set -e
     generate_prune_files 12
     ghe-prune-snapshots
-    [ $(ls -1d "$GHE_DATA_DIR"/[0-9]* | wc -l) -eq 10 ]
-    [ ! -d "$GHE_DATA_DIR/01" -a ! -d "$GHE_DATA_DIR/02" ]
+    [ "$(ls -1d "$GHE_DATA_DIR"/[0-9]* | wc -l)" -eq 10 ]
+    [ ! -d "$GHE_DATA_DIR/01" ] && [ ! -d "$GHE_DATA_DIR/02" ]
 )
 end_test
 
@@ -67,7 +68,7 @@ begin_test "ghe-prune-snapshots with expired snapshots"
   post_num_files=$(file_count_no_current)
 
   # make sure we have right number of files and right file is deleted
-  [ $post_num_files -eq 2 -a ! -f "$GHE_DATA_DIR/01" -a ! -f "$GHE_DATA_DIR/02" ]
+  [ $post_num_files -eq 2 ] && [ ! -f "$GHE_DATA_DIR/01" ] && [ ! -f "$GHE_DATA_DIR/02" ]
 )
 end_test
 
@@ -78,13 +79,13 @@ begin_test "ghe-prune-snapshots incomplete snapshot pruning"
 
     generate_prune_files 5
 
-    [ $(file_count_no_current) -eq 5 ]
+    [ "$(file_count_no_current)" -eq 5 ]
 
     touch "$GHE_DATA_DIR/04/incomplete"
 
     GHE_NUM_SNAPSHOTS=5 ghe-prune-snapshots
 
-    [ $(file_count_no_current) -eq 4 ]
+    [ "$(file_count_no_current)" -eq 4 ]
     [ ! -d "$GHE_DATA_DIR/04" ]
 )
 end_test

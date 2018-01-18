@@ -2,7 +2,8 @@
 # ghe-backup-repositories-rsync command tests
 
 # Bring in testlib
-. $(dirname "$0")/testlib.sh
+# shellcheck source=test/testlib.sh
+. "$(dirname "$0")/testlib.sh"
 
 # Create the backup data dir and fake remote repositories dirs
 mkdir -p "$GHE_DATA_DIR" "$GHE_REMOTE_DATA_USER_DIR/repositories"
@@ -25,12 +26,12 @@ gist2="1/23/bb/4c/gist/1234.git"
 mkdir -p "$gist1" "$gist2"
 
 # Initialize test repositories with a fake commit
-for repo in $(find . -type d -name '*.git' -prune); do
-    git init -q --bare "$repo"
-    git --git-dir="$repo" --work-tree=. commit -q --allow-empty -m 'test commit'
-    rm -rf "$repo/hooks"
-    ln -s "$TRASHDIR/hooks" "$repo/hooks"
-done
+while IFS= read -r -d '' repo; do
+  git init -q --bare "$repo"
+  git --git-dir="$repo" --work-tree=. commit -q --allow-empty -m 'test commit'
+  rm -rf "$repo/hooks"
+  ln -s "$TRASHDIR/hooks" "$repo/hooks"
+done <   <(find . -type d -name '*.git' -prune -print0)
 
 # Generate a packed-refs file in repo1
 git --git-dir="$repo1" pack-refs
@@ -61,7 +62,9 @@ begin_test "ghe-backup-repositories-rsync first snapshot"
     [ -f "$GHE_DATA_DIR/1/repositories/$repo1/packed-refs" ]
 
     # check that a pack file was transferred
-    [ -f "$GHE_DATA_DIR"/1/repositories/$repo2/objects/pack/*.pack ]
+    for packfile in $GHE_DATA_DIR/1/repositories/$repo2/objects/pack/*.pack; do
+      [ -f "$packfile" ]
+    done
 
     # check that svn data was transferred
     [ -f "$GHE_DATA_DIR"/1/repositories/$repo3/svn.history.msgpack ]

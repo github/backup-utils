@@ -2,7 +2,9 @@
 # ghe-cluster-nodes command tests
 
 # Bring in testlib
-. $(dirname "$0")/testlib.sh
+# shellcheck source=test/testlib.sh
+. "$(dirname "$0")/testlib.sh"
+
 # Setup backup snapshot data dir and remote repositories dir locations to use
 # the per-test temp space.
 GHE_DATA_DIR="$TRASHDIR/data"

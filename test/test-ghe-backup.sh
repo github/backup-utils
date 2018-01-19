@@ -9,10 +9,12 @@
 mkdir -p "$GHE_DATA_DIR" "$GHE_REMOTE_DATA_USER_DIR"
 
 # Create some fake pages data in the remote data directory
-mkdir -p "$GHE_REMOTE_DATA_USER_DIR/pages"
-cd "$GHE_REMOTE_DATA_USER_DIR/pages"
-mkdir -p alice bob
-touch alice/index.html bob/index.html
+mkdir -p "$GHE_DATA_DIR/pages"
+cd "$GHE_DATA_DIR/pages"
+pages1="4/c8/1e/72/2/legacy"
+pages2="4/c1/6a/53/31/dd3a9a0faa88c714ef2dd638b67587f92f109f96"
+mkdir -p "$pages1" "$pages2"
+touch "$pages1/index.html" "$pages2/index.html"
 
 # Create a fake manage password file
 mkdir -p "$GHE_REMOTE_DATA_USER_DIR/common"
@@ -48,7 +50,7 @@ mkdir -p "$GHE_REMOTE_DATA_USER_DIR/alambic_assets/github-enterprise-releases/00
 touch "$GHE_REMOTE_DATA_USER_DIR/alambic_assets/github-enterprise-releases/0001/1ed78298-522b-11e3-9dc0-22eed1f8132d"
 
 # Create a fake UUID
-echo "fake uuid" > "$GHE_REMOTE_DATA_USER_DIR/common/uuid"
+echo "fake-uuid" > "$GHE_REMOTE_DATA_USER_DIR/common/uuid"
 
 # Create fake audit log migration sentinel file
 touch "$GHE_REMOTE_DATA_USER_DIR/common/es-scan-complete"
@@ -62,17 +64,30 @@ touch gh-enterprise-es/node/0/stuff2
 
 # Create some test repositories in the remote repositories dir
 mkdir "$GHE_REMOTE_DATA_USER_DIR/repositories"
+mkdir -p "$TRASHDIR/hooks"
 cd "$GHE_REMOTE_DATA_USER_DIR/repositories"
-mkdir alice bob
-mkdir alice/repo1.git alice/repo2.git bob/repo3.git alice/broken.git
+repo1="0/nw/01/aa/3f/1234/1234.git"
+repo2="0/nw/01/aa/3f/1234/1235.git"
+repo3="1/nw/23/bb/4c/2345/broken.git"
+mkdir -p "$repo1" "$repo2" "$repo3"
+
+wiki1="0/nw/01/aa/3f/1234/1234.wiki.git"
+mkdir -p "$wiki1"
+
+gist1="0/01/aa/3f/gist/93069ad4c391b6203f183e147d52a97a.git"
+gist2="1/23/bb/4c/gist/1234.git"
+mkdir -p "$gist1" "$gist2"
 
 # Initialize test repositories with a fake commit
-for repo in */*.git; do
-    git init -q --bare "$repo"
-    git --git-dir="$repo" --work-tree=. commit -q --allow-empty -m 'test commit'
-done
+while IFS= read -r -d '' repo; do
+  git init -q --bare "$repo"
+  git --git-dir="$repo" --work-tree=. commit -q --allow-empty -m 'test commit'
+  rm -rf "$repo/hooks"
+  ln -s "$TRASHDIR/hooks" "$repo/hooks"
+done <   <(find . -type d -name '*.git' -prune -print0)
+
 # Break a repo to test fsck
-rm -f alice/broken.git/objects/4b/825dc642cb6eb9a060e54bf8d69288fbee4904
+rm -f $repo3/objects/4b/825dc642cb6eb9a060e54bf8d69288fbee4904
 
 begin_test "ghe-backup first snapshot"
 (

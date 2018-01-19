@@ -9,8 +9,8 @@
 mkdir -p "$GHE_DATA_DIR" "$GHE_REMOTE_DATA_USER_DIR"
 
 # Create some fake pages data in the remote data directory
-mkdir -p "$GHE_DATA_DIR/pages"
-cd "$GHE_DATA_DIR/pages"
+mkdir -p "$GHE_REMOTE_DATA_USER_DIR/pages"
+cd "$GHE_REMOTE_DATA_USER_DIR/pages"
 pages1="4/c8/1e/72/2/legacy"
 pages2="4/c1/6a/53/31/dd3a9a0faa88c714ef2dd638b67587f92f109f96"
 mkdir -p "$pages1" "$pages2"
@@ -120,7 +120,8 @@ begin_test "ghe-backup first snapshot"
     [ -d "$GHE_DATA_DIR/current/repositories" ]
 
     # check that pages data was backed up
-    [ -f "$GHE_DATA_DIR/current/pages/alice/index.html" ]
+    [ -f "$GHE_DATA_DIR/current/pages/4/c8/1e/72/2/legacy/index.html" ]
+    [ -f "$GHE_DATA_DIR/current/pages/4/c1/6a/53/31/dd3a9a0faa88c714ef2dd638b67587f92f109f96/index.html" ]
 
     # check that mysql data was backed up
     [ "$(gzip -dc < "$GHE_DATA_DIR/current/mysql.sql.gz")" = "fake ghe-export-mysql data" ]
@@ -208,7 +209,8 @@ begin_test "ghe-backup subsequent snapshot"
     [ -d "$GHE_DATA_DIR/current/repositories" ]
 
     # check that pages data was backed up
-    [ -f "$GHE_DATA_DIR/current/pages/alice/index.html" ]
+    [ -f "$GHE_DATA_DIR/current/pages/4/c8/1e/72/2/legacy/index.html" ]
+    [ -f "$GHE_DATA_DIR/current/pages/4/c1/6a/53/31/dd3a9a0faa88c714ef2dd638b67587f92f109f96/index.html" ]
 
     # check that mysql data was backed up
     [ "$(gzip -dc < "$GHE_DATA_DIR/current/mysql.sql.gz")" = "fake ghe-export-mysql data" ]
@@ -313,7 +315,8 @@ begin_test "ghe-backup with relative data dir path"
     [ -d "$GHE_DATA_DIR/current/repositories" ]
 
     # check that pages data was backed up
-    [ -f "$GHE_DATA_DIR/current/pages/alice/index.html" ]
+    [ -f "$GHE_DATA_DIR/current/pages/4/c8/1e/72/2/legacy/index.html" ]
+    [ -f "$GHE_DATA_DIR/current/pages/4/c1/6a/53/31/dd3a9a0faa88c714ef2dd638b67587f92f109f96/index.html" ]
 
     # check that mysql data was backed up
     [ "$(gzip -dc < "$GHE_DATA_DIR/current/mysql.sql.gz")" = "fake ghe-export-mysql data" ]
@@ -432,7 +435,7 @@ begin_test "ghe-backup fsck"
   set -e
 
   export GHE_BACKUP_FSCK=yes
-  ghe-backup | grep -q "Repos verified: 4, Errors: 1, Took:"
+  ghe-backup | grep -q "Repos verified: 6, Errors: 1, Took:"
   # Verbose mode disabled by default
   ! ghe-backup | grep -q "missing tree 4b825dc642cb6eb9a060e54bf8d69288fbee4904"
   ghe-backup -v | grep -q "missing tree 4b825dc642cb6eb9a060e54bf8d69288fbee4904"

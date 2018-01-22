@@ -3,6 +3,7 @@
 
 # Bring in testlib
 ROOTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
+# shellcheck source=test/testlib.sh
 . $ROOTDIR/test/testlib.sh
 
 # Add some fake repositories to the snapshot
@@ -18,8 +19,6 @@ cp -r "$GHE_DATA_DIR/1" "$GHE_DATA_DIR/2"
 cat <<EOF > "$GHE_DATA_DIR/ssh_host_dsa_key.pub"
 ssh-dss AAAAB3NzaC1kc3MAAACBAMv7O3YNWyAOj6Oa6QhG2qL67FSDoR96cYILilsQpn1j+f21uXOYBRdqauP+8XS2sPYZy6p/T3gJhCeC6ppQWY8n8Wjs/oS8j+nl5KX7JbIqzvSIb0tAKnMI67pqCHTHWx+LGvslgRALJuGxOo7Bp551bNN02Y2gfm2TlHOv6DarAAAAFQChqAK2KkHI+WNkFj54GwGYdX+GCQAAAIEApmXYiT7OYXfmiHzhJ/jfT1ZErPAOwqLbhLTeKL34DkAH9J/DImLAC0tlSyDXjlMzwPbmECdu6LNYh4OZq7vAN/mcM2+Sue1cuJRmkt5B1NYox4fRs3o9RO+DGOcbogUUUQu7OIM/o95zF6dFEfxIWnSsmYvl+Ync4fEgN6ZLjtMAAACBAMRYjDs0g1a9rocKzUQ7fazaXnSNHxZADQW6SIodt7ic1fq4OoO0yUoBf/DSOF8MC/XTSLn33awI9SrbQ5Kk0oGxmV1waoFkqW/MDlypC8sHG0/gxzeJICkwjh/1OVwF6+e0C/6bxtUwV/I+BeMtZ6U2tKy15FKp5Mod7bLBgiee test@backup-utils
 EOF
-
-SHARED_UTILS_PATH=$(dirname $(which ghe-detect-leaked-ssh-keys))
 
 begin_test "ghe-detect-leaked-ssh-keys check -h displays help message"
 (
@@ -45,10 +44,7 @@ begin_test "ghe-detect-leaked-ssh-keys leaked keys in current backup"
   # Add custom key to tar file
   tar -cf "$GHE_DATA_DIR/1/ssh-host-keys.tar" --directory="$GHE_DATA_DIR" ssh_host_dsa_key.pub
 
-  # Inject the fingerprint into the blacklist
-  echo 98:d8:99:d3:be:c0:55:05:db:b0:53:2f:1f:ad:b3:60 >> "$SHARED_UTILS_PATH/ghe-ssh-leaked-host-keys-list.txt"
-
-  ghe-detect-leaked-ssh-keys -s "$GHE_DATA_DIR/1" | grep "Leaked key found in current backup snapshot"
+  FINGERPRINT_BLACKLIST="98:d8:99:d3:be:c0:55:05:db:b0:53:2f:1f:ad:b3:60" ghe-detect-leaked-ssh-keys -s "$GHE_DATA_DIR/1" | grep "Leaked key found in current backup snapshot"
 )
 end_test
 
@@ -59,10 +55,7 @@ begin_test "ghe-detect-leaked-ssh-keys leaked keys in old snapshot"
   # Add custom key to tar file in the older snapshot directory
   tar -cf "$GHE_DATA_DIR/2/ssh-host-keys.tar" --directory="$GHE_DATA_DIR" ssh_host_dsa_key.pub
 
-  # Inject the fingerprint into the blacklist
-  echo 98:d8:99:d3:be:c0:55:05:db:b0:53:2f:1f:ad:b3:60 >> "$SHARED_UTILS_PATH/ghe-ssh-leaked-host-keys-list.txt"
-
-  output=$(ghe-detect-leaked-ssh-keys -s "$GHE_DATA_DIR/2")
+  output=$(FINGERPRINT_BLACKLIST="98:d8:99:d3:be:c0:55:05:db:b0:53:2f:1f:ad:b3:60" ghe-detect-leaked-ssh-keys -s "$GHE_DATA_DIR/2")
   ! echo $output | grep -q "Leaked key in current backup"
   echo $output | grep -q "One or more older backup snapshots"
 )

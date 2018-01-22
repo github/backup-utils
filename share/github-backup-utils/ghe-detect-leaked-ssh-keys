@@ -45,9 +45,10 @@ if (ssh-keygen -E 2>&1 | head -1 |  grep -q 'option requires an argument'); then
 fi
 
 # Bring in the backup configuration
-. $( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config
+# shellcheck source=share/github-backup-utils/ghe-backup-config
+. "$( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config"
 
-fingerprint_blacklist=$(cat "$GHE_BACKUP_ROOT/share/github-backup-utils/ghe-ssh-leaked-host-keys-list.txt")
+FINGERPRINT_BLACKLIST="${FINGERPRINT_BLACKLIST:-$(cat "$GHE_BACKUP_ROOT/share/github-backup-utils/ghe-ssh-leaked-host-keys-list.txt")}"
 
 keys="ssh_host_dsa_key.pub ssh_host_ecdsa_key.pub ssh_host_ed25519_key.pub ssh_host_rsa_key.pub"
 
@@ -71,16 +72,16 @@ leaked_keys_found=false
 current_bkup=false
 for tar_file in $ssh_tars; do
   for key in $keys; do
-    if $(tar -tvf "$tar_file" $key &>/dev/null); then
+    if tar -tvf "$tar_file" $key &>/dev/null; then
       tar -C $TEMPDIR -xvf "$tar_file" $key &>/dev/null
       if $sshkeygen_multiple_hash_formats; then
         fingerprint=$(ssh-keygen -l -E md5 -f $TEMPDIR/$key | cut -d ' ' -f 2 | cut -f2- -d':')
       else
         fingerprint=$(ssh-keygen -lf $TEMPDIR/$key | cut -d ' ' -f 2)
       fi
-      if echo "$fingerprint_blacklist" | grep -q "$fingerprint"; then
+      if echo "$FINGERPRINT_BLACKLIST" | grep -q "$fingerprint"; then
         leaked_keys_found=true
-        if [ "$current_dir" == $(dirname "$tar_file") ]; then
+        if [ "$current_dir" == "$(dirname "$tar_file")" ]; then
           current_bkup=true
           echo "* Leaked key found in current backup snapshot."
         else
@@ -124,8 +125,8 @@ if $leaked_keys_found; then
     echo "* (An upgrade may be required)"
     echo
   fi
-else 
-  echo "* No leaked keys found"  
+else
+  echo "* No leaked keys found"
 fi
 
 # Cleanup temp dir

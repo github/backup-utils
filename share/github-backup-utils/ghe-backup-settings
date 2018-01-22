@@ -28,15 +28,11 @@ ghe-ssh "$host" -- "$comm" > enterprise.ghl
 
 if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
     echo "* Transferring management console password ..." 1>&3
-    manage_password_file="$GHE_REMOTE_DATA_USER_DIR/common/manage-password"
-    if echo "sudo cat '$manage_password_file' 2>/dev/null || true" |
-       ghe-ssh "$host" -- /bin/sh > manage-password+
-    then
-        if [ -n "$(cat manage-password+)" ]; then
-            mv manage-password+ manage-password
-        fi
+    ghe-ssh "$host" -- ghe-config secrets.manage > manage-password+
+    if [ -n "$(cat manage-password+)" ]; then
+      mv manage-password+ manage-password
     else
-        unlink manage-password+
+      unlink manage-password+
     fi
 
     if ghe-ssh "$host" -- "test -f $GHE_REMOTE_DATA_USER_DIR/common/idp.crt"; then

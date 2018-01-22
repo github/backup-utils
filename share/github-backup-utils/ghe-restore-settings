@@ -47,8 +47,8 @@ ghe-ssh "$GHE_HOSTNAME" -- 'ghe-import-license' < "$GHE_RESTORE_SNAPSHOT_PATH/en
 # Restore management console password hash if present.
 if [ -f "$GHE_RESTORE_SNAPSHOT_PATH/manage-password" ]; then
     echo "Restoring management console password ..."
-    cat "$GHE_RESTORE_SNAPSHOT_PATH/manage-password" |
-    ghe-ssh "$GHE_HOSTNAME" -- "ghe-import-passwords"
+    echo "ghe-config secrets.manage '$(cat "$GHE_RESTORE_SNAPSHOT_PATH/manage-password")'" |
+    ghe-ssh "$GHE_HOSTNAME" -- /bin/bash
 fi
 
 # Restore SAML keys if present.

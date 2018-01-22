@@ -15,7 +15,7 @@ touch alice/index.html bob/index.html
 
 # Create a fake manage password file
 mkdir -p "$GHE_REMOTE_DATA_USER_DIR/common"
-echo "fake password hash data" > "$GHE_REMOTE_DATA_USER_DIR/common/manage-password"
+git config -f "$GHE_REMOTE_DATA_USER_DIR/common/secrets.conf" secrets.manage "fake password hash data"
 
 if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
     # Create some fake data in the remote data directory
@@ -416,11 +416,11 @@ begin_test "ghe-backup cleans up stale in-progress file"
 )
 end_test
 
-begin_test "ghe-backup without manage-password file"
+begin_test "ghe-backup without management console password"
 (
     set -e
 
-    unlink "$GHE_REMOTE_DATA_USER_DIR/common/manage-password"
+    git config -f "$GHE_REMOTE_DATA_USER_DIR/common/secrets.conf" secrets.manage ""
     ghe-backup
 
     [ ! -f "$GHE_DATA_DIR/current/manage-password" ]

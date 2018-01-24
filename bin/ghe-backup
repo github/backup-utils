@@ -155,13 +155,7 @@ failures="$failures mysql"
 bm_end "ghe-export-mysql"
 
 echo "Backing up Redis database ..."
-if [ "$GHE_BACKUP_STRATEGY" = "cluster" ]; then
-  ghe-backup-redis-cluster > redis.rdb ||
-    failures="$failures redis"
-else
-  ghe-backup-redis > redis.rdb ||
-    failures="$failures redis"
-fi
+ghe-backup-redis-cluster > redis.rdb || failures="$failures redis"
 
 echo "Backing up audit log ..."
 ghe-backup-es-audit-log ||
@@ -172,35 +166,16 @@ ghe-backup-es-hookshot ||
 failures="$failures hookshot"
 
 echo "Backing up Git repositories ..."
-if [ "$GHE_BACKUP_STRATEGY" = "cluster" ]; then
-  ghe-backup-repositories-cluster-ng || failures="$failures repositories"
-else
-  ghe-backup-repositories-${GHE_BACKUP_STRATEGY} ||
-  failures="$failures repositories"
-fi
+ghe-backup-repositories-cluster-ng || failures="$failures repositories"
 
 echo "Backing up GitHub Pages ..."
-ghe-backup-pages-${GHE_BACKUP_STRATEGY} ||
-failures="$failures pages"
+ghe-backup-pages-cluster || failures="$failures pages"
 
-if [ "$GHE_BACKUP_STRATEGY" = "cluster" ]; then
-  echo "Backing up storage data ..."
-  ghe-backup-alambic-cluster-ng || failures="$failures alambic"
+echo "Backing up storage data ..."
+ghe-backup-alambic-cluster-ng || failures="$failures alambic"
 
-  echo "Backing up custom Git hooks ..."
-  ghe-backup-git-hooks-cluster ||
-  failures="$failures git-hooks"
-else
-  echo "Backing up storage data ..."
-  ghe-backup-userdata storage ||
-  failures="$failures storage"
-
-  echo "Backing up custom Git hooks ..."
-  ghe-backup-userdata git-hooks/environments/tarballs ||
-  failures="$failures git-hooks-environments"
-  ghe-backup-userdata git-hooks/repos ||
-  failures="$failures git-hooks-repos"
-fi
+echo "Backing up custom Git hooks ..."
+ghe-backup-git-hooks-cluster || failures="$failures git-hooks"
 
 if [ "$GHE_BACKUP_STRATEGY" != "cluster" ]; then
   echo "Backing up Elasticsearch indices ..."

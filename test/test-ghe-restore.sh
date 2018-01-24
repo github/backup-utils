@@ -24,12 +24,6 @@ touch gh-enterprise-es/node/0/stuff2
 mkdir -p "$GHE_REMOTE_DATA_USER_DIR/common"
 git config -f "$GHE_REMOTE_DATA_USER_DIR/common/secrets.conf" secrets.manage "foobar"
 
-# Create some fake hookshot data in the remote data directory
-mkdir -p "$GHE_DATA_DIR/1/hookshot"
-cd "$GHE_DATA_DIR/1/hookshot"
-mkdir -p repository-123 repository-456
-touch repository-123/test.bpack repository-456/test.bpack
-
 # Create some fake environments
 mkdir -p "$GHE_DATA_DIR/1/git-hooks/environments/tarballs"
 cd "$GHE_DATA_DIR/1/git-hooks/environments/tarballs"
@@ -47,13 +41,6 @@ touch "$GHE_DATA_DIR/1/git-hooks/repos/1/bar.sh"
 cd "$GHE_DATA_DIR/1/git-hooks/environments"
 mkdir -p 123 456
 touch 123/script.sh 456/foo.sh
-
-# Create some fake alambic data in the remote data directory
-mkdir -p "$GHE_DATA_DIR/1/alambic_assets/github-enterprise-assets/0000"
-touch "$GHE_DATA_DIR/1/alambic_assets/github-enterprise-assets/0000/test.png"
-
-mkdir -p "$GHE_DATA_DIR/1/alambic_assets/github-enterprise-releases/0001"
-touch "$GHE_DATA_DIR/1/alambic_assets/github-enterprise-releases/0001/1ed78298-522b-11e3-9dc0-22eed1f8132d"
 
 # Create a fake uuid
 echo "fake uuid" > "$GHE_DATA_DIR/1/uuid"
@@ -156,16 +143,10 @@ begin_test "ghe-restore into configured vm"
     # verify management console password was *not* restored
     ! grep -q "fake password hash data" "$GHE_REMOTE_DATA_USER_DIR/common/secrets.conf"
 
-    # verify all hookshot user data was transferred
-    diff -ru "$GHE_DATA_DIR/current/hookshot" "$GHE_REMOTE_DATA_USER_DIR/hookshot"
-
     # verify all git hooks data was transferred
     diff -ru "$GHE_DATA_DIR/current/git-hooks/environments/tarballs" "$GHE_REMOTE_DATA_USER_DIR/git-hooks/environments/tarballs"
     ! diff -ru "$GHE_DATA_DIR/current/git-hooks/environments" "$GHE_REMOTE_DATA_USER_DIR/git-hooks/environments"
     diff -ru "$GHE_DATA_DIR/current/git-hooks/repos" "$GHE_REMOTE_DATA_USER_DIR/git-hooks/repos"
-
-    # verify all alambic assets user data was transferred
-    diff -ru "$GHE_DATA_DIR/current/alambic_assets" "$GHE_REMOTE_DATA_USER_DIR/alambic_assets"
 
     # verify the UUID was transferred
     diff -ru "$GHE_DATA_DIR/current/uuid" "$GHE_REMOTE_DATA_USER_DIR/common/uuid"
@@ -291,16 +272,10 @@ begin_test "ghe-restore -c into unconfigured vm"
     # verify management console password
     grep -q "fake password hash data" "$GHE_REMOTE_DATA_USER_DIR/common/secrets.conf"
 
-    # verify all hookshot user data was transferred
-    diff -ru "$GHE_DATA_DIR/current/hookshot" "$GHE_REMOTE_DATA_USER_DIR/hookshot"
-
     # verify all git hooks data was transferred
     diff -ru "$GHE_DATA_DIR/current/git-hooks/environments/tarballs" "$GHE_REMOTE_DATA_USER_DIR/git-hooks/environments/tarballs"
     ! diff -ru "$GHE_DATA_DIR/current/git-hooks/environments" "$GHE_REMOTE_DATA_USER_DIR/git-hooks/environments"
     diff -ru "$GHE_DATA_DIR/current/git-hooks/repos" "$GHE_REMOTE_DATA_USER_DIR/git-hooks/repos"
-
-    # verify all alambic assets user data was transferred
-    diff -ru "$GHE_DATA_DIR/current/alambic_assets" "$GHE_REMOTE_DATA_USER_DIR/alambic_assets"
 
     # verify the UUID was transferred
     diff -ru "$GHE_DATA_DIR/current/uuid" "$GHE_REMOTE_DATA_USER_DIR/common/uuid"
@@ -355,16 +330,10 @@ begin_test "ghe-restore into unconfigured vm"
     # verify all pages data was transferred to the restore location
     diff -ru "$GHE_DATA_DIR/current/pages" "$GHE_REMOTE_DATA_USER_DIR/pages"
 
-    # verify all hookshot user data was transferred
-    diff -ru "$GHE_DATA_DIR/current/hookshot" "$GHE_REMOTE_DATA_USER_DIR/hookshot"
-
     # verify all git hooks data was transferred
     diff -ru "$GHE_DATA_DIR/current/git-hooks/environments/tarballs" "$GHE_REMOTE_DATA_USER_DIR/git-hooks/environments/tarballs"
     ! diff -ru "$GHE_DATA_DIR/current/git-hooks/environments" "$GHE_REMOTE_DATA_USER_DIR/git-hooks/environments"
     diff -ru "$GHE_DATA_DIR/current/git-hooks/repos" "$GHE_REMOTE_DATA_USER_DIR/git-hooks/repos"
-
-    # verify all alambic assets user data was transferred
-    diff -ru "$GHE_DATA_DIR/current/alambic_assets" "$GHE_REMOTE_DATA_USER_DIR/alambic_assets"
 
     # verify the UUID was transferred
     diff -ru "$GHE_DATA_DIR/current/uuid" "$GHE_REMOTE_DATA_USER_DIR/common/uuid"
@@ -414,15 +383,9 @@ begin_test "ghe-restore with host arg"
     # verify all pages data was transferred to the restore location
     diff -ru "$GHE_DATA_DIR/current/pages" "$GHE_REMOTE_DATA_USER_DIR/pages"
 
-    # verify all hookshot user data was transferred
-    diff -ru "$GHE_DATA_DIR/current/hookshot" "$GHE_REMOTE_DATA_USER_DIR/hookshot"
-
     diff -ru "$GHE_DATA_DIR/current/git-hooks/environments/tarballs" "$GHE_REMOTE_DATA_USER_DIR/git-hooks/environments/tarballs"
     ! diff -ru "$GHE_DATA_DIR/current/git-hooks/environments" "$GHE_REMOTE_DATA_USER_DIR/git-hooks/environments"
     diff -ru "$GHE_DATA_DIR/current/git-hooks/repos" "$GHE_REMOTE_DATA_USER_DIR/git-hooks/repos"
-
-    # verify all alambic assets user data was transferred
-    diff -ru "$GHE_DATA_DIR/current/alambic_assets" "$GHE_REMOTE_DATA_USER_DIR/alambic_assets"
 
     # verify the UUID was transferred
     diff -ru "$GHE_DATA_DIR/current/uuid" "$GHE_REMOTE_DATA_USER_DIR/common/uuid"

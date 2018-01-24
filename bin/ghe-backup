@@ -191,17 +191,9 @@ if [ "$GHE_BACKUP_STRATEGY" = "cluster" ]; then
   ghe-backup-git-hooks-cluster ||
   failures="$failures git-hooks"
 else
-  echo "Backing up asset attachments ..."
-  ghe-backup-userdata alambic_assets ||
-  failures="$failures alambic_assets"
-
   echo "Backing up storage data ..."
   ghe-backup-userdata storage ||
   failures="$failures storage"
-
-  echo "Backing up hook deliveries ..."
-  ghe-backup-userdata hookshot ||
-  failures="$failures hookshot"
 
   echo "Backing up custom Git hooks ..."
   ghe-backup-userdata git-hooks/environments/tarballs ||

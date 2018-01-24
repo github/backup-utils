@@ -20,12 +20,6 @@ touch "$pages1/index.html" "$pages2/index.html"
 mkdir -p "$GHE_REMOTE_DATA_USER_DIR/common"
 git config -f "$GHE_REMOTE_DATA_USER_DIR/common/secrets.conf" secrets.manage "fake password hash data"
 
-# Create some fake data in the remote data directory
-mkdir -p "$GHE_REMOTE_DATA_USER_DIR/hookshot"
-cd "$GHE_REMOTE_DATA_USER_DIR/hookshot"
-mkdir -p repository-123 repository-456
-touch repository-123/test.bpack repository-456/test.bpack
-
 # Create some fake hooks in the remote data directory
 mkdir -p "$GHE_REMOTE_DATA_USER_DIR/git-hooks/environments/tarballs"
 mkdir -p "$GHE_REMOTE_DATA_USER_DIR/git-hooks/repos"
@@ -41,13 +35,6 @@ touch 123/abcdef/script.tar.gz 456/fed314/foo.tar.gz
 cd "$GHE_REMOTE_DATA_USER_DIR/git-hooks/repos"
 mkdir -p 321 654
 touch 321/script.sh 654/foo.sh
-
-# Create some fake alambic data in the remote data directory
-mkdir -p "$GHE_REMOTE_DATA_USER_DIR/alambic_assets/github-enterprise-assets/0000"
-touch "$GHE_REMOTE_DATA_USER_DIR/alambic_assets/github-enterprise-assets/0000/test.png"
-
-mkdir -p "$GHE_REMOTE_DATA_USER_DIR/alambic_assets/github-enterprise-releases/0001"
-touch "$GHE_REMOTE_DATA_USER_DIR/alambic_assets/github-enterprise-releases/0001/1ed78298-522b-11e3-9dc0-22eed1f8132d"
 
 # Create a fake UUID
 echo "fake-uuid" > "$GHE_REMOTE_DATA_USER_DIR/common/uuid"
@@ -147,9 +134,6 @@ begin_test "ghe-backup first snapshot"
     # verify manage-password file was backed up under v2.x VMs
     [ "$(cat "$GHE_DATA_DIR/current/manage-password")" = "fake password hash data" ]
 
-    # verify all hookshot user data was transferred
-    diff -ru "$GHE_REMOTE_DATA_USER_DIR/hookshot" "$GHE_DATA_DIR/current/hookshot"
-
     # verify all git hooks tarballs were transferred
     diff -ru "$GHE_REMOTE_DATA_USER_DIR/git-hooks/environments/tarballs" "$GHE_DATA_DIR/current/git-hooks/environments/tarballs"
 
@@ -158,9 +142,6 @@ begin_test "ghe-backup first snapshot"
 
     # verify the extracted repositories were transferred
     diff -ru "$GHE_REMOTE_DATA_USER_DIR/git-hooks/repos" "$GHE_DATA_DIR/current/git-hooks/repos"
-
-    # verify all alambic assets user data was transferred
-    diff -ru "$GHE_REMOTE_DATA_USER_DIR/alambic_assets" "$GHE_DATA_DIR/current/alambic_assets"
 
     # verify the UUID was transferred
     diff -ru "$GHE_REMOTE_DATA_USER_DIR/common/uuid" "$GHE_DATA_DIR/current/uuid"
@@ -236,9 +217,6 @@ begin_test "ghe-backup subsequent snapshot"
     # verify manage-password file was backed up under v2.x VMs
     [ "$(cat "$GHE_DATA_DIR/current/manage-password")" = "fake password hash data" ]
 
-    # verify all hookshot user data was transferred
-    diff -ru "$GHE_REMOTE_DATA_USER_DIR/hookshot" "$GHE_DATA_DIR/current/hookshot"
-
     # verify all git hooks tarballs were transferred
     diff -ru "$GHE_REMOTE_DATA_USER_DIR/git-hooks/environments/tarballs" "$GHE_DATA_DIR/current/git-hooks/environments/tarballs"
 
@@ -247,9 +225,6 @@ begin_test "ghe-backup subsequent snapshot"
 
     # verify the extracted repositories were transferred
     diff -ru "$GHE_REMOTE_DATA_USER_DIR/git-hooks/repos" "$GHE_DATA_DIR/current/git-hooks/repos"
-
-    # verify all alambic assets user data was transferred
-    diff -ru "$GHE_REMOTE_DATA_USER_DIR/alambic_assets" "$GHE_DATA_DIR/current/alambic_assets"
 
     # verify the UUID was transferred
     diff -ru "$GHE_REMOTE_DATA_USER_DIR/common/uuid" "$GHE_DATA_DIR/current/uuid"
@@ -342,9 +317,6 @@ begin_test "ghe-backup with relative data dir path"
     # verify manage-password file was backed up under v2.x VMs
     [ "$(cat "$GHE_DATA_DIR/current/manage-password")" = "fake password hash data" ]
 
-    # verify all hookshot user data was transferred
-    diff -ru "$GHE_REMOTE_DATA_USER_DIR/hookshot" "$GHE_DATA_DIR/current/hookshot"
-
     # verify all git hooks tarballs were transferred
     diff -ru "$GHE_REMOTE_DATA_USER_DIR/git-hooks/environments/tarballs" "$GHE_DATA_DIR/current/git-hooks/environments/tarballs"
 
@@ -353,9 +325,6 @@ begin_test "ghe-backup with relative data dir path"
 
     # verify the extracted repositories were transferred
     diff -ru "$GHE_REMOTE_DATA_USER_DIR/git-hooks/repos" "$GHE_DATA_DIR/current/git-hooks/repos"
-
-    # verify all alambic assets user data was transferred
-    diff -ru "$GHE_REMOTE_DATA_USER_DIR/alambic_assets" "$GHE_DATA_DIR/current/alambic_assets"
 
     # verify the UUID was transferred
     diff -ru "$GHE_REMOTE_DATA_USER_DIR/common/uuid" "$GHE_DATA_DIR/current/uuid"

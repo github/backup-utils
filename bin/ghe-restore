@@ -309,14 +309,8 @@ if $cluster; then
   echo "Restoring custom Git hooks ..."
   ghe-restore-git-hooks-cluster "$GHE_HOSTNAME" 1>&3
 else
-  echo "Restoring asset attachments ..."
-  ghe-restore-userdata alambic_assets "$GHE_HOSTNAME" 1>&3
-
   echo "Restoring storage data ..."
   ghe-restore-userdata storage "$GHE_HOSTNAME" 1>&3
-
-  echo "Restoring hook deliveries ..."
-  ghe-restore-userdata hookshot "$GHE_HOSTNAME" 1>&3
 
   echo "Restoring custom Git hooks ..."
   ghe-restore-userdata git-hooks/environments/tarballs "$GHE_HOSTNAME" 1>&3

@@ -89,19 +89,8 @@ cd "$TRASHDIR"
 # shellcheck disable=SC2120
 setup_remote_metadata () {
     mkdir -p "$GHE_REMOTE_DATA_DIR" "$GHE_REMOTE_DATA_USER_DIR"
-    mkdir -p "$(dirname "$GHE_REMOTE_METADATA_FILE")"
-
-    if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
-        mkdir -p "$GHE_REMOTE_DATA_USER_DIR/common"
-        mkdir -p "$GHE_REMOTE_ROOT_DIR/etc/github"
-    fi
-
-    echo '
-    {
-      "timestamp": "Wed Jul 30 13:48:52 +0000 2014",
-      "version": "'${1:-$GHE_TEST_REMOTE_VERSION}'"
-    }
-    ' > "$GHE_REMOTE_METADATA_FILE"
+    mkdir -p "$GHE_REMOTE_DATA_USER_DIR/common"
+    mkdir -p "$GHE_REMOTE_ROOT_DIR/etc/github"
 }
 setup_remote_metadata
 

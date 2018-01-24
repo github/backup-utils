@@ -163,12 +163,6 @@ GHE_SNAPSHOT_DIR="$GHE_DATA_DIR"/"$GHE_SNAPSHOT_TIMESTAMP"
 # allows the location to be overridden in tests.
 : ${GHE_REMOTE_LICENSE_FILE:="$GHE_REMOTE_DATA_DIR/enterprise/enterprise.ghl"}
 
-# The legacy location of the metadata file on the remote side. Only used if
-# the newer "ghe-negotiate-version" script cannot be found or fails. This was
-# "/data/enterprise/metadata.json" for GitHub instances. Use of this variable
-# allows the location to be overridden in tests.
-: ${GHE_REMOTE_METADATA_FILE:="$GHE_REMOTE_DATA_DIR/enterprise/chef_metadata.json"}
-
 # The number of seconds to wait for in progress git-gc processes to complete
 # before starting the sync of git data. See share/github-backup-utils/ghe-backup-repositories-rsync
 # for more information. Default: 10 minutes.
@@ -197,7 +191,7 @@ GHE_SNAPSHOT_DIR="$GHE_DATA_DIR"/"$GHE_SNAPSHOT_TIMESTAMP"
 ghe_remote_version_config () {
     GHE_REMOTE_DATA_USER_DIR="$GHE_REMOTE_DATA_DIR/user"
     export GHE_REMOTE_DATA_DIR GHE_REMOTE_DATA_USER_DIR
-    export GHE_REMOTE_LICENSE_FILE GHE_REMOTE_METADATA_FILE
+    export GHE_REMOTE_LICENSE_FILE
 }
 
 ###############################################################################

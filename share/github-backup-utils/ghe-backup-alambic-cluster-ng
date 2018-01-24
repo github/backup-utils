@@ -47,20 +47,24 @@ mkdir -p "$backup_dir"
 # Removes the remote sync-in-progress file on exit, re-enabling GC operations
 # on the remote instance.
 cleanup() {
-  # Enable remote maintenance operations
-  for hostname in $hostnames; do
-    ghe-gc-enable -F $ssh_config_file $hostname:$port
-  done
+  # Enable remote maintenance operations, unless testing
+  if [ -z "$GHE_TEST_REMOTE_VERSION" ]; then
+    for hostname in $hostnames; do
+      ghe-gc-enable -F $ssh_config_file $hostname:$port
+    done
+  fi
 
   ghe-ssh "$GHE_HOSTNAME" -- rm -rf $tempdir
   rm -rf $tempdir
 }
 trap 'cleanup' EXIT INT
 
-# Disable remote maintenance operations
-for hostname in $hostnames; do
-  ghe-gc-disable -F $ssh_config_file $hostname:$port
-done
+# Disable remote maintenance operations, unless testing
+if [ -z "$GHE_TEST_REMOTE_VERSION" ]; then
+  for hostname in $hostnames; do
+    ghe-gc-disable -F $ssh_config_file $hostname:$port
+  done
+fi
 
 # If we have a previous increment and it is not empty, avoid transferring existing files via rsync's
 # --link-dest support. This also decreases physical space usage considerably.

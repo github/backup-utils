@@ -50,7 +50,6 @@ backup_dir="$GHE_SNAPSHOT_DIR/repositories"
 backup_current="$GHE_DATA_DIR/current/repositories"
 
 tempdir=$(mktemp -d)
-to_backup=$tempdir/to_backup
 
 # Verify rsync is available.
 if ! rsync --version 1>/dev/null 2>&1; then

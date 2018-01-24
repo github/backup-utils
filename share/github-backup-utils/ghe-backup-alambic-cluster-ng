@@ -37,11 +37,9 @@ user="${host%@*}"
 hostnames=$(ghe-cluster-nodes "$GHE_HOSTNAME" "storage-server")
 
 tempdir=$(mktemp -d -t backup-utils-restore-XXXXXX)
-ghe-ssh "$GHE_HOSTNAME" -- mkdir -p $tempdir
 ssh_config_file=$tempdir/ssh_config
 ghe-ssh-config "$GHE_HOSTNAME" "$hostnames" > "$ssh_config_file"
 opts="$GHE_EXTRA_SSH_OPTS -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no"
-routes_list=$tempdir/routes_list
 
 # Make sure root backup dir exists if this is the first run
 mkdir -p "$backup_dir"

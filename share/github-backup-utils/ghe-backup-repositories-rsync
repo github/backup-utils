@@ -221,20 +221,13 @@ rsync_repository_data -H <<RULES
 + /*/nw/??/??/??/*/*.git/objects/**
 RULES
 
-# Sync __special__ data directories, including the __alambic_assets__,
-# __hookshot__, and __purgatory__ directories. The __nodeload_archives__,
-# __gitmon__, and __render__ directories are excludes since they act only as
-# caches.
-#
+# Sync __special__ data directories. 
 # Under v2.x and greater, only the special __purgatory__ directory remains under
 # /data/repositories. All other special user data directories have been moved under
 # the /data/user directory.
 echo 1>&3
 echo "* Transferring special data directories ..." 1>&3
 rsync_repository_data <<RULES
-- /__nodeload_archives__/
-- /__gitmon__/
-- /__render__/
 + /__*__/
 + /__*__/**
 + /info/

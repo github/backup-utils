@@ -36,6 +36,16 @@ cd "$GHE_REMOTE_DATA_USER_DIR/git-hooks/repos"
 mkdir -p 321 654
 touch 321/script.sh 654/foo.sh
 
+mkdir -p "$GHE_REMOTE_DATA_USER_DIR/storage/"
+cd "$GHE_REMOTE_DATA_USER_DIR/storage/"
+object1="2/20/e1"
+object2="8/80/76"
+object3="e/ed/1a"
+mkdir -p "$object1" "$object2" "$object3"
+touch "$object1/20e1b33c19d81f490716c470c0583772b05a153831d55441cc5e7711eda5a241"
+touch "$object2/80766a2b18a96b9a5927ebdd980dc8d0820bea7ff0897b1b119af4bf20974d32"
+touch "$object3/ed1aa60f0706cefde8ba2b3be662d3a0e0e1fbc94a52a3201944684cc0c5f244"
+
 # Create a fake UUID
 echo "fake-uuid" > "$GHE_REMOTE_DATA_USER_DIR/common/uuid"
 

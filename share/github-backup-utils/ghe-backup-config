@@ -289,13 +289,6 @@ ghe_remote_logger () {
     ghe-ssh "$GHE_HOSTNAME" -- logger -t backup-utils || true
 }
 
-# Usage: ghe_cluster_online_nodes role
-# Returns the online nodes with a certain role in cluster
-ghe_cluster_online_nodes () {
-    role=$1
-    echo "ghe-config --get-regexp cluster.*.$role | egrep 'true$' | awk '{ print \$1; }' | awk 'BEGIN { FS=\".\" }; { print \$2 };' | xargs -I{} -n1 bash -c 'if [ \"\$(ghe-config cluster.{}.offline)\" != true ]; then ghe-config cluster.{}.hostname; fi'" | ghe-ssh "$GHE_HOSTNAME" /bin/bash
-}
-
 # Usage: ghe_verbose <message>
 # Log if verbose mode is enabled (GHE_VERBOSE or `-v`).
 ghe_verbose() {

@@ -41,7 +41,7 @@ host=$(ssh_host_part "$GHE_HOSTNAME")
 user="${host%@*}"
 [ "$user" = "$host" ] && user="admin"
 
-hostnames=$(ghe-cluster-hostnames "$GHE_HOSTNAME" "pages-server")
+hostnames=$(ghe-cluster-nodes "$GHE_HOSTNAME" "pages-server")
 
 ssh_config_file=$(mktemp -t cluster-backup-restore-XXXXXX)
 ghe-ssh-config "$GHE_HOSTNAME" "$hostnames" > "$ssh_config_file"

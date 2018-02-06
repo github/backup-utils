@@ -21,7 +21,6 @@ done
 # Bring in the backup configuration
 . $( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config
 
-sdir=/data/user
 repos=0
 errors=0
 log=$(mktemp --dry-run -t ghe-backup-fsck-XXXXXX)
@@ -30,12 +29,12 @@ git_cmd="git fsck --no-dangling"
 
 echo "Running git fsck on $GHE_HOSTNAME ..."
 
-if ! ghe-ssh $ssh_config_opts $GHE_HOSTNAME test -d "$sdir/repositories"; then
+if ! ghe-ssh $ssh_config_opts $GHE_HOSTNAME test -d "$GHE_REMOTE_DATA_USER_DIR/repositories"; then
   echo "Error: can't find git repositories in /data/user/repositories" >&2
   exit 1
 fi
 
-for repo in $(ghe-ssh $ssh_config_opts $GHE_HOSTNAME sudo find $sdir/repositories/ -type d -name \*.git); do
+for repo in $(ghe-ssh $ssh_config_opts $GHE_HOSTNAME sudo find $GHE_REMOTE_DATA_USER_DIR/repositories -type d -name \*.git); do
   repos=$(($repos+1))
   before_time=$(date +%s)
 

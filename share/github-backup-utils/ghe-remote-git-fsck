@@ -23,7 +23,7 @@ done
 
 repos=0
 errors=0
-log=$(mktemp --dry-run -t ghe-backup-fsck-XXXXXX)
+log=$(mktemp -t ghe-backup-fsck-XXXXXX)
 t_start=$(date +%s)
 git_cmd="git fsck --no-dangling"
 

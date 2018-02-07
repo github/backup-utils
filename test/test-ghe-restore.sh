@@ -426,14 +426,15 @@ begin_test "ghe-restore remote fsck"
   ghe-restore -f | grep -q "Repos verified: 4, Errors: 1, Took"
   # Verbose mode disabled by default
   ! ghe-restore -f | grep -q "missing tree 4b825dc642cb6eb9a060e54bf8d69288fbee4904"
-  ghe-restore -v -f > $TRASHDIR/out
-  grep -q "missing tree 4b825dc642cb6eb9a060e54bf8d69288fbee4904" $TRASHDIR/out
-  ! grep -E -q "git alice/broken \ds" $TRASHDIR/out
+  ghe-restore -v -f > $TRASHDIR/restore-fsck.out
+  grep -q "missing tree 4b825dc642cb6eb9a060e54bf8d69288fbee4904" $TRASHDIR/restore-fsck.out
+  ! grep -E -q "git alice/broken" $TRASHDIR/restore-fsck.out
 
   # Check repo owner and name are printed
   export GHE_REMOTE_GIT_FSCK_PRINT_NWO=yes
-  ghe-restore -v -f > $TRASHDIR/out
-  grep -E -q "git alice/broken \ds" $TRASHDIR/out
+  ghe-restore -v -f > $TRASHDIR/restore-fsck.out
+  cat $TRASHDIR/restore-fsck.out
+  grep -q "git alice/broken" $TRASHDIR/restore-fsck.out
 
   export GHE_REMOTE_GIT_FSCK=no
   ! ghe-restore -f | grep -q "Repos verified:"

@@ -402,6 +402,44 @@ begin_test "ghe-restore into unconfigured vm"
 )
 end_test
 
+begin_test "ghe-restore remote fsck"
+(
+  set -e
+  [ "$GHE_VERSION_MAJOR" -le 1 ] && skip_test
+
+  rm -rf "$GHE_REMOTE_ROOT_DIR"
+  setup_remote_metadata
+
+  # create file used to determine if instance is in maintenance mode.
+  mkdir -p "$GHE_REMOTE_DATA_DIR/github/current/public/system"
+  touch "$GHE_REMOTE_DATA_DIR/github/current/public/system/maintenance.html"
+
+  # Create fake remote repositories dir
+  mkdir -p "$GHE_REMOTE_DATA_USER_DIR/repositories"
+
+  # set restore host environ var
+  GHE_RESTORE_HOST=127.0.0.1
+  export GHE_RESTORE_HOST
+
+  export GHE_REMOTE_GIT_FSCK=yes
+  export GHE_REMOTE_GIT_FSCK_ABORT_ON_ERROR=no
+  ghe-restore -f | grep -q "Repos verified: 4, Errors: 1, Took"
+  # Verbose mode disabled by default
+  ! ghe-restore -f | grep -q "missing tree 4b825dc642cb6eb9a060e54bf8d69288fbee4904"
+  ghe-restore -v -f > $TRASHDIR/out
+  grep -q "missing tree 4b825dc642cb6eb9a060e54bf8d69288fbee4904" $TRASHDIR/out
+  ! grep -E -q "git alice/broken \ds" $TRASHDIR/out
+
+  # Check repo owner and name are printed
+  export GHE_REMOTE_GIT_FSCK_PRINT_NWO=yes
+  ghe-restore -v -f > $TRASHDIR/out
+  grep -E -q "git alice/broken \ds" $TRASHDIR/out
+
+  export GHE_REMOTE_GIT_FSCK=no
+  ! ghe-restore -f | grep -q "Repos verified:"
+)
+end_test
+
 begin_test "ghe-restore with host arg"
 (
     set -e
@@ -609,44 +647,6 @@ begin_test "ghe-restore cluster backup to non-cluster appliance"
 )
 end_test
 
-begin_test "ghe-restore remote fsck"
-(
-  set -e
-  [ "$GHE_VERSION_MAJOR" -le 1 ] && skip_test
-
-  rm -rf "$GHE_REMOTE_ROOT_DIR"
-  setup_remote_metadata
-
-  # create file used to determine if instance is in maintenance mode.
-  mkdir -p "$GHE_REMOTE_DATA_DIR/github/current/public/system"
-  touch "$GHE_REMOTE_DATA_DIR/github/current/public/system/maintenance.html"
-
-  # Create fake remote repositories dir
-  mkdir -p "$GHE_REMOTE_DATA_USER_DIR/repositories"
-
-  # set restore host environ var
-  GHE_RESTORE_HOST=127.0.0.1
-  export GHE_RESTORE_HOST
-
-  export GHE_REMOTE_GIT_FSCK=yes
-  export GHE_REMOTE_GIT_FSCK_ABORT_ON_ERROR=no
-  ghe-restore -f | grep -q "Repos verified: 4, Errors: 1, Took"
-  # Verbose mode disabled by default
-  ! ghe-restore -f | grep -q "missing tree 4b825dc642cb6eb9a060e54bf8d69288fbee4904"
-  ghe-restore -v -f > $TRASHDIR/out
-  grep -q "missing tree 4b825dc642cb6eb9a060e54bf8d69288fbee4904" $TRASHDIR/out
-  ! grep -E -q "git alice/broken \ds" $TRASHDIR/out
-
-  # Check repo owner and name are printed
-  export GHE_REMOTE_GIT_FSCK_PRINT_NWO=yes
-  ghe-restore -v -f > $TRASHDIR/out
-  grep -E -q "git alice/broken \ds" $TRASHDIR/out
-
-  export GHE_REMOTE_GIT_FSCK=no
-  ! ghe-restore -f | grep -q "Repos verified:"
-)
-end_test
-
 begin_test "ghe-restore no leaked ssh host keys detected"
 (
   set -e
@@ -776,20 +776,5 @@ begin_test "ghe-restore force restore of 2.9/2.10 snapshot without audit log mig
 
   echo "v2.10.5" > "$GHE_DATA_DIR/current/version"
   ghe-restore -v -f localhost
-)
-end_test
-
-begin_test "ghe-restore remote fsck"
-(
-  set -e
-
-  export GHE_REMOTE_GIT_FSCK=yes
-  ghe-restore -f localhost| grep -q "Repos verified: 4, Errors: 1, Took:"
-  # Verbose mode disabled by default
-  ! ghe-restore | grep -q "missing tree 4b825dc642cb6eb9a060e54bf8d69288fbee4904"
-  ghe-restore -v -f localhost | grep -q "missing tree 4b825dc642cb6eb9a060e54bf8d69288fbee4904"
-
-  export GHE_REMOTE_GIT_FSCK=no
-  ! ghe-restore -f localhost | grep -q "Repos verified:"
 )
 end_test

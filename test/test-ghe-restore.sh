@@ -36,38 +36,8 @@ begin_test "ghe-restore into configured vm"
     # verify connect to right host
     grep -q "Connect 127.0.0.1:22 OK" "$TRASHDIR/restore-out"
 
-    # verify all import scripts were run
-    grep -q "$pages1/index.html" "$TRASHDIR/restore-out"
-    grep -q "fake ghe-export-mysql data" "$TRASHDIR/restore-out"
-    grep -q "fake ghe-export-redis data" "$TRASHDIR/restore-out"
-    grep -q "fake ghe-export-authorized-keys data" "$TRASHDIR/restore-out"
-    grep -q "fake ghe-export-ssh-host-keys data" "$TRASHDIR/restore-out"
-
-    # verify settings import was *not* run due to instance already being
-    # configured.
-    ! grep -q "fake ghe-export-settings data" "$TRASHDIR/restore-out"
-
-    # verify all repository data was transferred to the restore location
-    diff -ru "$GHE_DATA_DIR/current/repositories" "$GHE_REMOTE_DATA_USER_DIR/repositories"
-
-    # verify all pages data was transferred to the restore location
-    diff -ru "$GHE_DATA_DIR/current/pages" "$GHE_REMOTE_DATA_USER_DIR/pages"
-
-    # verify management console password was *not* restored
-    ! grep -q "fake password hash data" "$GHE_REMOTE_DATA_USER_DIR/common/secrets.conf"
-
-    # verify all git hooks data was transferred
-    diff -ru "$GHE_DATA_DIR/current/git-hooks/environments/tarballs" "$GHE_REMOTE_DATA_USER_DIR/git-hooks/environments/tarballs"
-    ! diff -ru "$GHE_DATA_DIR/current/git-hooks/environments" "$GHE_REMOTE_DATA_USER_DIR/git-hooks/environments"
-    diff -ru "$GHE_DATA_DIR/current/git-hooks/repos" "$GHE_REMOTE_DATA_USER_DIR/git-hooks/repos"
-
-    # verify the UUID was transferred
-    diff -ru "$GHE_DATA_DIR/current/uuid" "$GHE_REMOTE_DATA_USER_DIR/common/uuid"
-
-    # verify the audit log migration sentinel file has been created on 2.9 and above
-    if [ "$GHE_VERSION_MAJOR" -eq 2 ] && [ "$GHE_VERSION_MINOR" -ge 9 ]; then
-      [ -f "$GHE_REMOTE_DATA_USER_DIR/common/es-scan-complete" ]
-    fi
+    # Verify all the data we've restored is as expected
+    verify_all_restored_data
 )
 end_test
 
@@ -148,40 +118,8 @@ begin_test "ghe-restore -c into unconfigured vm"
     # verify connect to right host
     grep -q "Connect 127.0.0.1:22 OK" "$TRASHDIR/restore-out"
 
-    # verify all import scripts were run
-    grep -q "$pages1/index.html" "$TRASHDIR/restore-out"
-    grep -q "fake ghe-export-mysql data" "$TRASHDIR/restore-out"
-    grep -q "fake ghe-export-redis data" "$TRASHDIR/restore-out"
-    grep -q "fake ghe-export-authorized-keys data" "$TRASHDIR/restore-out"
-    grep -q "fake ghe-export-ssh-host-keys data" "$TRASHDIR/restore-out"
-
-    # verify settings were imported
-    grep -q "fake ghe-export-settings data" "$TRASHDIR/restore-out"
-
-    # verify all repository data was transferred to the restore location
-    diff -ru "$GHE_DATA_DIR/current/repositories" "$GHE_REMOTE_DATA_USER_DIR/repositories"
-
-    # verify all pages data was transferred to the restore location
-    diff -ru "$GHE_DATA_DIR/current/pages" "$GHE_REMOTE_DATA_USER_DIR/pages"
-
-    # verify management console password
-    grep -q "fake password hash data" "$GHE_REMOTE_DATA_USER_DIR/common/secrets.conf"
-
-    # verify all git hooks data was transferred
-    diff -ru "$GHE_DATA_DIR/current/git-hooks/environments/tarballs" "$GHE_REMOTE_DATA_USER_DIR/git-hooks/environments/tarballs"
-    ! diff -ru "$GHE_DATA_DIR/current/git-hooks/environments" "$GHE_REMOTE_DATA_USER_DIR/git-hooks/environments"
-    diff -ru "$GHE_DATA_DIR/current/git-hooks/repos" "$GHE_REMOTE_DATA_USER_DIR/git-hooks/repos"
-
-    # verify the UUID was transferred
-    diff -ru "$GHE_DATA_DIR/current/uuid" "$GHE_REMOTE_DATA_USER_DIR/common/uuid"
-
-    # verify ghe-export-ssl-ca-certificates was run
-    grep -q "fake ghe-export-ssl-ca-certificates data" "$TRASHDIR/restore-out"
-
-    # verify the audit log migration sentinel file has been created on 2.9 and above
-    if [ "$GHE_VERSION_MAJOR" -eq 2 ] && [ "$GHE_VERSION_MINOR" -ge 9 ]; then
-      [ -f "$GHE_REMOTE_DATA_USER_DIR/common/es-scan-complete" ]
-    fi
+    # Verify all the data we've restored is as expected
+    verify_all_restored_data
 )
 end_test
 
@@ -205,40 +143,8 @@ begin_test "ghe-restore into unconfigured vm"
     # verify connect to right host
     grep -q "Connect 127.0.0.1:22 OK" "$TRASHDIR/restore-out"
 
-    # verify all import scripts were run
-    grep -q "$pages1/index.html" "$TRASHDIR/restore-out"
-    grep -q "fake ghe-export-mysql data" "$TRASHDIR/restore-out"
-    grep -q "fake ghe-export-redis data" "$TRASHDIR/restore-out"
-    grep -q "fake ghe-export-authorized-keys data" "$TRASHDIR/restore-out"
-    grep -q "fake ghe-export-ssh-host-keys data" "$TRASHDIR/restore-out"
-
-    # verify settings were imported
-    grep -q "fake ghe-export-settings data" "$TRASHDIR/restore-out"
-
-    # verify all repository data was transferred to the restore location
-    diff -ru "$GHE_DATA_DIR/current/repositories" "$GHE_REMOTE_DATA_USER_DIR/repositories"
-
-    # verify all pages data was transferred to the restore location
-    diff -ru "$GHE_DATA_DIR/current/pages" "$GHE_REMOTE_DATA_USER_DIR/pages"
-
-    # verify all git hooks data was transferred
-    diff -ru "$GHE_DATA_DIR/current/git-hooks/environments/tarballs" "$GHE_REMOTE_DATA_USER_DIR/git-hooks/environments/tarballs"
-    ! diff -ru "$GHE_DATA_DIR/current/git-hooks/environments" "$GHE_REMOTE_DATA_USER_DIR/git-hooks/environments"
-    diff -ru "$GHE_DATA_DIR/current/git-hooks/repos" "$GHE_REMOTE_DATA_USER_DIR/git-hooks/repos"
-
-    # verify the UUID was transferred
-    diff -ru "$GHE_DATA_DIR/current/uuid" "$GHE_REMOTE_DATA_USER_DIR/common/uuid"
-
-    # verify ghe-export-ssl-ca-certificates was run
-    grep -q "fake ghe-export-ssl-ca-certificates data" "$TRASHDIR/restore-out"
-
-    # verify no config run after restore on unconfigured instance
-    ! grep -q "ghe-config-apply OK" "$TRASHDIR/restore-out"
-
-    # verify the audit log migration sentinel file has been created on 2.9 and above
-    if [ "$GHE_VERSION_MAJOR" -eq 2 ] && [ "$GHE_VERSION_MINOR" -ge 9 ]; then
-      [ -f "$GHE_REMOTE_DATA_USER_DIR/common/es-scan-complete" ]
-    fi
+    # Verify all the data we've restored is as expected
+    verify_all_restored_data
 )
 end_test
 
@@ -261,23 +167,8 @@ begin_test "ghe-restore with host arg"
     # verify host arg overrides configured restore host
     echo "$output" | grep -q 'Connect localhost:22 OK'
 
-    # verify repository data was transferred to the restore location
-    diff -ru "$GHE_DATA_DIR/current/repositories" "$GHE_REMOTE_DATA_USER_DIR/repositories"
-
-    # verify all pages data was transferred to the restore location
-    diff -ru "$GHE_DATA_DIR/current/pages" "$GHE_REMOTE_DATA_USER_DIR/pages"
-
-    diff -ru "$GHE_DATA_DIR/current/git-hooks/environments/tarballs" "$GHE_REMOTE_DATA_USER_DIR/git-hooks/environments/tarballs"
-    ! diff -ru "$GHE_DATA_DIR/current/git-hooks/environments" "$GHE_REMOTE_DATA_USER_DIR/git-hooks/environments"
-    diff -ru "$GHE_DATA_DIR/current/git-hooks/repos" "$GHE_REMOTE_DATA_USER_DIR/git-hooks/repos"
-
-    # verify the UUID was transferred
-    diff -ru "$GHE_DATA_DIR/current/uuid" "$GHE_REMOTE_DATA_USER_DIR/common/uuid"
-
-    # verify the audit log migration sentinel file has been created on 2.9 and above
-    if [ "$GHE_VERSION_MAJOR" -eq 2 ] && [ "$GHE_VERSION_MINOR" -ge 9 ]; then
-      [ -f "$GHE_REMOTE_DATA_USER_DIR/common/es-scan-complete" ]
-    fi
+    # Verify all the data we've restored is as expected
+    verify_all_restored_data
 )
 end_test
 

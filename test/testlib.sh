@@ -284,3 +284,44 @@ setup_test_data () {
     echo "$GHE_REMOTE_VERSION" >  "$loc/version"
   fi
 }
+
+verify_all_restored_data() {
+  set -e
+
+  # verify all import scripts were run
+  #grep -q "4/c8/1e/72/2/legacy/index.html" "$TRASHDIR/restore-out"
+  #grep -q "4/c1/6a/53/31/dd3a9a0faa88c714ef2dd638b67587f92f109f96/index.html" "$TRASHDIR/restore-out"
+  grep -q "fake ghe-export-mysql data" "$TRASHDIR/restore-out"
+  grep -q "fake ghe-export-redis data" "$TRASHDIR/restore-out"
+  grep -q "fake ghe-export-authorized-keys data" "$TRASHDIR/restore-out"
+  grep -q "fake ghe-export-ssh-host-keys data" "$TRASHDIR/restore-out"
+
+  # verify settings import was *not* run due to instance already being
+  # configured.
+  ! grep -q "fake ghe-export-settings data" "$TRASHDIR/restore-out"
+
+  # verify all repository data was transferred to the restore location
+  diff -ru "$GHE_DATA_DIR/current/repositories" "$GHE_REMOTE_DATA_USER_DIR/repositories"
+
+  # verify all pages data was transferred to the restore location
+  #diff -ru "$GHE_DATA_DIR/current/pages" "$GHE_REMOTE_DATA_USER_DIR/pages"
+
+  # verify all ES data was transferred from live directory to the temporary restore directory
+  diff -ru "$GHE_DATA_DIR/current/elasticsearch" "$GHE_REMOTE_DATA_USER_DIR/elasticsearch-restore"
+
+  # verify management console password was *not* restored
+  ! grep -q "fake password hash data" "$GHE_REMOTE_DATA_USER_DIR/common/secrets.conf"
+
+  # verify all git hooks data was transferred
+  diff -ru "$GHE_DATA_DIR/current/git-hooks/environments/tarballs" "$GHE_REMOTE_DATA_USER_DIR/git-hooks/environments/tarballs"
+  ! diff -ru "$GHE_DATA_DIR/current/git-hooks/environments" "$GHE_REMOTE_DATA_USER_DIR/git-hooks/environments"
+  diff -ru "$GHE_DATA_DIR/current/git-hooks/repos" "$GHE_REMOTE_DATA_USER_DIR/git-hooks/repos"
+
+  # verify the UUID was transferred
+  diff -ru "$GHE_DATA_DIR/current/uuid" "$GHE_REMOTE_DATA_USER_DIR/common/uuid"
+
+  # verify the audit log migration sentinel file has been created on 2.9 and above
+  if [ "$GHE_VERSION_MAJOR" -eq 2 ] && [ "$GHE_VERSION_MINOR" -ge 9 ]; then
+    [ -f "$GHE_REMOTE_DATA_USER_DIR/common/es-scan-complete" ]
+  fi
+}

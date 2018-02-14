@@ -24,8 +24,9 @@ indices=$(ls -1 $GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/audit-log/*.gz 2>/dev/null |
 last_month="audit_log(-[0-9]+)?-$(ghe-ssh "$GHE_HOSTNAME" 'date -d "1 month ago" +"%Y-%m"')(-[0-9]+)?"
 current_month="audit_log(-[0-9]+)?-$(ghe-ssh "$GHE_HOSTNAME" 'date +"%Y-%m"')(-[0-9]+)?"
 
+# Only restore indices that don't exist and the last two months' indices.
 for index in $indices; do
-  if ! ghe-ssh "$GHE_HOSTNAME" "curl -f -s -XGET http://localhost:9201/$index" || [[ $index =~ $last_month ]] || [[ $index =~ $current_month ]]; then
+  if ! ghe-ssh "$GHE_HOSTNAME" "curl -f -s -XGET http://localhost:9201/$index > /dev/null" || [[ $index =~ $last_month ]] || [[ $index =~ $current_month ]]; then
     ghe_verbose "* Restoring $index"
     gzip -dc $GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/audit-log/$index.gz | ghe-ssh "$GHE_HOSTNAME" "/usr/local/share/enterprise/ghe-es-load-json 'http://localhost:9201/$index'" 1>&3
   fi

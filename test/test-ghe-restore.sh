@@ -5,90 +5,10 @@
 # shellcheck source=test/testlib.sh
 . "$(dirname "$0")/testlib.sh"
 
-# Add some fake pages data to the snapshot
-mkdir -p "$GHE_DATA_DIR/1/pages"
-cd "$GHE_DATA_DIR/1/pages"
-pages1="4/c8/1e/72/2/legacy"
-pages2="4/c1/6a/53/31/dd3a9a0faa88c714ef2dd638b67587f92f109f96"
-mkdir -p "$pages1" "$pages2"
-touch "$pages1/index.html" "$pages2/index.html"
-
-# Add some fake elasticsearch data to the snapshot
-mkdir -p "$GHE_DATA_DIR/1/elasticsearch"
-cd "$GHE_DATA_DIR/1/elasticsearch"
-mkdir -p gh-enterprise-es/node/0
-touch gh-enterprise-es/node/0/stuff1
-touch gh-enterprise-es/node/0/stuff2
-
-# Set a temporary management console password
-mkdir -p "$GHE_REMOTE_DATA_USER_DIR/common"
-git config -f "$GHE_REMOTE_DATA_USER_DIR/common/secrets.conf" secrets.manage "foobar"
-
-# Create some fake environments
-mkdir -p "$GHE_DATA_DIR/1/git-hooks/environments/tarballs"
-cd "$GHE_DATA_DIR/1/git-hooks/environments/tarballs"
-mkdir -p 123 456
-touch 123/script.sh 456/foo.sh
-cd 123
-tar -czf script.tar.gz script.sh
-cd ../456
-tar -czf foo.tar.gz foo.sh
-cd ..
-rm 123/script.sh 456/foo.sh
-mkdir -p "$GHE_DATA_DIR/1/git-hooks/repos/1"
-touch "$GHE_DATA_DIR/1/git-hooks/repos/1/bar.sh"
-
-cd "$GHE_DATA_DIR/1/git-hooks/environments"
-mkdir -p 123 456
-touch 123/script.sh 456/foo.sh
-
-# Create a fake uuid
-echo "fake uuid" > "$GHE_DATA_DIR/1/uuid"
-
-# Add some fake repositories to the snapshot
-mkdir -p "$GHE_DATA_DIR/1/repositories"
-mkdir -p "$TRASHDIR/hooks"
-cd "$GHE_DATA_DIR/1/repositories"
-repo1="0/nw/01/aa/3f/1234/1234.git"
-repo2="0/nw/01/aa/3f/1234/1235.git"
-repo3="1/nw/23/bb/4c/2345/2345.git"
-mkdir -p "$repo1" "$repo2" "$repo3"
-
-wiki1="0/nw/01/aa/3f/1234/1234.wiki.git"
-mkdir -p "$wiki1"
-
-gist1="0/01/aa/3f/gist/93069ad4c391b6203f183e147d52a97a.git"
-gist2="1/23/bb/4c/gist/1234.git"
-mkdir -p "$gist1" "$gist2"
-
-# Initialize test repositories with a fake commit
-while IFS= read -r -d '' repo; do
-  git init -q --bare "$repo"
-  git --git-dir="$repo" --work-tree=. commit -q --allow-empty -m 'test commit'
-  rm -rf "$repo/hooks"
-  ln -s "$TRASHDIR/hooks" "$repo/hooks"
-done <   <(find . -type d -name '*.git' -prune -print0)
-
-# Add some fake svn data to repo3
-echo "fake svn history data" > "$repo3/svn.history.msgpack"
-mkdir "$repo3/svn_data"
-echo "fake property history data" > "$repo3/svn_data/property_history.msgpack"
+setup_test_data "$GHE_DATA_DIR/1"
 
 # Make the current symlink
 ln -s 1 "$GHE_DATA_DIR/current"
-
-# create a fake backups for each datastore
-echo "fake ghe-export-mysql data" | gzip > "$GHE_DATA_DIR/current/mysql.sql.gz"
-echo "fake ghe-export-redis data" > "$GHE_DATA_DIR/current/redis.rdb"
-echo "fake ghe-export-authorized-keys data" > "$GHE_DATA_DIR/current/authorized-keys.json"
-echo "fake ghe-export-ssh-host-keys data" > "$GHE_DATA_DIR/current/ssh-host-keys.tar"
-echo "fake ghe-export-settings data" > "$GHE_DATA_DIR/current/settings.json"
-echo "fake ghe-export-ssl-ca-certificates data" > "$GHE_DATA_DIR/current/ssl-ca-certificates.tar"
-echo "fake license data" > "$GHE_DATA_DIR/current/enterprise.ghl"
-echo "fake password hash data" > "$GHE_DATA_DIR/current/manage-password"
-echo "rsync" > "$GHE_DATA_DIR/current/strategy"
-echo "$GHE_REMOTE_VERSION" >  "$GHE_DATA_DIR/current/version"
-touch "$GHE_DATA_DIR/current/es-scan-complete"
 
 begin_test "ghe-restore into configured vm"
 (

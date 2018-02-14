@@ -96,15 +96,8 @@ begin_test "ghe-restore into configured vm"
     rm -rf "$GHE_REMOTE_ROOT_DIR"
     setup_remote_metadata
 
-    # create file used to determine if instance has been configured.
-    touch "$GHE_REMOTE_ROOT_DIR/etc/github/configured"
-
-    # create file used to determine if instance is in maintenance mode.
-    mkdir -p "$GHE_REMOTE_DATA_DIR/github/current/public/system"
-    touch "$GHE_REMOTE_DATA_DIR/github/current/public/system/maintenance.html"
-
-    # Create fake remote repositories dir
-    mkdir -p "$GHE_REMOTE_DATA_USER_DIR/repositories"
+    # set as configured, enable maintenance mode and create required directories
+    setup_maintenance_mode "configured"
 
     # set restore host environ var
     GHE_RESTORE_HOST=127.0.0.1
@@ -175,15 +168,8 @@ begin_test "ghe-restore aborts without user verification"
     rm -rf "$GHE_REMOTE_ROOT_DIR"
     setup_remote_metadata
 
-    # create file used to determine if instance has been configured.
-    touch "$GHE_REMOTE_ROOT_DIR/etc/github/configured"
-
-    # create file used to determine if instance is in maintenance mode.
-    mkdir -p "$GHE_REMOTE_DATA_DIR/github/current/public/system"
-    touch "$GHE_REMOTE_DATA_DIR/github/current/public/system/maintenance.html"
-
-    # Create fake remote repositories dir
-    mkdir -p "$GHE_REMOTE_DATA_USER_DIR/repositories"
+    # set as configured, enable maintenance mode and create required directories
+    setup_maintenance_mode "configured"
 
     # set restore host environ var
     GHE_RESTORE_HOST=127.0.0.1
@@ -205,15 +191,8 @@ begin_test "ghe-restore accepts user verification"
     rm -rf "$GHE_REMOTE_ROOT_DIR"
     setup_remote_metadata
 
-    # create file used to determine if instance has been configured.
-    touch "$GHE_REMOTE_ROOT_DIR/etc/github/configured"
-
-    # create file used to determine if instance is in maintenance mode.
-    mkdir -p "$GHE_REMOTE_DATA_DIR/github/current/public/system"
-    touch "$GHE_REMOTE_DATA_DIR/github/current/public/system/maintenance.html"
-
-    # Create fake remote repositories dir
-    mkdir -p "$GHE_REMOTE_DATA_USER_DIR/repositories"
+    # set as configured, enable maintenance mode and create required directories
+    setup_maintenance_mode "configured"
 
     # set restore host environ var
     GHE_RESTORE_HOST=127.0.0.1
@@ -237,12 +216,8 @@ begin_test "ghe-restore -c into unconfigured vm"
     GHE_RESTORE_HOST=127.0.0.1
     export GHE_RESTORE_HOST
 
-    # create file used to determine if instance is in maintenance mode.
-    mkdir -p "$GHE_REMOTE_DATA_DIR/github/current/public/system"
-    touch "$GHE_REMOTE_DATA_DIR/github/current/public/system/maintenance.html"
-
-    # Create fake remote repositories dir
-    mkdir -p "$GHE_REMOTE_DATA_USER_DIR/repositories"
+    # leave unconfigured, enable maintenance mode and create required directories
+    setup_maintenance_mode
 
     # run ghe-restore and write output to file for asserting against
     if ! ghe-restore -v -f -c > "$TRASHDIR/restore-out" 2>&1; then
@@ -300,12 +275,8 @@ begin_test "ghe-restore into unconfigured vm"
     GHE_RESTORE_HOST=127.0.0.1
     export GHE_RESTORE_HOST
 
-    # create file used to determine if instance is in maintenance mode.
-    mkdir -p "$GHE_REMOTE_DATA_DIR/github/current/public/system"
-    touch "$GHE_REMOTE_DATA_DIR/github/current/public/system/maintenance.html"
-
-    # Create fake remote repositories dir
-    mkdir -p "$GHE_REMOTE_DATA_USER_DIR/repositories"
+    # leave unconfigured, enable maintenance mode and create required directories
+    setup_maintenance_mode
 
     # ghe-restore into an unconfigured vm implies -c
     ghe-restore -v -f > "$TRASHDIR/restore-out" 2>&1
@@ -357,15 +328,8 @@ begin_test "ghe-restore with host arg"
     rm -rf "$GHE_REMOTE_ROOT_DIR"
     setup_remote_metadata
 
-    # create file used to determine if instance has been configured.
-    touch "$GHE_REMOTE_ROOT_DIR/etc/github/configured"
-
-    # create file used to determine if instance is in maintenance mode.
-    mkdir -p "$GHE_REMOTE_DATA_DIR/github/current/public/system"
-    touch "$GHE_REMOTE_DATA_DIR/github/current/public/system/maintenance.html"
-
-    # Create fake remote repositories dir
-    mkdir -p "$GHE_REMOTE_DATA_USER_DIR/repositories"
+    # set as configured, enable maintenance mode and create required directories
+    setup_maintenance_mode "configured"
 
     # set restore host environ var
     GHE_RESTORE_HOST=127.0.0.1
@@ -403,15 +367,8 @@ begin_test "ghe-restore no host arg or configured restore host"
     rm -rf "$GHE_REMOTE_ROOT_DIR"
     setup_remote_metadata
 
-    # create file used to determine if instance has been configured.
-    touch "$GHE_REMOTE_ROOT_DIR/etc/github/configured"
-
-    # create file used to determine if instance is in maintenance mode.
-    mkdir -p "$GHE_REMOTE_DATA_DIR/github/current/public/system"
-    touch "$GHE_REMOTE_DATA_DIR/github/current/public/system/maintenance.html"
-
-    # Create fake remote repositories dir
-    mkdir -p "$GHE_REMOTE_DATA_USER_DIR/repositories"
+    # set as configured, enable maintenance mode and create required directories
+    setup_maintenance_mode "configured"
 
     # unset configured restore host
     unset GHE_RESTORE_HOST
@@ -427,15 +384,8 @@ begin_test "ghe-restore with no pages backup"
     rm -rf "$GHE_REMOTE_ROOT_DIR"
     setup_remote_metadata
 
-    # create file used to determine if instance has been configured.
-    touch "$GHE_REMOTE_ROOT_DIR/etc/github/configured"
-
-    # create file used to determine if instance is in maintenance mode.
-    mkdir -p "$GHE_REMOTE_DATA_DIR/github/current/public/system"
-    touch "$GHE_REMOTE_DATA_DIR/github/current/public/system/maintenance.html"
-
-    # Create fake remote repositories dir
-    mkdir -p "$GHE_REMOTE_DATA_USER_DIR/repositories"
+    # set as configured, enable maintenance mode and create required directories
+    setup_maintenance_mode "configured"
 
     # remove pages data
     rm -rf "$GHE_DATA_DIR/1/pages"
@@ -488,15 +438,8 @@ begin_test "ghe-restore cluster backup to non-cluster appliance"
     rm -rf "$GHE_REMOTE_ROOT_DIR"
     setup_remote_metadata
 
-    # create file used to determine if instance has been configured.
-    touch "$GHE_REMOTE_ROOT_DIR/etc/github/configured"
-
-    # create file used to determine if instance is in maintenance mode.
-    mkdir -p "$GHE_REMOTE_DATA_DIR/github/current/public/system"
-    touch "$GHE_REMOTE_DATA_DIR/github/current/public/system/maintenance.html"
-
-    # Create fake remote repositories dir
-    mkdir -p "$GHE_REMOTE_DATA_USER_DIR/repositories"
+    # set as configured, enable maintenance mode and create required directories
+    setup_maintenance_mode "configured"
 
     echo "cluster" > "$GHE_DATA_DIR/current/strategy"
     ! output=$(ghe-restore -v -f localhost 2>&1)

@@ -105,6 +105,25 @@ setup_remote_cluster () {
     touch "$GHE_REMOTE_ROOT_DIR/etc/github/cluster"
 }
 
+# Put the necessary files in place to mimic a configured, or not, instance into
+# maintenance mode.
+#
+# Pass anything as the first argument to "configure" the instance
+setup_maintenance_mode () {
+  configured=$1
+  if [ -n "$configured" ]; then
+    # create file used to determine if instance has been configured.
+    touch "$GHE_REMOTE_ROOT_DIR/etc/github/configured"
+  fi
+
+  # create file used to determine if instance is in maintenance mode.
+  mkdir -p "$GHE_REMOTE_DATA_DIR/github/current/public/system"
+  touch "$GHE_REMOTE_DATA_DIR/github/current/public/system/maintenance.html"
+
+  # Create fake remote repositories dir
+  mkdir -p "$GHE_REMOTE_DATA_USER_DIR/repositories"
+}
+
 # Mark the beginning of a test. A subshell should immediately follow this
 # statement.
 begin_test () {

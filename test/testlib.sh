@@ -285,6 +285,82 @@ setup_test_data () {
   fi
 }
 
+# A unified method to check everything backed up when performing a full backup
+# during testing.
+verify_all_backedup_data() {
+  set -e
+  # check that current symlink was created
+  [ -d "$GHE_DATA_DIR/current" ]
+
+  # check that the version file was written
+  [ -f "$GHE_DATA_DIR/current/version" ]
+  [ "$(cat "$GHE_DATA_DIR/current/version")" = "v$GHE_TEST_REMOTE_VERSION" ]
+
+  # check that the strategy file was written
+  [ -f "$GHE_DATA_DIR/current/strategy" ]
+  [ "$(cat "$GHE_DATA_DIR/current/strategy")" = "rsync" ]
+
+  # check that settings were backed up
+  [ "$(cat "$GHE_DATA_DIR/current/settings.json")" = "fake ghe-export-settings data" ]
+
+  # check that license was backed up
+  [ "$(cat "$GHE_DATA_DIR/current/enterprise.ghl")" = "fake license data" ]
+
+  # check that repositories directory was created
+  [ -d "$GHE_DATA_DIR/current/repositories" ]
+
+  # check that pages data was backed up
+  [ -f "$GHE_DATA_DIR/current/pages/4/c8/1e/72/2/legacy/index.html" ]
+  [ -f "$GHE_DATA_DIR/current/pages/4/c1/6a/53/31/dd3a9a0faa88c714ef2dd638b67587f92f109f96/index.html" ]
+
+  # check that mysql data was backed up
+  [ "$(gzip -dc < "$GHE_DATA_DIR/current/mysql.sql.gz")" = "fake ghe-export-mysql data" ]
+
+  # check that redis data was backed up
+  [ "$(cat "$GHE_DATA_DIR/current/redis.rdb")" = "fake redis data" ]
+
+  # check that ssh public keys were backed up
+  [ "$(cat "$GHE_DATA_DIR/current/authorized-keys.json")" = "fake ghe-export-authorized-keys data" ]
+
+  # check that ssh host key was backed up
+  [ "$(cat "$GHE_DATA_DIR/current/ssh-host-keys.tar")" = "fake ghe-export-ssh-host-keys data" ]
+
+  # verify all repository data was transferred
+  diff -ru "$GHE_REMOTE_DATA_USER_DIR/repositories" "$GHE_DATA_DIR/current/repositories"
+
+  # verify all pages data was transferred
+  diff -ru "$GHE_REMOTE_DATA_USER_DIR/pages" "$GHE_DATA_DIR/current/pages"
+
+  # verify all ES data was transferred from live directory
+  diff -ru "$GHE_REMOTE_DATA_USER_DIR/elasticsearch" "$GHE_DATA_DIR/current/elasticsearch"
+
+  # verify manage-password file was backed up under v2.x VMs
+  [ "$(cat "$GHE_DATA_DIR/current/manage-password")" = "fake password hash data" ]
+
+  # verify all git hooks tarballs were transferred
+  diff -ru "$GHE_REMOTE_DATA_USER_DIR/git-hooks/environments/tarballs" "$GHE_DATA_DIR/current/git-hooks/environments/tarballs"
+
+  # verify the extracted environments were not transferred
+  ! diff -ru "$GHE_REMOTE_DATA_USER_DIR/git-hooks/environments" "$GHE_DATA_DIR/current/git-hooks/environments"
+
+  # verify the extracted repositories were transferred
+  diff -ru "$GHE_REMOTE_DATA_USER_DIR/git-hooks/repos" "$GHE_DATA_DIR/current/git-hooks/repos"
+
+  # verify the UUID was transferred
+  diff -ru "$GHE_REMOTE_DATA_USER_DIR/common/uuid" "$GHE_DATA_DIR/current/uuid"
+
+  # check that ca certificates were backed up
+  [ "$(cat "$GHE_DATA_DIR/current/ssl-ca-certificates.tar")" = "fake ghe-export-ssl-ca-certificates data" ]
+
+  # verify the audit log migration sentinel file has been created
+  [ -f "$GHE_DATA_DIR/current/es-scan-complete" ]
+
+  # verify that ghe-backup wrote its version information to the host
+  [ -f "$GHE_REMOTE_DATA_USER_DIR/common/backup-utils-version" ]
+}
+
+# A unified method to check everything restored when performing a full restore
+# during testing.
 verify_all_restored_data() {
   set -e
 

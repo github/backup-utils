@@ -332,7 +332,12 @@ fi
 
 if $cluster; then
   echo "Restoring GitHub Pages into DPages..."
-  ghe-restore-pages-dpages "$GHE_HOSTNAME" 1>&3
+  if ghe-ssh "$GHE_HOSTNAME" test -f /data/github/current/script/dpages-cluster-restore-routes; then
+    ghe_verbose "* Using ghe-restore-pages-dpages-ng to restore"
+    ghe-restore-pages-dpages-ng "$GHE_HOSTNAME" 1>&3
+  else
+    ghe-restore-pages-dpages "$GHE_HOSTNAME" 1>&3
+  fi
 else
   echo "Restoring GitHub Pages ..."
   ghe-restore-pages-${GHE_BACKUP_STRATEGY} "$GHE_HOSTNAME" 1>&3

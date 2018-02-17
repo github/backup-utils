@@ -1,9 +1,0 @@
-# Create fake audit logs
-mkdir "$loc/audit-log"
-cd "$loc/audit-log"
-ano_month="2017-01"
-last_month=$(date -v-1m +"%Y-%m")
-this_month=$(date +"%Y-%m")
-for log in $this_month $last_month $ano_month; do
-  echo "fake-audit-log-$log" | gzip > audit_log-1-$log-1.gz
-done

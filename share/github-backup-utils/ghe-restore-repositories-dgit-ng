@@ -19,7 +19,8 @@ sync_repo_info() {
 }
 
 # Bring in the backup configuration
-. $( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config
+# shellcheck source=share/github-backup-utils/ghe-backup-config
+. "$( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config"
 
 # Show usage and bail with no arguments
 [ -z "$*" ] && print_usage
@@ -57,7 +58,6 @@ ghe-ssh "$GHE_HOSTNAME" -- mkdir -p $tempdir
 ssh_config_file=$tempdir/ssh_config
 opts="$GHE_EXTRA_SSH_OPTS -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no"
 tmp_list=$tempdir/tmp_list
-routes_list=$tempdir/routes_list
 to_restore=$tempdir/to_restore
 
 hostnames=$(ghe-cluster-nodes "$GHE_HOSTNAME" "git-server")
@@ -101,10 +101,6 @@ done > $tmp_list
 IFS=$OLDIFS
 bm_end "$(basename $0) - Building network list"
 
-bm_start "$(basename $0) - Transferring network list"
-cat $tmp_list | ghe-ssh "$GHE_HOSTNAME" -- sponge $tmp_list
-bm_end "$(basename $0) - Transferring network list"
-
 # The server returns a list of routes:
 #
 # a/nw/a8/3f/02/100000855 dgit-node1 dgit-node2 dgit-node3
@@ -113,24 +109,31 @@ bm_end "$(basename $0) - Transferring network list"
 # ...
 #
 # One route per line.
-bm_start "$(basename $0) - Generating routes"
-echo "cat $tmp_list | github-env ./bin/dgit-cluster-restore-routes > $routes_list" | ghe-ssh "$GHE_HOSTNAME" -- /bin/bash
-bm_end "$(basename $0) - Generating routes"
+#
+bm_start "$(basename $0) - Calculating sync routes"
+cat $tmp_list | ghe-ssh "$GHE_HOSTNAME" -- github-env ./bin/dgit-cluster-restore-routes \
+  | while read route; do
+  ghe_verbose "Got restore route $route"
+  servers=$(echo $route | cut -d ' ' -f2-)
+  network_path=$(echo $route | cut -d ' ' -f1)
+  for server in $servers; do
+    ghe_verbose "Adding $network_path to $tempdir/$server.rsync"
+    echo "$network_path" >> $tempdir/$server.rsync
+    echo "$route" | awk '{ n = split($1, p, "/"); printf p[n] " /data/repositories/" $1; $1=""; print $0}' >> $to_restore
+  done
+done
+bm_end "$(basename $0) - Calculating sync routes"
 
-bm_start "$(basename $0) - Transferring routes"
-ghe-ssh "$GHE_HOSTNAME" -- cat $routes_list > $routes_list
-bm_end "$(basename $0) - Transferring routes"
-
-bm_start "$(basename $0) - Processing routes"
-cat $routes_list | awk -v tempdir="$tempdir" '{ for(i=2;i<=NF;i++){ print $1 > (tempdir"/"$i".rsync") }}'
-cat $routes_list | awk '{ n = split($1, p, "/"); printf p[n] " /data/repositories/" $1; $1=""; print $0}' > $to_restore
-bm_end "$(basename $0) - Processing routes"
+if ! ls $tempdir/*.rsync >/dev/null 2>&1; then
+  echo "Warning: no routes found, skipping repositories restore ..."
+  exit 0
+fi
 
 bm_start "$(basename $0) - Restoring repository networks"
 # rsync all the repositories
 for file_list in $tempdir/*.rsync; do
   server=$(basename $file_list .rsync)
-  ghe_verbose "* Transferring repository networks to $server"
+  ghe_verbose "* Transferring repository networks to $server ..."
   ghe-rsync -avrHR --delete \
     -e "ssh -q $opts -p $port -F $ssh_config_file -l $user" \
     --rsync-path="sudo -u git rsync" \
@@ -144,7 +147,7 @@ bm_end "$(basename $0) - Restoring repository networks"
 bm_start "$(basename $0) - Finalizing routes"
 cat $to_restore | ghe-ssh "$GHE_HOSTNAME" -- sponge $to_restore
 ghe-ssh "$GHE_HOSTNAME" -- /bin/bash >&3 <<EOF
-  split -l 1000 -d $to_restore $tempdir/chunk
+  split -l 1000 $to_restore $tempdir/chunk
   chunks=\$(find $tempdir/ -name chunk\*)
   parallel -i /bin/sh -c "cat {} | github-env ./bin/dgit-cluster-restore-finalize" -- \$chunks
 EOF

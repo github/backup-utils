@@ -1,0 +1,9 @@
+# Create fake hookshot logs
+mkdir -p "$loc/hookshot"
+cd "$loc/hookshot"
+ano_day="2017-01-20"
+yest_day=$(date -v-1d +"%Y-%m-%d")
+today=$(date +"%Y-%m-%d")
+for log in $ano_day $yest_day $today; do
+  echo "fake-hookshot-log-$log" | gzip > hookshot-logs-$log.gz
+done

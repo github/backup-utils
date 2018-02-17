@@ -246,3 +246,10 @@ begin_test "ghe-backup honours --help and -h flags"
 
 )
 end_test
+
+begin_test "ghe-backup exits early on unsupported version"
+(
+  set -e
+  ! GHE_TEST_REMOTE_VERSION=2.10.0 ghe-backup -v
+)
+end_test

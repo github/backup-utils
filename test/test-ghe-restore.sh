@@ -385,3 +385,13 @@ begin_test "ghe-restore force restore of 2.9/2.10 snapshot without audit log mig
   ghe-restore -v -f localhost
 )
 end_test
+
+begin_test "ghe-backup exits early on unsupported version"
+(
+  set -e
+  GHE_RESTORE_HOST=127.0.0.1
+  export GHE_RESTORE_HOST
+
+  ! GHE_TEST_REMOTE_VERSION=2.10.0 ghe-restore -v
+)
+end_test

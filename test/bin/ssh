@@ -33,11 +33,14 @@ cd "$(dirname "$0")"/..
 # Scrub sudo commands from command arguments.
 sh="$(echo "$@" | sed 's/sudo -u [a-z]* //g' | sed 's/sudo //g')"
 
-# Scrub SSH arguments passed to rsync
+# Scrub SSH -F argument passed to rsync
 sh="$(echo "$sh" | sed 's/^\-F \/.* \(rsync\)/\1/g')"
 
 # Scrub SSH -F argument for ghe-ssh commands
 sh="$(echo "$sh" | sed 's/^\/.* --//g')"
+
+# Scrub /usr/local/share/enterprise/ from paths of commands
+sh=$(echo "$sh" | sed 's|/usr/local/share/enterprise/ghe-|ghe-|g')
 
 # Also scrub sudo commands from stdin if just executing /bin/sh or /bin/bash and
 # piping commands in on standard input.

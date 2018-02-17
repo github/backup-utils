@@ -177,9 +177,9 @@ ghe-backup-alambic-cluster-ng || failures="$failures alambic"
 echo "Backing up custom Git hooks ..."
 ghe-backup-git-hooks-cluster || failures="$failures git-hooks"
 
-if [ "$GHE_BACKUP_STRATEGY" != "cluster" ]; then
+if [ "$GHE_BACKUP_STRATEGY" = "rsync" ]; then
   echo "Backing up Elasticsearch indices ..."
-  ghe-backup-es-${GHE_BACKUP_STRATEGY} ||
+  ghe-backup-es-rsync ||
   failures="$failures elasticsearch"
 fi
 

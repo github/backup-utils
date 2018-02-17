@@ -9,7 +9,8 @@
 set -e
 
 # Bring in the backup configuration
-. $( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config
+# shellcheck source=share/github-backup-utils/ghe-backup-config
+. "$( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config"
 
 while true; do
     case "$1" in
@@ -27,6 +28,9 @@ done
 
 # Show usage with no host
 [ -z "$host" ] && print_usage
+
+# Exit early when testing
+[ -n "$GHE_TEST_REMOTE_VERSION" ] && exit 0
 
 # Touch the sync-in-progress file, disabling GC operations, and wait for all
 # active GC processes to finish on the remote side.

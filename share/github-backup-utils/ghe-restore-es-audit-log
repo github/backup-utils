@@ -7,7 +7,8 @@
 set -e
 
 # Bring in the backup configuration
-. $( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config
+# shellcheck source=share/github-backup-utils/ghe-backup-config
+. "$( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config"
 
 # Show usage and bail with no arguments
 [ $# -lt 1 ] && print_usage
@@ -21,8 +22,18 @@ ghe_remote_version_required "$GHE_HOSTNAME"
 
 indices=$(ls -1 $GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/audit-log/*.gz 2>/dev/null | xargs -I{} -n1 basename {} .gz)
 
-last_month="audit_log(-[0-9]+)?-$(ghe-ssh "$GHE_HOSTNAME" 'date -d "1 month ago" +"%Y-%m"')(-[0-9]+)?"
-current_month="audit_log(-[0-9]+)?-$(ghe-ssh "$GHE_HOSTNAME" 'date +"%Y-%m"')(-[0-9]+)?"
+# Platform neutral and robust method of determining last month
+this_yr=$(date +"%Y")
+this_mth=$(date +"%-m")
+last_mth=$(( $this_mth - 1 ))
+last_yr=$this_yr
+if [ "$last_mth" = 0 ]; then
+  last_mth=12
+  last_yr=$(( $this_yr - 1 ))
+fi
+
+last_month=$(printf "audit_log(-[0-9]+)?-%4d-%02d(-[0-9]+)?" $last_yr $last_mth)
+current_month=$(printf "audit_log(-[0-9]+)?-%4d-%02d(-[0-9]+)?" $this_yr $this_mth)
 
 # Only restore indices that don't exist and the last two months' indices.
 for index in $indices; do

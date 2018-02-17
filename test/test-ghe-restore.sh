@@ -206,43 +206,6 @@ begin_test "ghe-restore with no pages backup"
 )
 end_test
 
-begin_test "ghe-restore with empty uuid file"
-(
-  set -e
-
-  # Remove the UUID from the remote instance
-  rm -f "$GHE_REMOTE_DATA_USER_DIR/common/uuid"
-
-  # Zero-length the UUID file
-  cat /dev/null > "$GHE_DATA_DIR/current/uuid"
-
-  # Run a restore
-  ghe-restore -v -f localhost
-
-  # Verify no uuid is restored
-  [ ! -f "$GHE_REMOTE_DATA_USER_DIR/common/uuid" ]
-
-)
-end_test
-
-begin_test "ghe-restore with no uuid file"
-(  set -e
-
-  # Remove the UUID from the remote instance
-  rm -f "$GHE_REMOTE_DATA_USER_DIR/common/uuid"
-
-  # Remove the UUID file
-  rm -f "$GHE_DATA_DIR/current/uuid"
-
-  # Run a restore
-  ghe-restore -v -f localhost
-
-  # Verify no uuid is restored
-  [ ! -f "$GHE_REMOTE_DATA_USER_DIR/common/uuid" ]
-
-)
-end_test
-
 begin_test "ghe-restore cluster backup to non-cluster appliance"
 (
     set -e

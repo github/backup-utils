@@ -61,7 +61,7 @@ if [ -d "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/git-hooks/environments/tarballs" ];
 
     for tarball in $tarballs; do
       env_id=$(echo $tarball | cut -d '/' -f 2)
-      ssh -q $opts -p $port -F $ssh_config_file -l $user $hostname "/bin/bash -c 'export PATH=\$PATH:/usr/local/share/enterprise && ghe-hook-env-update $env_id $GHE_REMOTE_DATA_USER_DIR/git-hooks/environments/tarballs/$tarball'" 1>&3 2>&3
+      ghe-ssh -F $ssh_config_file -l $user "$hostname:122" -- "/bin/bash -c 'export PATH=\$PATH:/usr/local/share/enterprise && ghe-hook-env-update $env_id $GHE_REMOTE_DATA_USER_DIR/git-hooks/environments/tarballs/$tarball'" 1>&3 2>&3
     done
   fi
 fi

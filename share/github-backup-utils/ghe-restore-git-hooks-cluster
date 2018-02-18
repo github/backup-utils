@@ -52,7 +52,7 @@ if [ -d "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/git-hooks/environments/tarballs" ];
   hostname=$(echo $hostnames | awk '{ print $1; }')
 
   if [ -n "$hostname" ]; then
-    ghe-ssh "$hostname" -- "sudo -u git mkdir -p $GHE_REMOTE_DATA_USER_DIR/git-hooks/environments/tarballs"
+    ghe-ssh -F $ssh_config_file -l $user "$hostname:122" -- "sudo -u git mkdir -p $GHE_REMOTE_DATA_USER_DIR/git-hooks/environments/tarballs"
     ghe-rsync -avH --delete \
     -e "ssh -q $opts -p $port -F $ssh_config_file -l $user" \
     --rsync-path="sudo -u git rsync" \
@@ -68,7 +68,7 @@ fi
 
 if [ -d "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/git-hooks/repos" ]; then
   for hostname in $hostnames; do
-    ghe-ssh "$hostname" -- "sudo -u git mkdir -p $GHE_REMOTE_DATA_USER_DIR/git-hooks/repos"
+    ghe-ssh -F $ssh_config_file -l $user "$hostname:122" -- "sudo -u git mkdir -p $GHE_REMOTE_DATA_USER_DIR/git-hooks/repos"
     ghe-rsync -avH --delete \
     -e "ssh -q $opts -p $port -F $ssh_config_file -l $user" \
     --rsync-path="sudo -u git rsync" \

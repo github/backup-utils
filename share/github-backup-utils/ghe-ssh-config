@@ -27,10 +27,20 @@ opts="$GHE_EXTRA_SSH_OPTS"
 
 [ -z "$GHE_DISABLE_SSH_MUX" ] && opts="-o ControlMaster=auto -o ControlPath=\"$TMPDIR/.ghe-sshmux-$(echo -n "$proxy_user@$proxy_host:$proxy_port" | git hash-object --stdin | cut -c 1-8)\" -o ControlPersist=10m -o ServerAliveInterval=10 $opts"
 
-for host in $hosts; do
+if [ "${#hosts[@]}" = 1 ]; then
+  #opts=$(echo "$opts" | sed -e $'s/\-o //g;s/ /\\\n  /g;s/=/ /g')
   cat <<EOF
-Host $host
+Host $hosts
+  Hostname $proxy_host
+  Port $proxy_port
+  User $proxy_user
+EOF
+else
+#for host in $hosts; do
+  cat <<EOF
+Host $hosts
   ProxyCommand ssh -q $opts -p $proxy_port $proxy_user@$proxy_host nc.openbsd %h %p
   StrictHostKeyChecking=no
 EOF
-done
+#done
+fi

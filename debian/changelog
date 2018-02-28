@@ -1,3 +1,17 @@
+github-backup-utils (2.11.3) UNRELEASED; urgency=medium
+
+  * Update argument parsing and help/usage consistency #320
+  * Fix failures variable #353
+  * Remove other snapshot contents before removing the "incomplete" file #358
+  * Backup and restore the management console password #361
+  * Check for git before allowing SSH multiplex #362
+  * Cleanup SSH multiplexing on exit #363
+  * Filter cluster nodes by role during backup and restore #367
+  * Optimise route generation and finalisation during cluster restores of pages #369
+  * Allow extra rsync options to override default options #370
+
+ -- Colin Seymour <colin@github.com>  Wed, 28 Feb 2018 16:32:07 +0000
+
 github-backup-utils (2.11.2) UNRELEASED; urgency=medium
 
   * Allow the restoration of configuration to Cluster #347

@@ -102,8 +102,9 @@ cat $tmp_list | ghe-ssh "$GHE_HOSTNAME" -- github-env ./bin/gist-cluster-restore
   done
   # Add entries to the to_restore in the form:
   #
-  # 5cd6fbdd8930209faf5f.git /data/repositories/b/b6/86/01/gist/5cd6fbdd8930209faf5f.git git-server-1 git-server-2 git-server-3
-  echo "$route" | awk '{ n = split($1, p, "/"); printf p[n] " /data/repositories/" $1; $1=""; print $0}' >> $to_restore
+  # gist_id /data/repositories/a/a8/3f/02/gist/gist_id.git dgit-node3 dgit-node2 dgit-node4
+  echo "$route" | awk '{ n = split($1, p, "/"); i = p[n]; sub(/\.git/, "", i); printf i " /data/repositories/" $1; $1=""; print $0}' > $to_restore
+
 done
 bm_end "$(basename $0) - Calculating Sync Routes"
 

@@ -143,14 +143,16 @@ done
 bm_end "$(basename $0) - Restoring repository networks"
 
 # Tell dgit about the repositories restored
-bm_start "$(basename $0) - Finalizing routes"
-cat $to_restore | ghe-ssh "$GHE_HOSTNAME" -- sponge $to_restore
-ghe-ssh "$GHE_HOSTNAME" -- /bin/bash >&3 <<EOF
-  split -l 1000 $to_restore $tempdir/chunk
-  chunks=\$(find $tempdir/ -name chunk\*)
-  parallel -i /bin/sh -c "cat {} | github-env ./bin/dgit-cluster-restore-finalize" -- \$chunks
+if [ "$(wc -w <<< $hostnames)" != "1" ]; then
+  bm_start "$(basename $0) - Finalizing routes"
+  cat $to_restore | ghe-ssh "$GHE_HOSTNAME" -- sponge $to_restore
+  ghe-ssh "$GHE_HOSTNAME" -- /bin/bash >&3 <<EOF
+    split -l 1000 $to_restore $tempdir/chunk
+    chunks=\$(find $tempdir/ -name chunk\*)
+    parallel -i /bin/sh -c "cat {} | github-env ./bin/dgit-cluster-restore-finalize" -- \$chunks
 EOF
-bm_end "$(basename $0) - Finalizing routes"
+  bm_end "$(basename $0) - Finalizing routes"
+fi
 
 bm_start "$(basename $0) - Updating repository info data"
 if [ -d $GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/repositories/info ]; then

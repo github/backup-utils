@@ -205,8 +205,9 @@ setup_test_data () {
   touch 123/abcdef/script.sh 456/fed314/foo.sh
 
   cd "$loc/git-hooks/environments/tarballs"
-  mkdir -p 123/abcdef 456/fed314
-  touch 123/abcdef/script.tar.gz 456/fed314/foo.tar.gz
+  mkdir -p 987/qwert 765/frodo
+  tar -C "$loc/git-hooks/environments/123/abcdef/" -zcf "$loc/git-hooks/environments/tarballs/987/qwert/script.tar.gz" ./
+  tar -C "$loc/git-hooks/environments/456/fed314/" -zcf "$loc/git-hooks/environments/tarballs/765/frodo/foo.tar.gz" ./
 
   cd "$loc/git-hooks/repos"
   mkdir -p 321 654
@@ -365,8 +366,8 @@ verify_all_restored_data() {
   set -e
 
   # verify all import scripts were run
-  #grep -q "4/c8/1e/72/2/legacy/index.html" "$TRASHDIR/restore-out"
-  #grep -q "4/c1/6a/53/31/dd3a9a0faa88c714ef2dd638b67587f92f109f96/index.html" "$TRASHDIR/restore-out"
+  grep -q "4/c8/1e/72/2/legacy/index.html" "$TRASHDIR/restore-out"
+  grep -q "4/c1/6a/53/31/dd3a9a0faa88c714ef2dd638b67587f92f109f96/index.html" "$TRASHDIR/restore-out"
   grep -q "fake ghe-export-mysql data" "$TRASHDIR/restore-out"
   grep -q "fake ghe-export-redis data" "$TRASHDIR/restore-out"
   grep -q "fake ghe-export-authorized-keys data" "$TRASHDIR/restore-out"
@@ -380,7 +381,7 @@ verify_all_restored_data() {
   diff -ru "$GHE_DATA_DIR/current/repositories" "$GHE_REMOTE_DATA_USER_DIR/repositories"
 
   # verify all pages data was transferred to the restore location
-  #diff -ru "$GHE_DATA_DIR/current/pages" "$GHE_REMOTE_DATA_USER_DIR/pages"
+  diff -ru "$GHE_DATA_DIR/current/pages" "$GHE_REMOTE_DATA_USER_DIR/pages"
 
   # verify all ES data was transferred from live directory to the temporary restore directory
   diff -ru "$GHE_DATA_DIR/current/elasticsearch" "$GHE_REMOTE_DATA_USER_DIR/elasticsearch-restore"

@@ -109,9 +109,9 @@ ghe_remote_version_required "$GHE_HOSTNAME"
 # Figure out if this instance has been configured or is entirely new.
 instance_configured=false
 if ghe-ssh "$GHE_HOSTNAME" -- "[ -f '$GHE_REMOTE_ROOT_DIR/etc/github/configured' ]"; then
-    instance_configured=true
+  instance_configured=true
 elif [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
-    restore_settings=true
+  restore_settings=true
 fi
 
 # Figure out if we're restoring into cluster
@@ -167,27 +167,27 @@ fi
 # mostly to prevent accidents where the backup host is given to restore instead
 # of a separate restore host since they're used in such close proximity.
 if $instance_configured && ! $force; then
-    echo
-    echo "WARNING: All data on GitHub Enterprise appliance $hostname ($GHE_REMOTE_VERSION)"
-    echo "         will be overwritten with data from snapshot ${GHE_RESTORE_SNAPSHOT}."
-    echo "Please verify that this is the correct restore host before continuing."
-    printf "Type 'yes' to continue: "
+  echo
+  echo "WARNING: All data on GitHub Enterprise appliance $hostname ($GHE_REMOTE_VERSION)"
+  echo "         will be overwritten with data from snapshot ${GHE_RESTORE_SNAPSHOT}."
+  echo "Please verify that this is the correct restore host before continuing."
+  printf "Type 'yes' to continue: "
 
-    while read -r response; do
-        case $response in
-            yes|Yes|YES)
-                break
-                ;;
-            '')
-                printf "Type 'yes' to continue: "
-                ;;
-            *)
-                echo "Restore aborted." 1>&2
-                exit 1
-                ;;
-        esac
-    done
-    echo
+  while read -r response; do
+    case $response in
+      yes|Yes|YES)
+        break
+        ;;
+      '')
+        printf "Type 'yes' to continue: "
+        ;;
+      *)
+        echo "Restore aborted." 1>&2
+        exit 1
+        ;;
+    esac
+  done
+  echo
 fi
 
 # Log restore start message locally and in /var/log/syslog on remote instance
@@ -201,13 +201,13 @@ ghe_remote_logger "Starting restore from $(hostname) / snapshot $GHE_RESTORE_SNA
 # "failed"    - restore has failed
 # "complete"  - restore has completed successfully
 update_restore_status () {
-    if $cluster; then
-      echo "ghe-cluster-each -- \"echo '$1' | sudo sponge '$GHE_REMOTE_DATA_USER_DIR/common/ghe-restore-status' >/dev/null\"" |
-      ghe-ssh "$GHE_HOSTNAME" /bin/bash
-    else
-      echo "$1" |
-      ghe-ssh "$GHE_HOSTNAME" -- "sudo sponge '$GHE_REMOTE_DATA_USER_DIR/common/ghe-restore-status' >/dev/null"
-    fi
+  if $cluster; then
+    echo "ghe-cluster-each -- \"echo '$1' | sudo sponge '$GHE_REMOTE_DATA_USER_DIR/common/ghe-restore-status' >/dev/null\"" |
+    ghe-ssh "$GHE_HOSTNAME" /bin/bash
+  else
+    echo "$1" |
+    ghe-ssh "$GHE_HOSTNAME" -- "sudo sponge '$GHE_REMOTE_DATA_USER_DIR/common/ghe-restore-status' >/dev/null"
+  fi
 }
 
 # Update remote restore state file and setup failure trap
@@ -216,10 +216,10 @@ update_restore_status "restoring"
 
 # Make sure the GitHub appliance is in maintenance mode.
 if $instance_configured; then
-    if ! ghe-maintenance-mode-status "$GHE_HOSTNAME"; then
-        echo "Error: $GHE_HOSTNAME must be put in maintenance mode before restoring. Aborting." 1>&2
-        exit 1
-    fi
+  if ! ghe-maintenance-mode-status "$GHE_HOSTNAME"; then
+    echo "Error: $GHE_HOSTNAME must be put in maintenance mode before restoring. Aborting." 1>&2
+    exit 1
+  fi
 fi
 
 # Create benchmark file
@@ -252,7 +252,7 @@ fi
 # Restore settings and license if restoring to an unconfigured appliance or when
 # specified manually.
 if $restore_settings; then
-    ghe-restore-settings "$GHE_HOSTNAME"
+  ghe-restore-settings "$GHE_HOSTNAME"
 fi
 
 # Make sure mysql and elasticsearch are prep'd and running before restoring into

@@ -73,7 +73,7 @@ trap cleanup EXIT
 bm_start "$(basename $0) - Building gist list"
 OLDIFS=$IFS; IFS=$'\n'
 for path in $gist_paths; do
-  ghe_verbose "Adding gist $path to the list of networks to send"
+  ghe_verbose "* Adding gist $path to the list of networks to send"
   echo $path
 done > $tmp_list
 IFS=$OLDIFS
@@ -81,11 +81,11 @@ bm_end "$(basename $0) - Building gist list"
 
 # The server returns a list of routes:
 #
-# a/a8/3f/02/gist dgit-node3 dgit-node2 dgit-node4
-# a/a8/bc/8d/gist dgit-node3 dgit-node2 dgit-node4
-# a/a5/06/81/gist dgit-node3 dgit-node2 dgit-node4
-# a/a5/84/6f/gist dgit-node1 dgit-node2 dgit-node4
-# a/a5/e0/01/gist dgit-node1 dgit-node2 dgit-node3
+# a/a8/3f/02/gist/gist_id.git dgit-node3 dgit-node2 dgit-node4
+# a/a8/bc/8d/gist/gist_id.git dgit-node3 dgit-node2 dgit-node4
+# a/a5/06/81/gist/gist_id.git dgit-node3 dgit-node2 dgit-node4
+# a/a5/84/6f/gist/gist_id.git dgit-node1 dgit-node2 dgit-node4
+# a/a5/e0/01/gist/gist_id.git dgit-node1 dgit-node2 dgit-node3
 # ...
 #
 # One route per line.
@@ -93,11 +93,11 @@ bm_end "$(basename $0) - Building gist list"
 bm_start "$(basename $0) - Calculating Sync Routes"
 cat $tmp_list | ghe-ssh "$GHE_HOSTNAME" -- github-env ./bin/gist-cluster-restore-routes \
   | while read route; do
-  ghe_verbose "Got restore route $route"
+  ghe_debug "Got restore route $route"
   servers=$(echo $route | cut -d ' ' -f2-)
   network_path=$(echo $route | cut -d ' ' -f1)
   for server in $servers; do
-    ghe_verbose "Adding $network_path to $tempdir/$server.rsync"
+    ghe_debug "Adding $network_path to $tempdir/$server.rsync"
     echo "$network_path" >> $tempdir/$server.rsync
     echo "$route" | awk '{ n = split($1, p, "/"); printf p[n] " /data/repositories/" $1; $1=""; print $0}' >> $to_restore
   done
@@ -119,11 +119,14 @@ for file_list in $tempdir/*.rsync; do
     --rsync-path="sudo -u git rsync" \
     --files-from=$file_list \
     "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/repositories/./" \
-    "$server:$GHE_REMOTE_DATA_USER_DIR/repositories/" 1>&3
+    "$server:$GHE_REMOTE_DATA_USER_DIR/repositories/" | ghe_indent 1>&3
 done
 bm_end "$(basename $0) - Restoring gists"
 
+
 bm_start "$(basename $0) - Finalizing routes"
+# Exit early on single nodes
+ghe_debug "Number of hosts: ${#hostnames[@]}"
 cat $to_restore | ghe-ssh "$GHE_HOSTNAME" -- sponge $to_restore
 ghe-ssh "$GHE_HOSTNAME" -- /bin/bash >&3 <<EOF
   split -l 1000 $to_restore $tempdir/chunk

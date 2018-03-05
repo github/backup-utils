@@ -278,3 +278,17 @@ ghe_verbose() {
     echo "$@" 1>&3
   fi
 }
+
+# Usage: ghe_debug <message>
+# Log if debug mode is enabled (GHE_DEBUG).
+ghe_debug() {
+  if [ -n "$GHE_DEBUG" ]; then
+    echo "Debug: $*" | ghe_indent 1>&3
+  fi
+}
+
+# Usage: cmd_with_output | ghe_indent
+# Indent output 
+ghe_indent() {
+  sed 's/^/  /';
+}

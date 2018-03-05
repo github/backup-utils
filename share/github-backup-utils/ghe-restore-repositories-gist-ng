@@ -103,8 +103,7 @@ cat $tmp_list | ghe-ssh "$GHE_HOSTNAME" -- github-env ./bin/gist-cluster-restore
   # Add entries to the to_restore in the form:
   #
   # gist_id /data/repositories/a/a8/3f/02/gist/gist_id.git dgit-node3 dgit-node2 dgit-node4
-  echo "$route" | awk '{ n = split($1, p, "/"); i = p[n]; sub(/\.git/, "", i); printf i " /data/repositories/" $1; $1=""; print $0}' > $to_restore
-
+  echo "$route" | awk '{ n = split($1, p, "/"); i = p[n]; sub(/\.git/, "", i); printf i " /data/repositories/" $1; $1=""; print $0}' >> $to_restore
 done
 bm_end "$(basename $0) - Calculating Sync Routes"
 
@@ -129,8 +128,10 @@ bm_end "$(basename $0) - Restoring gists"
 
 
 bm_start "$(basename $0) - Finalizing routes"
-# Exit early on single nodes
-ghe_debug "Number of hosts: ${#hostnames[@]}"
+#[ "${#hostnames[@]}" = "1" ] && exit
+
+ghe_verbose "Finalizing routes"
+ghe_verbose "$(cat $to_restore)"
 cat $to_restore | ghe-ssh "$GHE_HOSTNAME" -- sponge $to_restore
 ghe-ssh "$GHE_HOSTNAME" -- /bin/bash >&3 <<EOF
   split -l 1000 $to_restore $tempdir/chunk

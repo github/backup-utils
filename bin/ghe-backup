@@ -132,8 +132,7 @@ ghe-backup-store-version  ||
 echo "Warning: storing backup-utils version remotely failed."
 
 echo "Backing up GitHub settings ..."
-ghe-backup-settings ||
-failures="$failures settings"
+ghe-backup-settings || failures="$failures settings"
 
 echo "Backing up SSH authorized keys ..."
 bm_start "ghe-export-authorized-keys"
@@ -150,20 +149,17 @@ bm_end "ghe-export-ssh-host-keys"
 echo "Backing up MySQL database ..."
 bm_start "ghe-export-mysql"
 echo 'set -o pipefail; ghe-export-mysql | gzip' |
-ghe-ssh "$GHE_HOSTNAME" -- /bin/bash > mysql.sql.gz ||
-failures="$failures mysql"
+ghe-ssh "$GHE_HOSTNAME" -- /bin/bash > mysql.sql.gz || failures="$failures mysql"
 bm_end "ghe-export-mysql"
 
 echo "Backing up Redis database ..."
 ghe-backup-redis-cluster > redis.rdb || failures="$failures redis"
 
 echo "Backing up audit log ..."
-ghe-backup-es-audit-log ||
-failures="$failures audit-log"
+ghe-backup-es-audit-log || failures="$failures audit-log"
 
 echo "Backing up hookshot logs ..."
-ghe-backup-es-hookshot ||
-failures="$failures hookshot"
+ghe-backup-es-hookshot || failures="$failures hookshot"
 
 echo "Backing up Git repositories ..."
 ghe-backup-repositories-cluster-ng || failures="$failures repositories"
@@ -179,14 +175,12 @@ ghe-backup-git-hooks-cluster || failures="$failures git-hooks"
 
 if [ "$GHE_BACKUP_STRATEGY" = "rsync" ]; then
   echo "Backing up Elasticsearch indices ..."
-  ghe-backup-es-rsync ||
-  failures="$failures elasticsearch"
+  ghe-backup-es-rsync || failures="$failures elasticsearch"
 fi
 
 # git fsck repositories after the backup
 if [ "$GHE_BACKUP_FSCK" = "yes" ]; then
-  ghe-backup-fsck $GHE_SNAPSHOT_DIR ||
-    failures="$failures fsck"
+  ghe-backup-fsck $GHE_SNAPSHOT_DIR || failures="$failures fsck"
 fi
 
 # If everything was successful, mark the snapshot as complete, update the

@@ -110,7 +110,7 @@ ghe_remote_version_required "$GHE_HOSTNAME"
 instance_configured=false
 if ghe-ssh "$GHE_HOSTNAME" -- "[ -f '$GHE_REMOTE_ROOT_DIR/etc/github/configured' ]"; then
   instance_configured=true
-elif [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
+else
   restore_settings=true
 fi
 
@@ -255,9 +255,9 @@ if $restore_settings; then
   ghe-restore-settings "$GHE_HOSTNAME"
 fi
 
-# Make sure mysql and elasticsearch are prep'd and running before restoring into
-# appliances v2.x or greater. These services will not have been started on appliances
-# that have not been configured yet.
+# Make sure mysql and elasticsearch are prep'd and running before restoring.
+# These services will not have been started on appliances that have not been
+# configured yet.
 if ! $cluster; then
   echo "sudo ghe-service-ensure-mysql && sudo ghe-service-ensure-elasticsearch" |
   ghe-ssh "$GHE_HOSTNAME" -- /bin/sh 1>&3

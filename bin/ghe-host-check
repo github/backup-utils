@@ -94,7 +94,7 @@ fi
 if ! echo "v$version" | grep -Eq "v2\.1[1-9]|v[3-9]"; then
   echo "Error: old release of GitHub Enterprise detected." 1>&2
   echo "Backup Utilities $BACKUP_UTILS_VERSION requires GitHub Enterprise v2.11 or newer." 1>&2
-  echo "Please update your GitHub Enterprise appliance of use backup-utils v2.11.4." 1>&2
+  echo "Please update your GitHub Enterprise appliance or use backup-utils v2.11.3." 1>&2
   exit 1
 fi
 

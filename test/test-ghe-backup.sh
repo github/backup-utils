@@ -2,8 +2,7 @@
 # ghe-backup command tests
 
 # Bring in testlib
-# shellcheck source=test/testlib.sh
-. "$(dirname "$0")/testlib.sh"
+. $(dirname "$0")/testlib.sh
 
 # Create the backup data dir and fake remote repositories dirs
 mkdir -p "$GHE_DATA_DIR" "$GHE_REMOTE_DATA_USER_DIR"
@@ -59,7 +58,7 @@ begin_test "ghe-backup logs the benchmark"
 
   ghe-backup
 
-  [ "$(grep took $GHE_DATA_DIR/current/benchmarks/benchmark.foo.log | wc -l)" -gt 1 ]
+  [ $(grep took $GHE_DATA_DIR/current/benchmarks/benchmark.foo.log | wc -l) -gt 1 ]
 )
 end_test
 
@@ -71,8 +70,7 @@ begin_test "ghe-backup with relative data dir path"
     sleep 1
 
     # generate a timestamp
-    GHE_SNAPSHOT_TIMESTAMP="relative-$(date +"%Y%m%dT%H%M%S")"
-    export GHE_SNAPSHOT_TIMESTAMP
+    export GHE_SNAPSHOT_TIMESTAMP="relative-$(date +"%Y%m%dT%H%M%S")"
 
     # change working directory to the root directory
     cd $ROOTDIR
@@ -189,7 +187,7 @@ begin_test "ghe-backup with leaked SSH host key detection for current backup"
 (
   set -e
 
-  SHARED_UTILS_PATH=$(dirname "$(which ghe-detect-leaked-ssh-keys)")
+  SHARED_UTILS_PATH=$(dirname $(which ghe-detect-leaked-ssh-keys))
   # Inject the fingerprint into the blacklist
   echo 98:d8:99:d3:be:c0:55:05:db:b0:53:2f:1f:ad:b3:60 >> "$SHARED_UTILS_PATH/ghe-ssh-leaked-host-keys-list.txt"
 

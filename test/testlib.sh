@@ -47,8 +47,7 @@ export GHE_TEST_REMOTE_VERSION
 
 # Source in the backup config and set GHE_REMOTE_XXX variables based on the
 # remote version established above or in the environment.
-# shellcheck source=share/github-backup-utils/ghe-backup-config
-. "$( dirname "${BASH_SOURCE[0]}" )/../share/github-backup-utils/ghe-backup-config"
+. $( dirname "${BASH_SOURCE[0]}" )/../share/github-backup-utils/ghe-backup-config
 ghe_parse_remote_version "$GHE_TEST_REMOTE_VERSION"
 ghe_remote_version_config "$GHE_TEST_REMOTE_VERSION"
 
@@ -65,7 +64,7 @@ atexit () {
     res=$?
 
     # cleanup injected test key
-    shared_path=$(dirname "$(which ghe-detect-leaked-ssh-keys)")
+    shared_path=$(dirname $(which ghe-detect-leaked-ssh-keys))
     sed -i.bak '/98:d8:99:d3:be:c0:55:05:db:b0:53:2f:1f:ad:b3:60/d' "$shared_path/ghe-ssh-leaked-host-keys-list.txt"
     rm -f "$shared_path/ghe-ssh-leaked-host-keys-list.txt.bak"
 
@@ -86,7 +85,6 @@ cd "$TRASHDIR"
 # Put remote metadata file in place for ghe-host-check which runs with pretty
 # much everything. You can pass a version number in the first argument to test
 # with different remote versions.
-# shellcheck disable=SC2120
 setup_remote_metadata () {
     mkdir -p "$GHE_REMOTE_DATA_DIR" "$GHE_REMOTE_DATA_USER_DIR"
     mkdir -p "$GHE_REMOTE_DATA_USER_DIR/common"

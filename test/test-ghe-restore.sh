@@ -2,8 +2,7 @@
 # ghe-restore command tests
 
 # Bring in testlib
-# shellcheck source=test/testlib.sh
-. "$(dirname "$0")/testlib.sh"
+. $(dirname "$0")/testlib.sh
 
 setup_test_data "$GHE_DATA_DIR/1"
 
@@ -48,7 +47,7 @@ begin_test "ghe-restore logs the benchmark"
   export BM_TIMESTAMP=foo
   export GHE_RESTORE_HOST=127.0.0.1
   ghe-restore -v -f
-  [ "$(grep took $GHE_DATA_DIR/current/benchmarks/benchmark.foo.log | wc -l)" -gt 1 ]
+  [ $(grep took $GHE_DATA_DIR/current/benchmarks/benchmark.foo.log | wc -l) -gt 1 ]
 )
 end_test
 
@@ -243,7 +242,7 @@ EOF
   # Add custom key to tar file
   tar -cf "$GHE_DATA_DIR/current/ssh-host-keys.tar" --directory="$GHE_DATA_DIR" ssh_host_dsa_key.pub
 
-  SHARED_UTILS_PATH=$(dirname "$(which ghe-detect-leaked-ssh-keys)")
+  SHARED_UTILS_PATH=$(dirname $(which ghe-detect-leaked-ssh-keys))
   # Inject the fingerprint into the blacklist
   echo 98:d8:99:d3:be:c0:55:05:db:b0:53:2f:1f:ad:b3:60 >> "$SHARED_UTILS_PATH/ghe-ssh-leaked-host-keys-list.txt"
 
@@ -349,7 +348,7 @@ begin_test "ghe-restore force restore of 2.9/2.10 snapshot without audit log mig
 )
 end_test
 
-begin_test "ghe-backup exits early on unsupported version"
+begin_test "ghe-restore exits early on unsupported version"
 (
   set -e
   GHE_RESTORE_HOST=127.0.0.1

@@ -19,8 +19,7 @@ sync_repo_info() {
 }
 
 # Bring in the backup configuration
-# shellcheck source=share/github-backup-utils/ghe-backup-config
-. "$( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config"
+. $( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config
 
 # Show usage and bail with no arguments
 [ -z "$*" ] && print_usage

@@ -290,18 +290,18 @@ ghe-restore-git-hooks-cluster "$GHE_HOSTNAME" 1>&3
 if ! $cluster && [ -d "$GHE_RESTORE_SNAPSHOT_PATH/elasticsearch" ]; then
   echo "Restoring Elasticsearch indices ..."
   ghe-restore-es-rsync "$GHE_HOSTNAME" 1>&3
-else
-  echo "Restoring Elasticsearch Audit logs"
-  ghe-restore-es-audit-log "$GHE_HOSTNAME" 1>&3
-
-  echo "Restoring hookshot logs ..."
-  ghe-restore-es-hookshot "$GHE_HOSTNAME" 1>&3
 fi
 
 # Restore the audit log migration sentinel file, if it exists in the snapshot
 if test -f $GHE_RESTORE_SNAPSHOT_PATH/es-scan-complete; then
   ghe-ssh "$GHE_HOSTNAME" -- "sudo touch $GHE_REMOTE_DATA_USER_DIR/common/es-scan-complete"
 fi
+
+echo "Restoring Elasticsearch Audit logs ..."
+ghe-restore-es-audit-log "$GHE_HOSTNAME" 1>&3
+
+echo "Restoring hookshot logs ..."
+ghe-restore-es-hookshot "$GHE_HOSTNAME" 1>&3
 
 # Restart an already running memcached to reset the cache after restore
 echo "Restarting memcached ..." 1>&3

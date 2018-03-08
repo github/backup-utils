@@ -36,14 +36,6 @@ set -e
 
 bm_start "$(basename $0)"
 
-# Split host:port into parts
-port=$(ssh_port_part "$GHE_HOSTNAME")
-host=$(ssh_host_part "$GHE_HOSTNAME")
-
-# Add user / -l option
-user="${host%@*}"
-[ "$user" = "$host" ] && user="admin"
-
 # Set up remote host and root backup snapshot directory based on config
 host="$GHE_HOSTNAME"
 backup_dir="$GHE_SNAPSHOT_DIR/repositories"

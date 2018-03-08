@@ -237,6 +237,26 @@ setup_test_data () {
   touch gh-enterprise-es/node/0/stuff1
   touch gh-enterprise-es/node/0/stuff2
 
+  # Create fake audit-logs
+  this_yr=$(date +"%Y")
+  this_mth=$(date +"%-m")
+  last_mth=$(( $this_mth - 1 ))
+  last_yr=$this_yr
+  if [ "$last_mth" = 0 ]; then
+    last_mth=12
+    last_yr=$(( $this_yr - 1 ))
+  fi
+
+  mkdir -p "$loc/audit-log/"
+  cd "$loc/audit-log/"
+  touch audit_log-1-$last_yr-$last_mth-1.gz
+  touch audit_log-1-$this_yr-$this_mth-1.gz
+
+  # Create hookshot logs
+  mkdir -p "$loc/hookshot/"
+  cd "$loc/hookshot/"
+  touch hookshot-logs-2018-03-05.gz
+
   # Create some test repositories in the remote repositories dir
   mkdir "$loc/repositories"
   mkdir -p "$TRASHDIR/hooks"

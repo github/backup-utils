@@ -152,7 +152,7 @@ done
 bm_end "$(basename $0) - Restoring repository networks"
 
 # Tell dgit about the repositories restored
-if [ "$(wc -w <<< $hostnames)" != "1" ]; then
+if [ "$(wc -w <<< $hostnames | awk '{print $1}')" != "1" ]; then
   bm_start "$(basename $0) - Finalizing routes"
   cat $to_restore | ghe-ssh "$GHE_HOSTNAME" -- sponge $to_restore
   ghe-ssh "$GHE_HOSTNAME" -- /bin/bash >&3 <<EOF

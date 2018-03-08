@@ -32,13 +32,19 @@ host=$(ssh_host_part "$GHE_HOSTNAME")
 user="${host%@*}"
 [ "$user" = "$host" ] && user="admin"
 
-# Pages server hostnames
-hostnames=$(ghe-cluster-nodes "$GHE_HOSTNAME" "pages-server")
+hostnames=$host
+ssh_config_file_opt=
+tempdir=$(mktemp -d -t backup-utils-restore-XXXXXX)
+opts="$GHE_EXTRA_SSH_OPTS"
 
-ssh_config_file=$(mktemp -t cluster-backup-restore-XXXXXX)
-ghe-ssh-config "$GHE_HOSTNAME" "$hostnames" > "$ssh_config_file"
-
-opts="$GHE_EXTRA_SSH_OPTS -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no"
+# Pages server hostnames under cluster
+if [ "$GHE_BACKUP_STRATEGY" = "cluster" ]; then
+  ssh_config_file="$tempdir/ssh_config"
+  ssh_config_file_opt="-F $ssh_config_file"
+  opts="$opts -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no"
+  hostnames=$(ghe-cluster-nodes "$GHE_HOSTNAME" "pages-server")
+  ghe-ssh-config "$GHE_HOSTNAME" "$hostnames" > "$ssh_config_file"
+fi
 
 # Make sure root backup dir exists if this is the first run
 mkdir -p "$backup_dir"
@@ -46,7 +52,7 @@ mkdir -p "$backup_dir"
 # Removes the remote sync-in-progress file on exit, re-enabling GC operations
 # on the remote instance.
 cleanup() {
-  rm -f $ssh_config_file
+  rm -rf $tempdir
 }
 trap 'cleanup' EXIT INT
 
@@ -68,7 +74,7 @@ for hostname in $hostnames; do
 
   # Transfer all data from the user data directory using rsync.
   ghe-rsync -avz \
-      -e "ssh -q $opts -p 122 -F $ssh_config_file -l $user" \
+      -e "ssh -q $opts -p 122 $ssh_config_file_opt -l $user" \
       --rsync-path='sudo -u git rsync' \
       $link_dest \
       "$hostname:$GHE_REMOTE_DATA_USER_DIR/pages/" \

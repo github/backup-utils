@@ -115,14 +115,15 @@ else
 fi
 
 # Figure out if we're restoring into cluster
-cluster=false
+CLUSTER=false
 if ghe-ssh "$GHE_HOSTNAME" -- \
   "[ -f '$GHE_REMOTE_ROOT_DIR/etc/github/cluster' ]"; then
-  cluster=true
+  CLUSTER=true
 fi
+export CLUSTER
 
 # Restoring a cluster backup to a standalone appliance is not supported
-if ! $cluster && [ "$GHE_BACKUP_STRATEGY" = "cluster" ]; then
+if ! $CLUSTER && [ "$GHE_BACKUP_STRATEGY" = "cluster" ]; then
   echo "Error: Snapshot from a GitHub Enterprise cluster cannot be restored" \
     "to a standalone appliance. Aborting." >&2
   exit 1
@@ -190,7 +191,7 @@ ghe_remote_logger "Starting restore from $(hostname) / snapshot $GHE_RESTORE_SNA
 # "failed"    - restore has failed
 # "complete"  - restore has completed successfully
 update_restore_status () {
-  if $cluster; then
+  if $CLUSTER; then
     echo "ghe-cluster-each -- \"echo '$1' | sudo sponge '$GHE_REMOTE_DATA_USER_DIR/common/ghe-restore-status' >/dev/null\"" |
     ghe-ssh "$GHE_HOSTNAME" /bin/bash
   else
@@ -219,7 +220,7 @@ echo "Warning: storing backup-utils version remotely failed."
 
 # Stop cron and timerd, as scheduled jobs may disrupt the restore process.
 echo "Stopping cron and github-timerd ..."
-if $cluster; then
+if $CLUSTER; then
   if ! ghe-ssh "$GHE_HOSTNAME" -- "ghe-cluster-each -- sudo service cron stop"; then
     ghe_verbose "* Warning: Failed to stop cron on one or more nodes"
   fi
@@ -247,13 +248,13 @@ fi
 # Make sure mysql and elasticsearch are prep'd and running before restoring.
 # These services will not have been started on appliances that have not been
 # configured yet.
-if ! $cluster; then
+if ! $CLUSTER; then
   echo "sudo ghe-service-ensure-mysql && sudo ghe-service-ensure-elasticsearch" |
   ghe-ssh "$GHE_HOSTNAME" -- /bin/sh 1>&3
 fi
 
 # Restore UUID if present and not restoring to cluster.
-if [ -s "$GHE_RESTORE_SNAPSHOT_PATH/uuid" ] && ! $cluster; then
+if [ -s "$GHE_RESTORE_SNAPSHOT_PATH/uuid" ] && ! $CLUSTER; then
   echo "Restoring UUID ..."
   cat "$GHE_RESTORE_SNAPSHOT_PATH/uuid" |
   ghe-ssh "$GHE_HOSTNAME" -- "sudo sponge '$GHE_REMOTE_DATA_USER_DIR/common/uuid' 2>/dev/null"
@@ -287,7 +288,7 @@ ghe-restore-alambic-cluster-ng "$GHE_HOSTNAME" 1>&3
 echo "Restoring custom Git hooks ..."
 ghe-restore-git-hooks-cluster "$GHE_HOSTNAME" 1>&3
 
-if ! $cluster && [ -d "$GHE_RESTORE_SNAPSHOT_PATH/elasticsearch" ]; then
+if ! $CLUSTER && [ -d "$GHE_RESTORE_SNAPSHOT_PATH/elasticsearch" ]; then
   echo "Restoring Elasticsearch indices ..."
   ghe-restore-es-rsync "$GHE_HOSTNAME" 1>&3
 fi
@@ -310,7 +311,7 @@ echo "sudo restart -q memcached 2>/dev/null || true" |
 
 # When restoring to a host that has already been configured, kick off a
 # config run to perform data migrations.
-if $cluster; then
+if $CLUSTER; then
   echo "Configuring cluster ..."
   ghe-ssh "$GHE_HOSTNAME" -- "ghe-cluster-config-apply" 1>&3 2>&3
 elif $instance_configured; then
@@ -320,7 +321,7 @@ fi
 
 # Start cron. Timerd will start automatically as part of the config run.
 echo "Starting cron ..."
-if $cluster; then
+if $CLUSTER; then
   if ! ghe-ssh "$GHE_HOSTNAME" -- "ghe-cluster-each -- sudo service cron start"; then
     echo "* Warning: Failed to start cron on one or more nodes"
   fi
@@ -340,7 +341,7 @@ update_restore_status "complete"
 # Log restore complete message in /var/log/syslog on remote instance
 ghe_remote_logger "Completed restore from $(hostname) / snapshot ${GHE_RESTORE_SNAPSHOT}."
 
-if ! $cluster; then
+if ! $CLUSTER; then
   echo "Restoring SSH host keys ..."
   ghe-ssh "$GHE_HOSTNAME" -- 'ghe-import-ssh-host-keys' < "$GHE_RESTORE_SNAPSHOT_PATH/ssh-host-keys.tar" 1>&3
 else
@@ -355,6 +356,6 @@ fi
 
 echo "Completed restore of $GHE_HOSTNAME from snapshot $GHE_RESTORE_SNAPSHOT"
 
-if ! $cluster; then
+if ! $CLUSTER; then
   echo "Visit https://$hostname/setup/settings to review appliance configuration."
 fi

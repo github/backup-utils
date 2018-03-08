@@ -12,6 +12,9 @@ while true; do
         -l|-o|-p)
             shift 2
             ;;
+        -q)
+            shift
+            ;;
         --)
             shift
             break

@@ -44,12 +44,12 @@ host=$(ssh_host_part "$GHE_HOSTNAME")
 user="${host%@*}"
 [ "$user" = "$host" ] && user="admin"
 
+# Set up remote host and root backup snapshot directory based on config
+host="$GHE_HOSTNAME"
 backup_dir="$GHE_SNAPSHOT_DIR/repositories"
 
 # Location of last good backup for rsync --link-dest
 backup_current="$GHE_DATA_DIR/current/repositories"
-
-tempdir=$(mktemp -d)
 
 # Verify rsync is available.
 if ! rsync --version 1>/dev/null 2>&1; then
@@ -68,13 +68,19 @@ host=$(ssh_host_part "$GHE_HOSTNAME")
 user="${host%@*}"
 [ "$user" = "$host" ] && user="admin"
 
-# git server hostnames
-hostnames=$(ghe-cluster-nodes "$GHE_HOSTNAME" "git-server")
+hostnames=$host
+ssh_config_file_opt=
+tempdir=$(mktemp -d -t backup-utils-restore-XXXXXX)
+opts="$GHE_EXTRA_SSH_OPTS"
 
-ssh_config_file=$(mktemp -t cluster-backup-restore-XXXXXX)
-ghe-ssh-config "$GHE_HOSTNAME" "$hostnames" > "$ssh_config_file"
-
-opts="$GHE_EXTRA_SSH_OPTS -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no"
+# git server hostnames under cluster
+if [ "$GHE_BACKUP_STRATEGY" = "cluster" ]; then
+  ssh_config_file="$tempdir/ssh_config"
+  ssh_config_file_opt="-F $ssh_config_file"
+  opts="$opts -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no"
+  hostnames=$(ghe-cluster-nodes "$GHE_HOSTNAME" "git-server")
+  ghe-ssh-config "$GHE_HOSTNAME" "$hostnames" > "$ssh_config_file"
+fi
 
 # Make sure root backup dir exists if this is the first run
 mkdir -p "$backup_dir"
@@ -89,11 +95,10 @@ cleanup() {
   # Enable remote GC operations, unless testing
   if [ -z "$GHE_TEST_REMOTE_VERSION" ]; then
     for hostname in $hostnames; do
-      ghe-gc-enable -F $ssh_config_file $hostname:$port
+      ghe-gc-enable $ssh_config_file_opt $hostname:$port
     done
   fi
 
-  rm -f $ssh_config_file
   rm -rf $tempdir
 }
 trap 'cleanup' EXIT
@@ -102,7 +107,7 @@ trap 'exit $?' INT # ^C always terminate
 # Disable remote GC operations, unless testing
 if [ -z "$GHE_TEST_REMOTE_VERSION" ]; then
   for hostname in $hostnames; do
-    ghe-gc-disable -F $ssh_config_file $hostname:$port
+    ghe-gc-disable $ssh_config_file_opt $hostname:$port
   done
 fi
 
@@ -125,7 +130,11 @@ bm_start "$(basename $0) - Calculating Sync Routes"
 ghe-ssh "$GHE_HOSTNAME" github-env ./bin/dgit-cluster-backup-routes \
   | while read route; do
   ghe_verbose "Got backup route $route"
-  server=$(echo $route | cut -d ' ' -f2-)
+  if [ "$GHE_BACKUP_STRATEGY" = "cluster" ]; then
+    server=$(echo $route | cut -d ' ' -f2-)
+  else
+    server=$host
+  fi
   network_path=$(echo $route | cut -d ' ' -f1)
   ghe_verbose "Adding $network_path to $tempdir/$server.rsync"
   echo "$network_path" >> $tempdir/$server.rsync
@@ -151,7 +160,7 @@ rsync_repository_data () {
     shift
     shift
     ghe-rsync -avr \
-      -e "ssh -q $opts -p $port -F $ssh_config_file -l $user" \
+      -e "ssh -q $opts -p $port $ssh_config_file_opt -l $user" \
       $link_dest "$@" \
       --rsync-path='sudo -u git rsync' \
       --include-from=- --exclude=\* \
@@ -161,7 +170,7 @@ rsync_repository_data () {
   else
     shift
     ghe-rsync -avr \
-      -e "ssh -q $opts -p $port -F $ssh_config_file -l $user" \
+      -e "ssh -q $opts -p $port $ssh_config_file_opt -l $user" \
       $link_dest "$@" \
       --rsync-path='sudo -u git rsync' \
       --include-from=- --exclude=\* \

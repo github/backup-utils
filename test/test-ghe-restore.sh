@@ -139,6 +139,9 @@ begin_test "ghe-restore into unconfigured vm"
     ghe-restore -v -f > "$TRASHDIR/restore-out" 2>&1
     cat "$TRASHDIR/restore-out"
 
+    # verify no config run after restore on unconfigured instance
+    ! grep -q "ghe-config-apply OK" "$TRASHDIR/restore-out"
+
     # verify connect to right host
     grep -q "Connect 127.0.0.1:22 OK" "$TRASHDIR/restore-out"
 

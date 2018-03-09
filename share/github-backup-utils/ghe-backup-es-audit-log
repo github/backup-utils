@@ -41,7 +41,9 @@ if echo 'set -o pipefail; ! test -e /data/user/common/es-scan-complete && test -
   fi
 fi
 
-while read index; do
+IFS=$'\n'
+for index in $indices; do
+  IFS=' '
   set $index
   index_name=$1
   index_size=$2
@@ -54,6 +56,6 @@ while read index; do
     ghe-ssh "$host" "/usr/local/share/enterprise/ghe-es-dump-json \"http://localhost:$es_port/$index_name\"" | gzip > $GHE_SNAPSHOT_DIR/audit-log/$index_name.gz
     echo $index_size > $GHE_SNAPSHOT_DIR/audit-log/$index_name.gz.size
   fi
-done <<< "$indices"
+done
 
 bm_end "$(basename $0)"

@@ -34,7 +34,9 @@ fi
 # Hookshot indices may not exist if no recent webhook deliveries have occured.
 [ -z "$indices" ] && exit
 
-while read index; do
+IFS=$'\n'
+for index in $indices; do
+  IFS=' '
   set $index
   index_name=$1
   index_size=$2
@@ -47,6 +49,6 @@ while read index; do
     ghe-ssh "$host" "/usr/local/share/enterprise/ghe-es-dump-json \"http://localhost:$es_port/$index_name\"" | gzip > $GHE_SNAPSHOT_DIR/hookshot/$index_name.gz
     echo $index_size > $GHE_SNAPSHOT_DIR/hookshot/$index_name.gz.size
   fi
-done <<< "$indices"
+done
 
 bm_end "$(basename $0)"

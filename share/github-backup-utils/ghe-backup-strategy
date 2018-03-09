@@ -9,8 +9,7 @@
 set -e
 
 # Bring in the backup configuration
-# shellcheck source=share/github-backup-utils/ghe-backup-config
-. "$( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config"
+. $( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config
 
 if ghe-ssh "$GHE_HOSTNAME" -- \
   "[ -f '$GHE_REMOTE_ROOT_DIR/etc/github/cluster' ]"; then

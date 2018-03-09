@@ -18,9 +18,7 @@ cd "$ROOTDIR"
 begin_test "ghe-backup-config GHE_DATA_DIR defined"
 (
     set +e
-    # shellcheck disable=SC2030
-    GHE_DATA_DIR=
-    error=$(. share/github-backup-utils/ghe-backup-config 2>&1)
+    GHE_DATA_DIR= error=$(. share/github-backup-utils/ghe-backup-config 2>&1)
     # should exit 2
     if [ $? != 2 ]; then
       exit 1

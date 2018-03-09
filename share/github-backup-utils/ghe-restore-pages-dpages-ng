@@ -132,7 +132,7 @@ for file_list in $tempdir/*.rsync; do
   done
 bm_end "$(basename $0) - Restoring pages"
 
-if [ "$(wc -w <<< $hostnames | awk '{print $1}')" != "1" ]; then
+if $CLUSTER; then
   bm_start "$(basename $0) - Finalizing routes"
   cat $to_restore | ghe-ssh "$GHE_HOSTNAME" -- sponge $to_restore
   ghe-ssh "$GHE_HOSTNAME" -- /bin/bash >&3 <<EOF

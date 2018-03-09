@@ -135,7 +135,7 @@ for file_list in $tempdir/*.rsync; do
 done
 bm_end "$(basename $0) - Restoring gists"
 
-if [ "$(wc -w <<< $hostnames | awk '{print $1}')" != "1" ]; then
+if $CLUSTER; then
   bm_start "$(basename $0) - Finalizing routes"
   ghe_verbose "Finalizing routes"
   ghe_verbose "$(cat $to_restore)"

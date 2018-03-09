@@ -176,8 +176,10 @@ skip_test() {
 
 # Create dummy data used for testing
 # This same method can be used to generate the data used for testing backups
-# and restores by passing in the appropriate location.
+# and restores by passing in the appropriate location, for example:
 #
+# Testing backups: setup_test_data $GHE_REMOTE_DATA_USER_DIR
+# Testing restores: setup_test_data "$GHE_DATA_DIR/1"
 #
 setup_test_data () {
   local loc=$1
@@ -258,9 +260,13 @@ setup_test_data () {
   touch hookshot-logs-2018-03-05.gz
 
   # Create some test repositories in the remote repositories dir
-  mkdir "$loc/repositories"
+  mkdir -p "$loc/repositories/info"
   mkdir -p "$TRASHDIR/hooks"
+
   cd "$loc/repositories"
+  echo "fake nw-layout" > info/nw-layout
+  echo "fake svn-v4-upgrade" > info/svn-v4-upgraded
+
   repo1="0/nw/01/aa/3f/1234/1234.git"
   repo2="0/nw/01/aa/3f/1234/1235.git"
   repo3="1/nw/23/bb/4c/2345/broken.git"

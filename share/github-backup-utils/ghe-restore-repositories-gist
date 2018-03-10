@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-#/ Usage: ghe-restore-repositories-gist-ng <host>
-#/ Restore repositories fron an rsync snapshot of all Git repository data to a GitHub cluster.
+#/ Usage: ghe-restore-repositories-gist <host>
+#/ Restore repositories from an rsync snapshot of all Git repository data.
 #/
 #/ Note: This script typically isn't called directly. It's invoked by the
-#/ ghe-restore command when restoring into a cluster.
+#/ ghe-restore command.
 set -e
 
 # Bring in the backup configuration

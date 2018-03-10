@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-#/ Usage: ghe-backup-alambic-cluster-ng
+#/ Usage: ghe-backup-storage
 #/ Take an online, incremental snapshot of all Alambic Storage data using the
 #/ calculated routes method.
 #/
 #/ Note: This command typically isn't called directly. It's invoked by
-#/ ghe-backup when the cluster strategy is used.
+#/ ghe-backup.
 set -e
 
 # Bring in the backup configuration

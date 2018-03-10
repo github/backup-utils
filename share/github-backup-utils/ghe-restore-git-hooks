@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-#/ Usage: ghe-restore-git-hooks-cluster <host>
+#/ Usage: ghe-restore-git-hooks <host>
 #/ Restore custom Git hooks data from an rsync snapshot
 #/
 #/ Note: This command typically isn't called directly. It's invoked by
-#/ ghe-restore when the cluster strategy is used.
+#/ ghe-restore.
 set -e
 
 # Bring in the backup configuration

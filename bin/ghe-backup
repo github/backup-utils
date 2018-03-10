@@ -153,7 +153,7 @@ ghe-ssh "$GHE_HOSTNAME" -- /bin/bash > mysql.sql.gz || failures="$failures mysql
 bm_end "ghe-export-mysql"
 
 echo "Backing up Redis database ..."
-ghe-backup-redis-cluster > redis.rdb || failures="$failures redis"
+ghe-backup-redis > redis.rdb || failures="$failures redis"
 
 echo "Backing up audit log ..."
 ghe-backup-es-audit-log || failures="$failures audit-log"
@@ -162,16 +162,16 @@ echo "Backing up hookshot logs ..."
 ghe-backup-es-hookshot || failures="$failures hookshot"
 
 echo "Backing up Git repositories ..."
-ghe-backup-repositories-cluster-ng || failures="$failures repositories"
+ghe-backup-repositories || failures="$failures repositories"
 
 echo "Backing up GitHub Pages ..."
-ghe-backup-pages-cluster || failures="$failures pages"
+ghe-backup-pages || failures="$failures pages"
 
 echo "Backing up storage data ..."
-ghe-backup-alambic-cluster-ng || failures="$failures alambic"
+ghe-backup-storage || failures="$failures storage"
 
 echo "Backing up custom Git hooks ..."
-ghe-backup-git-hooks-cluster || failures="$failures git-hooks"
+ghe-backup-git-hooks || failures="$failures git-hooks"
 
 if [ "$GHE_BACKUP_STRATEGY" = "rsync" ]; then
   echo "Backing up Elasticsearch indices ..."

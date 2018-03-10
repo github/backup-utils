@@ -276,22 +276,22 @@ ghe-ssh "$GHE_HOSTNAME" -- 'ghe-import-redis' < "$GHE_RESTORE_SNAPSHOT_PATH/redi
 bm_end "ghe-import-redis"
 
 echo "Restoring Git repositories ..."
-ghe-restore-repositories-dgit-ng "$GHE_HOSTNAME" 1>&3
+ghe-restore-repositories "$GHE_HOSTNAME" 1>&3
 
 echo "Restoring Gists ..."
-ghe-restore-repositories-gist-ng "$GHE_HOSTNAME" 1>&3
+ghe-restore-repositories-gist "$GHE_HOSTNAME" 1>&3
 
 echo "Restoring GitHub Pages ..."
-ghe-restore-pages-dpages-ng "$GHE_HOSTNAME" 1>&3
+ghe-restore-pages "$GHE_HOSTNAME" 1>&3
 
 echo "Restoring SSH authorized keys ..."
 ghe-ssh "$GHE_HOSTNAME" -- 'ghe-import-authorized-keys' < "$GHE_RESTORE_SNAPSHOT_PATH/authorized-keys.json" 1>&3
 
 echo "Restoring storage data ..."
-ghe-restore-alambic-cluster-ng "$GHE_HOSTNAME" 1>&3
+ghe-restore-storage "$GHE_HOSTNAME" 1>&3
 
 echo "Restoring custom Git hooks ..."
-ghe-restore-git-hooks-cluster "$GHE_HOSTNAME" 1>&3
+ghe-restore-git-hooks "$GHE_HOSTNAME" 1>&3
 
 if ! $CLUSTER && [ -d "$GHE_RESTORE_SNAPSHOT_PATH/elasticsearch" ]; then
   echo "Restoring Elasticsearch indices ..."

@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-#/ Usage: ghe-restore-alambic-cluster-ng <host>
+#/ Usage: ghe-restore-storage <host>
 #/
-#/ Restore storage objects from an rsync snapshot to a GitHub Cluster.
+#/ Restore storage objects from an rsync snapshot.
 #/
 #/ Note: This script typically isn't called directly. It's invoked by the
-#/ ghe-restore command when restoring into a cluster.
+#/ ghe-restore command.
 set -e
 
 # Bring in the backup configuration

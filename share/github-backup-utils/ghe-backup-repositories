@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-#/ Usage: ghe-backup-repositories-cluster-ng
+#/ Usage: ghe-backup-repositories
 #/ Take an online, incremental snapshot of all Git repository data.
 #/
 #/ Note: This command typically isn't called directly. It's invoked by
-#/ ghe-backup when the cluster strategy is used.
+#/ ghe-backup.
 set -e
 
 # This command is designed to allow for transferring active Git repository data

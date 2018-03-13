@@ -321,7 +321,7 @@ if $CLUSTER; then
   ghe-ssh "$GHE_HOSTNAME" -- "ghe-cluster-config-apply" 1>&3 2>&3
 elif $instance_configured; then
   echo "Configuring appliance ..."
-  ghe-ssh "$GHE_HOSTNAME" -- "ghe-config-apply --full" 1>&3 2>&3
+  ghe-ssh "$GHE_HOSTNAME" -- "ghe-config-apply" 1>&3 2>&3
 fi
 
 # Start cron. Timerd will start automatically as part of the config run.

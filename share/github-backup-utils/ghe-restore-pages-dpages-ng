@@ -119,10 +119,16 @@ for file_list in $tempdir/*.rsync; do
 bm_end "$(basename $0) - Restoring pages"
 
 bm_start "$(basename $0) - Finalizing routes"
+
+jobs=""
+if [ -n "$GHE_RESTORE_PARALLEL_JOBS" ]; then
+  jobs="-j $GHE_RESTORE_PARALLEL_JOBS"
+fi
+
 ghe-ssh "$GHE_HOSTNAME" -- /bin/bash >&3 <<EOF
   split -l 1000 -d $routes_list $tempdir/chunk
   chunks=\$(find $tempdir/ -name chunk\*)
-  parallel -i /bin/sh -c "cat {} | github-env ./bin/dpages-cluster-restore-finalize" -- \$chunks
+  parallel $jobs -i /bin/sh -c "cat {} | github-env ./bin/dpages-cluster-restore-finalize" -- \$chunks
 EOF
 bm_end "$(basename $0) - Finalizing routes"
 

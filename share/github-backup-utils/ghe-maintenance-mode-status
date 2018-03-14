@@ -8,15 +8,15 @@ set -e
 
 # Parse args
 while true; do
-    case "$1" in
-        -*)
-            echo "ghe-maintenance-mode-enable: illegal argument: $1" 1>&2
-            exit 1
-            ;;
-        *)
-            break
-            ;;
-    esac
+  case "$1" in
+    -*)
+      echo "ghe-maintenance-mode-enable: illegal argument: $1" 1>&2
+      exit 1
+      ;;
+    *)
+      break
+      ;;
+  esac
 done
 
 # Show usage and bail with no arguments

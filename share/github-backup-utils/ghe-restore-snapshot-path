@@ -18,13 +18,13 @@ fi
 # Resolve the snapshot id if we're restoring from current. This is mostly
 # just for logging.
 if [ "$GHE_RESTORE_SNAPSHOT" = "current" ]; then
-    GHE_RESTORE_SNAPSHOT=$(readlink "$GHE_DATA_DIR"/current || true)
+  GHE_RESTORE_SNAPSHOT=$(readlink "$GHE_DATA_DIR"/current || true)
 fi
 
 # Bail out if we don't have a good snapshot.
 if [ ! -d "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT" ]; then
-    echo "Error: Snapshot '$GHE_RESTORE_SNAPSHOT' doesn't exist." 1>&2
-    exit 1
+  echo "Error: Snapshot '$GHE_RESTORE_SNAPSHOT' doesn't exist." 1>&2
+  exit 1
 fi
 
 echo "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT"

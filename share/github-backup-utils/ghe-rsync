@@ -21,7 +21,7 @@ res=$?
 
 # rsync exits with 24 when vanished files are detected.
 if [ $res = 24 ]; then
-    res=0
+  res=0
 fi
 
 exit $res

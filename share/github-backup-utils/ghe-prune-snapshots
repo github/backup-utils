@@ -24,16 +24,16 @@ prune_dirs="$(ls -1 "$GHE_DATA_DIR"/[0-9]*/incomplete 2>/dev/null || true)"
 prune_num=$(echo "$prune_dirs" | grep -v '^$' | wc -l)
 
 if [ $prune_num -gt 0 ]; then
-    echo Pruning $prune_num "failed snapshot(s) ..."
-    echo "$prune_dirs" | sed 's@/incomplete$@@' | prune_snapshot
+  echo Pruning $prune_num "failed snapshot(s) ..."
+  echo "$prune_dirs" | sed 's@/incomplete$@@' | prune_snapshot
 fi
 
 # Now prune all expired snapshots. Keep GHE_NUM_SNAPSHOTS around.
 snapshot_count=$(ls -1d "$GHE_DATA_DIR"/[0-9]* 2>/dev/null | wc -l)
 
 if [ "$snapshot_count" -gt "$GHE_NUM_SNAPSHOTS" ]; then
-    prune_dirs="$(ls -1d "$GHE_DATA_DIR"/[0-9]* | sort -r | awk "NR>$GHE_NUM_SNAPSHOTS")"
-    prune_num=$(echo "$prune_dirs" | grep -v '^$' | wc -l)
-    echo Pruning $prune_num "expired snapshot(s) ..."
-    echo "$prune_dirs" | prune_snapshot
+  prune_dirs="$(ls -1d "$GHE_DATA_DIR"/[0-9]* | sort -r | awk "NR>$GHE_NUM_SNAPSHOTS")"
+  prune_num=$(echo "$prune_dirs" | grep -v '^$' | wc -l)
+  echo Pruning $prune_num "expired snapshot(s) ..."
+  echo "$prune_dirs" | prune_snapshot
 fi

@@ -12,29 +12,29 @@ set -e
 
 opts="$GHE_EXTRA_SSH_OPTS"
 while true; do
-    case "$1" in
-        -p)
-            port="$2"
-            shift 2
-            ;;
-        -l|-o|-F)
-            opts="$opts $1 $2"
-            shift 2
-            ;;
-        -c|--clean)
-            cleanup_mux=1
-            shift
-            ;;
-        --)
-            echo "Error: illegal '--' in ssh invocation"
-            exit 1
-            ;;
-        *)
-            host="$1"
-            shift
-            break
-            ;;
-    esac
+  case "$1" in
+    -p)
+      port="$2"
+      shift 2
+      ;;
+    -l|-o|-F)
+      opts="$opts $1 $2"
+      shift 2
+      ;;
+    -c|--clean)
+      cleanup_mux=1
+      shift
+      ;;
+    --)
+      echo "Error: illegal '--' in ssh invocation"
+      exit 1
+      ;;
+    *)
+      host="$1"
+      shift
+      break
+      ;;
+  esac
 done
 
 # Show usage with no host
@@ -42,7 +42,7 @@ done
 
 # Shift off '--' if given immediately after host.
 if [ "$1" = "--" ]; then
-    shift
+  shift
 fi
 
 # Split host:port into parts. The port is only used if not specified earlier.
@@ -57,9 +57,9 @@ opts="-l $user $opts"
 # Bail out with error if the simple command form is used with complex commands.
 # Complex
 if echo "$*" | grep "[|;]" >/dev/null || [ $(echo "$*" | wc -l) -gt 1 ]; then
-    echo "fatal: ghe-ssh: Attempt to invoke complex command with simple command form." 1>&2
-    echo "See ghe-ssh --help for more on correcting." 1>&2
-    exit 1
+  echo "fatal: ghe-ssh: Attempt to invoke complex command with simple command form." 1>&2
+  echo "See ghe-ssh --help for more on correcting." 1>&2
+  exit 1
 fi
 
 if [ -z "$GHE_DISABLE_SSH_MUX" ]; then

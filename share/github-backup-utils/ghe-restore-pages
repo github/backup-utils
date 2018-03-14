@@ -79,8 +79,8 @@ trap 'cleanup' EXIT
 bm_start "$(basename $0) - Building pages list"
 OLDIFS=$IFS; IFS=$'\n'
 for path in $pages_paths; do
-   ghe_verbose "* Adding path $path to the list of pages to send"
-   echo $path
+  ghe_verbose "* Adding path $path to the list of pages to send"
+  echo $path
 done > $tmp_list
 IFS=$OLDIFS
 bm_end "$(basename $0) - Building pages list"

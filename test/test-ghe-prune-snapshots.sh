@@ -22,11 +22,11 @@ generate_prune_files 3
 
 begin_test "ghe-prune-snapshots using default GHE_NUM_SNAPSHOTS"
 (
-    set -e
-    generate_prune_files 12
-    ghe-prune-snapshots
-    [ $(ls -1d "$GHE_DATA_DIR"/[0-9]* | wc -l) -eq 10 ]
-    [ ! -d "$GHE_DATA_DIR/01" -a ! -d "$GHE_DATA_DIR/02" ]
+  set -e
+  generate_prune_files 12
+  ghe-prune-snapshots
+  [ $(ls -1d "$GHE_DATA_DIR"/[0-9]* | wc -l) -eq 10 ]
+  [ ! -d "$GHE_DATA_DIR/01" -a ! -d "$GHE_DATA_DIR/02" ]
 )
 end_test
 
@@ -74,17 +74,17 @@ end_test
 
 begin_test "ghe-prune-snapshots incomplete snapshot pruning"
 (
-    set -e
+  set -e
 
-    generate_prune_files 5
+  generate_prune_files 5
 
-    [ $(file_count_no_current) -eq 5 ]
+  [ $(file_count_no_current) -eq 5 ]
 
-    touch "$GHE_DATA_DIR/04/incomplete"
+  touch "$GHE_DATA_DIR/04/incomplete"
 
-    GHE_NUM_SNAPSHOTS=5 ghe-prune-snapshots
+  GHE_NUM_SNAPSHOTS=5 ghe-prune-snapshots
 
-    [ $(file_count_no_current) -eq 4 ]
-    [ ! -d "$GHE_DATA_DIR/04" ]
+  [ $(file_count_no_current) -eq 4 ]
+  [ ! -d "$GHE_DATA_DIR/04" ]
 )
 end_test

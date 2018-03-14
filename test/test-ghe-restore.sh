@@ -11,32 +11,32 @@ ln -s 1 "$GHE_DATA_DIR/current"
 
 begin_test "ghe-restore into configured vm"
 (
-    set -e
-    rm -rf "$GHE_REMOTE_ROOT_DIR"
-    setup_remote_metadata
+  set -e
+  rm -rf "$GHE_REMOTE_ROOT_DIR"
+  setup_remote_metadata
 
-    # set as configured, enable maintenance mode and create required directories
-    setup_maintenance_mode "configured"
+  # set as configured, enable maintenance mode and create required directories
+  setup_maintenance_mode "configured"
 
-    # set restore host environ var
-    GHE_RESTORE_HOST=127.0.0.1
-    export GHE_RESTORE_HOST
+  # set restore host environ var
+  GHE_RESTORE_HOST=127.0.0.1
+  export GHE_RESTORE_HOST
 
-    # run ghe-restore and write output to file for asserting against
-    if ! ghe-restore -v -f > "$TRASHDIR/restore-out" 2>&1; then
-        cat "$TRASHDIR/restore-out"
-        : ghe-restore should have exited successfully
-        false
-    fi
+  # run ghe-restore and write output to file for asserting against
+  if ! ghe-restore -v -f > "$TRASHDIR/restore-out" 2>&1; then
+      cat "$TRASHDIR/restore-out"
+      : ghe-restore should have exited successfully
+      false
+  fi
 
-    # for debugging
-    cat "$TRASHDIR/restore-out"
+  # for debugging
+  cat "$TRASHDIR/restore-out"
 
-    # verify connect to right host
-    grep -q "Connect 127.0.0.1:22 OK" "$TRASHDIR/restore-out"
+  # verify connect to right host
+  grep -q "Connect 127.0.0.1:22 OK" "$TRASHDIR/restore-out"
 
-    # Verify all the data we've restored is as expected
-    verify_all_restored_data
+  # Verify all the data we've restored is as expected
+  verify_all_restored_data
 )
 end_test
 
@@ -53,174 +53,174 @@ end_test
 
 begin_test "ghe-restore aborts without user verification"
 (
-    set -e
-    rm -rf "$GHE_REMOTE_ROOT_DIR"
-    setup_remote_metadata
+  set -e
+  rm -rf "$GHE_REMOTE_ROOT_DIR"
+  setup_remote_metadata
 
-    # set as configured, enable maintenance mode and create required directories
-    setup_maintenance_mode "configured"
+  # set as configured, enable maintenance mode and create required directories
+  setup_maintenance_mode "configured"
 
-    # set restore host environ var
-    GHE_RESTORE_HOST=127.0.0.1
-    export GHE_RESTORE_HOST
+  # set restore host environ var
+  GHE_RESTORE_HOST=127.0.0.1
+  export GHE_RESTORE_HOST
 
-    # run ghe-restore and write output to file for asserting against
-    if echo "no" | ghe-restore -v > "$TRASHDIR/restore-out" 2>&1; then
-        cat "$TRASHDIR/restore-out"
-        false # ghe-restore should have exited non-zero
-    fi
+  # run ghe-restore and write output to file for asserting against
+  if echo "no" | ghe-restore -v > "$TRASHDIR/restore-out" 2>&1; then
+    cat "$TRASHDIR/restore-out"
+    false # ghe-restore should have exited non-zero
+  fi
 
-    grep -q "Restore aborted" "$TRASHDIR/restore-out"
+  grep -q "Restore aborted" "$TRASHDIR/restore-out"
 )
 end_test
 
 begin_test "ghe-restore accepts user verification"
 (
-    set -e
-    rm -rf "$GHE_REMOTE_ROOT_DIR"
-    setup_remote_metadata
+  set -e
+  rm -rf "$GHE_REMOTE_ROOT_DIR"
+  setup_remote_metadata
 
-    # set as configured, enable maintenance mode and create required directories
-    setup_maintenance_mode "configured"
+  # set as configured, enable maintenance mode and create required directories
+  setup_maintenance_mode "configured"
 
-    # set restore host environ var
-    GHE_RESTORE_HOST=127.0.0.1
-    export GHE_RESTORE_HOST
+  # set restore host environ var
+  GHE_RESTORE_HOST=127.0.0.1
+  export GHE_RESTORE_HOST
 
-    # run ghe-restore and write output to file for asserting against
-    if ! echo "yes" | ghe-restore -v > "$TRASHDIR/restore-out" 2>&1; then
-        cat "$TRASHDIR/restore-out"
-        false # ghe-restore should have accepted the input
-    fi
+  # run ghe-restore and write output to file for asserting against
+  if ! echo "yes" | ghe-restore -v > "$TRASHDIR/restore-out" 2>&1; then
+    cat "$TRASHDIR/restore-out"
+    false # ghe-restore should have accepted the input
+  fi
 )
 end_test
 
 begin_test "ghe-restore -c into unconfigured vm"
 (
-    set -e
-    rm -rf "$GHE_REMOTE_ROOT_DIR"
-    setup_remote_metadata
+  set -e
+  rm -rf "$GHE_REMOTE_ROOT_DIR"
+  setup_remote_metadata
 
-    # set restore host environ var
-    GHE_RESTORE_HOST=127.0.0.1
-    export GHE_RESTORE_HOST
+  # set restore host environ var
+  GHE_RESTORE_HOST=127.0.0.1
+  export GHE_RESTORE_HOST
 
-    # leave unconfigured, enable maintenance mode and create required directories
-    setup_maintenance_mode
+  # leave unconfigured, enable maintenance mode and create required directories
+  setup_maintenance_mode
 
-    # run ghe-restore and write output to file for asserting against
-    if ! ghe-restore -v -f -c > "$TRASHDIR/restore-out" 2>&1; then
-        cat "$TRASHDIR/restore-out"
-        false
-    fi
+  # run ghe-restore and write output to file for asserting against
+  if ! ghe-restore -v -f -c > "$TRASHDIR/restore-out" 2>&1; then
+    cat "$TRASHDIR/restore-out"
+    false
+  fi
 
-    # verify connect to right host
-    grep -q "Connect 127.0.0.1:22 OK" "$TRASHDIR/restore-out"
+  # verify connect to right host
+  grep -q "Connect 127.0.0.1:22 OK" "$TRASHDIR/restore-out"
 
-    # Verify all the data we've restored is as expected
-    verify_all_restored_data
+  # Verify all the data we've restored is as expected
+  verify_all_restored_data
 )
 end_test
 
 begin_test "ghe-restore into unconfigured vm"
 (
-    set -e
-    rm -rf "$GHE_REMOTE_ROOT_DIR"
-    setup_remote_metadata
+  set -e
+  rm -rf "$GHE_REMOTE_ROOT_DIR"
+  setup_remote_metadata
 
-    # set restore host environ var
-    GHE_RESTORE_HOST=127.0.0.1
-    export GHE_RESTORE_HOST
+  # set restore host environ var
+  GHE_RESTORE_HOST=127.0.0.1
+  export GHE_RESTORE_HOST
 
-    # leave unconfigured, enable maintenance mode and create required directories
-    setup_maintenance_mode
+  # leave unconfigured, enable maintenance mode and create required directories
+  setup_maintenance_mode
 
-    # ghe-restore into an unconfigured vm implies -c
-    ghe-restore -v -f > "$TRASHDIR/restore-out" 2>&1
-    cat "$TRASHDIR/restore-out"
+  # ghe-restore into an unconfigured vm implies -c
+  ghe-restore -v -f > "$TRASHDIR/restore-out" 2>&1
+  cat "$TRASHDIR/restore-out"
 
-    # verify no config run after restore on unconfigured instance
-    ! grep -q "ghe-config-apply OK" "$TRASHDIR/restore-out"
+  # verify no config run after restore on unconfigured instance
+  ! grep -q "ghe-config-apply OK" "$TRASHDIR/restore-out"
 
-    # verify connect to right host
-    grep -q "Connect 127.0.0.1:22 OK" "$TRASHDIR/restore-out"
+  # verify connect to right host
+  grep -q "Connect 127.0.0.1:22 OK" "$TRASHDIR/restore-out"
 
-    # Verify all the data we've restored is as expected
-    verify_all_restored_data
+  # Verify all the data we've restored is as expected
+  verify_all_restored_data
 )
 end_test
 
 begin_test "ghe-restore with host arg"
 (
-    set -e
-    rm -rf "$GHE_REMOTE_ROOT_DIR"
-    setup_remote_metadata
+  set -e
+  rm -rf "$GHE_REMOTE_ROOT_DIR"
+  setup_remote_metadata
 
-    # set as configured, enable maintenance mode and create required directories
-    setup_maintenance_mode "configured"
+  # set as configured, enable maintenance mode and create required directories
+  setup_maintenance_mode "configured"
 
-    # set restore host environ var
-    GHE_RESTORE_HOST=127.0.0.1
-    export GHE_RESTORE_HOST
+  # set restore host environ var
+  GHE_RESTORE_HOST=127.0.0.1
+  export GHE_RESTORE_HOST
 
-    # run it
-    output="$(ghe-restore -f localhost)" || false
+  # run it
+  output="$(ghe-restore -f localhost)" || false
 
-    # verify host arg overrides configured restore host
-    echo "$output" | grep -q 'Connect localhost:22 OK'
+  # verify host arg overrides configured restore host
+  echo "$output" | grep -q 'Connect localhost:22 OK'
 
-    # Verify all the data we've restored is as expected
-    verify_all_restored_data
+  # Verify all the data we've restored is as expected
+  verify_all_restored_data
 )
 end_test
 
 begin_test "ghe-restore no host arg or configured restore host"
 (
-    set -e
-    rm -rf "$GHE_REMOTE_ROOT_DIR"
-    setup_remote_metadata
+  set -e
+  rm -rf "$GHE_REMOTE_ROOT_DIR"
+  setup_remote_metadata
 
-    # set as configured, enable maintenance mode and create required directories
-    setup_maintenance_mode "configured"
+  # set as configured, enable maintenance mode and create required directories
+  setup_maintenance_mode "configured"
 
-    # unset configured restore host
-    unset GHE_RESTORE_HOST
+  # unset configured restore host
+  unset GHE_RESTORE_HOST
 
-    # verify running ghe-restore fails
-    ! ghe-restore -f
+  # verify running ghe-restore fails
+  ! ghe-restore -f
 )
 end_test
 
 begin_test "ghe-restore with no pages backup"
 (
-    set -e
-    rm -rf "$GHE_REMOTE_ROOT_DIR"
-    setup_remote_metadata
+  set -e
+  rm -rf "$GHE_REMOTE_ROOT_DIR"
+  setup_remote_metadata
 
-    # set as configured, enable maintenance mode and create required directories
-    setup_maintenance_mode "configured"
+  # set as configured, enable maintenance mode and create required directories
+  setup_maintenance_mode "configured"
 
-    # remove pages data
-    rm -rf "$GHE_DATA_DIR/1/pages"
+  # remove pages data
+  rm -rf "$GHE_DATA_DIR/1/pages"
 
-    # run it
-    ghe-restore -v -f localhost
+  # run it
+  ghe-restore -v -f localhost
 )
 end_test
 
 begin_test "ghe-restore cluster backup to non-cluster appliance"
 (
-    set -e
-    rm -rf "$GHE_REMOTE_ROOT_DIR"
-    setup_remote_metadata
+  set -e
+  rm -rf "$GHE_REMOTE_ROOT_DIR"
+  setup_remote_metadata
 
-    # set as configured, enable maintenance mode and create required directories
-    setup_maintenance_mode "configured"
+  # set as configured, enable maintenance mode and create required directories
+  setup_maintenance_mode "configured"
 
-    echo "cluster" > "$GHE_DATA_DIR/current/strategy"
-    ! output=$(ghe-restore -v -f localhost 2>&1)
+  echo "cluster" > "$GHE_DATA_DIR/current/strategy"
+  ! output=$(ghe-restore -v -f localhost 2>&1)
 
-    echo $output | grep -q "Snapshot from a GitHub Enterprise cluster cannot be restored"
+  echo $output | grep -q "Snapshot from a GitHub Enterprise cluster cannot be restored"
 )
 end_test
 
@@ -263,17 +263,17 @@ end_test
 
 begin_test "ghe-restore fails when restore to an active HA pair"
 (
-    set -e
+  set -e
 
-    rm -rf "$GHE_REMOTE_ROOT_DIR"
-    setup_remote_metadata
+  rm -rf "$GHE_REMOTE_ROOT_DIR"
+  setup_remote_metadata
 
-    echo "rsync" > "$GHE_DATA_DIR/current/strategy"
-    touch "$GHE_REMOTE_ROOT_DIR/etc/github/repl-state"
+  echo "rsync" > "$GHE_DATA_DIR/current/strategy"
+  touch "$GHE_REMOTE_ROOT_DIR/etc/github/repl-state"
 
-    ! output=$(ghe-restore -v -f localhost 2>&1)
+  ! output=$(ghe-restore -v -f localhost 2>&1)
 
-    echo $output | grep -q "Error: Restoring to an appliance with replication enabled is not supported."
+  echo $output | grep -q "Error: Restoring to an appliance with replication enabled is not supported."
 )
 end_test
 

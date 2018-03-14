@@ -86,14 +86,14 @@ fi
 bm_start "$(basename $0) - Calculating sync routes"
 ghe-ssh "$GHE_HOSTNAME" github-env ./bin/storage-cluster-backup-routes \
   | while read route; do
-  ghe_verbose "Got backup route $route"
+  ghe_debug "Got backup route $route"
   if [ "$GHE_BACKUP_STRATEGY" = "cluster" ]; then
     server=$(echo $route | cut -d ' ' -f2-)
   else
     server=$host
   fi
   network_path=$(echo $route | cut -d ' ' -f1)
-  ghe_verbose "Adding $network_path to $tempdir/$server.rsync"
+  ghe_debug "Adding $network_path to $tempdir/$server.rsync"
   echo "$network_path" >> $tempdir/$server.rsync
 done
 bm_end "$(basename $0) - Calculating sync routes"
@@ -109,7 +109,7 @@ for file_list in $tempdir/*.rsync; do
   hostname=$(basename $file_list .rsync)
 
   object_num=$(cat $file_list | wc -l)
-  echo "* Transferring $object_num objects from $hostname"
+  ghe_verbose "* Transferring $object_num objects from $hostname"
 
   ghe-rsync -avr \
   -e "ssh -q $opts -p $port $ssh_config_file_opt -l $user" \

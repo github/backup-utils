@@ -28,7 +28,7 @@ mkdir -p "$GHE_SNAPSHOT_DIR/elasticsearch"
 
 # Verify that the /data/elasticsearch directory exists.
 if ! ghe-ssh "$host" -- "[ -d '$GHE_REMOTE_DATA_USER_DIR/elasticsearch' ]"; then
-    echo "* The '$GHE_REMOTE_DATA_USER_DIR/elasticsearch' directory doesn't exist." 1>&3
+    ghe_verbose "* The '$GHE_REMOTE_DATA_USER_DIR/elasticsearch' directory doesn't exist."
     exit 0
 fi
 
@@ -41,7 +41,7 @@ fi
 # Transfer ES indices from a GitHub instance to the current snapshot
 # directory, using a previous snapshot to avoid transferring files that have
 # already been transferred.
-echo "* Performing initial sync of ES indices ..." 1>&3
+ghe_verbose "* Performing initial sync of ES indices ..."
 ghe-rsync -avz \
     -e "ghe-ssh -p $(ssh_port_part "$host")" \
     --rsync-path="sudo -u elasticsearch rsync" \
@@ -52,7 +52,7 @@ ghe-rsync -avz \
 
 # Set up a trap to re-enable flushing on exit
 cleanup () {
-    echo "* Enabling ES index flushing ..." 1>&3
+    ghe_verbose "* Enabling ES index flushing ..."
     echo '{"index":{"translog.disable_flush":false}}' |
     ghe-ssh "$host" -- curl -s -XPUT "localhost:9200/_settings" -d @- >/dev/null
 }
@@ -60,13 +60,13 @@ trap 'cleanup' EXIT
 trap 'exit $?' INT # ^C always terminate
 
 # Disable ES flushing and force a flush right now
-echo "* Disabling ES index flushing ..." 1>&3
+ghe_verbose "* Disabling ES index flushing ..."
 echo '{"index":{"translog.disable_flush":true}}' |
 ghe-ssh "$host" -- curl -s -XPUT  "localhost:9200/_settings" -d @- >/dev/null
 ghe-ssh "$host" -- curl -s -XPOST "localhost:9200/_flush" >/dev/null
 
 # Transfer all ES indices again
-echo "* Performing follow-up sync of ES indices ..." 1>&3
+ghe_verbose "* Performing follow-up sync of ES indices ..."
 ghe-rsync -avz \
     -e "ghe-ssh -p $(ssh_port_part "$host")" \
     --rsync-path="sudo -u elasticsearch rsync" \

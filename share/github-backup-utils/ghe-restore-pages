@@ -115,7 +115,7 @@ done
 bm_end "$(basename $0) - Calculating sync routes"
 
 if ! ls $tempdir/*.rsync >/dev/null 2>&1; then
-  echo "Warning: no routes found, skipping storage restore ..."
+  echo "Warning: no routes found, skipping pages restore ..."
   exit 0
 fi
 

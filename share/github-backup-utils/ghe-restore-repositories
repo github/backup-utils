@@ -58,7 +58,7 @@ fi
 
 cleanup() {
   for hostname in $hostnames; do
-    ghe-gc-enable $ssh_config_file_opt $hostname:$port
+    ghe-gc-enable $ssh_config_file_opt $hostname:$port || true
   done
   ghe-ssh "$GHE_HOSTNAME" -- rm -rf $tempdir
   rm -rf $tempdir

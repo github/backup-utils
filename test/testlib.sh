@@ -305,6 +305,34 @@ setup_test_data () {
   fi
 }
 
+# A unified method to check everything backed up or restored during testing.
+# Everything tested here should pass regardless of whether we're testing a backup
+# or a restore.
+verify_common_data() {
+  # verify all repository data was transferred
+  diff -ru "$GHE_REMOTE_DATA_USER_DIR/repositories" "$GHE_DATA_DIR/current/repositories"
+
+  # verify all pages data was transferred
+  diff -ru "$GHE_REMOTE_DATA_USER_DIR/pages" "$GHE_DATA_DIR/current/pages"
+
+  # verify all git hooks tarballs were transferred
+  diff -ru "$GHE_REMOTE_DATA_USER_DIR/git-hooks/environments/tarballs" "$GHE_DATA_DIR/current/git-hooks/environments/tarballs"
+
+  # verify the extracted environments were not transferred
+  ! diff -ru "$GHE_REMOTE_DATA_USER_DIR/git-hooks/environments" "$GHE_DATA_DIR/current/git-hooks/environments"
+
+  # verify the extracted repositories were transferred
+  diff -ru "$GHE_REMOTE_DATA_USER_DIR/git-hooks/repos" "$GHE_DATA_DIR/current/git-hooks/repos"
+
+  # verify the UUID was transferred
+  diff -ru "$GHE_REMOTE_DATA_USER_DIR/common/uuid" "$GHE_DATA_DIR/current/uuid"
+
+  # verify the audit log migration sentinel file has been created on 2.9 and above
+  if [ "$GHE_VERSION_MAJOR" -eq 2 ] && [ "$GHE_VERSION_MINOR" -ge 9 ]; then
+    diff -ru "$GHE_REMOTE_DATA_USER_DIR/common/es-scan-complete" "$GHE_DATA_DIR/current/es-scan-complete"
+  fi
+}
+
 # A unified method to check everything backed up when performing a full backup
 # during testing.
 verify_all_backedup_data() {
@@ -323,16 +351,6 @@ verify_all_backedup_data() {
   # check that settings were backed up
   [ "$(cat "$GHE_DATA_DIR/current/settings.json")" = "fake ghe-export-settings data" ]
 
-  # check that license was backed up
-  [ "$(cat "$GHE_DATA_DIR/current/enterprise.ghl")" = "fake license data" ]
-
-  # check that repositories directory was created
-  [ -d "$GHE_DATA_DIR/current/repositories" ]
-
-  # check that pages data was backed up
-  [ -f "$GHE_DATA_DIR/current/pages/4/c8/1e/72/2/legacy/index.html" ]
-  [ -f "$GHE_DATA_DIR/current/pages/4/c1/6a/53/31/dd3a9a0faa88c714ef2dd638b67587f92f109f96/index.html" ]
-
   # check that mysql data was backed up
   [ "$(gzip -dc < "$GHE_DATA_DIR/current/mysql.sql.gz")" = "fake ghe-export-mysql data" ]
 
@@ -345,38 +363,20 @@ verify_all_backedup_data() {
   # check that ssh host key was backed up
   [ "$(cat "$GHE_DATA_DIR/current/ssh-host-keys.tar")" = "fake ghe-export-ssh-host-keys data" ]
 
-  # verify all repository data was transferred
-  diff -ru "$GHE_REMOTE_DATA_USER_DIR/repositories" "$GHE_DATA_DIR/current/repositories"
-
-  # verify all pages data was transferred
-  diff -ru "$GHE_REMOTE_DATA_USER_DIR/pages" "$GHE_DATA_DIR/current/pages"
-
   # verify all ES data was transferred from live directory
   diff -ru "$GHE_REMOTE_DATA_USER_DIR/elasticsearch" "$GHE_DATA_DIR/current/elasticsearch"
 
-  # verify manage-password file was backed up under v2.x VMs
+  # verify manage-password file was backed up
   [ "$(cat "$GHE_DATA_DIR/current/manage-password")" = "fake password hash data" ]
-
-  # verify all git hooks tarballs were transferred
-  diff -ru "$GHE_REMOTE_DATA_USER_DIR/git-hooks/environments/tarballs" "$GHE_DATA_DIR/current/git-hooks/environments/tarballs"
-
-  # verify the extracted environments were not transferred
-  ! diff -ru "$GHE_REMOTE_DATA_USER_DIR/git-hooks/environments" "$GHE_DATA_DIR/current/git-hooks/environments"
-
-  # verify the extracted repositories were transferred
-  diff -ru "$GHE_REMOTE_DATA_USER_DIR/git-hooks/repos" "$GHE_DATA_DIR/current/git-hooks/repos"
-
-  # verify the UUID was transferred
-  diff -ru "$GHE_REMOTE_DATA_USER_DIR/common/uuid" "$GHE_DATA_DIR/current/uuid"
 
   # check that ca certificates were backed up
   [ "$(cat "$GHE_DATA_DIR/current/ssl-ca-certificates.tar")" = "fake ghe-export-ssl-ca-certificates data" ]
 
-  # verify the audit log migration sentinel file has been created
-  [ -f "$GHE_DATA_DIR/current/es-scan-complete" ]
-
   # verify that ghe-backup wrote its version information to the host
   [ -f "$GHE_REMOTE_DATA_USER_DIR/common/backup-utils-version" ]
+
+  # verify common data
+  verify_common_data
 }
 
 # A unified method to check everything restored when performing a full restore
@@ -385,8 +385,6 @@ verify_all_restored_data() {
   set -e
 
   # verify all import scripts were run
-  grep -q "4/c8/1e/72/2/legacy/index.html" "$TRASHDIR/restore-out"
-  grep -q "4/c1/6a/53/31/dd3a9a0faa88c714ef2dd638b67587f92f109f96/index.html" "$TRASHDIR/restore-out"
   grep -q "fake ghe-export-mysql data" "$TRASHDIR/restore-out"
   grep -q "fake ghe-export-redis data" "$TRASHDIR/restore-out"
   grep -q "fake ghe-export-authorized-keys data" "$TRASHDIR/restore-out"
@@ -396,28 +394,12 @@ verify_all_restored_data() {
   # configured.
   ! grep -q "fake ghe-export-settings data" "$TRASHDIR/restore-out"
 
-  # verify all repository data was transferred to the restore location
-  diff -ru "$GHE_DATA_DIR/current/repositories" "$GHE_REMOTE_DATA_USER_DIR/repositories"
-
-  # verify all pages data was transferred to the restore location
-  diff -ru "$GHE_DATA_DIR/current/pages" "$GHE_REMOTE_DATA_USER_DIR/pages"
-
   # verify all ES data was transferred from live directory to the temporary restore directory
   diff -ru --exclude="*.gz" "$GHE_DATA_DIR/current/elasticsearch" "$GHE_REMOTE_DATA_USER_DIR/elasticsearch-restore"
 
   # verify management console password was *not* restored
   ! grep -q "fake password hash data" "$GHE_REMOTE_DATA_USER_DIR/common/secrets.conf"
 
-  # verify all git hooks data was transferred
-  diff -ru "$GHE_DATA_DIR/current/git-hooks/environments/tarballs" "$GHE_REMOTE_DATA_USER_DIR/git-hooks/environments/tarballs"
-  ! diff -ru "$GHE_DATA_DIR/current/git-hooks/environments" "$GHE_REMOTE_DATA_USER_DIR/git-hooks/environments"
-  diff -ru "$GHE_DATA_DIR/current/git-hooks/repos" "$GHE_REMOTE_DATA_USER_DIR/git-hooks/repos"
-
-  # verify the UUID was transferred
-  diff -ru "$GHE_DATA_DIR/current/uuid" "$GHE_REMOTE_DATA_USER_DIR/common/uuid"
-
-  # verify the audit log migration sentinel file has been created on 2.9 and above
-  if [ "$GHE_VERSION_MAJOR" -eq 2 ] && [ "$GHE_VERSION_MINOR" -ge 9 ]; then
-    [ -f "$GHE_REMOTE_DATA_USER_DIR/common/es-scan-complete" ]
-  fi
+  # verify common data
+  verify_common_data
 }

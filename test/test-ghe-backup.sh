@@ -187,15 +187,14 @@ begin_test "ghe-backup with leaked SSH host key detection for current backup"
 (
   set -e
 
-  SHARED_UTILS_PATH=$(dirname $(which ghe-detect-leaked-ssh-keys))
-  # Inject the fingerprint into the blacklist
-  echo 98:d8:99:d3:be:c0:55:05:db:b0:53:2f:1f:ad:b3:60 >> "$SHARED_UTILS_PATH/ghe-ssh-leaked-host-keys-list.txt"
-
   # Re-link ghe-export-ssh-keys to generate a fake ssh
   unlink  "$ROOTDIR/test/bin/ghe-export-ssh-host-keys"
   cd "$ROOTDIR/test/bin"
   ln -s ghe-gen-fake-ssh-tar ghe-export-ssh-host-keys
   cd -
+
+  # Inject the fingerprint into the blacklist
+  export FINGERPRINT_BLACKLIST="98:d8:99:d3:be:c0:55:05:db:b0:53:2f:1f:ad:b3:60"
 
   # Run it
   output=$(ghe-backup -v)

@@ -250,3 +250,40 @@ begin_test "ghe-backup exits early on unsupported version"
   ! GHE_TEST_REMOTE_VERSION=2.10.0 ghe-backup -v
 )
 end_test
+
+begin_test "ghe-backup backup cluster"
+(
+  set -e
+  setup_remote_cluster
+
+  if ! ghe-backup -v > "$TRASHDIR/backup-out" 2>&1; then
+    cat "$TRASHDIR/backup-out"
+    : ghe-restore should have exited successfully
+    false
+  fi
+
+  cat "$TRASHDIR/backup-out"
+
+  # verify data was copied from multiple nodes
+  # repositories
+  grep -q "repositories from git-server-fake-uuid" "$TRASHDIR/backup-out"
+  grep -q "repositories from git-server-fake-uuid1" "$TRASHDIR/backup-out"
+  grep -q "repositories from git-server-fake-uuid2" "$TRASHDIR/backup-out"
+
+  # storage
+  grep -q "objects from storage-server-fake-uuid" "$TRASHDIR/backup-out"
+  grep -q "objects from storage-server-fake-uuid1" "$TRASHDIR/backup-out"
+  grep -q "objects from storage-server-fake-uuid2" "$TRASHDIR/backup-out"
+
+  # pages
+  grep -q "Starting backup for host: pages-server-fake-uuid" "$TRASHDIR/backup-out"
+  grep -q "Starting backup for host: pages-server-fake-uuid1" "$TRASHDIR/backup-out"
+  grep -q "Starting backup for host: pages-server-fake-uuid2" "$TRASHDIR/backup-out"
+
+  # verify cluster.conf backed up
+  [ -f "$GHE_DATA_DIR/current/cluster.conf" ]
+  grep -q "fake cluster config" "$GHE_DATA_DIR/current/cluster.conf"
+
+  verify_all_backedup_data
+)
+end_test

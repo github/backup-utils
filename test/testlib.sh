@@ -96,6 +96,7 @@ setup_remote_license
 setup_remote_cluster () {
     mkdir -p "$GHE_REMOTE_ROOT_DIR/etc/github"
     touch "$GHE_REMOTE_ROOT_DIR/etc/github/cluster"
+    echo "fake cluster config" > "$GHE_REMOTE_DATA_USER_DIR/common/cluster.conf"
 }
 
 # Put the necessary files in place to mimic a configured, or not, instance into
@@ -324,12 +325,18 @@ verify_common_data() {
   # verify the extracted repositories were transferred
   diff -ru "$GHE_REMOTE_DATA_USER_DIR/git-hooks/repos" "$GHE_DATA_DIR/current/git-hooks/repos"
 
-  # verify the UUID was transferred
-  diff -ru "$GHE_REMOTE_DATA_USER_DIR/common/uuid" "$GHE_DATA_DIR/current/uuid"
+  # tests that differ for cluster and single node backups and restores
+  if [ -f "$GHE_DATA_DIR/current/cluster.conf" ]; then
+    [ -f "$GHE_DATA_DIR/current/cluster.conf" ]
+    grep -q "fake cluster config" "$GHE_DATA_DIR/current/cluster.conf"
+  else
+    # verify the UUID was transferred
+    diff -ru "$GHE_REMOTE_DATA_USER_DIR/common/uuid" "$GHE_DATA_DIR/current/uuid"
 
-  # verify the audit log migration sentinel file has been created on 2.9 and above
-  if [ "$GHE_VERSION_MAJOR" -eq 2 ] && [ "$GHE_VERSION_MINOR" -ge 9 ]; then
-    diff -ru "$GHE_REMOTE_DATA_USER_DIR/common/es-scan-complete" "$GHE_DATA_DIR/current/es-scan-complete"
+    # verify the audit log migration sentinel file has been created on 2.9 and above
+    if [ "$GHE_VERSION_MAJOR" -eq 2 ] && [ "$GHE_VERSION_MINOR" -ge 9 ]; then
+      diff -ru "$GHE_REMOTE_DATA_USER_DIR/common/es-scan-complete" "$GHE_DATA_DIR/current/es-scan-complete"
+    fi
   fi
 }
 
@@ -346,7 +353,6 @@ verify_all_backedup_data() {
 
   # check that the strategy file was written
   [ -f "$GHE_DATA_DIR/current/strategy" ]
-  [ "$(cat "$GHE_DATA_DIR/current/strategy")" = "rsync" ]
 
   # check that settings were backed up
   [ "$(cat "$GHE_DATA_DIR/current/settings.json")" = "fake ghe-export-settings data" ]
@@ -363,9 +369,6 @@ verify_all_backedup_data() {
   # check that ssh host key was backed up
   [ "$(cat "$GHE_DATA_DIR/current/ssh-host-keys.tar")" = "fake ghe-export-ssh-host-keys data" ]
 
-  # verify all ES data was transferred from live directory
-  diff -ru "$GHE_REMOTE_DATA_USER_DIR/elasticsearch" "$GHE_DATA_DIR/current/elasticsearch"
-
   # verify manage-password file was backed up
   [ "$(cat "$GHE_DATA_DIR/current/manage-password")" = "fake password hash data" ]
 
@@ -374,6 +377,18 @@ verify_all_backedup_data() {
 
   # verify that ghe-backup wrote its version information to the host
   [ -f "$GHE_REMOTE_DATA_USER_DIR/common/backup-utils-version" ]
+
+  # tests that differ for cluster and single node backups
+  if [ -f "$GHE_DATA_DIR/current/cluster.conf" ]; then
+    # verify strategy used
+    [ "$(cat "$GHE_DATA_DIR/current/strategy")" = "cluster" ]
+  else
+    # verify strategy used
+    [ "$(cat "$GHE_DATA_DIR/current/strategy")" = "rsync" ]
+
+    # verify all ES data was transferred from live directory - not for cluster backups
+    diff -ru "$GHE_REMOTE_DATA_USER_DIR/elasticsearch" "$GHE_DATA_DIR/current/elasticsearch"
+  fi
 
   # verify common data
   verify_common_data

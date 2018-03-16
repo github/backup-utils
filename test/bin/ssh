@@ -15,6 +15,9 @@ while true; do
         -q)
             shift
             ;;
+        -F)
+            shift 2
+            ;;
         --)
             shift
             break
@@ -35,9 +38,6 @@ cd "$(dirname "$0")"/..
 
 # Scrub sudo commands from command arguments.
 sh="$(echo "$@" | sed 's/sudo -u [a-z]* //g' | sed 's/sudo //g')"
-
-# Scrub SSH -F argument passed to rsync
-sh="$(echo "$sh" | sed 's/^\-F \/.* \(rsync\)/\1/g')"
 
 # Scrub SSH -F argument for ghe-ssh commands
 sh="$(echo "$sh" | sed 's/^\/.* --//g')"

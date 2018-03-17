@@ -251,7 +251,11 @@ begin_test "ghe-backup exits early on unsupported version"
 )
 end_test
 
-begin_test "ghe-backup backup cluster"
+# Reset data for sub-subsequent tests
+rm -rf $GHE_REMOTE_DATA_USER_DIR
+setup_test_data $GHE_REMOTE_DATA_USER_DIR
+
+begin_test "ghe-backup cluster"
 (
   set -e
   setup_remote_cluster

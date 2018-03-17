@@ -7,7 +7,7 @@ set -e
 # conditional logic based on the remote version. Running the suite against
 # different major versions ensures we're covering these conditional paths.
 REMOTE_VERSIONS="
-  2.11.0
+  2.11.15
 "
 
 # Enable verbose logging of ssh commands

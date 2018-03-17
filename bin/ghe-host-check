@@ -90,11 +90,22 @@ if [ -z "$version" ]; then
     exit 2
 fi
 
-# backup-utils 2.13 onwards only has support for 2.11 and newer versions.
-if ! echo "v$version" | grep -Eq "v2\.1[1-9]|v[3-9]"; then
-  echo "Error: old release of GitHub Enterprise detected." 1>&2
-  echo "Backup Utilities $BACKUP_UTILS_VERSION requires GitHub Enterprise v2.11 or newer." 1>&2
-  echo "Please update your GitHub Enterprise appliance or use backup-utils v2.11.3." 1>&2
+# backup-utils 2.13 onwards limits support to the current and previous two releases
+# of GitHub Enterprise.
+supported_minimum_versions="v2.11.15, v2.12.9, v2.13.0"
+
+read -r ghe_version_major ghe_version_minor ghe_version_patch <<<$(ghe_parse_version $version)
+if ver=$(echo "$supported_minimum_versions" | tr ", " "\n" | grep -Eo $ghe_version_major\.$ghe_version_minor\..+); then
+  read -r _ _ patch <<<$(ghe_parse_version $ver)
+  if [ "$ghe_version_patch" -ge $patch ]; then
+    supported=1
+  fi
+fi
+
+if [ -z "$supported" ]; then
+  echo "Error: unsupported release of GitHub Enterprise detected." 1>&2
+  echo "Backup Utilities v$BACKUP_UTILS_VERSION requires GitHub Enterprise $supported_minimum_versions or newer patch revisions." 1>&2
+  echo "Please update your GitHub Enterprise appliance or use an older version of Backup Utilities." 1>&2
   exit 1
 fi
 

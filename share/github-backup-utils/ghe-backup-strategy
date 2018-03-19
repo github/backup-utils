@@ -12,7 +12,7 @@ set -e
 . $( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config
 
 if ghe-ssh "$GHE_HOSTNAME" -- \
-  "[ -f '$GHE_REMOTE_ROOT_DIR/etc/github/cluster' ]"; then
+  "[ -f '$GHE_REMOTE_ROOT_DIR/etc/github/cluster' ] && [ ! -f '$GHE_REMOTE_ROOT_DIR/etc/github/repl-state' ]"; then
   echo "cluster"
 else
   echo "rsync"

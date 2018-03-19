@@ -251,6 +251,16 @@ begin_test "ghe-backup exits early on unsupported version"
 )
 end_test
 
+begin_test "ghe-backup-strategy returns rsync for HA backup"
+(
+  set -e
+  touch "$GHE_REMOTE_ROOT_DIR/etc/github/repl-state"
+  output="$(ghe-backup-strategy)"
+  rm "$GHE_REMOTE_ROOT_DIR/etc/github/repl-state"
+  [ "$output" = "rsync" ]
+)
+end_test
+
 # Reset data for sub-subsequent tests
 rm -rf $GHE_REMOTE_DATA_USER_DIR
 setup_test_data $GHE_REMOTE_DATA_USER_DIR

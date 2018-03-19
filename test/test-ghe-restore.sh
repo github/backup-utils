@@ -359,3 +359,68 @@ begin_test "ghe-restore exits early on unsupported version"
   ! GHE_TEST_REMOTE_VERSION=2.10.0 ghe-restore -v
 )
 end_test
+
+# Reset data for sub-subsequent tests
+rm -rf "$GHE_DATA_DIR/1"
+setup_test_data "$GHE_DATA_DIR/1"
+
+# Make the current symlink
+ln -s 1 "$GHE_DATA_DIR/current"
+
+begin_test "ghe-restore cluster"
+(
+  set -e
+  rm -rf "$GHE_REMOTE_ROOT_DIR"
+  setup_remote_metadata
+  setup_remote_cluster
+  echo "cluster" > "$GHE_DATA_DIR/current/strategy"
+  
+  # set as configured, enable maintenance mode and create required directories
+  setup_maintenance_mode "configured"
+
+  # set restore host environ var
+  GHE_RESTORE_HOST=127.0.0.1
+  export GHE_RESTORE_HOST
+
+  # run ghe-restore and write output to file for asserting against
+  if ! ghe-restore -v -f > "$TRASHDIR/restore-out" 2>&1; then
+      cat "$TRASHDIR/restore-out"
+      : ghe-restore should have exited successfully
+      false
+  fi
+
+  # for debugging
+  cat "$TRASHDIR/restore-out"
+
+  # verify data was copied from multiple nodes
+  # repositories
+  grep -q "networks to git-server-fake-uuid" "$TRASHDIR/restore-out"
+  grep -q "networks to git-server-fake-uuid1" "$TRASHDIR/restore-out"
+  grep -q "networks to git-server-fake-uuid2" "$TRASHDIR/restore-out"
+  grep -q "dgit-cluster-restore-finalize OK" "$TRASHDIR/restore-out"
+
+  # gists
+  grep -q "gists to git-server-fake-uuid" "$TRASHDIR/restore-out"
+  grep -q "gists to git-server-fake-uuid1" "$TRASHDIR/restore-out"
+  grep -q "gists to git-server-fake-uuid2" "$TRASHDIR/restore-out"
+  grep -q "gist-cluster-restore-finalize OK" "$TRASHDIR/restore-out"
+
+
+  # storage
+  grep -q "data to git-server-fake-uuid" "$TRASHDIR/restore-out"
+  grep -q "data to git-server-fake-uuid1" "$TRASHDIR/restore-out"
+  grep -q "data to git-server-fake-uuid2" "$TRASHDIR/restore-out"
+  grep -q "storage-cluster-restore-finalize OK" "$TRASHDIR/restore-out"
+
+
+  # pages
+  grep -q "Pages to git-server-fake-uuid" "$TRASHDIR/restore-out"
+  grep -q "Pages to git-server-fake-uuid1" "$TRASHDIR/restore-out"
+  grep -q "Pages to git-server-fake-uuid2" "$TRASHDIR/restore-out"
+  grep -q "dpages-cluster-restore-finalize OK" "$TRASHDIR/restore-out"
+
+
+  # Verify all the data we've restored is as expected
+  verify_all_restored_data
+)
+end_test

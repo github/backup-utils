@@ -327,10 +327,7 @@ verify_common_data() {
   diff -ru "$GHE_REMOTE_DATA_USER_DIR/git-hooks/repos" "$GHE_DATA_DIR/current/git-hooks/repos"
 
   # tests that differ for cluster and single node backups and restores
-  if [ -f "$GHE_DATA_DIR/current/cluster.conf" ]; then
-    [ -f "$GHE_DATA_DIR/current/cluster.conf" ]
-    grep -q "fake cluster config" "$GHE_DATA_DIR/current/cluster.conf"
-  else
+  if [ "$(cat $GHE_DATA_DIR/current/strategy)" = "rsync" ]; then
     # verify the UUID was transferred
     diff -ru "$GHE_REMOTE_DATA_USER_DIR/common/uuid" "$GHE_DATA_DIR/current/uuid"
 
@@ -380,7 +377,8 @@ verify_all_backedup_data() {
   [ -f "$GHE_REMOTE_DATA_USER_DIR/common/backup-utils-version" ]
 
   # tests that differ for cluster and single node backups
-  if [ -f "$GHE_DATA_DIR/current/cluster.conf" ]; then
+  if [ -f "$GHE_REMOTE_DATA_USER_DIR/common/cluster.conf" ]; then
+    grep -q "fake cluster config" "$GHE_DATA_DIR/current/cluster.conf"
     # verify strategy used
     [ "$(cat "$GHE_DATA_DIR/current/strategy")" = "cluster" ]
   else
@@ -404,14 +402,17 @@ verify_all_restored_data() {
   grep -q "fake ghe-export-mysql data" "$TRASHDIR/restore-out"
   grep -q "fake ghe-export-redis data" "$TRASHDIR/restore-out"
   grep -q "fake ghe-export-authorized-keys data" "$TRASHDIR/restore-out"
-  grep -q "fake ghe-export-ssh-host-keys data" "$TRASHDIR/restore-out"
+
+  # tests that differ for cluster and single node backups
+  if [ "$(cat $GHE_DATA_DIR/current/strategy)" = "rsync" ]; then
+    grep -q "fake ghe-export-ssh-host-keys data" "$TRASHDIR/restore-out"
+    # verify all ES data was transferred from live directory to the temporary restore directory
+    diff -ru --exclude="*.gz" "$GHE_DATA_DIR/current/elasticsearch" "$GHE_REMOTE_DATA_USER_DIR/elasticsearch-restore"
+  fi
 
   # verify settings import was *not* run due to instance already being
   # configured.
   ! grep -q "fake ghe-export-settings data" "$TRASHDIR/restore-out"
-
-  # verify all ES data was transferred from live directory to the temporary restore directory
-  diff -ru --exclude="*.gz" "$GHE_DATA_DIR/current/elasticsearch" "$GHE_REMOTE_DATA_USER_DIR/elasticsearch-restore"
 
   # verify management console password was *not* restored
   ! grep -q "fake password hash data" "$GHE_REMOTE_DATA_USER_DIR/common/secrets.conf"

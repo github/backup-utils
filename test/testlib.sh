@@ -296,7 +296,8 @@ setup_test_data () {
     echo "fake ghe-export-mysql data" | gzip > "$loc/mysql.sql.gz"
     echo "fake ghe-export-redis data" > "$loc/redis.rdb"
     echo "fake ghe-export-authorized-keys data" > "$loc/authorized-keys.json"
-    echo "fake ghe-export-ssh-host-keys data" > "$loc/ssh-host-keys.tar"
+    echo "fake ghe-export-ssh-host-keys data" > "$TRASHDIR/ssh-host-keys"
+    tar -C $TRASHDIR -cf "$loc/ssh-host-keys.tar" ssh-host-keys
     echo "fake ghe-export-settings data" > "$loc/settings.json"
     echo "fake ghe-export-ssl-ca-certificates data" > "$loc/ssl-ca-certificates.tar"
     echo "fake license data" > "$loc/enterprise.ghl"
@@ -367,7 +368,7 @@ verify_all_backedup_data() {
   [ "$(cat "$GHE_DATA_DIR/current/authorized-keys.json")" = "fake ghe-export-authorized-keys data" ]
 
   # check that ssh host key was backed up
-  [ "$(cat "$GHE_DATA_DIR/current/ssh-host-keys.tar")" = "fake ghe-export-ssh-host-keys data" ]
+  [ "$(tar xfO "$GHE_DATA_DIR/current/ssh-host-keys.tar" ssh-host-keys)" = "fake ghe-export-ssh-host-keys data" ]
 
   # verify manage-password file was backed up
   [ "$(cat "$GHE_DATA_DIR/current/manage-password")" = "fake password hash data" ]

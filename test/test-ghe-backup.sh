@@ -187,9 +187,9 @@ begin_test "ghe-backup with leaked SSH host key detection for current backup"
 (
   set -e
 
-  # Re-link ghe-export-ssh-keys to generate a fake ssh
-  unlink  "$ROOTDIR/test/bin/ghe-export-ssh-host-keys"
+  # Rename ghe-export-ssh-keys to generate a fake ssh
   cd "$ROOTDIR/test/bin"
+  mv "ghe-export-ssh-host-keys" "ghe-export-ssh-host-keys.orig"
   ln -s ghe-gen-fake-ssh-tar ghe-export-ssh-host-keys
   cd -
 
@@ -199,11 +199,8 @@ begin_test "ghe-backup with leaked SSH host key detection for current backup"
   # Run it
   output=$(ghe-backup -v)
 
-  # Set the export ssh link back
-  unlink  "$ROOTDIR/test/bin/ghe-export-ssh-host-keys"
-  cd "$ROOTDIR/test/bin"
-  ln -s ghe-fake-export-command ghe-export-ssh-host-keys
-  cd -
+  # Set the export ssh back
+  mv "$ROOTDIR/test/bin/ghe-export-ssh-host-keys.orig" "$ROOTDIR/test/bin/ghe-export-ssh-host-keys"
 
   # Test the output for leaked key detection
   echo $output| grep "The current backup contains leaked SSH host keys"

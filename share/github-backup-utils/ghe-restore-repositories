@@ -146,7 +146,7 @@ if $CLUSTER; then
   ghe-ssh "$GHE_HOSTNAME" -- /bin/bash >&3 <<EOF
     split -l 1000 $to_restore $tempdir/chunk
     chunks=\$(find $tempdir/ -name chunk\*)
-    parallel -i /bin/sh -c "cat {} | github-env ./bin/dgit-cluster-restore-finalize" -- \$chunks
+    echo "\$chunks" | xargs -P64 -n1 -I{} /bin/sh -c "cat {} | github-env ./bin/dgit-cluster-restore-finalize"
 EOF
   bm_end "$(basename $0) - Finalizing routes"
 fi

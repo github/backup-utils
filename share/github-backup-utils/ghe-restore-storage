@@ -129,6 +129,7 @@ bm_end "$(basename $0) - Restoring objects"
 
 if $CLUSTER; then
   bm_start "$(basename $0) - Finalizing routes"
+  ghe_verbose "Finalizing routes"
   cat $to_restore | ghe-ssh "$GHE_HOSTNAME" -- sponge $to_restore
   ghe-ssh "$GHE_HOSTNAME" -- /bin/bash >&3 <<EOF
     split -l 1000 $to_restore $tempdir/chunk

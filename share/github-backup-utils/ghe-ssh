@@ -64,8 +64,7 @@ fi
 
 # Warn if git is not installed, and set GHE_DISABLE_SSH_MUX=true
 if [ -z "$GHE_DISABLE_SSH_MUX" ]; then
-  command -v git >/dev/null 2>&1 || echo "Warning: SSH multiplexing requires git but it's not installed."
-  export GHE_DISABLE_SSH_MUX=true
+  command -v git >/dev/null 2>&1 || echo "Warning: SSH multiplexing requires git but it's not installed." && export GHE_DISABLE_SSH_MUX=true
 fi
 
 if [ -z "$GHE_DISABLE_SSH_MUX" ]; then

@@ -235,10 +235,10 @@ ghe_remote_version_required () {
 
 # Parse a version string into major, minor and patch parts and echo.
 ghe_parse_version() {
-  version_major=$(echo "${1#v}" | cut -f 1 -d .)
-  version_minor=$(echo "$1"     | cut -f 2 -d .)
-  version_patch=$(echo "$1"     | cut -f 3 -d .)
-  version_patch=${version_patch%%[a-zA-Z]*}
+  local version_major=$(echo "${1#v}" | cut -f 1 -d .)
+  local version_minor=$(echo "$1"     | cut -f 2 -d .)
+  local version_patch=$(echo "$1"     | cut -f 3 -d .)
+  local version_patch=${version_patch%%[a-zA-Z]*}
 
   echo "$version_major $version_minor $version_patch"
 }

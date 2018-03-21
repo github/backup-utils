@@ -34,9 +34,7 @@ ghe_remote_version_required "$GHE_HOSTNAME"
 # rsync invocation.
 if [ -d "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/$dirname" ]; then
   # Create the remote user data directory
-  if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
-    ghe-ssh "$GHE_HOSTNAME" -- "sudo -u git mkdir -p $GHE_REMOTE_DATA_USER_DIR/$dirname"
-  fi
+  ghe-ssh "$GHE_HOSTNAME" -- "sudo -u git mkdir -p $GHE_REMOTE_DATA_USER_DIR/$dirname"
 
   ghe-rsync -avz --delete \
       -e "ghe-ssh -p $(ssh_port_part "$GHE_HOSTNAME")" \

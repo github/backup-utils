@@ -6,19 +6,27 @@
 # and BGSAVE commands.
 set -e
 
-case "$1" in
+while true; do
+  case "$1" in
     LASTSAVE)
         # fake change last save timestamp every 1s
         date +%s
+        break
         ;;
     BGSAVE)
         mkdir -p "$GHE_REMOTE_DATA_USER_DIR/redis"
         echo "fake redis data" > "$GHE_REMOTE_DATA_USER_DIR/redis/dump.rdb"
+        break
+        ;;
+    -h)
+        # Fake accepting hostname argument
+        shift 2
         ;;
     *)
         echo "unexpected redis-cli command: $1" 1>&2
         exit 1
         ;;
-esac
+  esac
+done
 
 true

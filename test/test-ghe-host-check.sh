@@ -47,3 +47,18 @@ begin_test "ghe-host-check honours --help and -h flags"
 
 )
 end_test
+
+begin_test "ghe-host-check detects unsupported GitHub Enterprise versions"
+(
+  set -e
+  ! GHE_TEST_REMOTE_VERSION=11.340.36 ghe-host-check
+  ! GHE_TEST_REMOTE_VERSION=2.10.0 ghe-host-check
+  ! GHE_TEST_REMOTE_VERSION=2.11.14 ghe-host-check
+  ! GHE_TEST_REMOTE_VERSION=2.12.8 ghe-host-check
+  GHE_TEST_REMOTE_VERSION=2.11.15 ghe-host-check
+  GHE_TEST_REMOTE_VERSION=2.12.9 ghe-host-check
+  GHE_TEST_REMOTE_VERSION=2.13.999 ghe-host-check
+  GHE_TEST_REMOTE_VERSION=2.13.999gm1 ghe-host-check
+  ! GHE_TEST_REMOTE_VERSION=3.0.0 ghe-host-check
+)
+end_test

@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# Usage: dgit-cluster-restore-routes
+# Emulates the remote GitHub dgit-cluster-restore-routes commands. Tests use this
+# to assert that the command was executed.
+set -e
+cat <<EOF
+0/nw/01/aa/3f/1234 git-server-fake-uuid git-server-fake-uuid1
+1/nw/23/bb/4c/2345 git-server-fake-uuid1 git-server-fake-uuid2
+EOF

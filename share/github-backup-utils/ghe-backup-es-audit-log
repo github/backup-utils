@@ -20,16 +20,13 @@ ghe_remote_version_required "$host"
 # Make sure root backup dir exists if this is the first run
 mkdir -p "$GHE_SNAPSHOT_DIR/audit-log"
 
-if [ $GHE_VERSION_MAJOR -ge 2 ] && [ $GHE_VERSION_MINOR -ge 2 ]; then
-  es_port=9201
-else
-  es_port=9200
-fi
-
-if ! indices=$(ghe-ssh "$host" "curl -s \"localhost:$es_port/_cat/indices/audit_log*?h=index"\"); then
+if ! indices=$(ghe-ssh "$host" "curl -s \"localhost:9201/_cat/indices/audit_log*?h=index,pri.store.size&bytes=b\""); then
   echo "Error: failed to retrieve audit log indices." 1>&2
   exit 1
 fi
+
+# Exit if no indices were found
+[ -z "$indices" ] && exit
 
 # Determine if the audit log migration has occurred or is needed.
 if echo 'set -o pipefail; ! test -e /data/user/common/es-scan-complete && test -f /usr/local/share/enterprise/run-audit-log-transitions.sh' | ghe-ssh "$host" /bin/bash; then
@@ -38,18 +35,20 @@ if echo 'set -o pipefail; ! test -e /data/user/common/es-scan-complete && test -
   fi
 fi
 
-current_index="audit_log(-[0-9]+)?-$(ghe-ssh "$host" 'date +"%Y-%m"')(-[0-9]+)?"
-
+IFS=$'\n'
 for index in $indices; do
-  if [[ -f $GHE_DATA_DIR/current/audit-log/$index.gz && -f $GHE_DATA_DIR/current/audit-log/$index.gz.complete && ! $index =~ $current_index ]]; then
-    # Hard link any older indices that are complete, since these won't change
-    ln $GHE_DATA_DIR/current/audit-log/$index.gz $GHE_SNAPSHOT_DIR/audit-log/$index.gz
-    ln $GHE_DATA_DIR/current/audit-log/$index.gz.complete $GHE_SNAPSHOT_DIR/audit-log/$index.gz.complete
+  IFS=' '
+  set $index
+  index_name=$1
+  index_size=$2
+
+  if [[ -f $GHE_DATA_DIR/current/audit-log/$index_name.gz && $(cat $GHE_DATA_DIR/current/audit-log/$index_name.gz.size 2>/dev/null || true) -eq $index_size ]]; then
+    # Hard link any indices that have not changed since the last backup
+    ln $GHE_DATA_DIR/current/audit-log/$index_name.gz $GHE_SNAPSHOT_DIR/audit-log/$index_name.gz
+    ln $GHE_DATA_DIR/current/audit-log/$index_name.gz.size $GHE_SNAPSHOT_DIR/audit-log/$index_name.gz.size
   else
-    ghe-ssh "$host" "/usr/local/share/enterprise/ghe-es-dump-json \"http://localhost:$es_port/$index\"" | gzip > $GHE_SNAPSHOT_DIR/audit-log/$index.gz
-    if [[ ! $index =~ $current_index ]]; then
-      touch $GHE_SNAPSHOT_DIR/audit-log/$index.gz.complete
-    fi
+    ghe-ssh "$host" "/usr/local/share/enterprise/ghe-es-dump-json \"http://localhost:9201/$index_name\"" | gzip > $GHE_SNAPSHOT_DIR/audit-log/$index_name.gz
+    echo $index_size > $GHE_SNAPSHOT_DIR/audit-log/$index_name.gz.size
   fi
 done
 

@@ -28,6 +28,9 @@ done
 # Show usage with no host
 [ -z "$host" ] && print_usage
 
+# Exit early when testing
+[ -n "$GHE_TEST_REMOTE_VERSION" ] && exit 0
+
 # Touch the sync-in-progress file, disabling GC operations, and wait for all
 # active GC processes to finish on the remote side.
 echo "

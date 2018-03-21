@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# Usage: ghe-negotiate-version
+# Emulates the remote GitHub ghe-negotiate-version command. Tests use this
+# to assert that the command was executed.
+set -e
+echo "GitHub Enterprise version $GHE_TEST_REMOTE_VERSION"
+echo "backup-utils $2 is supported."

@@ -374,7 +374,7 @@ begin_test "ghe-restore cluster"
   setup_remote_metadata
   setup_remote_cluster
   echo "cluster" > "$GHE_DATA_DIR/current/strategy"
-  
+
   # set as configured, enable maintenance mode and create required directories
   setup_maintenance_mode "configured"
 
@@ -382,11 +382,20 @@ begin_test "ghe-restore cluster"
   GHE_RESTORE_HOST=127.0.0.1
   export GHE_RESTORE_HOST
 
+  # CI servers may have moreutils parallel and GNU parallel installed. We need moreutils parallel.
+  if [ -x "/usr/bin/parallel.moreutils" ]; then
+    ln -s /usr/bin/parallel.moreutils "$ROOTDIR/test/bin/parallel"
+  fi
+
   # run ghe-restore and write output to file for asserting against
   if ! ghe-restore -v -f > "$TRASHDIR/restore-out" 2>&1; then
       cat "$TRASHDIR/restore-out"
       : ghe-restore should have exited successfully
       false
+  fi
+
+  if [ -h "$ROOTDIR/test/bin/parallel" ]; then
+    unlink "$ROOTDIR/test/bin/parallel"
   fi
 
   # for debugging

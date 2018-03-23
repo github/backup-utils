@@ -92,18 +92,15 @@ fi
 
 # backup-utils 2.13 onwards limits support to the current and previous two releases
 # of GitHub Enterprise.
-supported_minimum_versions="v2.11.0, v2.12.0, v2.13.0, v2.14.0"
+supported_minimum_version="2.11.0"
 
-read -r ghe_version_major ghe_version_minor _ <<<$(ghe_parse_version $version)
-if ver=$(echo "$supported_minimum_versions" | tr ", " "\n" | grep -Eo $ghe_version_major\.$ghe_version_minor\..+); then
-  if [ "$(version $version)" -ge "$(version $ver)" ]; then
-    supported=1
-  fi
+if [ "$(version $version)" -ge "$(version $supported_minimum_version)" ]; then
+  supported=1
 fi
 
 if [ -z "$supported" ]; then
   echo "Error: unsupported release of GitHub Enterprise detected." 1>&2
-  echo "Backup Utilities v$BACKUP_UTILS_VERSION requires GitHub Enterprise $supported_minimum_versions or newer patch revisions." 1>&2
+  echo "Backup Utilities v$BACKUP_UTILS_VERSION requires GitHub Enterprise v$supported_minimum_version or newer." 1>&2
   echo "Please update your GitHub Enterprise appliance or use an older version of Backup Utilities." 1>&2
   exit 1
 fi

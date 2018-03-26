@@ -1,4 +1,4 @@
-### Using the backup and restore commands
+# Using the backup and restore commands
 
 After the initial backup, use the following commands:
 
@@ -8,7 +8,7 @@ After the initial backup, use the following commands:
    Enterprise appliance. You must add the backup host's SSH key to the target
    GitHub Enterprise appliance before using this command.
 
-##### Example backup and restore usage
+### Example backup and restore usage
 
 The following assumes that `GHE_HOSTNAME` is set to "github.example.com" in
 `backup.config`.

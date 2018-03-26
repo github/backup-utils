@@ -1,12 +1,12 @@
-### Docker
+# Docker
 
-#### Building the image
+## Building the image
 
 ```
 docker build -t github/backup-utils .
 ```
 
-#### Setting configuration options at runtime
+## Setting configuration options at runtime
 The `backup.config` file is dynamically populated at runtime with all `GHE_`
 environment variables that are part of the run command or Docker environment:
 
@@ -36,7 +36,7 @@ $ docker run -it  -e "GHE_BACKUP_CONFIG=/mnt/backup.config" \
 github/backup-utils ghe-backup
 ```
 
-#### SSH Keys
+## SSH Keys
 
 A SSH private key that has been added to the GitHub Enterprise [Management Console
 for administrative SSH access][1] needs to be mounted into the container from the
@@ -54,7 +54,7 @@ $ docker run -it -e "GHE_HOSTNAME=hostname" \
 github/backup-utils ghe-backup
 ```
 
-##### Using ssh-agent
+### Using ssh-agent
 
 If your SSH private key is protected with a passphrase, you can mount the `ssh-agent`
 socket from the Docker host into the GitHub Enterprise backup utilities image.
@@ -91,7 +91,7 @@ socket from the Docker host into the GitHub Enterprise backup utilities image.
   github/backup-utils ghe-backup
   ```
 
-#### Managing backup data
+## Managing backup data
 
 Data persistence is achieved by using [Docker volumes][2], which are managed with
 [`docker volume` commands][3]. Prior to running the container for the first time,
@@ -128,7 +128,7 @@ lrwxrwxrwx    1 root     root            15 Oct 24 19:49 current -> 20171024T194
 * Bind mounting a volume is supported, as long as the Docker host supports them
   and allows hard links.
 
-#### Scheduling backups using crontab with Docker
+## Scheduling backups using crontab with Docker
 
 Designed to be a "one shot" type container, scheduling backup runs with the Docker
 image is similar to the non-Docker scheduling. Run the container with all the same

@@ -1,4 +1,4 @@
-### Getting started
+# Getting started
 
  1. [Download the latest release version][1] and extract the repository using `tar`:
 

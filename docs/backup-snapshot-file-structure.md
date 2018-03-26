@@ -1,4 +1,4 @@
-### Backup snapshot file structure
+# Backup snapshot file structure
 
 Backup snapshots are stored in rotating increment directories named after the
 date and time the snapshot was taken. Each snapshot directory contains a full

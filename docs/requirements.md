@@ -1,9 +1,9 @@
-### Requirements
+# Requirements
 
 The backup utilities should be run on a host dedicated to long-term permanent
 storage and must have network connectivity with the GitHub Enterprise appliance.
 
-##### Backup host requirements
+## Backup host requirements
 
 Backup host software requirements are modest: Linux or other modern Unix operating
 system with [bash][1], [git][2], [OpenSSH][3] 5.6 or newer, and [rsync][4] v2.6.4 or newer.
@@ -14,7 +14,7 @@ requirements, or if Docker is your preferred platform.
 The backup host must be able to establish outbound network connections to the
 GitHub appliance over SSH. TCP port 122 is used to backup GitHub Enterprise.
 
-##### Storage requirements
+## Storage requirements
 
 Storage requirements vary based on current Git repository disk usage and growth
 patterns of the GitHub appliance. We recommend allocating at least 5x the amount
@@ -27,7 +27,7 @@ must be written to a filesystem with support for symbolic and hard links.
 
 Using a [case sensitive][7] file system is also required to avoid conflicts.
 
-##### GitHub Enterprise version requirements
+## GitHub Enterprise version requirements
 
 Starting with backup utilities v2.13.0, version support is inline with that of the
 [GitHub Enterprise upgrade requirements][8] and as such, support is limited to

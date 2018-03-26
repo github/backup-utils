@@ -71,7 +71,7 @@ The `ghe-backup` and `ghe-restore` commands also have a verbose output mode
 enable when output is logged to a file.
 
 When restoring to a new GitHub Enterprise instance, settings, certificate, and license data
-*are* restored. These settings must be reviewed and saved before using the GitHub Enterprise to ensure all migrations have taken place and all required services are started.
+*are* restored. These settings must be reviewed and saved before using the GitHub Enterprise to ensure all migrations take place and all required services are started.
 
 When restoring to an already configured GitHub Enterprise instance, settings, certificate, and license data
 are *not* restored to prevent overwriting manual configuration on the restore

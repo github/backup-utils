@@ -15,11 +15,11 @@ There are five snapshot directories, with the `current` symlink pointing to the
 most recent successful snapshot:
 
     ./data
-       |- 20140724T010000
-       |- 20140725T010000
-       |- 20140726T010000
-       |- 20140727T010000
-       |- 20140728T010000
+       |- 20180124T010000
+       |- 20180125T010000
+       |- 20180126T010000
+       |- 20180127T010000
+       |- 20180128T010000
           |- audit-log
           |- benchmarks
           |- elasticsearch
@@ -40,7 +40,7 @@ most recent successful snapshot:
           |- strategy
           |- uuid
           |- version
-       |- current -> 20140728T010000
+       |- current -> 20180128T010000
 
 Note: the `GHE_DATA_DIR` variable set in `backup.config` can be used to change
 the disk location where snapshots are written.

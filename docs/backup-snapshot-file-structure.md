@@ -20,16 +20,25 @@ most recent successful snapshot:
        |- 20140726T010000
        |- 20140727T010000
        |- 20140728T010000
+          |- audit-log
+          |- benchmarks
+          |- elasticsearch
+          |- git-hooks
+          |- hookshot
+          |- pages
+          |- repositories
+          |- storage
           |- authorized-keys.json
-          |- elasticsearch/
           |- enterprise.ghl
+          |- es-scan-complete
+          |- manage-password
           |- mysql.sql.gz
-          |- pages/
           |- redis.rdb
-          |- repositories/
           |- settings.json
           |- ssh-host-keys.tar
+          |- ssl-ca-certificates.tar
           |- strategy
+          |- uuid
           |- version
        |- current -> 20140728T010000
 

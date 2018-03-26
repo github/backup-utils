@@ -451,5 +451,5 @@ fi
 echo "Completed restore of $GHE_HOSTNAME from snapshot $GHE_RESTORE_SNAPSHOT"
 
 if ! $cluster; then
-  echo "Visit https://$hostname/setup/settings to review appliance configuration."
+  echo "Visit https://$hostname/setup/settings to review appliance configuration. Settings must be applied to complete any necessary migrations."
 fi

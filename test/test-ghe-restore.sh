@@ -2,7 +2,8 @@
 # ghe-restore command tests
 
 # Bring in testlib
-. $(dirname "$0")/testlib.sh
+# shellcheck source=test/testlib.sh
+. "$(dirname "$0")/testlib.sh"
 
 setup_test_data "$GHE_DATA_DIR/1"
 
@@ -47,7 +48,7 @@ begin_test "ghe-restore logs the benchmark"
   export BM_TIMESTAMP=foo
   export GHE_RESTORE_HOST=127.0.0.1
   ghe-restore -v -f
-  [ $(grep took $GHE_DATA_DIR/current/benchmarks/benchmark.foo.log | wc -l) -gt 1 ]
+  [ "$(grep took $GHE_DATA_DIR/current/benchmarks/benchmark.foo.log | wc -l)" -gt 1 ]
 )
 end_test
 

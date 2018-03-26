@@ -238,7 +238,7 @@ Use inline comments to disable specific tests, and explain why the test has been
 
 ```bash
 hexToAscii() {
-  # shellcheck disable=SC2059 - we need to interpret $1 as a formatted string
+  # shellcheck disable=SC2059 # $1 needs to be interpretted as a formatted string
   printf "\x$1"
 }
 ```

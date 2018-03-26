@@ -2,7 +2,8 @@
 # ghe-host-check command tests
 
 # Bring in testlib
-. $(dirname "$0")/testlib.sh
+# shellcheck source=test/testlib.sh
+. "$(dirname "$0")/testlib.sh"
 
 begin_test "ghe-host-check"
 (

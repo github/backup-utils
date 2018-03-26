@@ -6,7 +6,8 @@
 set -e
 
 # Bring in the backup configuration
-. $( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config
+# shellcheck source=share/github-backup-utils/ghe-backup-config
+. "$( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config"
 
 bm_start "$(basename $0) - $1"
 
@@ -34,11 +35,11 @@ if [ -d "$GHE_DATA_DIR/current/$dirname" ] && [ "$(ls -A $GHE_DATA_DIR/current/$
   subdir=$dirname
   link_path=".."
   while true; do
-    if [ $(dirname $subdir) = "." ]; then
+    if [ "$(dirname $subdir)" = "." ]; then
       break
     fi
 
-    if [ $(dirname $subdir) = "/" ]; then
+    if [ "$(dirname $subdir)" = "/" ]; then
       break
     fi
 

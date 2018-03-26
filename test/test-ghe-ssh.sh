@@ -2,7 +2,8 @@
 # ghe-ssh command tests
 
 # Bring in testlib
-. $(dirname "$0")/testlib.sh
+# shellcheck source=test/testlib.sh
+. "$(dirname "$0")/testlib.sh"
 
 # Setup backup snapshot data dir and remote repositories dir locations to use
 # the per-test temp space.
@@ -33,7 +34,7 @@ begin_test "ghe-ssh complex command works"
   "
 
   output="$(echo "$comm" | ghe-ssh "$GHE_HOSTNAME" /bin/sh)"
-  [ $(echo "$output" | wc -l) -eq 2 ]
+  [ "$(echo "$output" | wc -l)" -eq 2 ]
 )
 end_test
 

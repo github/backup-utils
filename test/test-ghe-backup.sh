@@ -2,7 +2,8 @@
 # ghe-backup command tests
 
 # Bring in testlib
-. $(dirname "$0")/testlib.sh
+# shellcheck source=test/testlib.sh
+. "$(dirname "$0")/testlib.sh"
 
 # Create the backup data dir and fake remote repositories dirs
 mkdir -p "$GHE_DATA_DIR" "$GHE_REMOTE_DATA_USER_DIR"
@@ -58,7 +59,7 @@ begin_test "ghe-backup logs the benchmark"
 
   ghe-backup
 
-  [ $(grep took $GHE_DATA_DIR/current/benchmarks/benchmark.foo.log | wc -l) -gt 1 ]
+  [ "$(grep took $GHE_DATA_DIR/current/benchmarks/benchmark.foo.log | wc -l)" -gt 1 ]
 )
 end_test
 
@@ -70,7 +71,8 @@ begin_test "ghe-backup with relative data dir path"
   sleep 1
 
   # generate a timestamp
-  export GHE_SNAPSHOT_TIMESTAMP="relative-$(date +"%Y%m%dT%H%M%S")"
+  GHE_SNAPSHOT_TIMESTAMP="relative-$(date +"%Y%m%dT%H%M%S")"
+  export GHE_SNAPSHOT_TIMESTAMP
 
   # change working directory to the root directory
   cd $ROOTDIR

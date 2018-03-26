@@ -7,7 +7,8 @@
 set -e
 
 # Bring in the backup configuration
-. $( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config
+# shellcheck source=share/github-backup-utils/ghe-backup-config
+. "$( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config"
 
 bm_start "$(basename $0)"
 
@@ -73,11 +74,11 @@ rsync_git_hooks_data () {
     subdir="git-hooks/$subpath"
     link_path=".."
     while true; do
-      if [ $(dirname $subdir) = "." ]; then
+      if [ "$(dirname $subdir)" = "." ]; then
         break
       fi
 
-      if [ $(dirname $subdir) = "/" ]; then
+      if [ "$(dirname $subdir)" = "/" ]; then
         break
       fi
 

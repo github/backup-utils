@@ -34,7 +34,8 @@ while true; do
 done
 
 # Bring in the backup configuration
-. $( dirname "${BASH_SOURCE[0]}" )/../share/github-backup-utils/ghe-backup-config
+# shellcheck source=share/github-backup-utils/ghe-backup-config
+. "$( dirname "${BASH_SOURCE[0]}" )/../share/github-backup-utils/ghe-backup-config"
 
 # Use the host provided on the command line if provided, or fallback on the
 # $GHE_HOSTNAME configured in backup.config when not present.

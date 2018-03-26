@@ -35,6 +35,7 @@ else
 fi
 
 # Check for "--help|-h" in args or GHE_SHOW_HELP=true and show usage
+# shellcheck disable=SC2120 # the script name is always referenced
 print_usage () {
   grep '^#/' <"$0" | cut -c 4-
   exit ${1:-1}
@@ -52,7 +53,7 @@ fi
 
 # Add the bin and share/github-backup-utils dirs to PATH
 PATH="$GHE_BACKUP_ROOT/bin:$GHE_BACKUP_ROOT/share/github-backup-utils:$PATH"
-
+# shellcheck source=share/github-backup-utils/bm.sh
 . $GHE_BACKUP_ROOT/share/github-backup-utils/bm.sh
 
 # Save off GHE_HOSTNAME from the environment since we want it to override the
@@ -66,6 +67,7 @@ for f in "$GHE_BACKUP_CONFIG" "$GHE_BACKUP_ROOT/backup.config" \
   "$HOME/.github-backup-utils/backup.config" "/etc/github-backup-utils/backup.config"; do
   if [ -f "$f" ]; then
     GHE_BACKUP_CONFIG="$f"
+    # shellcheck disable=SC1090 # This is a user-supplied value that can't be predicted
     . "$GHE_BACKUP_CONFIG"
     config_found=true
     break
@@ -140,6 +142,7 @@ export GHE_SNAPSHOT_TIMESTAMP
 # Set the current snapshot directory to <data-dir>/<timestamp>. This is where
 # all backups should be written for the current invocation.
 GHE_SNAPSHOT_DIR="$GHE_DATA_DIR"/"$GHE_SNAPSHOT_TIMESTAMP"
+export GHE_SNAPSHOT_DIR
 
 # The root filesystem location. This must be used so that tests can override
 # the root as a local directory location.
@@ -235,10 +238,11 @@ ghe_remote_version_required () {
 
 # Parse a version string into major, minor and patch parts and echo.
 ghe_parse_version() {
-  local version_major=$(echo "${1#v}" | cut -f 1 -d .)
-  local version_minor=$(echo "$1"     | cut -f 2 -d .)
-  local version_patch=$(echo "$1"     | cut -f 3 -d .)
-  local version_patch=${version_patch%%[a-zA-Z]*}
+  local version_major version_minor version_patch
+  version_major=$(echo "${1#v}" | cut -f 1 -d .)
+  version_minor=$(echo "$1"     | cut -f 2 -d .)
+  version_patch=$(echo "$1"     | cut -f 3 -d .)
+  version_patch=${version_patch%%[a-zA-Z]*}
 
   echo "$version_major $version_minor $version_patch"
 }
@@ -250,6 +254,7 @@ ghe_parse_version() {
 # Scripts use these variables to alter behavior based on what's supported on the
 # appliance version.
 ghe_parse_remote_version () {
+  # shellcheck disable=SC2046 # Word splitting is required to populate the variables
   read -r GHE_VERSION_MAJOR GHE_VERSION_MINOR GHE_VERSION_PATCH <<<$(ghe_parse_version $1)
   export GHE_VERSION_MAJOR GHE_VERSION_MINOR GHE_VERSION_PATCH
 }

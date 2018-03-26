@@ -60,8 +60,8 @@ appliance at IP "5.5.5.5":
     Restoring Elasticsearch indices ...
     Starting cron ...
     Restoring SSH host keys ...
-    Completed restore of 5.5.5.5:122 from snapshot 20180326T020444
-    Visit https://5.5.5.5/setup/settings to review appliance configuration.
+    Restore of 5.5.5.5:122 from snapshot 20180326T020444 finished.
+    To complete the restore process, please visit https://5.5.5.5/setup/settings to review and save the appliance configuration.
 
 A different backup snapshot may be selected by passing the `-s` argument and the
 datestamp-named directory from the backup location.

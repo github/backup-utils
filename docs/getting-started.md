@@ -13,7 +13,8 @@
     host name. Additional options are available and documented in the
     configuration file but none are required for basic backup functionality.
 
-    * backup-utils will attempt to load the backup configuration from the following locations, in this order:
+    * backup-utils will attempt to load the backup configuration from the following
+      locations, in this order:
 
       ```
       $GHE_BACKUP_CONFIG (User configurable environment variable)
@@ -21,7 +22,8 @@
       $HOME/.github-backup-utils/backup.config
       /etc/github-backup-utils/backup.config
       ```
-    * In a clustering environment, the `GHE_EXTRA_SSH_OPTS` key must be configured with the `-i <abs path to private key>` SSH option.
+    * In a clustering environment, the `GHE_EXTRA_SSH_OPTS` key must be configured
+      with the `-i <abs path to private key>` SSH option.
 
  3. Add the backup host's SSH key to the GitHub appliance as an *Authorized SSH
     key*. See [Adding an SSH key for shell access][3] for instructions.

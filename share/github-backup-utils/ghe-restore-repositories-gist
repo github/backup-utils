@@ -138,7 +138,6 @@ bm_end "$(basename $0) - Restoring gists"
 if $CLUSTER; then
   bm_start "$(basename $0) - Finalizing routes"
   ghe_verbose "Finalizing routes"
-  ghe_verbose "$(cat $to_restore)"
   cat $to_restore | ghe-ssh "$GHE_HOSTNAME" -- sponge $to_restore
   ghe-ssh "$GHE_HOSTNAME" -- /bin/bash >&3 <<EOF
     split -l 1000 $to_restore $tempdir/chunk

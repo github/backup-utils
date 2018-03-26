@@ -187,24 +187,20 @@ begin_test "ghe-backup with leaked SSH host key detection for current backup"
 (
   set -e
 
-  SHARED_UTILS_PATH=$(dirname $(which ghe-detect-leaked-ssh-keys))
-  # Inject the fingerprint into the blacklist
-  echo 98:d8:99:d3:be:c0:55:05:db:b0:53:2f:1f:ad:b3:60 >> "$SHARED_UTILS_PATH/ghe-ssh-leaked-host-keys-list.txt"
-
-  # Re-link ghe-export-ssh-keys to generate a fake ssh
-  unlink  "$ROOTDIR/test/bin/ghe-export-ssh-host-keys"
+  # Rename ghe-export-ssh-keys to generate a fake ssh
   cd "$ROOTDIR/test/bin"
+  mv "ghe-export-ssh-host-keys" "ghe-export-ssh-host-keys.orig"
   ln -s ghe-gen-fake-ssh-tar ghe-export-ssh-host-keys
   cd -
+
+  # Inject the fingerprint into the blacklist
+  export FINGERPRINT_BLACKLIST="98:d8:99:d3:be:c0:55:05:db:b0:53:2f:1f:ad:b3:60"
 
   # Run it
   output=$(ghe-backup -v)
 
-  # Set the export ssh link back
-  unlink  "$ROOTDIR/test/bin/ghe-export-ssh-host-keys"
-  cd "$ROOTDIR/test/bin"
-  ln -s ghe-fake-export-command ghe-export-ssh-host-keys
-  cd -
+  # Set the export ssh back
+  mv "$ROOTDIR/test/bin/ghe-export-ssh-host-keys.orig" "$ROOTDIR/test/bin/ghe-export-ssh-host-keys"
 
   # Test the output for leaked key detection
   echo $output| grep "The current backup contains leaked SSH host keys"
@@ -249,5 +245,56 @@ begin_test "ghe-backup exits early on unsupported version"
 (
   set -e
   ! GHE_TEST_REMOTE_VERSION=2.10.0 ghe-backup -v
+)
+end_test
+
+begin_test "ghe-backup-strategy returns rsync for HA backup"
+(
+  set -e
+  touch "$GHE_REMOTE_ROOT_DIR/etc/github/repl-state"
+  output="$(ghe-backup-strategy)"
+  rm "$GHE_REMOTE_ROOT_DIR/etc/github/repl-state"
+  [ "$output" = "rsync" ]
+)
+end_test
+
+# Reset data for sub-subsequent tests
+rm -rf $GHE_REMOTE_DATA_USER_DIR
+setup_test_data $GHE_REMOTE_DATA_USER_DIR
+
+begin_test "ghe-backup cluster"
+(
+  set -e
+  setup_remote_cluster
+
+  if ! ghe-backup -v > "$TRASHDIR/backup-out" 2>&1; then
+    cat "$TRASHDIR/backup-out"
+    : ghe-restore should have exited successfully
+    false
+  fi
+
+  cat "$TRASHDIR/backup-out"
+
+  # verify data was copied from multiple nodes
+  # repositories
+  grep -q "repositories from git-server-fake-uuid" "$TRASHDIR/backup-out"
+  grep -q "repositories from git-server-fake-uuid1" "$TRASHDIR/backup-out"
+  grep -q "repositories from git-server-fake-uuid2" "$TRASHDIR/backup-out"
+
+  # storage
+  grep -q "objects from storage-server-fake-uuid" "$TRASHDIR/backup-out"
+  grep -q "objects from storage-server-fake-uuid1" "$TRASHDIR/backup-out"
+  grep -q "objects from storage-server-fake-uuid2" "$TRASHDIR/backup-out"
+
+  # pages
+  grep -q "Starting backup for host: pages-server-fake-uuid" "$TRASHDIR/backup-out"
+  grep -q "Starting backup for host: pages-server-fake-uuid1" "$TRASHDIR/backup-out"
+  grep -q "Starting backup for host: pages-server-fake-uuid2" "$TRASHDIR/backup-out"
+
+  # verify cluster.conf backed up
+  [ -f "$GHE_DATA_DIR/current/cluster.conf" ]
+  grep -q "fake cluster config" "$GHE_DATA_DIR/current/cluster.conf"
+
+  verify_all_backedup_data
 )
 end_test

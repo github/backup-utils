@@ -245,9 +245,8 @@ EOF
   # Add custom key to tar file
   tar -cf "$GHE_DATA_DIR/current/ssh-host-keys.tar" --directory="$GHE_DATA_DIR" ssh_host_dsa_key.pub
 
-  SHARED_UTILS_PATH=$(dirname $(which ghe-detect-leaked-ssh-keys))
   # Inject the fingerprint into the blacklist
-  echo 98:d8:99:d3:be:c0:55:05:db:b0:53:2f:1f:ad:b3:60 >> "$SHARED_UTILS_PATH/ghe-ssh-leaked-host-keys-list.txt"
+  export FINGERPRINT_BLACKLIST="98:d8:99:d3:be:c0:55:05:db:b0:53:2f:1f:ad:b3:60"
 
   # Running it and ignoring the actual script status but testing that the ssh host detection still happens
   output=$(ghe-restore -v -f localhost) || true
@@ -358,5 +357,79 @@ begin_test "ghe-restore exits early on unsupported version"
   export GHE_RESTORE_HOST
 
   ! GHE_TEST_REMOTE_VERSION=2.10.0 ghe-restore -v
+)
+end_test
+
+# Reset data for sub-subsequent tests
+rm -rf "$GHE_DATA_DIR/1"
+setup_test_data "$GHE_DATA_DIR/1"
+
+# Make the current symlink
+ln -s 1 "$GHE_DATA_DIR/current"
+
+begin_test "ghe-restore cluster"
+(
+  set -e
+  rm -rf "$GHE_REMOTE_ROOT_DIR"
+  setup_remote_metadata
+  setup_remote_cluster
+  echo "cluster" > "$GHE_DATA_DIR/current/strategy"
+
+  # set as configured, enable maintenance mode and create required directories
+  setup_maintenance_mode "configured"
+
+  # set restore host environ var
+  GHE_RESTORE_HOST=127.0.0.1
+  export GHE_RESTORE_HOST
+
+  # CI servers may have moreutils parallel and GNU parallel installed. We need moreutils parallel.
+  if [ -x "/usr/bin/parallel.moreutils" ]; then
+    ln -s /usr/bin/parallel.moreutils "$ROOTDIR/test/bin/parallel"
+  fi
+
+  # run ghe-restore and write output to file for asserting against
+  if ! ghe-restore -v -f > "$TRASHDIR/restore-out" 2>&1; then
+      cat "$TRASHDIR/restore-out"
+      : ghe-restore should have exited successfully
+      false
+  fi
+
+  if [ -h "$ROOTDIR/test/bin/parallel" ]; then
+    unlink "$ROOTDIR/test/bin/parallel"
+  fi
+
+  # for debugging
+  cat "$TRASHDIR/restore-out"
+
+  # verify data was copied from multiple nodes
+  # repositories
+  grep -q "networks to git-server-fake-uuid" "$TRASHDIR/restore-out"
+  grep -q "networks to git-server-fake-uuid1" "$TRASHDIR/restore-out"
+  grep -q "networks to git-server-fake-uuid2" "$TRASHDIR/restore-out"
+  grep -q "dgit-cluster-restore-finalize OK" "$TRASHDIR/restore-out"
+
+  # gists
+  grep -q "gists to git-server-fake-uuid" "$TRASHDIR/restore-out"
+  grep -q "gists to git-server-fake-uuid1" "$TRASHDIR/restore-out"
+  grep -q "gists to git-server-fake-uuid2" "$TRASHDIR/restore-out"
+  grep -q "gist-cluster-restore-finalize OK" "$TRASHDIR/restore-out"
+
+
+  # storage
+  grep -q "data to git-server-fake-uuid" "$TRASHDIR/restore-out"
+  grep -q "data to git-server-fake-uuid1" "$TRASHDIR/restore-out"
+  grep -q "data to git-server-fake-uuid2" "$TRASHDIR/restore-out"
+  grep -q "storage-cluster-restore-finalize OK" "$TRASHDIR/restore-out"
+
+
+  # pages
+  grep -q "Pages to git-server-fake-uuid" "$TRASHDIR/restore-out"
+  grep -q "Pages to git-server-fake-uuid1" "$TRASHDIR/restore-out"
+  grep -q "Pages to git-server-fake-uuid2" "$TRASHDIR/restore-out"
+  grep -q "dpages-cluster-restore-finalize OK" "$TRASHDIR/restore-out"
+
+
+  # Verify all the data we've restored is as expected
+  verify_all_restored_data
 )
 end_test

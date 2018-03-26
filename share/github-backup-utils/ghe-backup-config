@@ -233,6 +233,15 @@ ghe_remote_version_required () {
   true
 }
 
+# Parse a version string into major, minor and patch parts and echo.
+ghe_parse_version() {
+  local version_major=$(echo "${1#v}" | cut -f 1 -d .)
+  local version_minor=$(echo "$1"     | cut -f 2 -d .)
+  local version_patch=$(echo "$1"     | cut -f 3 -d .)
+  local version_patch=${version_patch%%[a-zA-Z]*}
+
+  echo "$version_major $version_minor $version_patch"
+}
 # Parse major, minor, and patch parts of the remote appliance version and store
 # in GHE_VERSION_MAJOR, GHE_VERSION_MINOR, and GHE_VERSION_PATCH variables. All
 # parts are numeric. This is called automatically from
@@ -241,11 +250,7 @@ ghe_remote_version_required () {
 # Scripts use these variables to alter behavior based on what's supported on the
 # appliance version.
 ghe_parse_remote_version () {
-  GHE_VERSION_MAJOR=$(echo "${1#v}" | cut -f 1 -d .)
-  GHE_VERSION_MINOR=$(echo "$1"     | cut -f 2 -d .)
-  GHE_VERSION_PATCH=$(echo "$1"     | cut -f 3 -d .)
-  GHE_VERSION_PATCH=${GHE_VERSION_PATCH%%[a-zA-Z]*}
-
+  read -r GHE_VERSION_MAJOR GHE_VERSION_MINOR GHE_VERSION_PATCH <<<$(ghe_parse_version $1)
   export GHE_VERSION_MAJOR GHE_VERSION_MINOR GHE_VERSION_PATCH
 }
 
@@ -285,4 +290,8 @@ ghe_debug() {
   if [ -n "$GHE_DEBUG" ]; then
     echo "Debug: $*" 1>&3
   fi
+}
+
+version() {
+  echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }';
 }

@@ -20,7 +20,7 @@ begin_test "ghe-cluster-nodes should return both uuids for git-server"
 
   output="$(ghe-cluster-nodes "$GHE_HOSTNAME" "git-server")"
   echo "$output"
-  [ "git-server-05cbcd42-f519-11e6-b6c9-002bd51dfa77 git-server-08d94884-f519-11e6-88a1-0063a7c33551 " = "$output" ]
+  [ "git-server-fake-uuid git-server-fake-uuid1 git-server-fake-uuid2 " = "$output" ]
 )
 end_test
 

@@ -1,1 +1,4 @@
-ghe-fake-export-command
+#!/usr/bin/env bash
+echo "fake ghe-export-ssh-host-keys data" > tmp/ssh-host-keys
+tar -C tmp -cf - ssh-host-keys
+rm -f tmp/ssh-host-keys

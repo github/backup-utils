@@ -58,7 +58,7 @@ fi
 
 cleanup() {
   for hostname in $hostnames; do
-    ghe-gc-enable $ssh_config_file_opt $hostname:$port
+    ghe-gc-enable $ssh_config_file_opt $hostname:$port || true
   done
   ghe-ssh "$GHE_HOSTNAME" -- rm -rf $tempdir
   rm -rf $tempdir
@@ -142,6 +142,7 @@ bm_end "$(basename $0) - Restoring repository networks"
 # Tell dgit about the repositories restored
 if $CLUSTER; then
   bm_start "$(basename $0) - Finalizing routes"
+  ghe_verbose "Finalizing routes"
   cat $to_restore | ghe-ssh "$GHE_HOSTNAME" -- sponge $to_restore
   ghe-ssh "$GHE_HOSTNAME" -- /bin/bash >&3 <<EOF
     split -l 1000 $to_restore $tempdir/chunk

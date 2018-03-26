@@ -2,26 +2,26 @@
 
 If you've not done much Bash development before you may find these debugging tips useful: http://wiki.bash-hackers.org/scripting/debuggingtips.
 
---
+---
 ##### Scripts must start with `#!/usr/bin/env bash`
 
---
-##### Scripts must use `set -e`
+---
+##### Scripts must use `set -o errexit -o nounset -o pipefail`
 
 If the return value of a command can be ignored, suffix it with `|| true`:
 
 ```bash
-set -e
+set -o errexit -o nounset -o pipefail
 command_that_might_fail || true
 command_that_should_not_fail
 ```
 
 Note that ignoring an exit status with `|| true` is not a good practice though. Generally speaking, it's better to handle the error.
 
---
+---
 ##### Scripts should not check exit status via `$?` manually
 
-Rely on `set -e` instead:
+Rely on `set -o errexit` instead:
 
 ```bash
 cmd
@@ -33,13 +33,13 @@ fi
 should be written as:
 
 ```bash
-set -e
+set -o errexit
 if cmd; then
   echo worked
 fi
 ```
 
---
+---
 ##### Scripts must include a usage, description and optional examples
 
 Use this format:
@@ -60,12 +60,12 @@ Use this format:
 #/    This will do foo and bar:
 #/      $ ghe-this-is-my-script --longopt foobar -c 2
 #/
-set -e
+set -o errexit -o nounset -o pipefail
 ```
 
 If there are no options or required arguments, the `OPTIONS` section can be ignored.
 
---
+---
 ##### Customer-facing scripts must accept both -h and --help arguments
 
 They should also print the usage information and exit 2.
@@ -77,7 +77,7 @@ For example:
 #/ Usage: ghe-this-is-my-script [options] <required_arg>
 #/
 #/ This is a brief description of the script's purpose.
-set -e
+set -o errexit -o nounset -o pipefail
 
 if [ "$1" = "--help" -o "$1" = "-h" ]; then
   grep '^#/' <"$0" | cut -c 4-
@@ -86,7 +86,7 @@ fi
 
 ```
 
---
+---
 ##### Scripts should not use Bash arrays
 
 Main issues:
@@ -94,7 +94,7 @@ Main issues:
 * Portability
 * Important bugs in Bash versions < 4.3
 
---
+---
 ##### Scripts should use `test` or `[` whenever possible
 
 ```bash
@@ -105,7 +105,7 @@ if [ "string" = "string" ]; then
 fi
 ```
 
---
+---
 ##### Scripts may use `[[` for advanced bash features
 
 ```bash
@@ -114,7 +114,7 @@ if [[ "$(hostname)" = *.iad.github.net ]]; then
 fi
 ```
 
---
+---
 ##### Scripts may use Bash for loops
 
 Preferred:
@@ -131,7 +131,7 @@ for ((n=0; n<10; n++)); do
 done
 ```
 
---
+---
 ##### Scripts should use `$[x+y*z]` for mathematical expressions
 
 ```bash
@@ -143,7 +143,7 @@ n=$((n+1))
 n=$(($n+1))
 ```
 
---
+---
 ##### Scripts should use variables sparingly
 
 Short paths and other constants should be repeated liberally throughout code since they
@@ -162,7 +162,7 @@ mkdir -p /data/user/db
 rsync /data/user/db remote:/data/user/db
 ```
 
---
+---
 ##### Scripts should use lowercase variables for locals, and uppercase for variables inherited or exported via the environment
 
 ```bash
@@ -175,7 +175,7 @@ export GIT_DIR=/data/repos/$nwo.git
 git rev-list
 ```
 
---
+---
 ##### Scripts should use `${var}` for interpolation only when required
 
 ```bash
@@ -184,7 +184,7 @@ echo $greeting
 echo ${greeting}world
 ```
 
---
+---
 ##### Scripts should use functions sparingly, opting for small/simple/sequential scripts instead whenever possible
 
 When defining functions, use the following style:
@@ -197,7 +197,7 @@ my_function() {
 }
 ```
 
---
+---
 ##### Scripts should use `<<heredocs` when dealing with multi-line strings
 
 - `<<eof` and `<< eof` will allow interpolation
@@ -219,13 +219,28 @@ cat <<eof | ssh $remote -- bash
 eof
 ```
 
---
+---
 ##### Scripts should quote variables that could reasonably have a space now or in the future
 
 ```bash
 if [ ! -z "$packages" ]; then
   true
 fi
+```
+
+---
+##### Scripts should use two space indentation
+
+---
+##### Scripts should not produce errors or warnings when checked with ShellCheck
+
+Use inline comments to disable specific tests, and explain why the test has been disabled.
+
+```bash
+hexToAscii() {
+  # shellcheck disable=SC2059 - we need to interpret $1 as a formatted string
+  printf "\x$1"
+}
 ```
 
 ### Testing

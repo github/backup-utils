@@ -448,7 +448,7 @@ else
   ghe-ssh "$GHE_HOSTNAME" -- /bin/sh 1>&3
 fi
 
-echo "Finished restore of $GHE_HOSTNAME from snapshot $GHE_RESTORE_SNAPSHOT"
+echo "Restore of $GHE_HOSTNAME from snapshot $GHE_RESTORE_SNAPSHOT finished."
 
 if ! $cluster; then
   echo "To complete the restore process, please visit https://$hostname/setup/settings to review and save the appliance configuration."

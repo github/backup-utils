@@ -381,7 +381,7 @@ if $PROGRAM_NAME == __FILE__
         release_changes.each { |c| puts "  * #{c}" }
       end
       puts "Changes:"
-      puts `git diff`
+      puts `git diff --color`
       `git checkout -- share/github-backup-utils/version`
       `git checkout -- bin/ghe-host-check`
       exit

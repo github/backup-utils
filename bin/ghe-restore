@@ -450,6 +450,6 @@ fi
 
 echo "Restore of $GHE_HOSTNAME from snapshot $GHE_RESTORE_SNAPSHOT finished."
 
-if ! $cluster; then
+if ! $instance_configured; then
   echo "To complete the restore process, please visit https://$hostname/setup/settings to review and save the appliance configuration."
 fi

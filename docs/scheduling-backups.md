@@ -7,7 +7,7 @@ hourly backups at the least.
 
 ## Example scheduling usage
 
-The following examples assume the backup utilities are installed under
+The following examples assume the Backup Utilities are installed under
 `/opt/backup-utils`. The crontab entry should be made under the same user that
 manual backup/recovery commands will be issued under and must have write access
 to the configured `GHE_DATA_DIR` directory.

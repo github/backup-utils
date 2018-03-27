@@ -3,11 +3,11 @@
 This repository includes backup and recovery utilities for [GitHub Enterprise][1].
 
 **Note**: the [GitHub Enterprise version requirements](docs/requirements.md#github-enterprise-version-requirements) have
-changed starting with backup utilities (backup-utils) v2.13.0.
+changed starting with Backup Utilities (backup-utils) v2.13.0.
 
 ### Features
 
-The backup utilities implement a number of advanced capabilities for backup
+The Backup Utilities implement a number of advanced capabilities for backup
 hosts, built on top of the backup and restore features already included in
 GitHub Enterprise.
 
@@ -36,12 +36,12 @@ GitHub Enterprise.
 - **[Using the backup and restore commands](docs/usage.md)**
 - **[Scheduling backups](docs/scheduling-backups.md)**
 - **[Backup snapshot file structure](docs/backup-snapshot-file-structure.md)**
-- **[How does backup utilities differ from a High Availability replica?](docs/faq.md)**
+- **[How does Backup Utilities differ from a High Availability replica?](docs/faq.md)**
 - **[Docker](docs/docker.md)**
 
 ### Support
 
-If you find a bug or would like to request a feature in backup-utils, please
+If you find a bug or would like to request a feature in Backup Utilities, please
 open an issue or pull request on this repository. If you have a question related
 to your specific GitHub Enterprise setup or would like assistance with backup
 site setup or recovery, please contact our [Enterprise support team][2] instead.

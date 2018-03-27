@@ -1,6 +1,6 @@
 # Requirements
 
-The backup utilities should be run on a host dedicated to long-term permanent
+The Backup Utilities should be run on a host dedicated to long-term permanent
 storage and must have network connectivity with the GitHub Enterprise appliance.
 
 ## Backup host requirements
@@ -29,18 +29,18 @@ Using a [case sensitive][7] file system is also required to avoid conflicts.
 
 ## GitHub Enterprise version requirements
 
-Starting with backup utilities v2.13.0, version support is inline with that of the
+Starting with Backup Utilities v2.13.0, version support is inline with that of the
 [GitHub Enterprise upgrade requirements][8] and as such, support is limited to
 three versions of GitHub Enterprise: the version that corresponds with the version
-of backup utilities, and the two releases prior to it.
+of Backup Utilities, and the two releases prior to it.
 
-For example, backup utilities v2.13.0 can be used to backup and restore all patch
+For example, Backup Utilities v2.13.0 can be used to backup and restore all patch
 releases from 2.11.0 to the latest patch release of GitHub Enterprise 2.13.
-Backup utilities v2.14.0 will be released when GitHub Enterprise 2.14.0 is release
+Backup Utilities v2.14.0 will be released when GitHub Enterprise 2.14.0 is released
 and will then be used to backup all releases of GitHub Enterprise from 2.12.0
 to the latest patch release of GitHub Enterprise 2.14.
 
-Backup utilities v2.11.4 and earlier offer support for GitHub Enterprise 2.10
+Backup Utilities v2.11.4 and earlier offer support for GitHub Enterprise 2.10
 and earlier releases.
 
 **Note**: You can restore a snapshot that's at most two feature releases behind

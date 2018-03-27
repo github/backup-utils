@@ -57,7 +57,7 @@ github/backup-utils ghe-backup
 ### Using ssh-agent
 
 If your SSH private key is protected with a passphrase, you can mount the `ssh-agent`
-socket from the Docker host into the GitHub Enterprise backup utilities image.
+socket from the Docker host into the GitHub Enterprise Backup Utilities image.
 
 1. Start the ssh-agent in the background.
 

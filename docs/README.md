@@ -8,5 +8,5 @@
 - **[Using the backup and restore commands](usage.md)**
 - **[Scheduling backups](scheduling-backups.md)**
 - **[Backup snapshot file structure](backup-snapshot-file-structure.md)**
-- **[How does backup utilities differ from a High Availability replica?](faq.md)**
+- **[How does Backup Utilities differ from a High Availability replica?](faq.md)**
 - **[Docker](docker.md)**

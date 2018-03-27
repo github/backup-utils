@@ -8,7 +8,7 @@
 
     `git clone -b stable https://github.com/github/backup-utils.git`
 
-    **Note**: you will need to use [backup-utils v2.11.x][2] or the `legacy` branch to
+    **Note**: you will need to use [Backup Utilities v2.11.x][2] or the `legacy` branch to
     backup and restore GitHub Enterprise 2.10 and earlier.
 
  2. Copy the [`backup.config-example`][3] file to `backup.config` and modify as
@@ -16,7 +16,7 @@
     host name. Additional options are available and documented in the
     configuration file but none are required for basic backup functionality.
 
-    * backup-utils will attempt to load the backup configuration from the following
+    * Backup Utilities will attempt to load the backup configuration from the following
       locations, in this order:
 
       ```

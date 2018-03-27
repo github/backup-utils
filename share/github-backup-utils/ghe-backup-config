@@ -163,12 +163,6 @@ GHE_SNAPSHOT_DIR="$GHE_DATA_DIR"/"$GHE_SNAPSHOT_TIMESTAMP"
 # allows the location to be overridden in tests.
 : ${GHE_REMOTE_LICENSE_FILE:="$GHE_REMOTE_DATA_DIR/enterprise/enterprise.ghl"}
 
-# The legacy location of the metadata file on the remote side. Only used if
-# the newer "ghe-negotiate-version" script cannot be found or fails. This was
-# "/data/enterprise/metadata.json" for GitHub instances. Use of this variable
-# allows the location to be overridden in tests.
-: ${GHE_REMOTE_METADATA_FILE:="$GHE_REMOTE_DATA_DIR/enterprise/chef_metadata.json"}
-
 # The number of seconds to wait for in progress git-gc processes to complete
 # before starting the sync of git data. See share/github-backup-utils/ghe-backup-repositories-rsync
 # for more information. Default: 10 minutes.
@@ -195,11 +189,9 @@ GHE_SNAPSHOT_DIR="$GHE_DATA_DIR"/"$GHE_SNAPSHOT_TIMESTAMP"
 # called immediately after the remote version is obtained by
 # ghe_remote_version_required(). Child processes inherit the values set here.
 ghe_remote_version_config () {
-    if [ "$GHE_VERSION_MAJOR" -gt 1 ]; then
-        GHE_REMOTE_DATA_USER_DIR="$GHE_REMOTE_DATA_DIR/user"
-    fi
+    GHE_REMOTE_DATA_USER_DIR="$GHE_REMOTE_DATA_DIR/user"
     export GHE_REMOTE_DATA_DIR GHE_REMOTE_DATA_USER_DIR
-    export GHE_REMOTE_LICENSE_FILE GHE_REMOTE_METADATA_FILE
+    export GHE_REMOTE_LICENSE_FILE
 }
 
 ###############################################################################
@@ -241,26 +233,24 @@ ghe_remote_version_required () {
     true
 }
 
+# Parse a version string into major, minor and patch parts and echo.
+ghe_parse_version() {
+  local version_major=$(echo "${1#v}" | cut -f 1 -d .)
+  local version_minor=$(echo "$1"     | cut -f 2 -d .)
+  local version_patch=$(echo "$1"     | cut -f 3 -d .)
+  local version_patch=${version_patch%%[a-zA-Z]*}
+
+  echo "$version_major $version_minor $version_patch"
+}
 # Parse major, minor, and patch parts of the remote appliance version and store
 # in GHE_VERSION_MAJOR, GHE_VERSION_MINOR, and GHE_VERSION_PATCH variables. All
 # parts are numeric. This is called automatically from
 # ghe_remote_version_required so shouldn't be used directly.
 #
 # Scripts use these variables to alter behavior based on what's supported on the
-# appliance version. The version parts are modified somewhat to make dealing
-# with the 11.10.x version scheme more sane. The "11.10" part of the remote
-# version is normalized to "1.0" so "11.10.340" would have parts "1.0.340".
+# appliance version.
 ghe_parse_remote_version () {
-    GHE_VERSION_MAJOR=$(echo "${1#v}" | cut -f 1 -d .)
-    GHE_VERSION_MINOR=$(echo "$1"     | cut -f 2 -d .)
-    GHE_VERSION_PATCH=$(echo "$1"     | cut -f 3 -d .)
-    GHE_VERSION_PATCH=${GHE_VERSION_PATCH%%[a-zA-Z]*}
-
-    if [ "$GHE_VERSION_MAJOR.$GHE_VERSION_MINOR" = "11.10" ]; then
-        GHE_VERSION_MAJOR=1
-        GHE_VERSION_MINOR=0
-    fi
-
+    read -r GHE_VERSION_MAJOR GHE_VERSION_MINOR GHE_VERSION_PATCH <<<$(ghe_parse_version $1)
     export GHE_VERSION_MAJOR GHE_VERSION_MINOR GHE_VERSION_PATCH
 }
 
@@ -292,4 +282,16 @@ ghe_verbose() {
   if [ -n "$GHE_VERBOSE" ]; then
     echo "$@" 1>&3
   fi
+}
+
+# Usage: ghe_debug <message>
+# Log if debug mode is enabled (GHE_DEBUG).
+ghe_debug() {
+  if [ -n "$GHE_DEBUG" ]; then
+    echo "Debug: $*" 1>&3
+  fi
+}
+
+version() {
+  echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }';
 }

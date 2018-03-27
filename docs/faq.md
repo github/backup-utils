@@ -11,9 +11,9 @@ datastores. This active/passive cluster configuration is designed to minimize
 service disruption in the event of hardware failure or major network outage
 affecting the primary instance. Because some forms of data corruption or loss may
 be replicated immediately from primary to replica, it is not a replacement for
-the Backup Utilities as part of your disaster recovery plan.
+Backup Utilities as part of your disaster recovery plan.
 
-### The purpose of the Backup Utilities
+### The purpose of Backup Utilities
 Backup Utilities are a disaster recovery tool. This tool takes date-stamped
 snapshots of all major datastores. These snapshots are used to restore an instance
 to a prior state or set up a new instance without having another always-on GitHub

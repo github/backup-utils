@@ -1,6 +1,6 @@
 # Requirements
 
-The Backup Utilities should be run on a host dedicated to long-term permanent
+Backup Utilities should be run on a host dedicated to long-term permanent
 storage and must have network connectivity with the GitHub Enterprise appliance.
 
 ## Backup host requirements
@@ -21,7 +21,7 @@ patterns of the GitHub appliance. We recommend allocating at least 5x the amount
 of storage allocated to the primary GitHub appliance for historical snapshots
 and growth over time.
 
-The backup utilities use [hard links][5] to store data efficiently, and the
+Backup Utilities use [hard links][5] to store data efficiently, and the
 repositories on GitHub Enterprise use [symbolic links][6] so the backup snapshots
 must be written to a filesystem with support for symbolic and hard links.
 

@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Usage: storage-cluster-backup-routes
+# Emulates the remote GitHub enterprise-configure command. Tests use this
+# to assert that the command was executed.
+set -e
+cat <<EOF
+2/20/e1/20e1b33c19d81f490716c470c0583772b05a153831d55441cc5e7711eda5a241 storage-server-fake-uuid
+8/80/76/80766a2b18a96b9a5927ebdd980dc8d0820bea7ff0897b1b119af4bf20974d32 storage-server-fake-uuid1
+e/ed/1a/ed1aa60f0706cefde8ba2b3be662d3a0e0e1fbc94a52a3201944684cc0c5f244 storage-server-fake-uuid2
+EOF

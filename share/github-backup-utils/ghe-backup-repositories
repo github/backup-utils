@@ -353,4 +353,13 @@ RULES
 done
 bm_end "$(basename $0) - Special Data Directories Sync"
 
+bm_start "$(basename $0) - Verifying Routes"
+
+cat $tempdir/*.rsync | sort | uniq > $tempdir/source_routes
+(cd $backup_dir/ && find * -mindepth 6 -maxdepth 7 -name \*.git -exec dirname {} \; | sort | uniq) > $tempdir/destination_routes
+
+diff $tempdir/source_routes $tempdir/destination_routes || echo "Warning: One or more repository networks and/or gists were not found on the source appliance. Please contact GitHub Enterprise Support for assistance."
+
+bm_end "$(basename $0) - Verifying Routes"
+
 bm_end "$(basename $0)"

@@ -8,7 +8,10 @@
 
     `git clone -b stable https://github.com/github/backup-utils.git`
 
- 2. Copy the [`backup.config-example`][2] file to `backup.config` and modify as
+    **Note**: you will need to use [backup-utils v2.11.x][2] or the `legacy` branch to
+    backup and restore GitHub Enterprise 2.10 and earlier.
+
+ 2. Copy the [`backup.config-example`][3] file to `backup.config` and modify as
     necessary. The `GHE_HOSTNAME` value must be set to the GitHub Enterprise
     host name. Additional options are available and documented in the
     configuration file but none are required for basic backup functionality.
@@ -26,7 +29,7 @@
       with the `-i <abs path to private key>` SSH option.
 
  3. Add the backup host's SSH key to the GitHub appliance as an *Authorized SSH
-    key*. See [Adding an SSH key for shell access][3] for instructions.
+    key*. See [Adding an SSH key for shell access][4] for instructions.
 
  4. Run `bin/ghe-host-check` to verify SSH connectivity with the GitHub
     appliance.
@@ -34,5 +37,6 @@
  5. Run `bin/ghe-backup` to perform an initial full backup.
 
 [1]: https://github.com/github/backup-utils/releases
-[2]: https://github.com/github/enterprise-backup-site/blob/master/backup.config-example
-[3]: https://enterprise.github.com/help/articles/adding-an-ssh-key-for-shell-access
+[2]: https://github.com/github/backup-utils/releases/tag/v2.11.4
+[3]: https://github.com/github/enterprise-backup-site/blob/master/backup.config-example
+[4]: https://enterprise.github.com/help/articles/adding-an-ssh-key-for-shell-access

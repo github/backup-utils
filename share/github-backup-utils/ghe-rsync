@@ -14,14 +14,26 @@ set -o pipefail
 # stderr (rsync versions >= 3.x). The complex redirections are necessary to
 # filter stderr while also keeping stdout and stderr separated.
 IGNOREOUT='^(file has vanished: |rsync warning: some files vanished before they could be transferred)'
+
+# Remove --ignore-missing-args argument if using an earlier version of rsync.
+if [[ $GHE_EXTRA_RSYNC_OPTS == *"--ignore-missing-args"* ]] && ! rsync -h | grep -q '\-\-ignore-missing-args'; then
+  GHE_EXTRA_RSYNC_OPTS=${GHE_EXTRA_RSYNC_OPTS//--ignore-missing-args/}
+  ignore23=1
+fi
+
 (rsync "${@}" $GHE_EXTRA_RSYNC_OPTS 3>&1 1>&2 2>&3 3>&- |
   (egrep -v "$IGNOREOUT" || true)) 3>&1 1>&2 2>&3 3>&- |
   (egrep -v "$IGNOREOUT" || true)
 res=$?
 
-# rsync exits with 24 when vanished files are detected.
+# Suppress exits with 24.
 if [ $res = 24 ]; then
-    res=0
+  res=0
+fi
+
+# Suppress exits with 23 if --ignore-missing-args was unavailable.
+if [ $res = 23 ] && [ -n "$ignore23" ]; then
+  res=0
 fi
 
 exit $res

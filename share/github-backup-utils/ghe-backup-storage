@@ -116,6 +116,7 @@ for file_list in $tempdir/*.rsync; do
   $link_dest "$@" \
   --rsync-path='sudo -u git rsync' \
   --files-from="$file_list" \
+  --ignore-missing-args \
   --size-only \
   "$hostname:$GHE_REMOTE_DATA_USER_DIR/storage/" \
   "$backup_dir" 1>&3 &

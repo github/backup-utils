@@ -298,3 +298,23 @@ begin_test "ghe-backup cluster"
   verify_all_backedup_data
 )
 end_test
+
+begin_test "ghe-backup missing directories or files on source appliance"
+(
+    # Tests the scenario where something exists in the database, but not on disk.
+    set -e
+
+    rm -rf $GHE_REMOTE_DATA_USER_DIR/repositories/1
+    rm -rf $GHE_REMOTE_DATA_USER_DIR/storage/e/ed/1a/ed1aa60f0706cefde8ba2b3be662d3a0e0e1fbc94a52a3201944684cc0c5f244
+
+    if ! ghe-backup -v > "$TRASHDIR/backup-out" 2>&1; then
+      cat "$TRASHDIR/backup-out"
+      : ghe-backup should have completed successfully
+      false
+    fi
+
+    cat "$TRASHDIR/backup-out"
+
+    verify_all_backedup_data
+)
+end_test

@@ -12,20 +12,20 @@ When making a `.0` release, you will need to specify the minimum supported versi
 
 ### Feature release:
 
-1. `.ghe backup-utils-release 2.13.0 2.11.0`
+`.ghe backup-utils-release 2.13.0 2.11.0`
 
 ### Patch release:
 
-1. `.ghe backup-utils-release 2.13.1`
+`.ghe backup-utils-release 2.13.1`
 
 ## Automatic Process from CLI
 
 1. Install the Debian `devscripts` package:
   `sudo apt-get install devscripts`
 2. Run...
-  - Feature release:
+  - Feature release:  
   `GH_AUTHOR="Bob Smith <bob@example.com>" GH_RELEASE_TOKEN=your-amazing-secure-token script/release 2.13.0 2.11.0`
-  - Patch release:
+  - Patch release:  
   `GH_AUTHOR="Bob Smith <bob@example.com>" GH_RELEASE_TOKEN=your-amazing-secure-token script/release 2.13.1`
 
 ## Manual Process

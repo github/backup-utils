@@ -6,12 +6,12 @@ If you've not done much Bash development before you may find these debugging tip
 ##### Scripts must start with `#!/usr/bin/env bash`
 
 ---
-##### Scripts must use `set -o errexit -o nounset -o pipefail`
+##### Scripts must use `set -o errexit -o pipefail`
 
 If the return value of a command can be ignored, suffix it with `|| true`:
 
 ```bash
-set -o errexit -o nounset -o pipefail
+set -o errexit -o pipefail
 command_that_might_fail || true
 command_that_should_not_fail
 ```
@@ -60,7 +60,7 @@ Use this format:
 #/    This will do foo and bar:
 #/      $ ghe-this-is-my-script --longopt foobar -c 2
 #/
-set -o errexit -o nounset -o pipefail
+set -o errexit -o pipefail
 ```
 
 If there are no options or required arguments, the `OPTIONS` section can be ignored.
@@ -77,7 +77,7 @@ For example:
 #/ Usage: ghe-this-is-my-script [options] <required_arg>
 #/
 #/ This is a brief description of the script's purpose.
-set -o errexit -o nounset -o pipefail
+set -o errexit -o pipefail
 
 if [ "$1" = "--help" -o "$1" = "-h" ]; then
   grep '^#/' <"$0" | cut -c 4-

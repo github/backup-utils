@@ -135,6 +135,7 @@ begin_test () {
 
   # allow the subshell to exit non-zero without exiting this process
   set -x +e
+  before_time=$(date '+%s')
 }
 
 report_failure () {
@@ -153,15 +154,17 @@ report_failure () {
 # Mark the end of a test.
 end_test () {
   test_status="${1:-$?}"
+  after_time=$(date '+%s')
+  elapsed_time=$((after_time - before_time))
   set +x -e
   exec 1>&3 2>&4
 
   if [ "$test_status" -eq 0 ]; then
-    printf "test: %-60s OK\\n" "$test_description ..."
+    printf "test: %-65s OK (${elapsed_time}s)\\n" "$test_description ..."
   elif [ "$test_status" -eq 254 ]; then
-    printf "test: %-60s SKIPPED\\n" "$test_description ..."
+    printf "test: %-65s SKIPPED\\n" "$test_description ..."
   else
-    report_failure "FAILED" "$test_description ..."
+    report_failure "FAILED (${elapsed_time}s)" "$test_description ..."
   fi
 
   unset test_description

@@ -94,37 +94,6 @@ begin_test "ghe-backup-config ssh_port_part"
 )
 end_test
 
-begin_test "ghe-backup-config ghe_parse_remote_version v11.10.x series"
-(
-    set -e
-
-    ghe_parse_remote_version "v11.10.343"
-    [ "$GHE_VERSION_MAJOR" = "1" ]
-    [ "$GHE_VERSION_MINOR" = "0" ]
-    [ "$GHE_VERSION_PATCH" = "343" ]
-
-    ghe_parse_remote_version "11.10.343"
-    [ "$GHE_VERSION_MAJOR" = "1" ]
-    [ "$GHE_VERSION_MINOR" = "0" ]
-    [ "$GHE_VERSION_PATCH" = "343" ]
-
-    ghe_parse_remote_version "v11.10.340.ldapfix1"
-    [ "$GHE_VERSION_MAJOR" = "1" ]
-    [ "$GHE_VERSION_MINOR" = "0" ]
-    [ "$GHE_VERSION_PATCH" = "340" ]
-
-    ghe_parse_remote_version "v11.10.340pre"
-    [ "$GHE_VERSION_MAJOR" = "1" ]
-    [ "$GHE_VERSION_MINOR" = "0" ]
-    [ "$GHE_VERSION_PATCH" = "340" ]
-
-    ghe_parse_remote_version "v11.10.12"
-    [ "$GHE_VERSION_MAJOR" = "1" ]
-    [ "$GHE_VERSION_MINOR" = "0" ]
-    [ "$GHE_VERSION_PATCH" = "12" ]
-)
-end_test
-
 begin_test "ghe-backup-config ghe_parse_remote_version v2.x series"
 (
     set -e

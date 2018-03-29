@@ -1,3 +1,1 @@
-#!/usr/bin/env bash
-# Fake service command for tests.
-true
+ghe-fake-true

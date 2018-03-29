@@ -20,7 +20,7 @@ for version in $REMOTE_VERSIONS
 do
   echo "==> Running testsuite with GHE_TEST_REMOTE_VERSION=$version"
   export GHE_TEST_REMOTE_VERSION="$version"
-  if ! ls -1 test/test-*.sh | xargs -P 4 -n 1 /bin/bash; then
+  if ! find test -name "test-*.sh" -print0 | xargs -0 -P 4 -n 1 /bin/bash; then
     res=false
   fi
   echo

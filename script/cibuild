@@ -11,7 +11,6 @@ REMOTE_VERSIONS="
   2.13.0
 "
 
-shellcheck -V
 # Enable verbose logging of ssh commands
 export GHE_VERBOSE_SSH=true
 

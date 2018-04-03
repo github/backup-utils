@@ -11,6 +11,11 @@ matrix:
     - os: linux
       dist: trusty
       sudo: required
+      install:
+        - wget "https://storage.googleapis.com/shellcheck/shellcheck-stable.linux.x86_64.tar.xz"
+        - tar --xz -xvf "shellcheck-stable.linux.x86_64.tar.xz"
+        - shellcheck() { "shellcheck-stable/shellcheck" "$@"; }
+        - shellcheck --version
       addons:
         apt:
           packages:
@@ -18,5 +23,4 @@ matrix:
             - debhelper
             - moreutils
             - fakeroot
-            - shellcheck
       script: debuild -uc -us

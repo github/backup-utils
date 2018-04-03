@@ -21,7 +21,7 @@ begin_test "shellcheck: reports no errors or warnings"
   cd $BASE_PATH
   git ls-tree -r HEAD | grep -E '^1007|.*\..*sh$' | awk '{print $4}' | while read -r script; do
     if head -n1 "$script" | grep -E -w "sh|bash" >/dev/null 2>&1; then
-      shellcheck -a -f gcc $script 2>&1 | grep -v ": note:" >> $results || true
+      shellcheck -f gcc $script 2>&1 | grep -v ": note:" >> $results || true
     fi
   done
   cd -

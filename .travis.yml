@@ -6,6 +6,7 @@ matrix:
         - brew update
         - brew install gnu-tar
         - brew install moreutils
+        - brew install shellcheck
       script: make test
     - os: linux
       dist: trusty
@@ -17,4 +18,5 @@ matrix:
             - debhelper
             - moreutils
             - fakeroot
+            - shellcheck
       script: debuild -uc -us

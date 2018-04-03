@@ -65,11 +65,12 @@ atexit () {
   res=$?
 
   [ -z "$KEEPTRASH" ] && rm -rf "$TRASHDIR"
-  if [ $failures -gt 0 ]
-  then exit 1
-  elif [ $res -ne 0 ]
-  then exit $res
-  else exit 0
+  if [ $failures -gt 0 ]; then
+    exit 1
+  elif [ $res -ne 0 ]; then
+    exit $res
+  else
+    exit 0
   fi
 }
 

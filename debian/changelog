@@ -1,3 +1,16 @@
+github-backup-utils (2.13.0) UNRELEASED; urgency=medium
+
+  * Unify the backup & restore process #375
+
+ -- Colin Seymour <colin@github.com>  Tue, 27 Mar 2018 16:01:43 +0000
+
+github-backup-utils (2.11.4) UNRELEASED; urgency=medium
+
+  * Move check for git for ssh muxing into ghe-ssh #378
+  * Make it clear the settings need to be applied after restoring to an unconfigured instance  #381
+
+ -- Colin Seymour <colin@github.com>  Tue, 27 Mar 2018 13:20:18 +0000
+
 github-backup-utils (2.11.3) UNRELEASED; urgency=medium
 
   * Update argument parsing and help/usage consistency #320

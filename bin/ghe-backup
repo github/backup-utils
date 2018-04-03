@@ -56,6 +56,14 @@ mkdir -p "$GHE_SNAPSHOT_DIR"
 cd "$GHE_SNAPSHOT_DIR"
 touch "incomplete"
 
+# Exit early if the snapshot filesystem doesn't support hard links
+if ln $0 test_link >/dev/null 2>&1; then
+  rm -f test_link
+else
+  echo "Error: the filesystem containing $GHE_SNAPSHOT_DIR does not support hard links." 1>&2
+  exit 1
+fi
+
 # To prevent multiple backup runs happening at the same time, we create a
 # in-progress file with the timestamp and pid of the backup process,
 # giving us a form of locking.
@@ -86,7 +94,7 @@ trap 'exit $?' INT # ^C always terminate
 if [ -h ../in-progress ]; then
   echo "Error: detected a backup already in progress from a previous version of ghe-backup." 1>&2
   echo "If there is no backup in progress anymore, please remove" 1>&2
-  echo "the $GHE_DATA_DIR/in-progress symlink." 1>&2
+  echo "the $GHE_DATA_DIR/in-progress file." 1>&2
   exit 1
 fi
 

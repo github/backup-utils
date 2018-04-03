@@ -57,10 +57,10 @@ cd "$GHE_SNAPSHOT_DIR"
 touch "incomplete"
 
 # Exit early if the snapshot filesystem doesn't support hard links
-if ln $0 test_link >/dev/null 2>&1; then
+if ln incomplete test_link >/dev/null 2>&1; then
   rm -f test_link
 else
-  echo "Error: the filesystem containing $GHE_SNAPSHOT_DIR does not support hard links." 1>&2
+  echo "Error: the filesystem containing $GHE_DATA_DIR does not support hard links." 1>&2
   exit 1
 fi
 

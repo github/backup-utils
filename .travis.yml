@@ -12,10 +12,8 @@ matrix:
       dist: trusty
       sudo: required
       install:
-        - wget "https://storage.googleapis.com/shellcheck/shellcheck-stable.linux.x86_64.tar.xz"
-        - tar --xz -xvf "shellcheck-stable.linux.x86_64.tar.xz"
-        - shellcheck() { "shellcheck-stable/shellcheck" "$@"; }
-        - shellcheck --version
+        - wget "https://storage.googleapis.com/shellcheck/shellcheck-v0.4.7.linux.x86_64.tar.xz"
+        - tar --xz -xvf "shellcheck-v0.4.7.linux.x86_64.tar.xz"
       addons:
         apt:
           packages:

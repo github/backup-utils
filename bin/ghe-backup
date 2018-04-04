@@ -61,6 +61,7 @@ if ln incomplete test_link >/dev/null 2>&1; then
   rm -f test_link
 else
   echo "Error: the filesystem containing $GHE_DATA_DIR does not support hard links." 1>&2
+  echo "Backup Utilities use hard links to store backup data efficiently." 1>&2
   exit 1
 fi
 

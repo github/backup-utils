@@ -6,7 +6,6 @@
 env_id=$1
 tarball=$2
 
-path=$(dirname $tarball)/../../
-mkdir -p $path/$1
-cd $path/$i
-tar -zxf $tarball
+path=$(dirname $tarball)/../../../
+mkdir -p $path/$env_id
+tar -zxf $tarball -C "$path/$env_id"

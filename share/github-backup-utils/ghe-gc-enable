@@ -28,4 +28,7 @@ done
 # Show usage with no host
 [ -z "$host" ] && print_usage
 
+# Exit early when testing
+[ -n "$GHE_TEST_REMOTE_VERSION" ] && exit 0
+
 ghe-ssh $opts "$host" -- "sudo rm -f '$SYNC_IN_PROGRESS_FILE'"

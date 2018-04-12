@@ -47,6 +47,8 @@ ssh_config_file_opt=
 opts="$GHE_EXTRA_SSH_OPTS"
 tmp_list=$tempdir/tmp_list
 to_restore=$tempdir/to_restore
+routes_list=$tempdir/routes_list
+local_routes_list=$tempdir/local_routes_list
 
 if $CLUSTER; then
   ssh_config_file="$tempdir/ssh_config"
@@ -102,33 +104,44 @@ bm_end "$(basename $0) - Building network list"
 #
 # One route per line.
 #
-bm_start "$(basename $0) - Calculating sync routes"
-cat $tmp_list | ghe-ssh "$GHE_HOSTNAME" -- github-env ./bin/dgit-cluster-restore-routes \
-  | while read route; do
-  ghe_debug "Got restore route $route"
-  if $CLUSTER; then
-    servers=$(echo $route | cut -d ' ' -f2-)
-  else
-    servers=$host
-  fi
-  network_path=$(echo $route | cut -d ' ' -f1)
-  for server in $servers; do
-    ghe_debug "Adding $network_path to $tempdir/$server.rsync"
-    echo "$network_path" >> $tempdir/$server.rsync
-    echo "$route" | awk '{ n = split($1, p, "/"); printf p[n] " /data/repositories/" $1; $1=""; print $0}' >> $to_restore
-  done
-done
-bm_end "$(basename $0) - Calculating sync routes"
+# NOTE: The route generation is performed on the appliance as it is considerably
+# more performant than performing over an SSH pipe.
+#
+bm_start "$(basename $0) - Transferring network list"
+cat $tmp_list | ghe-ssh "$GHE_HOSTNAME" -- sponge $tmp_list
+ghe_debug "Transferring network list:\n$(cat $tmp_list)"
+bm_end "$(basename $0) - Transferring network list"
+
+bm_start "$(basename $0) - Generating routes"
+echo "cat $tmp_list | github-env ./bin/dgit-cluster-restore-routes > $routes_list" | ghe-ssh "$GHE_HOSTNAME" -- /bin/bash
+ghe_debug "Generating routes:\n$(ghe-ssh "$GHE_HOSTNAME" -- cat $routes_list)"
+bm_end "$(basename $0) - Generating routes"
+
+bm_start "$(basename $0) - Fetching routes"
+ghe-ssh "$GHE_HOSTNAME" -- cat $routes_list > $local_routes_list
+ghe_debug "Fetching routes:\n$(cat $local_routes_list)"
+bm_end "$(basename $0) - Fetching routes"
+
+bm_start "$(basename $0) - Processing routes"
+cat $local_routes_list | awk -v tempdir="$tempdir" '{ for(i=2;i<=NF;i++){ print $1 > (tempdir"/"$i".rsync") }}'
+cat $local_routes_list | awk '{ n = split($1, p, "/"); printf p[n] " /data/repositories/" $1; $1=""; print $0}' > $to_restore
+ghe_debug "Processing routes:\n$(ls -l $tempdir/*.rsync && cat $to_restore)"
+bm_end "$(basename $0) - Processing routes"
 
 if ! ls $tempdir/*.rsync >/dev/null 2>&1; then
   echo "Warning: no routes found, skipping repositories restore ..."
   exit 0
 fi
 
+# rsync all the repository networks to the git server where they belong.
+# One rsync invocation per server available.
 bm_start "$(basename $0) - Restoring repository networks"
-# rsync all the repositories
 for file_list in $tempdir/*.rsync; do
-  server=$(basename $file_list .rsync)
+  if $CLUSTER; then
+    server=$(basename $file_list .rsync)
+  else
+    server=$host
+  fi
   ghe_verbose "* Transferring repository networks to $server ..."
   ghe-rsync -avrHR --delete \
     -e "ssh -q $opts -p $port $ssh_config_file_opt -l $user" \

@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# Usage: ghe-config
+# Emulates the remote GitHub ghe-config command. Tests use this
+# to assert that the command was executed.
+set -e
+# Mimic `ghe-cluster-each $role -p`
+if [[ "$*" =~ "-p" ]]; then
+  echo "ghe-test-ha-primary
+ghe-test-ha-replica
+"
+else
+  # Mimic `ghe-cluster-each $role -u`
+  echo "05cbcd42-f519-11e6-b6c9-002bd51dfa77
+08d94884-f519-11e6-88a1-0063a7c33551
+"
+fi

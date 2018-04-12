@@ -1,14 +1,45 @@
 #!/usr/bin/env bash
-#/ Usage: ghe-backup [-v] [--version]
+#/ Usage: ghe-backup [-hv] [--version]
+#/
 #/ Take snapshots of all GitHub Enterprise data, including Git repository data,
 #/ the MySQL database, instance settings, GitHub Pages data, etc.
 #/
-#/ With -v, enable verbose output and show more information about what's being
-#/ transferred.
+#/ OPTIONS:
+#/   -v | --verbose    Enable verbose output.
+#/   -h | --help       Show this message.
+#/        --version    Display version information.
+#/
+
 set -e
 
+# Parse arguments
+while true; do
+  case "$1" in
+    -h|--help)
+      export GHE_SHOW_HELP=true
+      shift
+      ;;
+    --version)
+      export GHE_SHOW_VERSION=true
+      shift
+      ;;
+    -v|--verbose)
+      export GHE_VERBOSE=true
+      shift
+      ;;
+    -*)
+      echo "Error: invalid argument: '$1'" 1>&2
+      exit 1
+      ;;
+    *)
+      break
+      ;;
+  esac
+done
+
 # Bring in the backup configuration
-. $( dirname "${BASH_SOURCE[0]}" )/../share/github-backup-utils/ghe-backup-config
+# shellcheck source=share/github-backup-utils/ghe-backup-config
+. "$( dirname "${BASH_SOURCE[0]}" )/../share/github-backup-utils/ghe-backup-config"
 
 # Used to record failed backup steps
 failures=
@@ -44,7 +75,7 @@ cleanup () {
     progress=$(cat ../in-progress)
     snapshot=$(echo "$progress" | cut -d ' ' -f 1)
     pid=$(echo "$progress" | cut -d ' ' -f 2)
-    if [ "$snapshot" = "$GHE_SNAPSHOT_TIMESTAMP" -a "$$" = $pid ]; then
+    if [ "$snapshot" = "$GHE_SNAPSHOT_TIMESTAMP" ] && [ "$$" = $pid ]; then
       unlink ../in-progress
     fi
   fi
@@ -52,6 +83,9 @@ cleanup () {
   if $GHE_MAINTENANCE_MODE_ENABLED; then
     ghe-maintenance-mode-disable "$GHE_HOSTNAME"
   fi
+
+  # Cleanup SSH multiplexing
+  ghe-ssh --clean "$GHE_HOSTNAME"
 }
 
 # Setup exit traps
@@ -156,7 +190,7 @@ echo "Backing up Git repositories ..."
 if [ "$GHE_BACKUP_STRATEGY" = "cluster" ]; then
   if ghe-ssh "$GHE_HOSTNAME" test -f /data/github/current/bin/dgit-cluster-backup-routes ; then
     echo "* Using calculated routes method..."
-    ghe-backup-repositories-cluster-ng || failures="$failure repositories"
+    ghe-backup-repositories-cluster-ng || failures="$failures repositories"
   else
     echo "* Using legacy method. A faster backup method is available on enterprise 2.7 and up."
     ghe-backup-repositories-cluster || failures="$failures repositories"
@@ -174,7 +208,7 @@ if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
   if [ "$GHE_BACKUP_STRATEGY" = "cluster" ]; then
     echo "Backing up storage data ..."
     if ghe-ssh "$GHE_HOSTNAME" test -f /data/github/current/bin/storage-cluster-backup-routes; then
-      ghe-backup-alambic-cluster-ng || failures="$failure alambic"
+      ghe-backup-alambic-cluster-ng || failures="$failures alambic"
     else
       ghe-backup-alambic-cluster || failures="$failures alambic"
     fi

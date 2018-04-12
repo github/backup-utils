@@ -7,7 +7,8 @@
 set -e
 
 # Bring in the backup configuration
-. $( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config
+# shellcheck source=share/github-backup-utils/ghe-backup-config
+. "$( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config"
 
 opts="$GHE_EXTRA_SSH_OPTS"
 while true; do
@@ -19,6 +20,10 @@ while true; do
         -l|-o|-F)
             opts="$opts $1 $2"
             shift 2
+            ;;
+        -c|--clean)
+            cleanup_mux=1
+            shift
             ;;
         --)
             echo "Error: illegal '--' in ssh invocation"
@@ -57,6 +62,11 @@ if echo "$*" | grep "[|;]" >/dev/null || [ $(echo "$*" | wc -l) -gt 1 ]; then
     exit 1
 fi
 
+# Warn if git is not installed, and set GHE_DISABLE_SSH_MUX=true
+if [ -z "$GHE_DISABLE_SSH_MUX" ]; then
+  command -v git >/dev/null 2>&1 || echo "Warning: SSH multiplexing requires git but it's not installed." && export GHE_DISABLE_SSH_MUX=true
+fi
+
 if [ -z "$GHE_DISABLE_SSH_MUX" ]; then
   controlpath="$TMPDIR/.ghe-sshmux-$(echo -n "$user@$host:$port" | git hash-object --stdin | cut -c 1-8)"
   opts="-o ControlMaster=auto -o ControlPath=\"$controlpath\" -o ControlPersist=10m -o ServerAliveInterval=10 $opts"
@@ -70,4 +80,11 @@ fi
 $GHE_VERBOSE_SSH && set -x
 
 # Exec ssh command with modified host / port args and add nice to command.
-exec ssh -p $port $opts -o BatchMode=yes "$host" -- $GHE_NICE $GHE_IONICE "$@"
+if [ -z "$cleanup_mux" ]; then
+  # Exec ssh command with modified host / port args and add nice to command.
+  exec ssh -p $port $opts -o BatchMode=yes "$host" -- $GHE_NICE $GHE_IONICE "$@"
+elif [ -z "$GHE_DISABLE_SSH_MUX" ]; then
+  while ssh -O check -o ControlPath="$controlpath" "$GHE_HOSTNAME" > /dev/null 2>&1; do
+    ssh -O stop -o ControlPath="$controlpath" "$GHE_HOSTNAME" > /dev/null 2>&1
+  done
+fi

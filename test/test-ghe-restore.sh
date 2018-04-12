@@ -19,6 +19,10 @@ mkdir -p gh-enterprise-es/node/0
 touch gh-enterprise-es/node/0/stuff1
 touch gh-enterprise-es/node/0/stuff2
 
+# Set a temporary management console password
+mkdir -p "$GHE_REMOTE_DATA_USER_DIR/common"
+git config -f "$GHE_REMOTE_DATA_USER_DIR/common/secrets.conf" secrets.manage "foobar"
+
 if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
     # Create some fake hookshot data in the remote data directory
     mkdir -p "$GHE_DATA_DIR/1/hookshot"
@@ -81,7 +85,7 @@ echo "fake ghe-export-repositories data" > "$GHE_DATA_DIR/current/repositories.t
 echo "fake ghe-export-settings data" > "$GHE_DATA_DIR/current/settings.json"
 echo "fake ghe-export-ssl-ca-certificates data" > "$GHE_DATA_DIR/current/ssl-ca-certificates.tar"
 echo "fake license data" > "$GHE_DATA_DIR/current/enterprise.ghl"
-echo "fake manage password hash data" > "$GHE_DATA_DIR/current/manage-password"
+echo "fake password hash data" > "$GHE_DATA_DIR/current/manage-password"
 echo "rsync" > "$GHE_DATA_DIR/current/strategy"
 echo "$GHE_REMOTE_VERSION" >  "$GHE_DATA_DIR/current/version"
 if [ "$GHE_VERSION_MAJOR" -eq 2 ]; then
@@ -143,6 +147,9 @@ begin_test "ghe-restore into configured vm"
     diff -ru "$GHE_DATA_DIR/current/pages" "$GHE_REMOTE_DATA_USER_DIR/pages"
 
     if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
+        # verify management console password was *not* restored
+        ! grep -q "fake password hash data" "$GHE_REMOTE_DATA_USER_DIR/common/secrets.conf"
+
         # verify all hookshot user data was transferred
         diff -ru "$GHE_DATA_DIR/current/hookshot" "$GHE_REMOTE_DATA_USER_DIR/hookshot"
 
@@ -285,6 +292,9 @@ begin_test "ghe-restore -c into unconfigured vm"
     diff -ru "$GHE_DATA_DIR/current/pages" "$GHE_REMOTE_DATA_USER_DIR/pages"
 
     if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
+        # verify management console password
+        grep -q "fake password hash data" "$GHE_REMOTE_DATA_USER_DIR/common/secrets.conf"
+
         # verify all hookshot user data was transferred
         diff -ru "$GHE_DATA_DIR/current/hookshot" "$GHE_REMOTE_DATA_USER_DIR/hookshot"
 
@@ -638,7 +648,7 @@ begin_test "ghe-restore fails when restore to an active HA pair"
 
     if [ "$GHE_VERSION_MAJOR" -le 1 ]; then
       # noop GHE < 2.0, does not support replication
-      exit 0
+      skip_test
     fi
 
     rm -rf "$GHE_REMOTE_ROOT_DIR"
@@ -653,13 +663,35 @@ begin_test "ghe-restore fails when restore to an active HA pair"
 )
 end_test
 
+begin_test "ghe-restore honours --version flag"
+(
+  set -e
+
+  # Make sure a partial version string is returned
+  ghe-restore --version | grep "GitHub backup-utils v"
+
+)
+end_test
+
+begin_test "ghe-restore honours --help and -h flags"
+(
+  set -e
+
+  arg_help=$(ghe-restore --help | grep -o 'Usage: ghe-restore')
+  arg_h=$(ghe-restore -h | grep -o 'Usage: ghe-restore')
+
+  # Make sure a Usage: string is returned and that it's the same for -h and --help
+  [ "$arg_help" = "$arg_h" ] && echo $arg_help | grep -q "Usage: ghe-restore"
+)
+end_test
+
 begin_test "ghe-restore fails when restore 2.9/2.10 snapshot without audit log migration sentinel file to 2.11"
 (
   set -e
 
   # noop if not testing against 2.11
   if [ "$GHE_VERSION_MAJOR" -le 1 ] || [ "$GHE_VERSION_MINOR" -ne 11 ]; then
-    exit 0
+    skip_test
   fi
 
   rm -rf "$GHE_REMOTE_ROOT_DIR"
@@ -686,7 +718,7 @@ begin_test "ghe-restore force restore of 2.9/2.10 snapshot without audit log mig
 
   # noop if not testing against 2.11
   if [ "$GHE_VERSION_MAJOR" -le 1 ] || [ "$GHE_VERSION_MINOR" -ne 11 ]; then
-    exit 0
+    skip_test
   fi
 
   rm -rf "$GHE_REMOTE_ROOT_DIR"

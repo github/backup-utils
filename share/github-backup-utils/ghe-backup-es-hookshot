@@ -20,20 +20,34 @@ ghe_remote_version_required "$host"
 # Make sure root backup dir exists if this is the first run
 mkdir -p "$GHE_SNAPSHOT_DIR/hookshot"
 
-indices=$(ghe-ssh "$host" 'curl -s "localhost:9201/_cat/indices/hookshot-logs-*"' | cut -d ' ' -f 3)
+if [ $GHE_VERSION_MAJOR -ge 2 ] && [ $GHE_VERSION_MINOR -ge 2 ]; then
+  es_port=9201
+else
+  es_port=9200
+fi
 
-current_index=hookshot-logs-$(ghe-ssh "$host" 'date +"%Y-%m-%d"')
+if ! indices=$(ghe-ssh "$host" "curl -s \"localhost:$es_port/_cat/indices/hookshot-logs-*?h=index,pri.store.size&bytes=b\""); then
+  echo "Error: failed to retrieve hookshot log indices." 1>&2
+  exit 1
+fi
 
+# Hookshot indices may not exist if no recent webhook deliveries have occured.
+[ -z "$indices" ] && exit
+
+IFS=$'\n'
 for index in $indices; do
-  if [ -f $GHE_DATA_DIR/current/hookshot/$index.gz -a -f $GHE_DATA_DIR/current/hookshot/$index.gz.complete -a $index \< $current_index ]; then
-    # Hard link any older indices that are complete, since these won't change
-    ln $GHE_DATA_DIR/current/hookshot/$index.gz $GHE_SNAPSHOT_DIR/hookshot/$index.gz
-    ln $GHE_DATA_DIR/current/hookshot/$index.gz.complete $GHE_SNAPSHOT_DIR/hookshot/$index.gz.complete
+  IFS=' '
+  set $index
+  index_name=$1
+  index_size=$2
+
+  if [[ -f $GHE_DATA_DIR/current/hookshot/$index_name.gz && $(cat $GHE_DATA_DIR/current/hookshot/$index_name.gz.size 2>/dev/null || true) -eq $index_size ]]; then
+    # Hard link any indices that have not changed since the last backup
+    ln $GHE_DATA_DIR/current/hookshot/$index_name.gz $GHE_SNAPSHOT_DIR/hookshot/$index_name.gz
+    ln $GHE_DATA_DIR/current/hookshot/$index_name.gz.size $GHE_SNAPSHOT_DIR/hookshot/$index_name.gz.size
   else
-    ghe-ssh "$host" "/usr/local/share/enterprise/ghe-es-dump-json \"http://localhost:9201/$index\"" | gzip > $GHE_SNAPSHOT_DIR/hookshot/$index.gz
-    if [ $index \< $current_index ]; then
-      touch $GHE_SNAPSHOT_DIR/hookshot/$index.gz.complete
-    fi
+    ghe-ssh "$host" "/usr/local/share/enterprise/ghe-es-dump-json \"http://localhost:$es_port/$index_name\"" | gzip > $GHE_SNAPSHOT_DIR/hookshot/$index_name.gz
+    echo $index_size > $GHE_SNAPSHOT_DIR/hookshot/$index_name.gz.size
   fi
 done
 

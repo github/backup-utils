@@ -127,7 +127,11 @@ fi
 
 bm_start "$(basename $0) - Restoring pages"
 for file_list in $tempdir/*.rsync; do
-  server=$(basename $file_list .rsync)
+  if $CLUSTER; then
+    server=$(basename $file_list .rsync)
+  else
+    server=$host
+  fi
   ghe_verbose "* Transferring Pages to $server"
   ghe-rsync -avrHR --delete \
     -e "ssh -q $opts -p $port $ssh_config_file_opt -l $user" \

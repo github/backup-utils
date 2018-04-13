@@ -102,23 +102,23 @@ bm_end "$(basename $0) - Building gist list"
 #
 bm_start "$(basename $0) - Transferring gist list"
 cat $tmp_list | ghe-ssh "$GHE_HOSTNAME" -- sponge $tmp_list
-ghe_debug "Transferring gist list:\n$(cat $tmp_list)"
+ghe_debug "\n$(cat $tmp_list)"
 bm_end "$(basename $0) - Transferring gist list"
 
 bm_start "$(basename $0) - Generating routes"
 echo "cat $tmp_list | github-env ./bin/gist-cluster-restore-routes > $routes_list" | ghe-ssh "$GHE_HOSTNAME" -- /bin/bash
-ghe_debug "Generating routes:\n$(ghe-ssh "$GHE_HOSTNAME" -- cat $routes_list)"
+ghe_debug "\n$(ghe-ssh "$GHE_HOSTNAME" -- cat $routes_list)"
 bm_end "$(basename $0) - Generating routes"
 
 bm_start "$(basename $0) - Transferring routes"
 ghe-ssh "$GHE_HOSTNAME" -- cat $routes_list > $local_routes_list
-ghe_debug "Fetching routes:\n$(cat $local_routes_list)"
+ghe_debug "\n$(cat $local_routes_list)"
 bm_end "$(basename $0) - Transferring routes"
 
 bm_start "$(basename $0) - Processing routes"
 cat $local_routes_list | awk -v tempdir="$tempdir" '{ for(i=2;i<=NF;i++){ print $1 > (tempdir"/"$i".rsync") }}'
 cat $local_routes_list | awk '{ n = split($1, p, "/"); i = p[n]; sub(/\.git/, "", i); printf i " /data/repositories/" $1; $1=""; print $0}' > $to_restore
-ghe_debug "Processing routes:\n$(ls -l $tempdir/*.rsync && cat $to_restore)"
+ghe_debug "\n$(ls -l $tempdir/*.rsync && cat $to_restore)"
 bm_end "$(basename $0) - Processing routes"
 
 if ! ls $tempdir/*.rsync >/dev/null 2>&1; then

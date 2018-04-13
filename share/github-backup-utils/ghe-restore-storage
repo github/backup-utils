@@ -94,22 +94,22 @@ bm_end "$(basename $0) - Building object list"
 #
 bm_start "$(basename $0) - Transferring object list"
 cat $tmp_list | ghe-ssh "$GHE_HOSTNAME" -- sponge $tmp_list
-ghe_debug "Transferring object list:\n$(cat $tmp_list)"
+ghe_debug "\n$(cat $tmp_list)"
 bm_end "$(basename $0) - Transferring object list"
 
 bm_start "$(basename $0) - Generating routes"
 echo "cat $tmp_list | github-env ./bin/storage-cluster-restore-routes > $routes_list" | ghe-ssh "$GHE_HOSTNAME" /bin/bash
-ghe_debug "Generating routes:\n$(ghe-ssh "$GHE_HOSTNAME" -- cat $routes_list)"
+ghe_debug "\n$(ghe-ssh "$GHE_HOSTNAME" -- cat $routes_list)"
 bm_end "$(basename $0) - Generating routes"
 
 bm_start "$(basename $0) - Fetching routes"
 ghe-ssh "$GHE_HOSTNAME" -- cat $routes_list > $local_routes_list
-ghe_debug "Fetching routes:\n$(cat $local_routes_list)"
+ghe_debug "\n$(cat $local_routes_list)"
 bm_end "$(basename $0) - Fetching routes"
 
 bm_start "$(basename $0) - Processing routes"
 cat $local_routes_list | awk -v tempdir="$tempdir" '{ for(i=2;i<=NF;i++){ print substr($1,1,1) "/" substr($1,1,2) "/" substr($1,3,2) "/" $1 > (tempdir"/"$i".rsync") }}'
-ghe_debug "Processing routes:\n$(ls -l $tempdir/*.rsync)"
+ghe_debug "\n$(ls -l $tempdir/*.rsync)"
 bm_end "$(basename $0) - Processing routes"
 
 if ! ls $tempdir/*.rsync >/dev/null 2>&1; then

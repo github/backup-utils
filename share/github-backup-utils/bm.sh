@@ -17,7 +17,9 @@ bm_desc_to_varname(){
 bm_start()
 {
   eval "$(bm_desc_to_varname "$@")_start=$(date +%s)"
-
+  if [ -n "$GHE_DEBUG" ]; then
+    echo "Debug: $1 (bm_start)"
+  fi
   bm_init > /dev/null
 }
 
@@ -44,9 +46,13 @@ bm_end() {
     exit 1
   fi
 
-  local tend tstart
+  local tend tstart total
   tend=$(date +%s)
-  tstart=$(eval "echo \$$(bm_desc_to_varname "$@")_start")
+  tstart=$(eval "echo \$$(bm_desc_to_varname $@)_start")
+  total=$(($tend - $tstart))
 
-  echo "$1 took $(($tend - $tstart))s" >> $BM_FILE_PATH
+  echo "$1 took ${total}s" >> $BM_FILE_PATH
+  if [ -n "$GHE_DEBUG" ]; then
+    echo "Debug: $1 took ${total}s (bm_end)"
+  fi
 }

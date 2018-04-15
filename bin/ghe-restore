@@ -108,37 +108,25 @@ ghe_remote_version_required "$GHE_HOSTNAME"
 
 # Figure out if this instance has been configured or is entirely new.
 instance_configured=false
-if ghe-ssh "$GHE_HOSTNAME" -- \
-    "[ -f '$GHE_REMOTE_DATA_DIR/enterprise/dna.json' -o \
-       -f '$GHE_REMOTE_ROOT_DIR/etc/github/configured' ]"; then
-    instance_configured=true
-elif [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
-    restore_settings=true
+if ghe-ssh "$GHE_HOSTNAME" -- "[ -f '$GHE_REMOTE_ROOT_DIR/etc/github/configured' ]"; then
+  instance_configured=true
+else
+  restore_settings=true
 fi
 
 # Figure out if we're restoring into cluster
-cluster=false
+CLUSTER=false
 if ghe-ssh "$GHE_HOSTNAME" -- \
   "[ -f '$GHE_REMOTE_ROOT_DIR/etc/github/cluster' ]"; then
-  cluster=true
+  CLUSTER=true
 fi
+export CLUSTER
 
 # Restoring a cluster backup to a standalone appliance is not supported
-if ! $cluster && [ "$GHE_BACKUP_STRATEGY" = "cluster" ]; then
+if ! $CLUSTER && [ "$GHE_BACKUP_STRATEGY" = "cluster" ]; then
   echo "Error: Snapshot from a GitHub Enterprise cluster cannot be restored" \
     "to a standalone appliance. Aborting." >&2
   exit 1
-fi
-
-# Figure out if we're restoring into a cluster with an unsupported snapshot
-if $cluster; then
-  snapshot_instance_version=$(cat $GHE_RESTORE_SNAPSHOT_PATH/version)
-  if ! echo $snapshot_instance_version | \
-    grep -Eq "v2\.[5-9]|v2\.[1-9][0-9]|v[3-9]|v[1-9][0-9]"; then
-    echo "Error: Snapshot must be from GitHub Enterprise v2.5.0 or above to be restored" >&2
-    echo "       into a cluster (detected $snapshot_instance_version).  Aborting." >&2
-    exit 1
-  fi
 fi
 
 # Figure out if this appliance is in a replication pair
@@ -169,32 +157,32 @@ fi
 # mostly to prevent accidents where the backup host is given to restore instead
 # of a separate restore host since they're used in such close proximity.
 if $instance_configured && ! $force; then
-    echo
-    echo "WARNING: All data on GitHub Enterprise appliance $hostname ($GHE_REMOTE_VERSION)"
-    echo "         will be overwritten with data from snapshot ${GHE_RESTORE_SNAPSHOT}."
-    echo "Please verify that this is the correct restore host before continuing."
-    printf "Type 'yes' to continue: "
+  echo
+  echo "WARNING: All data on GitHub Enterprise appliance $hostname ($GHE_REMOTE_VERSION)"
+  echo "         will be overwritten with data from snapshot ${GHE_RESTORE_SNAPSHOT}."
+  echo "Please verify that this is the correct restore host before continuing."
+  printf "Type 'yes' to continue: "
 
-    while read -r response; do
-        case $response in
-            yes|Yes|YES)
-                break
-                ;;
-            '')
-                printf "Type 'yes' to continue: "
-                ;;
-            *)
-                echo "Restore aborted." 1>&2
-                exit 1
-                ;;
-        esac
-    done
-    echo
+  while read -r response; do
+    case $response in
+      yes|Yes|YES)
+        break
+        ;;
+      '')
+        printf "Type 'yes' to continue: "
+        ;;
+      *)
+        echo "Restore aborted." 1>&2
+        exit 1
+        ;;
+    esac
+  done
+  echo
 fi
 
 # Log restore start message locally and in /var/log/syslog on remote instance
-echo "Starting restore of $GHE_HOSTNAME from snapshot $GHE_RESTORE_SNAPSHOT"
-ghe_remote_logger "Starting restore from $(hostname) / snapshot $GHE_RESTORE_SNAPSHOT ..."
+echo "Starting restore of $GHE_HOSTNAME with backup-utils v$BACKUP_UTILS_VERSION from snapshot $GHE_RESTORE_SNAPSHOT"
+ghe_remote_logger "Starting restore from $(hostname) with backup-utils v$BACKUP_UTILS_VERSION / snapshot $GHE_RESTORE_SNAPSHOT ..."
 
 # Keep other processes on the VM or cluster in the loop about the restore status.
 #
@@ -203,45 +191,25 @@ ghe_remote_logger "Starting restore from $(hostname) / snapshot $GHE_RESTORE_SNA
 # "failed"    - restore has failed
 # "complete"  - restore has completed successfully
 update_restore_status () {
-    if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
-      if $cluster; then
-        echo "ghe-cluster-each -- \"echo '$1' | sudo sponge '$GHE_REMOTE_DATA_USER_DIR/common/ghe-restore-status' >/dev/null\"" |
-        ghe-ssh "$GHE_HOSTNAME" /bin/bash
-      else
-        echo "$1" |
-        ghe-ssh "$GHE_HOSTNAME" -- "sudo sponge '$GHE_REMOTE_DATA_USER_DIR/common/ghe-restore-status' >/dev/null"
-      fi
-    fi
+  if $CLUSTER; then
+    echo "ghe-cluster-each -- \"echo '$1' | sudo sponge '$GHE_REMOTE_DATA_USER_DIR/common/ghe-restore-status' >/dev/null\"" |
+    ghe-ssh "$GHE_HOSTNAME" /bin/bash
+  else
+    echo "$1" |
+    ghe-ssh "$GHE_HOSTNAME" -- "sudo sponge '$GHE_REMOTE_DATA_USER_DIR/common/ghe-restore-status' >/dev/null"
+  fi
 }
 
 # Update remote restore state file and setup failure trap
 trap "cleanup failed" EXIT
 update_restore_status "restoring"
 
-# Verify the host has been fully configured at least once if when running
-# against v11.10.x appliances and the -c option wasn't specified.
-if [ "$GHE_VERSION_MAJOR" -le 1 ] && ! $restore_settings && ! $instance_configured; then
-    echo "Error: $hostname not configured." 1>&2
-    echo "Please visit https://$hostname/setup/settings to configure base appliance settings before continuing." 1>&2
-    exit 1
-fi
-
-# Restoring Elasticsearch to 11.10.3x via rsync requires GNU tar
-if [ "$GHE_VERSION_MAJOR" -le 1 ] && [ "$GHE_BACKUP_STRATEGY" = "rsync" ]; then
-    if ! tar --version | grep GNU >/dev/null; then
-        if ! command -v gtar >/dev/null 2>&1; then
-            echo "GNU tar is required.  Aborting." >&2
-            exit 1
-        fi
-    fi
-fi
-
 # Make sure the GitHub appliance is in maintenance mode.
 if $instance_configured; then
-    if ! ghe-maintenance-mode-status "$GHE_HOSTNAME"; then
-        echo "Error: $GHE_HOSTNAME must be put in maintenance mode before restoring. Aborting." 1>&2
-        exit 1
-    fi
+  if ! ghe-maintenance-mode-status "$GHE_HOSTNAME"; then
+    echo "Error: $GHE_HOSTNAME must be put in maintenance mode before restoring. Aborting." 1>&2
+    exit 1
+  fi
 fi
 
 # Create benchmark file
@@ -251,45 +219,42 @@ ghe-backup-store-version  ||
 echo "Warning: storing backup-utils version remotely failed."
 
 # Stop cron and timerd, as scheduled jobs may disrupt the restore process.
-if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
-  echo "Stopping cron and github-timerd ..."
-  if $cluster; then
-    if ! ghe-ssh "$GHE_HOSTNAME" -- "ghe-cluster-each -- sudo service cron stop"; then
-      ghe_verbose "* Warning: Failed to stop cron on one or more nodes"
-    fi
+echo "Stopping cron and github-timerd ..."
+if $CLUSTER; then
+  if ! ghe-ssh "$GHE_HOSTNAME" -- "ghe-cluster-each -- sudo service cron stop"; then
+    ghe_verbose "* Warning: Failed to stop cron on one or more nodes"
+  fi
 
-    if ! ghe-ssh "$GHE_HOSTNAME" -- "ghe-cluster-each -- sudo service github-timerd stop"; then
-      ghe_verbose "* Warning: Failed to stop github-timerd on one or more nodes"
-    fi
-  else
-    if ! ghe-ssh "$GHE_HOSTNAME" -- "sudo service cron stop"; then
-      ghe_verbose "* Warning: Failed to stop cron"
-    fi
+  if ! ghe-ssh "$GHE_HOSTNAME" -- "ghe-cluster-each -- sudo service github-timerd stop"; then
+    ghe_verbose "* Warning: Failed to stop github-timerd on one or more nodes"
+  fi
+else
+  if ! ghe-ssh "$GHE_HOSTNAME" -- "sudo service cron stop"; then
+    ghe_verbose "* Warning: Failed to stop cron"
+  fi
 
-    if ! ghe-ssh "$GHE_HOSTNAME" -- "sudo service github-timerd stop"; then
-      ghe_verbose "* Warning: Failed to stop github-timerd"
-    fi
+  if ! ghe-ssh "$GHE_HOSTNAME" -- "sudo service github-timerd stop"; then
+    ghe_verbose "* Warning: Failed to stop github-timerd"
   fi
 fi
+
 
 # Restore settings and license if restoring to an unconfigured appliance or when
 # specified manually.
 if $restore_settings; then
-    ghe-restore-settings "$GHE_HOSTNAME"
+  ghe-restore-settings "$GHE_HOSTNAME"
 fi
 
-# Make sure mysql and elasticsearch are prep'd and running before restoring into
-# appliances v2.x or greater. These services will not have been started on appliances
-# that have not been configured yet.
-if ! $cluster; then
-  if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
-    echo "sudo ghe-service-ensure-mysql && sudo ghe-service-ensure-elasticsearch" |
-    ghe-ssh "$GHE_HOSTNAME" -- /bin/sh 1>&3
-  fi
+# Make sure mysql and elasticsearch are prep'd and running before restoring.
+# These services will not have been started on appliances that have not been
+# configured yet.
+if ! $CLUSTER; then
+  echo "sudo ghe-service-ensure-mysql && sudo ghe-service-ensure-elasticsearch" |
+  ghe-ssh "$GHE_HOSTNAME" -- /bin/sh 1>&3
 fi
 
 # Restore UUID if present and not restoring to cluster.
-if [ -s "$GHE_RESTORE_SNAPSHOT_PATH/uuid" ] && ! $cluster; then
+if [ -s "$GHE_RESTORE_SNAPSHOT_PATH/uuid" ] && ! $CLUSTER; then
   echo "Restoring UUID ..."
   cat "$GHE_RESTORE_SNAPSHOT_PATH/uuid" |
   ghe-ssh "$GHE_HOSTNAME" -- "sudo sponge '$GHE_REMOTE_DATA_USER_DIR/common/uuid' 2>/dev/null"
@@ -305,84 +270,33 @@ bm_start "ghe-import-redis"
 ghe-ssh "$GHE_HOSTNAME" -- 'ghe-import-redis' < "$GHE_RESTORE_SNAPSHOT_PATH/redis.rdb" 1>&3
 bm_end "ghe-import-redis"
 
-if $cluster; then
-  echo "Restoring Git repositories into cluster ..."
-  if ghe-ssh "$GHE_HOSTNAME" test -f /data/github/current/script/dgit-cluster-restore-routes; then
-    ghe_verbose "* Using ghe-restore-repositories-dgit-ng to restore"
-    ghe-restore-repositories-dgit-ng "$GHE_HOSTNAME" 1>&3
-  else
-    ghe-restore-repositories-dgit "$GHE_HOSTNAME" 1>&3
-  fi
-
-  echo "Restoring Gists into cluster ..."
-  if ghe-ssh "$GHE_HOSTNAME" test -f /data/github/current/script/gist-cluster-restore-routes; then
-    ghe_verbose "* Using ghe-restore-repositories-gist-ng to restore"
-    ghe-restore-repositories-gist-ng "$GHE_HOSTNAME" 1>&3
-  else
-    ghe-restore-repositories-gist "$GHE_HOSTNAME" 1>&3
-  fi
-else
-  # Remove temporary 2.2 storage migration directory if it exists
-  echo "if [ -d /data/user/repositories-nw-backup ]; then sudo rm -rf /data/user/repositories-nw-backup; fi" |
-  ghe-ssh "$GHE_HOSTNAME" -- /bin/sh 1>&3
-
+# Unified and enhanced restore method to 2.13.0 and newer
+if $CLUSTER || [ "$(version $GHE_REMOTE_VERSION)" -ge "$(version 2.13.0)" ]; then
   echo "Restoring Git repositories ..."
-  ghe-restore-repositories-${GHE_BACKUP_STRATEGY} "$GHE_HOSTNAME" 1>&3
+  ghe-restore-repositories "$GHE_HOSTNAME" 1>&3
+
+  echo "Restoring Gists ..."
+  ghe-restore-repositories-gist "$GHE_HOSTNAME" 1>&3
+else
+  echo "Restoring Git repositories and Gists ..."
+  ghe-restore-repositories-rsync "$GHE_HOSTNAME" 1>&3
 fi
 
-if $cluster; then
-  echo "Restoring GitHub Pages into DPages..."
-  if ghe-ssh "$GHE_HOSTNAME" test -f /data/github/current/script/dpages-cluster-restore-routes; then
-    ghe_verbose "* Using ghe-restore-pages-dpages-ng to restore"
-    ghe-restore-pages-dpages-ng "$GHE_HOSTNAME" 1>&3
-  else
-    ghe-restore-pages-dpages "$GHE_HOSTNAME" 1>&3
-  fi
-else
-  echo "Restoring GitHub Pages ..."
-  ghe-restore-pages-${GHE_BACKUP_STRATEGY} "$GHE_HOSTNAME" 1>&3
-fi
+echo "Restoring GitHub Pages ..."
+ghe-restore-pages "$GHE_HOSTNAME" 1>&3
 
 echo "Restoring SSH authorized keys ..."
 ghe-ssh "$GHE_HOSTNAME" -- 'ghe-import-authorized-keys' < "$GHE_RESTORE_SNAPSHOT_PATH/authorized-keys.json" 1>&3
 
-if $cluster; then
-  echo "Restoring storage data ..."
-  if ghe-ssh "$GHE_HOSTNAME" test -f /data/github/current/script/storage-cluster-restore-routes; then
-    ghe_verbose "* Using ghe-restore-alambic-cluster-ng to restore"
-    # This restore script is faster but only available in
-    # GHE >= 2.6.3
-    ghe-restore-alambic-cluster-ng "$GHE_HOSTNAME" 1>&3
-  else
-    ghe-restore-alambic-cluster "$GHE_HOSTNAME" 1>&3
-  fi
-  echo "Restoring custom Git hooks ..."
-  ghe-restore-git-hooks-cluster "$GHE_HOSTNAME" 1>&3
-elif [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
-  echo "Restoring asset attachments ..."
-  ghe-restore-userdata alambic_assets "$GHE_HOSTNAME" 1>&3
+echo "Restoring storage data ..."
+ghe-restore-storage "$GHE_HOSTNAME" 1>&3
 
-  echo "Restoring storage data ..."
-  ghe-restore-userdata storage "$GHE_HOSTNAME" 1>&3
+echo "Restoring custom Git hooks ..."
+ghe-restore-git-hooks "$GHE_HOSTNAME" 1>&3
 
-  echo "Restoring hook deliveries ..."
-  ghe-restore-userdata hookshot "$GHE_HOSTNAME" 1>&3
-
-  echo "Restoring custom Git hooks ..."
-  ghe-restore-userdata git-hooks/environments/tarballs "$GHE_HOSTNAME" 1>&3
-  ghe-restore-userdata git-hooks/repos "$GHE_HOSTNAME" 1>&3
-  ghe-restore-git-hooks-extract "$GHE_HOSTNAME" 1>&3
-fi
-
-if $cluster; then
-  echo "Restoring Elasticsearch Audit logs"
-  ghe-restore-es-audit-log "$GHE_HOSTNAME" 1>&3
-
-  echo "Restoring hookshot logs ..."
-  ghe-restore-es-hookshot "$GHE_HOSTNAME" 1>&3
-else
+if ! $CLUSTER && [ -d "$GHE_RESTORE_SNAPSHOT_PATH/elasticsearch" ]; then
   echo "Restoring Elasticsearch indices ..."
-  ghe-restore-es-${GHE_BACKUP_STRATEGY} "$GHE_HOSTNAME" 1>&3
+  ghe-restore-es-rsync "$GHE_HOSTNAME" 1>&3
 fi
 
 # Restore the audit log migration sentinel file, if it exists in the snapshot
@@ -390,41 +304,43 @@ if test -f $GHE_RESTORE_SNAPSHOT_PATH/es-scan-complete; then
   ghe-ssh "$GHE_HOSTNAME" -- "sudo touch $GHE_REMOTE_DATA_USER_DIR/common/es-scan-complete"
 fi
 
-# Restart an already running memcached to reset the cache after restore
-if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
-    echo "Restarting memcached ..." 1>&3
-    echo "sudo restart -q memcached 2>/dev/null || true" |
-        ghe-ssh "$GHE_HOSTNAME" -- /bin/sh
+# Restore exported audit and hookshot logs to 2.12.9 and newer single nodes and
+# all releases of cluster
+if $CLUSTER || [ "$(version $GHE_REMOTE_VERSION)" -ge "$(version 2.12.9)" ]; then
+  echo "Restoring Elasticsearch Audit logs ..."
+  ghe-restore-es-audit-log "$GHE_HOSTNAME" 1>&3
+
+  echo "Restoring hookshot logs ..."
+  ghe-restore-es-hookshot "$GHE_HOSTNAME" 1>&3
 fi
+
+# Restart an already running memcached to reset the cache after restore
+echo "Restarting memcached ..." 1>&3
+echo "sudo restart -q memcached 2>/dev/null || true" |
+    ghe-ssh "$GHE_HOSTNAME" -- /bin/sh
 
 # When restoring to a host that has already been configured, kick off a
 # config run to perform data migrations.
-if $cluster; then
+if $CLUSTER; then
   echo "Configuring cluster ..."
   ghe-ssh "$GHE_HOSTNAME" -- "ghe-cluster-config-apply" 1>&3 2>&3
 elif $instance_configured; then
-  echo "Configuring storage ..."
-  if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
-    ghe-ssh "$GHE_HOSTNAME" -- "ghe-config-apply --full" 1>&3 2>&3
-  else
-    echo "   This will take several minutes to complete..."
-    ghe-ssh "$GHE_HOSTNAME" -- "sudo enterprise-configure" 1>&3 2>&3
-  fi
+  echo "Configuring appliance ..."
+  ghe-ssh "$GHE_HOSTNAME" -- "ghe-config-apply" 1>&3 2>&3
 fi
 
 # Start cron. Timerd will start automatically as part of the config run.
-if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
-  echo "Starting cron ..."
-  if $cluster; then
-    if ! ghe-ssh "$GHE_HOSTNAME" -- "ghe-cluster-each -- sudo service cron start"; then
-      echo "* Warning: Failed to start cron on one or more nodes"
-    fi
-  else
-    if ! ghe-ssh "$GHE_HOSTNAME" -- "sudo service cron start"; then
-      echo "* Warning: Failed to start cron"
-    fi
+echo "Starting cron ..."
+if $CLUSTER; then
+  if ! ghe-ssh "$GHE_HOSTNAME" -- "ghe-cluster-each -- sudo service cron start"; then
+    echo "* Warning: Failed to start cron on one or more nodes"
+  fi
+else
+  if ! ghe-ssh "$GHE_HOSTNAME" -- "sudo service cron start"; then
+    echo "* Warning: Failed to start cron"
   fi
 fi
+
 
 # Update the remote status to "complete". This has to happen before importing
 # ssh host keys because subsequent commands will fail due to the host key
@@ -435,16 +351,16 @@ update_restore_status "complete"
 # Log restore complete message in /var/log/syslog on remote instance
 ghe_remote_logger "Completed restore from $(hostname) / snapshot ${GHE_RESTORE_SNAPSHOT}."
 
-if ! $cluster; then
+if ! $CLUSTER; then
   echo "Restoring SSH host keys ..."
   ghe-ssh "$GHE_HOSTNAME" -- 'ghe-import-ssh-host-keys' < "$GHE_RESTORE_SNAPSHOT_PATH/ssh-host-keys.tar" 1>&3
 else
   # This will make sure that Git over SSH host keys (babeld) are
   # copied to all the cluster nodes so babeld uses the same keys.
   echo "Restoring Git over SSH host keys ..."
-  ghe-ssh "$GHE_HOSTNAME" -- "sudo tar -xpf - -C /data/user/common" < "$GHE_RESTORE_SNAPSHOT_PATH/ssh-host-keys.tar" 1>&3
-  ghe-ssh "$GHE_HOSTNAME" -- "sudo chown babeld:babeld /data/user/common/ssh_host_*" 1>&3
-  echo "if [ -f /usr/local/share/enterprise/ghe-cluster-config-update ]; then /usr/local/share/enterprise/ghe-cluster-config-update -s; else /usr/local/bin/ghe-cluster-config-update -s; fi" |
+  ghe-ssh "$GHE_HOSTNAME" -- "sudo tar -xpf - -C $GHE_REMOTE_DATA_USER_DIR/common" < "$GHE_RESTORE_SNAPSHOT_PATH/ssh-host-keys.tar" 1>&3
+  ghe-ssh "$GHE_HOSTNAME" -- "sudo chown babeld:babeld $GHE_REMOTE_DATA_USER_DIR/common/ssh_host_*" 1>&3
+  echo "if [ -f /usr/local/share/enterprise/ghe-cluster-config-update ]; then /usr/local/share/enterprise/ghe-cluster-config-update -s; else ghe-cluster-config-update -s; fi" |
   ghe-ssh "$GHE_HOSTNAME" -- /bin/sh 1>&3
 fi
 

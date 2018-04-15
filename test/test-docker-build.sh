@@ -3,8 +3,8 @@
 
 # If docker is not installed, skip the whole docker test
 # Travis CI does not currently support docker on OSX (https://docs.travis-ci.com/user/docker/)
-if ! hash docker 2>/dev/null; then
-  echo "Docker is not installed on this host"
+if ! docker ps >/dev/null 2>&1; then
+  echo "Docker is not installed or running on this host"
   exit 0
 fi
 

@@ -288,7 +288,7 @@ ghe_verbose() {
 # Log if debug mode is enabled (GHE_DEBUG).
 ghe_debug() {
   if [ -n "$GHE_DEBUG" ]; then
-    echo "Debug: $*" 1>&3
+    echo -e "Debug: $*" 1>&3
   fi
 }
 

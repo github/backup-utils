@@ -7,7 +7,8 @@
 set -e
 
 # Bring in the backup configuration
-. $( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config
+# shellcheck source=share/github-backup-utils/ghe-backup-config
+. "$( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config"
 
 # Show usage and bail with no arguments
 [ -z "$*" ] && print_usage
@@ -80,8 +81,8 @@ trap 'cleanup' EXIT
 bm_start "$(basename $0) - Building pages list"
 OLDIFS=$IFS; IFS=$'\n'
 for path in $pages_paths; do
-   ghe_verbose "* Adding path $path to the list of pages to send"
-   echo $path
+  ghe_verbose "* Adding path $path to the list of pages to send"
+  echo $path
 done > $tmp_list
 IFS=$OLDIFS
 bm_end "$(basename $0) - Building pages list"

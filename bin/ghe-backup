@@ -209,24 +209,24 @@ fi
 # current symlink to point to the new snapshot and prune expired and failed
 # snapshots.
 if [ -z "$failures" ]; then
-    rm "incomplete"
+  rm "incomplete"
 
-    rm -f "../current"
-    ln -s "$GHE_SNAPSHOT_TIMESTAMP" "../current"
+  rm -f "../current"
+  ln -s "$GHE_SNAPSHOT_TIMESTAMP" "../current"
 
-    ghe-prune-snapshots
+  ghe-prune-snapshots
 fi
 
 echo "Completed backup of $GHE_HOSTNAME in snapshot $GHE_SNAPSHOT_TIMESTAMP at $(date +"%H:%M:%S")"
 
 # Exit non-zero and list the steps that failed.
 if [ -z "$failures" ]; then
-    ghe_remote_logger "Completed backup from $(hostname) / snapshot $GHE_SNAPSHOT_TIMESTAMP successfully."
+  ghe_remote_logger "Completed backup from $(hostname) / snapshot $GHE_SNAPSHOT_TIMESTAMP successfully."
 else
-    steps="$(echo $failures | sed 's/ /, /g')"
-    ghe_remote_logger "Completed backup from $(hostname) / snapshot $GHE_SNAPSHOT_TIMESTAMP with failures: ${steps}."
-    echo "Error: Snapshot incomplete. Some steps failed: ${steps}. "
-    exit 1
+  steps="$(echo $failures | sed 's/ /, /g')"
+  ghe_remote_logger "Completed backup from $(hostname) / snapshot $GHE_SNAPSHOT_TIMESTAMP with failures: ${steps}."
+  echo "Error: Snapshot incomplete. Some steps failed: ${steps}. "
+  exit 1
 fi
 
 # Detect if the created backup contains any leaked ssh keys

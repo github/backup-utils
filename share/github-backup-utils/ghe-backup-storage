@@ -8,7 +8,8 @@
 set -e
 
 # Bring in the backup configuration
-. $( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config
+# shellcheck source=share/github-backup-utils/ghe-backup-config
+. "$( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config"
 
 bm_start "$(basename $0)"
 
@@ -18,8 +19,8 @@ backup_dir="$GHE_SNAPSHOT_DIR/storage"
 
 # Verify rsync is available.
 if ! rsync --version 1>/dev/null 2>&1; then
-    echo "Error: rsync not found." 1>&2
-    exit 1
+  echo "Error: rsync not found." 1>&2
+  exit 1
 fi
 
 # Perform a host-check and establish GHE_REMOTE_XXX variables.

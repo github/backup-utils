@@ -56,6 +56,31 @@ mkdir -p "$GHE_SNAPSHOT_DIR"
 cd "$GHE_SNAPSHOT_DIR"
 touch "incomplete"
 
+# Exit early if the snapshot filesystem doesn't support hard links, symlinks and
+# if rsync doesn't support hardlinking of dangling symlinks
+trap 'rm -rf src dest1 dest2' EXIT
+mkdir src
+touch src/testfile
+if ! ln -s /data/does/not/exist/hooks/ src/ >/dev/null 2>&1; then
+  echo "Error: the filesystem containing $GHE_DATA_DIR does not support symbolic links." 1>&2
+  echo "Git repositories contain symbolic links that need to be preserved during a backup." 1>&2
+  exit 1
+fi
+
+if ! output=$(rsync -a src/ dest1 2>&1 && rsync -av src/ --link-dest=../dest1 dest2 2>&1); then
+  echo "Error: rsync encountered an error that could indicate a problem with permissions," 1>&2
+  echo "hard links, symbolic links, or another issue that may affect backups." 1>&2
+  echo "$output"
+  exit 1
+fi
+
+if [ "$(ls -il dest1/testfile | awk '{ print $1 }')" != "$(ls -il dest2/testfile | awk '{ print $1 }')" ]; then
+  echo "Error: the filesystem containing $GHE_DATA_DIR does not support hard links." 1>&2
+  echo "Backup Utilities use hard links to store backup data efficiently." 1>&2
+  exit 1
+fi
+rm -rf src dest1 dest2
+
 # To prevent multiple backup runs happening at the same time, we create a
 # in-progress file with the timestamp and pid of the backup process,
 # giving us a form of locking.
@@ -86,7 +111,7 @@ trap 'exit $?' INT # ^C always terminate
 if [ -h ../in-progress ]; then
   echo "Error: detected a backup already in progress from a previous version of ghe-backup." 1>&2
   echo "If there is no backup in progress anymore, please remove" 1>&2
-  echo "the $GHE_DATA_DIR/in-progress symlink." 1>&2
+  echo "the $GHE_DATA_DIR/in-progress file." 1>&2
   exit 1
 fi
 

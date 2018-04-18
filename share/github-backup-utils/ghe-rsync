@@ -17,7 +17,7 @@ set -o pipefail
 ignoreout='^(file has vanished: |rsync warning: some files vanished before they could be transferred)'
 
 # Check for --ignore-missing-args parameter support and remove if unavailable.
-if rsync -h | grep -q '\-\-ignore-missing-args'; then
+if rsync -h | grep '\-\-ignore-missing-args' >/dev/null 2>&1; then
   parameters=("$@")
 else
   for parameter in "$@"; do

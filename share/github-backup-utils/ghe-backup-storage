@@ -130,7 +130,7 @@ bm_end "$(basename $0) - Storage object sync"
 bm_start "$(basename $0) - Verifying Routes"
 
 cat $tempdir/*.rsync | sort | uniq > $tempdir/source_routes
-(cd $backup_dir/ && find * -mindepth 4 -maxdepth 4 -type f -exec wc -c {} \; | sort | uniq) > $tempdir/destination_routes
+(cd $backup_dir/ && find * -mindepth 3 -maxdepth 3 -type f -print | sort | uniq) > $tempdir/destination_routes
 
 diff $tempdir/source_routes $tempdir/destination_routes || echo "Warning: One or more storage objects were not found on the source appliance. Please contact GitHub Enterprise Support for assistance."
 

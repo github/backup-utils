@@ -299,6 +299,25 @@ begin_test "ghe-backup cluster"
 )
 end_test
 
+begin_test "ghe-backup not missing directories or files on source appliance"
+(
+    # Tests the scenario where the database and on disk state are consistent.
+    set -e
+
+    if ! ghe-backup -v > "$TRASHDIR/backup-out" 2>&1; then
+      cat "$TRASHDIR/backup-out"
+      : ghe-backup should have completed successfully
+      false
+    fi
+
+    # Check the output for the warnings
+    ! cat "$TRASHDIR/backup-out" | grep "Warning: One or more repository networks and/or gists were not found on the source appliance."
+    ! cat "$TRASHDIR/backup-out" | grep "Warning: One or more storage objects were not found on the source appliance."
+
+    verify_all_backedup_data
+)
+end_test
+
 begin_test "ghe-backup missing directories or files on source appliance"
 (
     # Tests the scenario where something exists in the database, but not on disk.

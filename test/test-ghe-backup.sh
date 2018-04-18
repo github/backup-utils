@@ -310,9 +310,9 @@ begin_test "ghe-backup not missing directories or files on source appliance"
       false
     fi
 
-    # Check the output for the warnings
-    ! cat "$TRASHDIR/backup-out" | grep "Warning: One or more repository networks and/or gists were not found on the source appliance."
-    ! cat "$TRASHDIR/backup-out" | grep "Warning: One or more storage objects were not found on the source appliance."
+    # Ensure the output doesn't contain the warnings
+    grep -q "Warning: One or more repository networks and/or gists were not found on the source appliance." "$TRASHDIR/backup-out" && exit 1
+    grep -q "Warning: One or more storage objects were not found on the source appliance." "$TRASHDIR/backup-out" && exit 1
 
     verify_all_backedup_data
 )
@@ -333,8 +333,8 @@ begin_test "ghe-backup missing directories or files on source appliance"
     fi
 
     # Check the output for the warnings
-    cat "$TRASHDIR/backup-out" | grep "Warning: One or more repository networks and/or gists were not found on the source appliance."
-    cat "$TRASHDIR/backup-out" | grep "Warning: One or more storage objects were not found on the source appliance."
+    grep -q "Warning: One or more repository networks and/or gists were not found on the source appliance." "$TRASHDIR/backup-out"
+    grep -q "Warning: One or more storage objects were not found on the source appliance." "$TRASHDIR/backup-out"
 
     verify_all_backedup_data
 )

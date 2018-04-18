@@ -2,6 +2,7 @@
 # ghe-ssh command tests
 
 # Bring in testlib
+# shellcheck source=test/testlib.sh
 . "$(dirname "$0")/testlib.sh"
 
 begin_test "ghe-ssh-config returns config for multiple nodes"
@@ -13,7 +14,7 @@ begin_test "ghe-ssh-config returns config for multiple nodes"
   echo "$output" | grep -Evq "^Host host1"
   # Confirm we have a host2 and host3 entry
   echo "$output" | grep -Eq "^Host git-server[12]"
-  [ $(echo "$output" | grep -E "^Host git-server[12]" | wc -l) = 2 ]
+  [ "$(echo "$output" | grep -E "^Host git-server[12]" | wc -l)" -eq 2 ]
   # Confirm the host2 and host3 entries proxy though host1
   echo "$output" | grep -q "admin@host1 nc.openbsd"
   # Confirm multiplexing enabled

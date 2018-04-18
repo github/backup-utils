@@ -34,7 +34,8 @@ while true; do
 done
 
 # Bring in the backup configuration
-. $( dirname "${BASH_SOURCE[0]}" )/../share/github-backup-utils/ghe-backup-config
+# shellcheck source=share/github-backup-utils/ghe-backup-config
+. "$( dirname "${BASH_SOURCE[0]}" )/../share/github-backup-utils/ghe-backup-config"
 
 # Use the host provided on the command line if provided, or fallback on the
 # $GHE_HOSTNAME configured in backup.config when not present.
@@ -42,9 +43,9 @@ host="${1:-$GHE_HOSTNAME}"
 
 # Options to pass to SSH during connection check
 options="
-    -o PasswordAuthentication=no
-    -o ConnectTimeout=5
-    -o ConnectionAttempts=1
+  -o PasswordAuthentication=no
+  -o ConnectTimeout=5
+  -o ConnectionAttempts=1
 "
 
 # Split host:port into parts
@@ -57,37 +58,37 @@ rc=$?
 set -e
 
 if [ $rc -ne 0 ]; then
-    case $rc in
-        255)
-            if echo "$output" | grep -i "port 22: connection refused\|port 22: no route to host\|ssh_exchange_identification: Connection closed by remote host\|Connection timed out during banner exchange\|port 22: Connection timed out" >/dev/null; then
-                exec "$(basename $0)" "$hostname:122"
-            fi
+  case $rc in
+    255)
+      if echo "$output" | grep -i "port 22: connection refused\|port 22: no route to host\|ssh_exchange_identification: Connection closed by remote host\|Connection timed out during banner exchange\|port 22: Connection timed out" >/dev/null; then
+        exec "$(basename $0)" "$hostname:122"
+      fi
 
-            echo "$output" 1>&2
-            echo "Error: ssh connection with '$host' failed" 1>&2
-            echo "Note that your SSH key needs to be setup on $host as described in:" 1>&2
-            echo "* https://enterprise.github.com/help/articles/adding-an-ssh-key-for-shell-access" 1>&2
-            ;;
-        101)
-            echo "Error: couldn't read GitHub Enterprise fingerprint on '$host' or this isn't a GitHub appliance." 1>&2
-            ;;
-        1)
-            if [ "${port:-22}" -eq 22 ] && echo "$output" | grep "use port 122" >/dev/null; then
-                exec "$(basename $0)" "$hostname:122"
-            else
-                echo "$output" 1>&2
-            fi
-            ;;
+      echo "$output" 1>&2
+      echo "Error: ssh connection with '$host' failed" 1>&2
+      echo "Note that your SSH key needs to be setup on $host as described in:" 1>&2
+      echo "* https://enterprise.github.com/help/articles/adding-an-ssh-key-for-shell-access" 1>&2
+      ;;
+    101)
+      echo "Error: couldn't read GitHub Enterprise fingerprint on '$host' or this isn't a GitHub appliance." 1>&2
+      ;;
+    1)
+      if [ "${port:-22}" -eq 22 ] && echo "$output" | grep "use port 122" >/dev/null; then
+        exec "$(basename $0)" "$hostname:122"
+      else
+        echo "$output" 1>&2
+      fi
+      ;;
 
-    esac
-    exit $rc
+  esac
+  exit $rc
 fi
 
 version=$(echo "$output" | sed -n 's/GitHub Enterprise version \(.*\)/\1/p')
 
 if [ -z "$version" ]; then
-    echo "Error: failed to parse version on '$host' or this isn't a GitHub appliance." 1>&2
-    exit 2
+  echo "Error: failed to parse version on '$host' or this isn't a GitHub appliance." 1>&2
+  exit 2
 fi
 
 # backup-utils 2.13 onwards limits support to the current and previous two releases

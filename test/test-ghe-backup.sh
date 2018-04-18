@@ -2,7 +2,8 @@
 # ghe-backup command tests
 
 # Bring in testlib
-. $(dirname "$0")/testlib.sh
+# shellcheck source=test/testlib.sh
+. "$(dirname "$0")/testlib.sh"
 
 # Create the backup data dir and fake remote repositories dirs
 mkdir -p "$GHE_DATA_DIR" "$GHE_REMOTE_DATA_USER_DIR"
@@ -11,39 +12,39 @@ setup_test_data $GHE_REMOTE_DATA_USER_DIR
 
 begin_test "ghe-backup first snapshot"
 (
-    set -e
+  set -e
 
-    # check that no current symlink exists yet
-    [ ! -d "$GHE_DATA_DIR/current" ]
+  # check that no current symlink exists yet
+  [ ! -d "$GHE_DATA_DIR/current" ]
 
-    # run it
-    ghe-backup -v
+  # run it
+  ghe-backup -v
 
-    verify_all_backedup_data
+  verify_all_backedup_data
 )
 end_test
 
 begin_test "ghe-backup subsequent snapshot"
 (
-    set -e
+  set -e
 
-    # wait a second for snapshot timestamp
-    sleep 1
+  # wait a second for snapshot timestamp
+  sleep 1
 
-    # check that no current symlink exists yet
-    [ -d "$GHE_DATA_DIR/current" ]
+  # check that no current symlink exists yet
+  [ -d "$GHE_DATA_DIR/current" ]
 
-    # grab the first snapshot number so we can compare after
-    first_snapshot=$(ls -ld "$GHE_DATA_DIR/current" | sed 's/.* -> //')
+  # grab the first snapshot number so we can compare after
+  first_snapshot=$(ls -ld "$GHE_DATA_DIR/current" | sed 's/.* -> //')
 
-    # run it
-    ghe-backup
+  # run it
+  ghe-backup
 
-    # check that current symlink points to new snapshot
-    this_snapshot=$(ls -ld "$GHE_DATA_DIR/current" | sed 's/.* -> //')
-    [ "$first_snapshot" != "$this_snapshot" ]
+  # check that current symlink points to new snapshot
+  this_snapshot=$(ls -ld "$GHE_DATA_DIR/current" | sed 's/.* -> //')
+  [ "$first_snapshot" != "$this_snapshot" ]
 
-    verify_all_backedup_data
+  verify_all_backedup_data
 )
 end_test
 
@@ -58,63 +59,64 @@ begin_test "ghe-backup logs the benchmark"
 
   ghe-backup
 
-  [ $(grep took $GHE_DATA_DIR/current/benchmarks/benchmark.foo.log | wc -l) -gt 1 ]
+  [ "$(grep took $GHE_DATA_DIR/current/benchmarks/benchmark.foo.log | wc -l)" -gt 1 ]
 )
 end_test
 
 begin_test "ghe-backup with relative data dir path"
 (
-    set -e
+  set -e
 
-    # wait a second for snapshot timestamp
-    sleep 1
+  # wait a second for snapshot timestamp
+  sleep 1
 
-    # generate a timestamp
-    export GHE_SNAPSHOT_TIMESTAMP="relative-$(date +"%Y%m%dT%H%M%S")"
+  # generate a timestamp
+  GHE_SNAPSHOT_TIMESTAMP="relative-$(date +"%Y%m%dT%H%M%S")"
+  export GHE_SNAPSHOT_TIMESTAMP
 
-    # change working directory to the root directory
-    cd $ROOTDIR
+  # change working directory to the root directory
+  cd $ROOTDIR
 
-    # run it
-    GHE_DATA_DIR=$(echo $GHE_DATA_DIR | sed 's|'$ROOTDIR'/||') ghe-backup
+  # run it
+  GHE_DATA_DIR=$(echo $GHE_DATA_DIR | sed 's|'$ROOTDIR'/||') ghe-backup
 
-    # check that current symlink points to new snapshot
-    [ "$(ls -ld "$GHE_DATA_DIR/current" | sed 's/.*-> //')" = "$GHE_SNAPSHOT_TIMESTAMP" ]
+  # check that current symlink points to new snapshot
+  [ "$(ls -ld "$GHE_DATA_DIR/current" | sed 's/.*-> //')" = "$GHE_SNAPSHOT_TIMESTAMP" ]
 
-    verify_all_backedup_data
+  verify_all_backedup_data
 )
 end_test
 
 begin_test "ghe-backup fails fast when old style run in progress"
 (
-    set -e
+  set -e
 
-    ln -s 1 "$GHE_DATA_DIR/in-progress"
-    ! ghe-backup
+  ln -s 1 "$GHE_DATA_DIR/in-progress"
+  ! ghe-backup
 
-    unlink "$GHE_DATA_DIR/in-progress"
+  unlink "$GHE_DATA_DIR/in-progress"
 )
 end_test
 
 begin_test "ghe-backup cleans up stale in-progress file"
 (
-    set -e
+  set -e
 
-    echo "20150928T153353 99999" > "$GHE_DATA_DIR/in-progress"
-    ghe-backup
+  echo "20150928T153353 99999" > "$GHE_DATA_DIR/in-progress"
+  ghe-backup
 
-    [ ! -f "$GHE_DATA_DIR/in-progress" ]
+  [ ! -f "$GHE_DATA_DIR/in-progress" ]
 )
 end_test
 
 begin_test "ghe-backup without management console password"
 (
-    set -e
+  set -e
 
-    git config -f "$GHE_REMOTE_DATA_USER_DIR/common/secrets.conf" secrets.manage ""
-    ghe-backup
+  git config -f "$GHE_REMOTE_DATA_USER_DIR/common/secrets.conf" secrets.manage ""
+  ghe-backup
 
-    [ ! -f "$GHE_DATA_DIR/current/manage-password" ]
+  [ ! -f "$GHE_DATA_DIR/current/manage-password" ]
 )
 end_test
 
@@ -170,15 +172,15 @@ begin_test "ghe-backup stores version when not run from a clone"
 
   # If user is running the tests extracted from a release tarball, git clone will fail.
   if GIT_DIR="$ROOTDIR/.git" git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
-      git clone "$ROOTDIR" "$tmpdir/backup-utils"
-      cd "$tmpdir/backup-utils"
-      rm -rf .git
-      ./bin/ghe-backup
+    git clone "$ROOTDIR" "$tmpdir/backup-utils"
+    cd "$tmpdir/backup-utils"
+    rm -rf .git
+    ./bin/ghe-backup
 
-      # Verify that ghe-backup wrote its version information to the host
-      [ -f "$GHE_REMOTE_DATA_USER_DIR/common/backup-utils-version" ]
+    # Verify that ghe-backup wrote its version information to the host
+    [ -f "$GHE_REMOTE_DATA_USER_DIR/common/backup-utils-version" ]
   else
-      echo ".git directory not found, skipping ghe-backup not from a clone test"
+    echo ".git directory not found, skipping ghe-backup not from a clone test"
   fi
 )
 end_test

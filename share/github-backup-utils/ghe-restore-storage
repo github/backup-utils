@@ -8,7 +8,8 @@
 set -e
 
 # Bring in the backup configuration
-. $( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config
+# shellcheck source=share/github-backup-utils/ghe-backup-config
+. "$( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config"
 
 # Show usage and bail with no arguments
 [ -z "$*" ] && print_usage
@@ -48,7 +49,8 @@ ghe-ssh "$GHE_HOSTNAME" -- mkdir -p $tempdir
 ssh_config_file_opt=
 opts="$GHE_EXTRA_SSH_OPTS"
 tmp_list=$tempdir/tmp_list
-to_restore=$tempdir/to_restore
+routes_list=$tempdir/routes_list
+local_routes_list=$tempdir/local_routes_list
 
 if $CLUSTER; then
   ssh_config_file="$tempdir/ssh_config"
@@ -88,23 +90,28 @@ bm_end "$(basename $0) - Building object list"
 #
 # One route per line.
 #
-bm_start "$(basename $0) - Calculating sync routes"
-cat $tmp_list | ghe-ssh "$GHE_HOSTNAME" -- github-env ./bin/storage-cluster-restore-routes \
-  | while read route; do
-  ghe_debug "Got restore route $route"
-  if $CLUSTER; then
-    servers=$(echo $route | cut -d ' ' -f2-)
-  else
-    servers=$host
-  fi
-  object=$(echo $route | cut -d ' ' -f1)
-  for server in $servers; do
-    ghe_debug "Adding $object to $tempdir/$server.rsync"
-    echo "$object" | awk '{ print substr($1,1,1) "/" substr($1,1,2) "/" substr($1,3,2) "/" $1}' >> $tempdir/$server.rsync
-    echo "$route" >> $to_restore
-  done
-done
-bm_end "$(basename $0) - Calculating sync routes"
+# NOTE: The route generation is performed on the appliance as it is considerably
+# more performant than performing over an SSH pipe.
+#
+bm_start "$(basename $0) - Transferring object list"
+cat $tmp_list | ghe-ssh "$GHE_HOSTNAME" -- sponge $tmp_list
+ghe_debug "\n$(cat $tmp_list)"
+bm_end "$(basename $0) - Transferring object list"
+
+bm_start "$(basename $0) - Generating routes"
+echo "cat $tmp_list | github-env ./bin/storage-cluster-restore-routes > $routes_list" | ghe-ssh "$GHE_HOSTNAME" /bin/bash
+ghe_debug "\n$(ghe-ssh "$GHE_HOSTNAME" -- cat $routes_list)"
+bm_end "$(basename $0) - Generating routes"
+
+bm_start "$(basename $0) - Fetching routes"
+ghe-ssh "$GHE_HOSTNAME" -- cat $routes_list > $local_routes_list
+ghe_debug "\n$(cat $local_routes_list)"
+bm_end "$(basename $0) - Fetching routes"
+
+bm_start "$(basename $0) - Processing routes"
+cat $local_routes_list | awk -v tempdir="$tempdir" '{ for(i=2;i<=NF;i++){ print substr($1,1,1) "/" substr($1,1,2) "/" substr($1,3,2) "/" $1 > (tempdir"/"$i".rsync") }}'
+ghe_debug "\n$(ls -l $tempdir/*.rsync)"
+bm_end "$(basename $0) - Processing routes"
 
 if ! ls $tempdir/*.rsync >/dev/null 2>&1; then
   echo "Warning: no routes found, skipping storage restore ..."
@@ -115,7 +122,11 @@ fi
 # One rsync invocation per server available.
 bm_start "$(basename $0) - Restoring objects"
 for file_list in $tempdir/*.rsync; do
-  server=$(basename $file_list .rsync)
+  if $CLUSTER; then
+    server=$(basename $file_list .rsync)
+  else
+    server=$host
+  fi
   ghe_verbose "* Transferring data to $server ..."
   ghe-rsync -arvHR --delete \
     -e "ssh -q $opts -p $port $ssh_config_file_opt -l $user" \
@@ -130,9 +141,8 @@ bm_end "$(basename $0) - Restoring objects"
 if $CLUSTER; then
   bm_start "$(basename $0) - Finalizing routes"
   ghe_verbose "Finalizing routes"
-  cat $to_restore | ghe-ssh "$GHE_HOSTNAME" -- sponge $to_restore
   ghe-ssh "$GHE_HOSTNAME" -- /bin/bash >&3 <<EOF
-    split -l 1000 $to_restore $tempdir/chunk
+    split -l 1000 $routes_list $tempdir/chunk
     chunks=\$(find $tempdir/ -name chunk\*)
     parallel -i /bin/sh -c "cat {} | github-env ./bin/storage-cluster-restore-finalize" -- \$chunks
 EOF

@@ -1,12 +1,12 @@
-## Bash Styleguide
+## Bash Style Guide
 
 If you've not done much Bash development before you may find these debugging tips useful: http://wiki.bash-hackers.org/scripting/debuggingtips.
 
---
+---
 ##### Scripts must start with `#!/usr/bin/env bash`
 
---
-##### Scripts must use `set -e`
+---
+##### Use `set -e`
 
 If the return value of a command can be ignored, suffix it with `|| true`:
 
@@ -18,8 +18,8 @@ command_that_should_not_fail
 
 Note that ignoring an exit status with `|| true` is not a good practice though. Generally speaking, it's better to handle the error.
 
---
-##### Scripts should not check exit status via `$?` manually
+---
+##### Avoid manually checking exit status with `$?`
 
 Rely on `set -e` instead:
 
@@ -39,8 +39,8 @@ if cmd; then
 fi
 ```
 
---
-##### Scripts must include a usage, description and optional examples
+---
+##### Include a usage, description and optional examples
 
 Use this format:
 
@@ -65,7 +65,7 @@ set -e
 
 If there are no options or required arguments, the `OPTIONS` section can be ignored.
 
---
+---
 ##### Customer-facing scripts must accept both -h and --help arguments
 
 They should also print the usage information and exit 2.
@@ -86,16 +86,16 @@ fi
 
 ```
 
---
-##### Scripts should not use Bash arrays
+---
+##### Avoid Bash arrays
 
 Main issues:
 
 * Portability
 * Important bugs in Bash versions < 4.3
 
---
-##### Scripts should use `test` or `[` whenever possible
+---
+##### Use `test` or `[` whenever possible
 
 ```bash
 test -f /etc/passwd
@@ -105,7 +105,7 @@ if [ "string" = "string" ]; then
 fi
 ```
 
---
+---
 ##### Scripts may use `[[` for advanced bash features
 
 ```bash
@@ -114,7 +114,7 @@ if [[ "$(hostname)" = *.iad.github.net ]]; then
 fi
 ```
 
---
+---
 ##### Scripts may use Bash for loops
 
 Preferred:
@@ -131,8 +131,8 @@ for ((n=0; n<10; n++)); do
 done
 ```
 
---
-##### Scripts should use `$[x+y*z]` for mathematical expressions
+---
+##### Use `$[x+y*z]` for mathematical expressions
 
 ```bash
 local n=1
@@ -143,8 +143,8 @@ n=$((n+1))
 n=$(($n+1))
 ```
 
---
-##### Scripts should use variables sparingly
+---
+##### Use variables sparingly
 
 Short paths and other constants should be repeated liberally throughout code since they
 can be search/replaced easily if they ever change.
@@ -162,8 +162,10 @@ mkdir -p /data/user/db
 rsync /data/user/db remote:/data/user/db
 ```
 
---
-##### Scripts should use lowercase variables for locals, and uppercase for variables inherited or exported via the environment
+---
+##### Use lowercase and uppercase variable names
+
+Use lowercase variables for locals and internal veriables, and uppercase for variables inherited or exported via the environment
 
 ```bash
 #!/usr/bin/env bash
@@ -175,8 +177,8 @@ export GIT_DIR=/data/repos/$nwo.git
 git rev-list
 ```
 
---
-##### Scripts should use `${var}` for interpolation only when required
+---
+##### Use `${var}` for interpolation only when required
 
 ```bash
 greeting=hello
@@ -184,8 +186,8 @@ echo $greeting
 echo ${greeting}world
 ```
 
---
-##### Scripts should use functions sparingly, opting for small/simple/sequential scripts instead whenever possible
+---
+##### Use functions sparingly, opting for small/simple/sequential scripts instead whenever possible
 
 When defining functions, use the following style:
 
@@ -197,8 +199,8 @@ my_function() {
 }
 ```
 
---
-##### Scripts should use `<<heredocs` when dealing with multi-line strings
+---
+##### Use `<<heredocs` when dealing with multi-line strings
 
 - `<<eof` and `<< eof` will allow interpolation
 - `<<"eof"` and `<<'eof'` will disallow interpolation
@@ -219,13 +221,28 @@ cat <<eof | ssh $remote -- bash
 eof
 ```
 
---
-##### Scripts should quote variables that could reasonably have a space now or in the future
+---
+##### Quote variables that could reasonably have a space now or in the future
 
 ```bash
 if [ ! -z "$packages" ]; then
   true
 fi
+```
+
+---
+##### Use two space indentation
+
+---
+##### Scripts should not produce errors or warnings when checked with ShellCheck
+
+Use inline comments to disable specific tests, and explain why the test has been disabled.
+
+```bash
+hexToAscii() {
+  # shellcheck disable=SC2059 # $1 needs to be interpreted as a formatted string
+  printf "\x$1"
+}
 ```
 
 ### Testing

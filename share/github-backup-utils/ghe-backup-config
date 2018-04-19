@@ -26,18 +26,6 @@ if [ -n "$GHE_SHOW_VERSION" ]; then
   exit 0
 fi
 
-# If verbose logging is enabled, redirect fd 3 to stdout or the specified log file;
-# otherwise, redirect it to /dev/null. Write verbose output to fd 3.
-if [ -n "$GHE_VERBOSE" ]; then
-  if [ -n "$GHE_VERBOSE_LOG" ]; then
-    exec 3<> "$GHE_VERBOSE_LOG"
-  else
-    exec 3>&1
-  fi
-else
-    exec 3>/dev/null
-fi
-
 # Check for "--help|-h" in args or GHE_SHOW_HELP=true and show usage
 print_usage () {
     grep '^#/' <"$0" | cut -c 4-
@@ -84,6 +72,18 @@ if ! $config_found; then
     echo " - $HOME/.github-backup-utils/backup.config" 1>&2
     echo " - /etc/github-backup-utils/backup.config" 1>&2
     exit 2
+fi
+
+# If verbose logging is enabled, redirect fd 3 to stdout or the specified log file;
+# otherwise, redirect it to /dev/null. Write verbose output to fd 3.
+if [ -n "$GHE_VERBOSE" ]; then
+  if [ -n "$GHE_VERBOSE_LOG" ]; then
+    exec 3<> "$GHE_VERBOSE_LOG"
+  else
+    exec 3>&1
+  fi
+else
+    exec 3>/dev/null
 fi
 
 # Restore saved off hostname.

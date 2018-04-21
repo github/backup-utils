@@ -85,7 +85,7 @@ if [ -n "$GHE_VERBOSE" ]; then
     exec 3>&1
   fi
 else
-    exec 3>/dev/null
+  exec 3>/dev/null
 fi
 
 # Restore saved off hostname.

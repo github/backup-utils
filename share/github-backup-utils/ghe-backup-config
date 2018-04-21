@@ -26,12 +26,16 @@ if [ -n "$GHE_SHOW_VERSION" ]; then
   exit 0
 fi
 
-# If verbose logging is enabled, redirect fd 3 to stdout; otherwise, redirect it
-# to /dev/null. Write verbose output to fd 3.
+# If verbose logging is enabled, redirect fd 3 to stdout or the specified log file;
+# otherwise, redirect it to /dev/null. Write verbose output to fd 3.
 if [ -n "$GHE_VERBOSE" ]; then
-  exec 3>&1
+  if [ -n "$GHE_VERBOSE_LOG" ]; then
+    exec 3<> "$GHE_VERBOSE_LOG"
+  else
+    exec 3>&1
+  fi
 else
-  exec 3>/dev/null
+    exec 3>/dev/null
 fi
 
 # Check for "--help|-h" in args or GHE_SHOW_HELP=true and show usage

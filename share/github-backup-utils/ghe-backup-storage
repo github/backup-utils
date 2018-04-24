@@ -37,6 +37,7 @@ user="${host%@*}"
 hostnames=$host
 ssh_config_file_opt=
 tempdir=$(mktemp -d -t backup-utils-restore-XXXXXX)
+ghe-ssh "$GHE_HOSTNAME" -- mkdir -p $tempdir
 routes_list=$tempdir/routes_list
 local_routes_list=$tempdir/local_routes_list
 opts="$GHE_EXTRA_SSH_OPTS"

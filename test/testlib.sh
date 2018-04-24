@@ -252,13 +252,13 @@ setup_test_data () {
 
   mkdir -p "$loc/audit-log/"
   cd "$loc/audit-log/"
-  touch audit_log-1-$last_yr-$last_mth-1.gz
-  touch audit_log-1-$this_yr-$this_mth-1.gz
+  echo "fake audit log last yr last mth" | gzip > audit_log-1-$last_yr-$last_mth-1.gz
+  echo "fake audit log this yr this mth" | gzip > audit_log-1-$this_yr-$this_mth-1.gz
 
   # Create hookshot logs
   mkdir -p "$loc/hookshot/"
   cd "$loc/hookshot/"
-  touch hookshot-logs-2018-03-05.gz
+  echo "fake hookshot log" | gzip > hookshot-logs-2018-03-05.gz
 
   # Create some test repositories in the remote repositories dir
   mkdir -p "$loc/repositories/info"
@@ -413,6 +413,10 @@ verify_all_restored_data() {
     grep -q "fake ghe-export-ssh-host-keys data" "$TRASHDIR/restore-out"
     # verify all ES data was transferred from live directory to the temporary restore directory
     diff -ru --exclude="*.gz" "$GHE_DATA_DIR/current/elasticsearch" "$GHE_REMOTE_DATA_USER_DIR/elasticsearch-restore"
+  else
+    grep -q "fake audit log last yr last mth" "$TRASHDIR/restore-out"
+    grep -q "fake audit log this yr this mth" "$TRASHDIR/restore-out"
+    grep -q "fake hookshot log" "$TRASHDIR/restore-out"
   fi
 
   # verify settings import was *not* run due to instance already being

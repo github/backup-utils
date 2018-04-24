@@ -22,7 +22,7 @@ ghe_remote_version_required "$GHE_HOSTNAME"
 
 last_index=$(ghe-ssh "$GHE_HOSTNAME" 'curl -s "localhost:9201/_cat/indices/hookshot-logs-*"' | cut -d ' ' -f 3 | sort | tail -2 | head -1)
 
-indices=$(find -print0 $GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/hookshot/*.gz 2>/dev/null | xargs -0 -I{} -n1 basename {} .gz)
+indices=$(find $GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/hookshot/*.gz -print0 2>/dev/null | xargs -0 -I{} -n1 basename {} .gz)
 tmp_list="$(mktemp -t backup-utils-restore-XXXXXX)"
 if ghe-ssh "$GHE_HOSTNAME" -- "[ -f '$GHE_REMOTE_ROOT_DIR/etc/github/configured' ]"; then
   configured=true

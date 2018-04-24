@@ -32,7 +32,8 @@ set -e
 #      <http://rsync.samba.org/ftp/rsync/rsync.html>
 
 # Bring in the backup configuration
-. $( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config
+# shellcheck source=share/github-backup-utils/ghe-backup-config
+. "$( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config"
 
 bm_start "$(basename $0)"
 
@@ -62,7 +63,10 @@ user="${host%@*}"
 
 hostnames=$host
 ssh_config_file_opt=
-tempdir=$(mktemp -d -t backup-utils-restore-XXXXXX)
+tempdir=$(mktemp -d -t backup-utils-backup-XXXXXX)
+ghe-ssh "$GHE_HOSTNAME" -- mkdir -p $tempdir
+routes_list=$tempdir/routes_list
+local_routes_list=$tempdir/local_routes_list
 opts="$GHE_EXTRA_SSH_OPTS"
 
 # git server hostnames under cluster
@@ -112,22 +116,28 @@ fi
 # a/nw/a8/bc/8d/100000880 dgit-node3 >> dgit-node3.sync
 # a/nw/a5/06/81/100000659 dgit-node2 >> dgit-node2.sync
 # ...
-#one route per line.
+# One route per line.
 #
-bm_start "$(basename $0) - Calculating Sync Routes"
-ghe-ssh "$GHE_HOSTNAME" github-env ./bin/dgit-cluster-backup-routes \
-  | while read route; do
-  ghe_debug "Got backup route $route"
-  if [ "$GHE_BACKUP_STRATEGY" = "cluster" ]; then
-    server=$(echo $route | cut -d ' ' -f2-)
-  else
-    server=$host
-  fi
-  network_path=$(echo $route | cut -d ' ' -f1)
-  ghe_debug "Adding $network_path to $tempdir/$server.rsync"
-  echo "$network_path" >> $tempdir/$server.rsync
-done
-bm_end "$(basename $0) - Calculating Sync Routes"
+# NOTE: The route generation is performed on the appliance as it is considerably
+# more performant than performing over an SSH pipe.
+#
+bm_start "$(basename $0) - Generating routes"
+echo "github-env ./bin/dgit-cluster-backup-routes > $routes_list" | ghe-ssh "$GHE_HOSTNAME" -- /bin/bash
+ghe_debug "\n$(ghe-ssh "$GHE_HOSTNAME" -- cat $routes_list)"
+bm_end "$(basename $0) - Generating routes"
+
+bm_start "$(basename $0) - Fetching routes"
+ghe-ssh "$GHE_HOSTNAME" -- cat $routes_list > $local_routes_list
+ghe_debug "\n$(cat $local_routes_list)"
+bm_end "$(basename $0) - Fetching routes"
+
+bm_start "$(basename $0) - Processing routes"
+if [ "$GHE_BACKUP_STRATEGY" != "cluster" ]; then
+  server=$host
+fi
+cat $local_routes_list | awk -v tempdir="$tempdir" -v server="$server" '{ for(i=2;i<=NF;i++){ server != "" ? host=server : host=$i; print $1 > (tempdir"/"host".rsync") }}'
+ghe_debug "\n$(ls -l $tempdir/*.rsync)"
+bm_end "$(basename $0) - Processing routes"
 
 if ! ls $tempdir/*.rsync >/dev/null 2>&1; then
   echo "Warning: no routes found, skipping repositories backup ..."

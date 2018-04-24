@@ -27,9 +27,6 @@ while true; do
             host="$1"
             shift
             ;;
-        '')
-            break
-            ;;
     esac
 done
 

@@ -88,18 +88,6 @@ else
   exec 3>/dev/null
 fi
 
-# If verbose logging is enabled, redirect fd 3 to stdout or the specified log file;
-# otherwise, redirect it to /dev/null. Write verbose output to fd 3.
-if [ -n "$GHE_VERBOSE" ]; then
-  if [ -n "$GHE_VERBOSE_LOG" ]; then
-    exec 3<> "$GHE_VERBOSE_LOG"
-  else
-    exec 3>&1
-  fi
-else
-    exec 3>/dev/null
-fi
-
 # Restore saved off hostname.
 [ -n "$GHE_HOSTNAME_PRESERVE" ] && GHE_HOSTNAME="$GHE_HOSTNAME_PRESERVE"
 

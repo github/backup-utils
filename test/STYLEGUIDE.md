@@ -1,10 +1,9 @@
---
-### Writing tests
+## Writing tests
 
 See also the [Bash style guide](https://github.com/github/backup-utils/tree/master/STYLEGUIDE.md)
 
---
-##### all tests should use `set -e` and call `setup` before making any assertions
+---
+##### All tests should use `set -e` and call `setup` before making any assertions
 
 Like this:
 
@@ -19,7 +18,7 @@ begin_test "echo works"
 end_test
 ```
 
---
+---
 ##### Resist the urge to disable `set -e`
 
 If you want to assert failure, please resist the urge to disable `set -e` and

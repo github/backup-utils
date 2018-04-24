@@ -161,7 +161,7 @@ if $CLUSTER; then
   ghe_verbose "Finalizing routes"
   cat $to_restore | ghe-ssh "$GHE_HOSTNAME" -- sponge $remote_to_restore
   ghe-ssh "$GHE_HOSTNAME" -- /bin/bash >&3 <<EOF
-    split -l 1000 $remote_to_restore $tempdir/chunk
+    split -l 1000 $remote_to_restore $remote_tempdir/chunk
     chunks=\$(find $remote_tempdir/ -name chunk\*)
     parallel -i /bin/sh -c "cat {} | github-env ./bin/dgit-cluster-restore-finalize" -- \$chunks
 EOF

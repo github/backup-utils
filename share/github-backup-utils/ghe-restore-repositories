@@ -43,13 +43,15 @@ user="${host%@*}"
 
 hostnames=$host
 tempdir=$(mktemp -d -t backup-utils-restore-XXXXXX)
-ghe-ssh "$GHE_HOSTNAME" -- mkdir -p $tempdir
+remote_tempdir=$(ghe-ssh "$GHE_HOSTNAME" -- mktemp -d -t backup-utils-restore-XXXXXX)
 ssh_config_file_opt=
 opts="$GHE_EXTRA_SSH_OPTS"
 tmp_list=$tempdir/tmp_list
+remote_tmp_list=$remote_tempdir/remote_tmp_list
 to_restore=$tempdir/to_restore
+remote_to_restore=$remote_tempdir/remote_to_restore
 routes_list=$tempdir/routes_list
-local_routes_list=$tempdir/local_routes_list
+remote_routes_list=$remote_tempdir/remote_routes_list
 
 if $CLUSTER; then
   ssh_config_file="$tempdir/ssh_config"
@@ -63,7 +65,7 @@ cleanup() {
   for hostname in $hostnames; do
     ghe-gc-enable $ssh_config_file_opt $hostname:$port || true
   done
-  ghe-ssh "$GHE_HOSTNAME" -- rm -rf $tempdir
+  ghe-ssh "$GHE_HOSTNAME" -- rm -rf $remote_tempdir
   rm -rf $tempdir
 }
 trap cleanup EXIT
@@ -109,23 +111,23 @@ bm_end "$(basename $0) - Building network list"
 # more performant than performing over an SSH pipe.
 #
 bm_start "$(basename $0) - Transferring network list"
-cat $tmp_list | ghe-ssh "$GHE_HOSTNAME" -- sponge $tmp_list
+cat $tmp_list | ghe-ssh "$GHE_HOSTNAME" -- sponge $remote_tmp_list
 ghe_debug "\n$(cat $tmp_list)"
 bm_end "$(basename $0) - Transferring network list"
 
 bm_start "$(basename $0) - Generating routes"
-echo "cat $tmp_list | github-env ./bin/dgit-cluster-restore-routes > $routes_list" | ghe-ssh "$GHE_HOSTNAME" -- /bin/bash
-ghe_debug "\n$(ghe-ssh "$GHE_HOSTNAME" -- cat $routes_list)"
+echo "cat $remote_tmp_list | github-env ./bin/dgit-cluster-restore-routes > $remote_routes_list" | ghe-ssh "$GHE_HOSTNAME" -- /bin/bash
+ghe_debug "\n$(ghe-ssh "$GHE_HOSTNAME" -- cat $remote_routes_list)"
 bm_end "$(basename $0) - Generating routes"
 
 bm_start "$(basename $0) - Fetching routes"
-ghe-ssh "$GHE_HOSTNAME" -- cat $routes_list > $local_routes_list
-ghe_debug "\n$(cat $local_routes_list)"
+ghe-ssh "$GHE_HOSTNAME" -- cat $remote_routes_list > $routes_list
+ghe_debug "\n$(cat $routes_list)"
 bm_end "$(basename $0) - Fetching routes"
 
 bm_start "$(basename $0) - Processing routes"
-cat $local_routes_list | awk -v tempdir="$tempdir" '{ for(i=2;i<=NF;i++){ print $1 > (tempdir"/"$i".rsync") }}'
-cat $local_routes_list | awk '{ n = split($1, p, "/"); printf p[n] " /data/repositories/" $1; $1=""; print $0}' > $to_restore
+cat $routes_list | awk -v tempdir="$tempdir" '{ for(i=2;i<=NF;i++){ print $1 > (tempdir"/"$i".rsync") }}'
+cat $routes_list | awk '{ n = split($1, p, "/"); printf p[n] " /data/repositories/" $1; $1=""; print $0}' > $to_restore
 ghe_debug "\n$(ls -l $tempdir/*.rsync && cat $to_restore)"
 bm_end "$(basename $0) - Processing routes"
 
@@ -163,10 +165,10 @@ if $CLUSTER; then
     jobs="-j $GHE_RESTORE_PARALLEL_JOBS"
   fi
 
-  cat $to_restore | ghe-ssh "$GHE_HOSTNAME" -- sponge $to_restore
+  cat $to_restore | ghe-ssh "$GHE_HOSTNAME" -- sponge $remote_to_restore
   ghe-ssh "$GHE_HOSTNAME" -- /bin/bash >&3 <<EOF
-    split -l 1000 $to_restore $tempdir/chunk
-    chunks=\$(find $tempdir/ -name chunk\*)
+    split -l 1000 $remote_to_restore $remote_tempdir/chunk
+    chunks=\$(find $remote_tempdir/ -name chunk\*)
     parallel $jobs -i /bin/sh -c "cat {} | github-env ./bin/dgit-cluster-restore-finalize" -- \$chunks
 EOF
   bm_end "$(basename $0) - Finalizing routes"

@@ -17,6 +17,8 @@ Backup Utilities as part of your disaster recovery plan.
 Backup Utilities are a disaster recovery tool. This tool takes date-stamped
 snapshots of all major datastores. These snapshots are used to restore an instance
 to a prior state or set up a new instance without having another always-on GitHub
-Enterprise instance (like the High Availability replica).
+Enterprise instance (like the High Availability replica). Backup Utilities is
+intended for use with the primary github instance and not a replica, github-backup-
+utils does not currently support backing up a replica instance.
 
 [1]: https://help.github.com/enterprise/admin/guides/installation/high-availability-cluster-configuration/

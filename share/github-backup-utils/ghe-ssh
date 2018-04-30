@@ -17,7 +17,11 @@ while true; do
       port="$2"
       shift 2
       ;;
-    -l|-o|-F)
+    -l)
+      user="$2"
+      shift 2
+      ;;
+    -o|-F)
       opts="$opts $1 $2"
       shift 2
       ;;
@@ -52,15 +56,6 @@ if [ "$1" = "--" ]; then
   shift
 fi
 
-# Split host:port into parts. The port is only used if not specified earlier.
-port=${port:-$(ssh_port_part "$host")}
-host=$(ssh_host_part "$host")
-
-# Add user / -l option
-user="${host%@*}"
-[ "$user" = "$host" ] && user="admin"
-opts="-l $user $opts"
-
 # Bail out with error if the simple command form is used with complex commands.
 # Complex
 if echo "$*" | grep "[|;]" >/dev/null || [ "$(echo "$*" | wc -l)" -gt 1 ]; then
@@ -69,14 +64,22 @@ if echo "$*" | grep "[|;]" >/dev/null || [ "$(echo "$*" | wc -l)" -gt 1 ]; then
   exit 1
 fi
 
+# Split user@host:port into parts. The user and port are only used if not
+# specified earlier.
+user=${user:-$(ssh_user_part "$host")}
+port=${port:-$(ssh_port_part "$host")}
+host=$(ssh_host_part "$host")
+
+# Enable SSH multiplexing by default
 if [ -z "$GHE_DISABLE_SSH_MUX" ]; then
-  controlpath="$TMPDIR/.ghe-sshmux-$(echo -n "$user@$host:$port" | git hash-object --stdin | cut -c 1-8)"
+  ssh_hostname=$(ssh -G -T $opts "$host" | grep "^hostname" | awk '{print $2}')
+  controlpath="$TMPDIR/.ghe-sshmux-$(echo -n "$user@$ssh_hostname:$port" | git hash-object --stdin | cut -c 1-8)"
   # shellcheck disable=SC2089 # We don't use bash arrays
   opts="-o ControlMaster=auto -o ControlPath=\"$controlpath\" -o ControlPersist=10m -o ServerAliveInterval=10 $opts"
   # Workaround for https://bugzilla.mindrot.org/show_bug.cgi?id=1988
   if ! [ -S $controlpath ]; then
     # shellcheck disable=SC2090 # We don't need the quote/backslashes respected
-    ( cd "$TMPDIR" && ssh -f -p $port $opts -o BatchMode=yes "$host" -- /bin/true 1>/dev/null 2>&1 || true )
+    ( cd "$TMPDIR" && ssh $opts -f -l $user -p $port "$host" -- /bin/true >/dev/null 2>&1 || true )
   fi
 fi
 
@@ -85,4 +88,4 @@ $GHE_VERBOSE_SSH && set -x
 
 # Exec ssh command with modified host / port args and add nice to command.
 # shellcheck disable=SC2090 # We don't need the quote/backslashes respected
-exec ssh -p $port $opts -o BatchMode=yes "$host" -- $GHE_NICE $GHE_IONICE "$@"
+exec ssh $opts -l $user -p $port "$host" -- $GHE_NICE $GHE_IONICE "$@"

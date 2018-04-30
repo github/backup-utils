@@ -28,23 +28,12 @@ fi
 # Perform a host-check and establish GHE_REMOTE_XXX variables.
 ghe_remote_version_required "$GHE_HOSTNAME"
 
-hostnames=$GHE_HOSTNAME
 tempdir=$(mktemp -d -t backup-utils-restore-XXXXXX)
 remote_tempdir=$(ghe-ssh "$GHE_HOSTNAME" -- mktemp -d -t backup-utils-restore-XXXXXX)
-opts="$GHE_EXTRA_SSH_OPTS"
-ssh_config_file_opt=
 tmp_list=$tempdir/tmp_list
 remote_tmp_list=$remote_tempdir/remote_tmp_list
 routes_list=$tempdir/routes_list
 remote_routes_list=$remote_tempdir/remote_routes_list
-
-if $CLUSTER; then
-  ssh_config_file="$tempdir/ssh_config"
-  ssh_config_file_opt="-F $ssh_config_file"
-  opts="$opts -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no"
-  hostnames=$(ghe-cluster-nodes "$GHE_HOSTNAME" "pages-server")
-  ghe-ssh-config "$GHE_HOSTNAME" "$hostnames" > "$ssh_config_file"
-fi
 
 cleanup() {
   rm -rf $tempdir
@@ -122,7 +111,7 @@ for file_list in $tempdir/*.rsync; do
   fi
   ghe_verbose "* Transferring Pages to $server"
   ghe-rsync -avrHR --delete \
-    -e "ghe-ssh $opts $ssh_config_file_opt" \
+    -e "ghe-ssh" \
     --rsync-path="sudo -u git rsync" \
     --files-from=$file_list \
     "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/pages/./" \

@@ -25,21 +25,15 @@ fi
 # Perform a host-check and establish GHE_REMOTE_XXX variables.
 ghe_remote_version_required "$GHE_HOSTNAME"
 
-hostnames=$GHE_HOSTNAME
-ssh_config_file_opt=
 tempdir=$(mktemp -d -t backup-utils-backup-XXXXXX)
 remote_tempdir=$(ghe-ssh "$GHE_HOSTNAME" -- mktemp -d -t backup-utils-backup-XXXXXX)
 routes_list=$tempdir/routes_list
 remote_routes_list=$remote_tempdir/remote_routes_list
-opts="$GHE_EXTRA_SSH_OPTS"
 
-# storage server hostnames under cluster
 if [ "$GHE_BACKUP_STRATEGY" = "cluster" ]; then
-  ssh_config_file="$tempdir/ssh_config"
-  ssh_config_file_opt="-F $ssh_config_file"
-  opts="$opts -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no"
-  hostnames=$(ghe-cluster-nodes "$GHE_HOSTNAME" "storage-server")
-  ghe-ssh-config "$GHE_HOSTNAME" "$hostnames" > "$ssh_config_file"
+  hostnames=$(ghe-cluster-nodes "$GHE_HOSTNAME" "git-server") || hostnames=$GHE_HOSTNAME
+else
+  hostnames=$GHE_HOSTNAME
 fi
 
 # Make sure root backup dir exists if this is the first run
@@ -50,7 +44,7 @@ mkdir -p "$backup_dir"
 cleanup() {
   # Enable remote maintenance operations
   for hostname in $hostnames; do
-    ghe-gc-enable $ssh_config_file_opt $hostname || true
+    ghe-gc-enable $hostname || true
   done
 
   ghe-ssh "$GHE_HOSTNAME" -- rm -rf $remote_tempdir
@@ -60,7 +54,7 @@ trap 'cleanup' EXIT INT
 
 # Disable remote maintenance operations
 for hostname in $hostnames; do
-  ghe-gc-disable $ssh_config_file_opt $hostname
+  ghe-gc-disable $hostname
 done
 
 # If we have a previous increment and it is not empty, avoid transferring existing files via rsync's
@@ -113,7 +107,7 @@ for file_list in $tempdir/*.rsync; do
   ghe_verbose "* Transferring $object_num objects from $hostname"
 
   ghe-rsync -avr \
-  -e "ghe-ssh $opts $ssh_config_file_opt" \
+  -e "ghe-ssh" \
   $link_dest "$@" \
   --rsync-path='sudo -u git rsync' \
   --files-from="$file_list" \

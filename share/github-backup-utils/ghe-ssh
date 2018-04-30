@@ -21,7 +21,11 @@ while true; do
       user="$2"
       shift 2
       ;;
-    -o|-F)
+    -n)
+      opts="$opts $1"
+      shift 1
+      ;;
+    -o)
       opts="$opts $1 $2"
       shift 2
       ;;
@@ -69,6 +73,47 @@ fi
 user=${user:-$(ssh_user_part "$host")}
 port=${port:-$(ssh_port_part "$host")}
 host=$(ssh_host_part "$host")
+ssh_config_file=$(mktemp -t ".ghe-ssh-config-XXXXXX")
+
+echo "Host *" > $ssh_config_file
+echo "  User $user" >> $ssh_config_file
+echo "  Port $port" >> $ssh_config_file
+echo "  BatchMode yes" >> $ssh_config_file
+
+# Determine if a <role>-server-<uuid> host has been specified, and if so
+# generate the relevant SSH configuration.
+if [[ "$host" =~ [A-Za-z]+-server-[A-Za-z0-9]{8}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{12} ]]; then
+  # Allow GIT_CONFIG to be specified manually for CI.
+  if [ -z "$GIT_CONFIG" ]; then
+    # If an individual backup step is being run directly, or this is a restore
+    # then ghe-backup-settings won't have ran, which transfers cluster.conf.
+    if ! $GHE_RESTORE_SNAPSHOT_PATH && [ -f "$GHE_SNAPSHOT_DIR/cluster.conf" ]; then
+      GIT_CONFIG="$GHE_SNAPSHOT_DIR/cluster.conf"
+    else
+      cluster_config_file="$(mktemp -t ".ghe-cluster-conf-XXXXXX")"
+      ghe-ssh -n "$GHE_HOSTNAME" -- "sudo cat $GHE_REMOTE_CLUSTER_CONF_FILE 2>/dev/null" > "$cluster_config_file"
+      GIT_CONFIG="$cluster_config_file"
+    fi
+  fi
+  export GIT_CONFIG_NOSYSTEM=1 GIT_CONFIG
+
+  for cluster_host in $(git config --get-regexp cluster.*.hostname | cut -d ' ' -f2); do
+    uuid=$(git config cluster.$cluster_host.uuid)
+    if [ -n "$(git config cluster.$cluster_host.ipv6)" ]; then
+      ip=$(git config "cluster.$cluster_host.ipv6")
+    elif [ -n "$(git config cluster.$cluster_host.ipv4)" ]; then
+      ip=$(git config "cluster.$cluster_host.ipv4")
+    fi
+
+    echo "Host git-server-$uuid pages-server-$uuid storage-server-$uuid" >> $ssh_config_file
+    echo "  HostName $ip" >> $ssh_config_file
+    echo "  Port $port" >> $ssh_config_file
+    echo "  StrictHostKeyChecking no" >> $ssh_config_file
+    if [ "$GHE_SSH_DIRECT" != "yes" ]; then
+      echo "  ProxyCommand ghe-ssh \"$GHE_HOSTNAME\" -- nc.openbsd %h %p" >> $ssh_config_file
+    fi
+  done
+fi
 
 # Enable SSH multiplexing by default
 if [ -z "$GHE_DISABLE_SSH_MUX" ]; then
@@ -79,7 +124,7 @@ if [ -z "$GHE_DISABLE_SSH_MUX" ]; then
   # Workaround for https://bugzilla.mindrot.org/show_bug.cgi?id=1988
   if ! [ -S $controlpath ]; then
     # shellcheck disable=SC2090 # We don't need the quote/backslashes respected
-    ( cd "$TMPDIR" && ssh $opts -f -l $user -p $port "$host" -- /bin/true >/dev/null 2>&1 || true )
+    ( cd "$TMPDIR" && ssh $opts -f -F $ssh_config_file "$host" -- /bin/true >/dev/null 2>&1 || true )
   fi
 fi
 
@@ -88,4 +133,7 @@ $GHE_VERBOSE_SSH && set -x
 
 # Exec ssh command with modified host / port args and add nice to command.
 # shellcheck disable=SC2090 # We don't need the quote/backslashes respected
-exec ssh $opts -l $user -p $port "$host" -- $GHE_NICE $GHE_IONICE "$@"
+exec ssh $opts -F $ssh_config_file "$host" -- $GHE_NICE $GHE_IONICE "$@"
+
+# Cleanup temporary files
+rm $ssh_config_file $cluster_config_file

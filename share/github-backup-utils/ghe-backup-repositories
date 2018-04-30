@@ -52,21 +52,15 @@ fi
 # Perform a host-check and establish GHE_REMOTE_XXX variables.
 ghe_remote_version_required "$GHE_HOSTNAME"
 
-hostnames=$GHE_HOSTNAME
-ssh_config_file_opt=
 tempdir=$(mktemp -d -t backup-utils-backup-XXXXXX)
 remote_tempdir=$(ghe-ssh "$GHE_HOSTNAME" -- mktemp -d -t backup-utils-backup-XXXXXX)
 routes_list=$tempdir/routes_list
 remote_routes_list=$remote_tempdir/remote_routes_list
-opts="$GHE_EXTRA_SSH_OPTS"
 
-# git server hostnames under cluster
 if [ "$GHE_BACKUP_STRATEGY" = "cluster" ]; then
-  ssh_config_file="$tempdir/ssh_config"
-  ssh_config_file_opt="-F $ssh_config_file"
-  opts="$opts -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no"
-  hostnames=$(ghe-cluster-nodes "$GHE_HOSTNAME" "git-server")
-  ghe-ssh-config "$GHE_HOSTNAME" "$hostnames" > "$ssh_config_file"
+  hostnames=$(ghe-cluster-nodes "$GHE_HOSTNAME" "git-server") || hostnames=$GHE_HOSTNAME
+else
+  hostnames=$GHE_HOSTNAME
 fi
 
 # Make sure root backup dir exists if this is the first run
@@ -81,7 +75,7 @@ cleanup() {
 
   # Enable remote GC operations
   for hostname in $hostnames; do
-    ghe-gc-enable $ssh_config_file_opt $hostname:$port || true
+    ghe-gc-enable $hostname:$port || true
   done
 
   ghe-ssh "$GHE_HOSTNAME" -- rm -rf $remote_tempdir
@@ -92,7 +86,7 @@ trap 'exit $?' INT # ^C always terminate
 
 # Disable remote GC operations
 for hostname in $hostnames; do
-  ghe-gc-disable $ssh_config_file_opt $hostname
+  ghe-gc-disable $hostname
 done
 
 # If we have a previous increment, avoid transferring existing files via rsync's
@@ -150,7 +144,7 @@ rsync_repository_data () {
     shift
     shift
     ghe-rsync -avr \
-      -e "ghe-ssh $opts -p $port $ssh_config_file_opt" \
+      -e "ghe-ssh" \
       $link_dest "$@" \
       --rsync-path='sudo -u git rsync' \
       --include-from=- --exclude=\* \
@@ -160,7 +154,7 @@ rsync_repository_data () {
   else
     shift
     ghe-rsync -avr \
-      -e "ghe-ssh $opts -p $port $ssh_config_file_opt" \
+      -e "ghe-ssh" \
       $link_dest "$@" \
       --rsync-path='sudo -u git rsync' \
       --include-from=- --exclude=\* \

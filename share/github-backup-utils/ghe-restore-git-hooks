@@ -19,17 +19,12 @@ ghe_remote_version_required "$GHE_HOSTNAME"
 # us run this script directly.
 : ${GHE_RESTORE_SNAPSHOT:=current}
 
-hostnames=$GHE_HOSTNAME
 tempdir=$(mktemp -d -t backup-utils-restore-XXXXXX)
-ssh_config_file_opt=
-opts="$GHE_EXTRA_SSH_OPTS"
 
-if $CLUSTER; then
-  ssh_config_file="$tempdir/ssh_config"
-  ssh_config_file_opt="-F $ssh_config_file"
-  opts="$opts -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no"
-  hostnames=$(ghe-cluster-nodes "$GHE_HOSTNAME" "git-server")
-  ghe-ssh-config "$GHE_HOSTNAME" "$hostnames" > "$ssh_config_file"
+if [ $CLUSTER ]; then
+  hostnames=$(ghe-cluster-nodes "$GHE_HOSTNAME" "git-server") || hostnames=$GHE_HOSTNAME
+else
+  hostnames=$GHE_HOSTNAME
 fi
 
 cleanup() {
@@ -45,25 +40,25 @@ if [ -d "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/git-hooks/environments/tarballs" ];
   hostname=$(echo $hostnames | awk '{ print $1; }')
 
   if [ -n "$hostname" ]; then
-    ghe-ssh $ssh_config_file_opt "$hostname:122" -- "sudo -u git mkdir -p $GHE_REMOTE_DATA_USER_DIR/git-hooks/environments/tarballs"
+    ghe-ssh "$hostname" -- "sudo -u git mkdir -p $GHE_REMOTE_DATA_USER_DIR/git-hooks/environments/tarballs"
     ghe-rsync -avH --delete \
-    -e "ghe-ssh $opts $ssh_config_file_opt" \
+    -e "ghe-ssh" \
     --rsync-path="sudo -u git rsync" \
     "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/git-hooks/environments/tarballs/" \
     "$hostname:$GHE_REMOTE_DATA_USER_DIR/git-hooks/environments/tarballs" 1>&3
 
     for tarball in $tarballs; do
       env_id=$(echo $tarball | cut -d '/' -f 2)
-      ghe-ssh $ssh_config_file_opt "$hostname:122" -- "/bin/bash -c 'export PATH=\$PATH:/usr/local/share/enterprise && ghe-hook-env-update $env_id $GHE_REMOTE_DATA_USER_DIR/git-hooks/environments/tarballs/$tarball'" 1>&3 2>&3
+      ghe-ssh "$hostname" -- "/bin/bash -c 'export PATH=\$PATH:/usr/local/share/enterprise && ghe-hook-env-update $env_id $GHE_REMOTE_DATA_USER_DIR/git-hooks/environments/tarballs/$tarball'" 1>&3 2>&3
     done
   fi
 fi
 
 if [ -d "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/git-hooks/repos" ]; then
   for hostname in $hostnames; do
-    ghe-ssh $ssh_config_file_opt "$hostname" -- "sudo -u git mkdir -p $GHE_REMOTE_DATA_USER_DIR/git-hooks/repos"
+    ghe-ssh "$hostname" -- "sudo -u git mkdir -p $GHE_REMOTE_DATA_USER_DIR/git-hooks/repos"
     ghe-rsync -avH --delete \
-    -e "ghe-ssh $opts $ssh_config_file_opt" \
+    -e "ghe-ssh" \
     --rsync-path="sudo -u git rsync" \
     "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/git-hooks/repos/" \
     "$hostname:$GHE_REMOTE_DATA_USER_DIR/git-hooks/repos" 1>&3 &

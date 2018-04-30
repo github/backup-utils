@@ -24,18 +24,12 @@ fi
 # Perform a host-check and establish GHE_REMOTE_XXX variables.
 ghe_remote_version_required "$GHE_HOSTNAME"
 
-hostnames=$GHE_HOSTNAME
-ssh_config_file_opt=
 tempdir=$(mktemp -d -t backup-utils-restore-XXXXXX)
-opts="$GHE_EXTRA_SSH_OPTS"
 
-# Pages server hostnames under cluster
 if [ "$GHE_BACKUP_STRATEGY" = "cluster" ]; then
-  ssh_config_file="$tempdir/ssh_config"
-  ssh_config_file_opt="-F $ssh_config_file"
-  opts="$opts -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no"
-  hostnames=$(ghe-cluster-nodes "$GHE_HOSTNAME" "pages-server")
-  ghe-ssh-config "$GHE_HOSTNAME" "$hostnames" > "$ssh_config_file"
+  hostnames=$(ghe-cluster-nodes "$GHE_HOSTNAME" "pages-server") || hostnames=$GHE_HOSTNAME
+else
+  hostnames=$GHE_HOSTNAME
 fi
 
 # Make sure root backup dir exists if this is the first run
@@ -66,7 +60,7 @@ for hostname in $hostnames; do
 
   # Transfer all data from the user data directory using rsync.
   ghe-rsync -avz \
-    -e "ghe-ssh $opts $ssh_config_file_opt" \
+    -e "ghe-ssh" \
     --rsync-path='sudo -u git rsync' \
     $link_dest \
     "$hostname:$GHE_REMOTE_DATA_USER_DIR/pages/" \

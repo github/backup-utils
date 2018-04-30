@@ -13,8 +13,7 @@ set -e
 
 bm_start "$(basename $0)"
 
-# Set up remote host and root backup snapshot directory based on config
-host="$GHE_HOSTNAME"
+# Set up root backup snapshot directory based on config
 backup_dir="$GHE_SNAPSHOT_DIR/storage"
 
 # Verify rsync is available.
@@ -24,17 +23,9 @@ if ! rsync --version 1>/dev/null 2>&1; then
 fi
 
 # Perform a host-check and establish GHE_REMOTE_XXX variables.
-ghe_remote_version_required "$host"
+ghe_remote_version_required "$GHE_HOSTNAME"
 
-# Split host:port into parts
-port=$(ssh_port_part "$GHE_HOSTNAME")
-host=$(ssh_host_part "$GHE_HOSTNAME")
-
-# Add user / -l option
-user="${host%@*}"
-[ "$user" = "$host" ] && user="admin"
-
-hostnames=$host
+hostnames=$GHE_HOSTNAME
 ssh_config_file_opt=
 tempdir=$(mktemp -d -t backup-utils-backup-XXXXXX)
 remote_tempdir=$(ghe-ssh "$GHE_HOSTNAME" -- mktemp -d -t backup-utils-backup-XXXXXX)
@@ -59,7 +50,7 @@ mkdir -p "$backup_dir"
 cleanup() {
   # Enable remote maintenance operations
   for hostname in $hostnames; do
-    ghe-gc-enable $ssh_config_file_opt $hostname:$port || true
+    ghe-gc-enable $ssh_config_file_opt $hostname || true
   done
 
   ghe-ssh "$GHE_HOSTNAME" -- rm -rf $remote_tempdir
@@ -69,7 +60,7 @@ trap 'cleanup' EXIT INT
 
 # Disable remote maintenance operations
 for hostname in $hostnames; do
-  ghe-gc-disable $ssh_config_file_opt $hostname:$port
+  ghe-gc-disable $ssh_config_file_opt $hostname
 done
 
 # If we have a previous increment and it is not empty, avoid transferring existing files via rsync's
@@ -102,7 +93,7 @@ bm_end "$(basename $0) - Fetching routes"
 
 bm_start "$(basename $0) - Processing routes"
 if [ "$GHE_BACKUP_STRATEGY" != "cluster" ]; then
-  server=$host
+  server=$GHE_HOSTNAME
 fi
 cat $routes_list | awk -v tempdir="$tempdir" -v server="$server" '{ for(i=2;i<=NF;i++){ server != "" ? host=server : host=$i; print $1 > (tempdir"/"host".rsync") }}'
 ghe_debug "\n$(ls -l $tempdir/*.rsync)"
@@ -122,7 +113,7 @@ for file_list in $tempdir/*.rsync; do
   ghe_verbose "* Transferring $object_num objects from $hostname"
 
   ghe-rsync -avr \
-  -e "ghe-ssh $opts -p $port $ssh_config_file_opt -l $user" \
+  -e "ghe-ssh $opts $ssh_config_file_opt" \
   $link_dest "$@" \
   --rsync-path='sudo -u git rsync' \
   --files-from="$file_list" \

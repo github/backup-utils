@@ -226,11 +226,6 @@ ghe_remote_version_required () {
     _out=$(ghe-host-check "$@")
     echo "$_out"
 
-    # override hostname w/ ghe-host-check output because the port could have
-    # been autodetected to 122.
-    GHE_HOSTNAME=$(echo "$_out" | sed 's/Connect \(.*:[0-9]*\) OK.*/\1/')
-    export GHE_HOSTNAME
-
     GHE_REMOTE_VERSION=$(echo "$_out" | sed 's/.*(\(.*\))/\1/')
     export GHE_REMOTE_VERSION
 
@@ -263,18 +258,18 @@ ghe_parse_remote_version () {
   export GHE_VERSION_MAJOR GHE_VERSION_MINOR GHE_VERSION_PATCH
 }
 
-# Parses the <host> part out of a "<host>:<port>" or just "<host>" string.
-# This is used primarily to break hostspecs with non-standard ports down for
-# rsync commands.
-ssh_host_part () {
-  [ "${1##*:}" = "$1" ] && echo "$1" || echo "${1%:*}"
+# Functions to parse a "<user>@<host>:<port>" string.
+ssh_user_part () {
+  [ "${1%%@*}" = "$1" ] && echo "admin" || echo "${1%%@*}"
 }
 
-# Parses the <port> part out of a "<host>:<port>" or just "<host>" string.
-# This is used primarily to break hostspecs with non-standard ports down for
-# rsync commands.
+ssh_host_part () {
+  host_with_port=${1##*@}
+  echo "${host_with_port%%:*}"
+}
+
 ssh_port_part () {
-  [ "${1##*:}" = "$1" ] && echo 22 || echo "${1##*:}"
+  [ "${1##*:}" = "$1" ] && echo 122 || echo "${1##*:}"
 }
 
 # Usage: ghe_remote_logger <message>...

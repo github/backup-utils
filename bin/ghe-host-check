@@ -48,10 +48,6 @@ options="
   -o ConnectionAttempts=1
 "
 
-# Split host:port into parts
-port=$(ssh_port_part "$host")
-hostname=$(ssh_host_part "$host")
-
 set +e
 output=$(echo "ghe-negotiate-version backup-utils $BACKUP_UTILS_VERSION" | ghe-ssh -o BatchMode=no $options $host -- /bin/sh 2>&1)
 rc=$?
@@ -60,10 +56,6 @@ set -e
 if [ $rc -ne 0 ]; then
   case $rc in
     255)
-      if echo "$output" | grep -i "port 22: Network is unreachable\|port 22: connection refused\|port 22: no route to host\|ssh_exchange_identification: Connection closed by remote host\|Connection timed out during banner exchange\|port 22: Connection timed out" >/dev/null; then
-        exec "$(basename $0)" "$hostname:122"
-      fi
-
       echo "$output" 1>&2
       echo "Error: ssh connection with '$host' failed" 1>&2
       echo "Note that your SSH key needs to be setup on $host as described in:" 1>&2
@@ -73,11 +65,7 @@ if [ $rc -ne 0 ]; then
       echo "Error: couldn't read GitHub Enterprise fingerprint on '$host' or this isn't a GitHub appliance." 1>&2
       ;;
     1)
-      if [ "${port:-22}" -eq 22 ] && echo "$output" | grep "use port 122" >/dev/null; then
-        exec "$(basename $0)" "$hostname:122"
-      else
-        echo "$output" 1>&2
-      fi
+      echo "$output" 1>&2
       ;;
 
   esac
@@ -106,4 +94,4 @@ if [ -z "$supported" ]; then
   exit 1
 fi
 
-echo "Connect $hostname:$port OK (v$version)"
+echo "Connect $host OK (v$version)"

@@ -75,7 +75,7 @@ for hostname in $hostnames; do
 
   # Transfer all data from the user data directory using rsync.
   ghe-rsync -avz \
-    -e "ssh -q $opts -p $port $ssh_config_file_opt -l $user" \
+    -e "ghe-ssh $opts -p $port $ssh_config_file_opt -l $user" \
     --rsync-path='sudo -u git rsync' \
     $link_dest \
     "$hostname:$GHE_REMOTE_DATA_USER_DIR/pages/" \

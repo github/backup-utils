@@ -122,7 +122,7 @@ for file_list in $tempdir/*.rsync; do
   ghe_verbose "* Transferring $object_num objects from $hostname"
 
   ghe-rsync -avr \
-  -e "ssh -q $opts -p $port $ssh_config_file_opt -l $user" \
+  -e "ghe-ssh $opts -p $port $ssh_config_file_opt -l $user" \
   $link_dest "$@" \
   --rsync-path='sudo -u git rsync' \
   --files-from="$file_list" \

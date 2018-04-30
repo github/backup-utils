@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#/ Usage: ghe-restore-userdata <dirname> <host>
+#/ Usage: ghe-restore-userdata <dirname>
 #/ Restore a special user data directory via rsync. This is used
 #/ for a number of different simple datastores kept under /data/user on the
 #/ remote appliance, including: hookshot, alambic_assets, and pages data.
@@ -10,13 +10,12 @@ set -e
 . "$( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config"
 
 # Show usage and bail with no arguments
-[ $# -lt 2 ] && print_usage
+[ -z "$*" ] && print_usage
 
 bm_start "$(basename $0) - $1"
 
-# Grab userdata directory name and host args
+# Grab userdata directory name
 dirname="$1"
-GHE_HOSTNAME="$2"
 
 # Verify rsync is available.
 if ! rsync --version 1>/dev/null 2>&1; then

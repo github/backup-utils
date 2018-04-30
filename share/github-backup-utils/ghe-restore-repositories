@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#/ Usage: ghe-restore-repositories <host>
+#/ Usage: ghe-restore-repositories
 #/ Restore repositories from an rsync snapshot of all Git repository data.
 #/
 #/ Note: This script typically isn't called directly. It's invoked by the
@@ -10,13 +10,7 @@ set -e
 # shellcheck source=share/github-backup-utils/ghe-backup-config
 . "$( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config"
 
-# Show usage and bail with no arguments
-[ -z "$*" ] && print_usage
-
 bm_start "$(basename $0)"
-
-# Grab host arg
-GHE_HOSTNAME="$1"
 
 # The snapshot to restore should be set by the ghe-restore command but this lets
 # us run this script directly.
@@ -32,16 +26,7 @@ fi
 # Perform a host-check and establish GHE_REMOTE_XXX variables.
 ghe_remote_version_required "$GHE_HOSTNAME"
 
-# Generate SSH config for forwarding
-# Split host:port into parts
-port=$(ssh_port_part "$GHE_HOSTNAME")
-host=$(ssh_host_part "$GHE_HOSTNAME")
-
-# Add user / -l option
-user="${host%@*}"
-[ "$user" = "$host" ] && user="admin"
-
-hostnames=$host
+hostnames=$GHE_HOSTNAME
 tempdir=$(mktemp -d -t backup-utils-restore-XXXXXX)
 remote_tempdir=$(ghe-ssh "$GHE_HOSTNAME" -- mktemp -d -t backup-utils-restore-XXXXXX)
 ssh_config_file_opt=
@@ -63,7 +48,7 @@ fi
 
 cleanup() {
   for hostname in $hostnames; do
-    ghe-gc-enable $ssh_config_file_opt $hostname:$port || true
+    ghe-gc-enable $ssh_config_file_opt $hostname || true
   done
   ghe-ssh "$GHE_HOSTNAME" -- rm -rf $remote_tempdir
   rm -rf $tempdir
@@ -72,7 +57,7 @@ trap cleanup EXIT
 
 # Disable remote GC operations
 for hostname in $hostnames; do
-  ghe-gc-disable $ssh_config_file_opt $hostname:$port
+  ghe-gc-disable $ssh_config_file_opt $hostname
 done
 
 # Build a list of network paths to send to the server to calculate
@@ -143,11 +128,11 @@ for file_list in $tempdir/*.rsync; do
   if $CLUSTER; then
     server=$(basename $file_list .rsync)
   else
-    server=$host
+    server=$GHE_HOSTNAME
   fi
   ghe_verbose "* Transferring repository networks to $server ..."
   ghe-rsync -avrHR --delete \
-    -e "ghe-ssh $opts -p $port $ssh_config_file_opt -l $user" \
+    -e "ghe-ssh $opts $ssh_config_file_opt" \
     --rsync-path="sudo -u git rsync" \
     --files-from=$file_list \
     "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/repositories/./" \
@@ -173,7 +158,7 @@ if [ -d $GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/repositories/info ]; then
   ghe_verbose "* Transferring repository info data"
   for hostname in $hostnames; do
     if ! ghe-rsync -av --delete \
-      -e "ghe-ssh $opts -p $port $ssh_config_file_opt -l $user" \
+      -e "ghe-ssh $opts $ssh_config_file_opt" \
       --rsync-path="sudo -u git rsync" \
       "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/repositories/info/" \
       "$hostname:$GHE_REMOTE_DATA_USER_DIR/repositories/info" 1>&3; then

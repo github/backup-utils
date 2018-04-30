@@ -10,12 +10,7 @@ set -e
 # shellcheck source=share/github-backup-utils/ghe-backup-config
 . "$( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config"
 
-# Show usage and bail with no arguments
-[ $# -lt 1 ] && print_usage
-
 bm_start "$(basename $0)"
-
-GHE_HOSTNAME="$1"
 
 # Perform a host-check and establish GHE_REMOTE_XXX variables.
 ghe_remote_version_required "$GHE_HOSTNAME"
@@ -54,7 +49,7 @@ done
 
 if [ -s "$tmp_list" ]; then
   ghe-rsync -avz --delete \
-    -e "ghe-ssh -p $(ssh_port_part "$GHE_HOSTNAME")" \
+    -e "ghe-ssh" \
     --rsync-path="sudo -u elasticsearch rsync" \
     --files-from=$tmp_list \
     "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/audit-log/" \

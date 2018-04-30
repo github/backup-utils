@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#/ Usage: ghe-restore-pages <host>
+#/ Usage: ghe-restore-pages
 #/ Restore repositories from an rsync snapshot of all Git repository data.
 #/
 #/ Note: This script typically isn't called directly. It's invoked by the
@@ -10,13 +10,7 @@ set -e
 # shellcheck source=share/github-backup-utils/ghe-backup-config
 . "$( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config"
 
-# Show usage and bail with no arguments
-[ -z "$*" ] && print_usage
-
 bm_start "$(basename $0)"
-
-# Grab host arg
-GHE_HOSTNAME="$1"
 
 # The snapshot to restore should be set by the ghe-restore command but this lets
 # us run this script directly.
@@ -34,15 +28,7 @@ fi
 # Perform a host-check and establish GHE_REMOTE_XXX variables.
 ghe_remote_version_required "$GHE_HOSTNAME"
 
-# Split host:port into parts
-port=$(ssh_port_part "$GHE_HOSTNAME")
-host=$(ssh_host_part "$GHE_HOSTNAME")
-
-# Add user / -l option
-user="${host%@*}"
-[ "$user" = "$host" ] && user="admin"
-
-hostnames=$host
+hostnames=$GHE_HOSTNAME
 tempdir=$(mktemp -d -t backup-utils-restore-XXXXXX)
 remote_tempdir=$(ghe-ssh "$GHE_HOSTNAME" -- mktemp -d -t backup-utils-restore-XXXXXX)
 opts="$GHE_EXTRA_SSH_OPTS"
@@ -132,11 +118,11 @@ for file_list in $tempdir/*.rsync; do
   if $CLUSTER; then
     server=$(basename $file_list .rsync)
   else
-    server=$host
+    server=$GHE_HOSTNAME
   fi
   ghe_verbose "* Transferring Pages to $server"
   ghe-rsync -avrHR --delete \
-    -e "ghe-ssh $opts -p $port $ssh_config_file_opt -l $user" \
+    -e "ghe-ssh $opts $ssh_config_file_opt" \
     --rsync-path="sudo -u git rsync" \
     --files-from=$file_list \
     "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/pages/./" \

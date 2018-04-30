@@ -273,30 +273,30 @@ bm_end "ghe-import-redis"
 # Unified and enhanced restore method to 2.13.0 and newer
 if $CLUSTER || [ "$(version $GHE_REMOTE_VERSION)" -ge "$(version 2.13.0)" ]; then
   echo "Restoring Git repositories ..."
-  ghe-restore-repositories "$GHE_HOSTNAME" 1>&3
+  ghe-restore-repositories 1>&3
 
   echo "Restoring Gists ..."
-  ghe-restore-repositories-gist "$GHE_HOSTNAME" 1>&3
+  ghe-restore-repositories-gist 1>&3
 else
   echo "Restoring Git repositories and Gists ..."
-  ghe-restore-repositories-rsync "$GHE_HOSTNAME" 1>&3
+  ghe-restore-repositories-rsync 1>&3
 fi
 
 echo "Restoring GitHub Pages ..."
-ghe-restore-pages "$GHE_HOSTNAME" 1>&3
+ghe-restore-pages 1>&3
 
 echo "Restoring SSH authorized keys ..."
 ghe-ssh "$GHE_HOSTNAME" -- 'ghe-import-authorized-keys' < "$GHE_RESTORE_SNAPSHOT_PATH/authorized-keys.json" 1>&3
 
 echo "Restoring storage data ..."
-ghe-restore-storage "$GHE_HOSTNAME" 1>&3
+ghe-restore-storage 1>&3
 
 echo "Restoring custom Git hooks ..."
-ghe-restore-git-hooks "$GHE_HOSTNAME" 1>&3
+ghe-restore-git-hooks 1>&3
 
 if ! $CLUSTER && [ -d "$GHE_RESTORE_SNAPSHOT_PATH/elasticsearch" ]; then
   echo "Restoring Elasticsearch indices ..."
-  ghe-restore-es-rsync "$GHE_HOSTNAME" 1>&3
+  ghe-restore-es-rsync 1>&3
 fi
 
 # Restore the audit log migration sentinel file, if it exists in the snapshot
@@ -308,10 +308,10 @@ fi
 # all releases of cluster
 if $CLUSTER || [ "$(version $GHE_REMOTE_VERSION)" -ge "$(version 2.12.9)" ]; then
   echo "Restoring Elasticsearch Audit logs ..."
-  ghe-restore-es-audit-log "$GHE_HOSTNAME" 1>&3
+  ghe-restore-es-audit-log 1>&3
 
   echo "Restoring hookshot logs ..."
-  ghe-restore-es-hookshot "$GHE_HOSTNAME" 1>&3
+  ghe-restore-es-hookshot 1>&3
 fi
 
 # Restart an already running memcached to reset the cache after restore
@@ -340,7 +340,6 @@ else
     echo "* Warning: Failed to start cron"
   fi
 fi
-
 
 # Update the remote status to "complete". This has to happen before importing
 # ssh host keys because subsequent commands will fail due to the host key

@@ -1,3 +1,16 @@
+github-backup-utils (2.13.1) UNRELEASED; urgency=medium
+
+  * Retry with the admin ssh port on network unreachable too. #377
+  * Output backup utils version on backup and restore #384
+  * Check filesystem supports hardlinks #388
+  * Switch back to optimised restore route calculation #389
+  * Optionally log verbose output to a file instead of stdout #391
+  * Switch back to optimised backup route calculation #392
+  * Remove check for git from ghe-ssh #393
+  * Use remote's mktemp to create temp dir on remote host #395
+
+ -- Colin Seymour <colin@github.com>  Wed, 09 May 2018 10:16:18 +0000
+
 github-backup-utils (2.13.0) UNRELEASED; urgency=medium
 
   * Unify the backup & restore process #375

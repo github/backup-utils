@@ -38,7 +38,7 @@ while true; do
 done
 
 if [ -n "$cleanup_mux" ]; then
-  find $TMPDIR -name ".ghe-sshmux-*" -type s -exec ssh -O stop -S {} - \; >/dev/null 2>&1
+  find $TMPDIR -name ".ghe-sshmux-*" -type s -exec ssh -O stop -S {} - \; >/dev/null 2>&1 || true
   exit
 fi
 

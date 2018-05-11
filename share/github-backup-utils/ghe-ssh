@@ -23,7 +23,7 @@ while true; do
       ;;
     -c|--clean)
       cleanup_mux=1
-      shift
+      break
       ;;
     --)
       echo "Error: illegal '--' in ssh invocation"
@@ -36,6 +36,13 @@ while true; do
       ;;
   esac
 done
+
+if [ -n "$cleanup_mux" ]; then
+  while find $TMPDIR -name ".ghe-sshmux-*" -type s -exec ssh -O stop -S {} - \; >/dev/null 2>&1; do
+    find $TMPDIR -name ".ghe-sshmux-*" -type s -exec ssh -O stop -S {} - \; >/dev/null 2>&1
+  done
+  exit
+fi
 
 # Show usage with no host
 [ -z "$host" ] && print_usage
@@ -77,12 +84,5 @@ fi
 $GHE_VERBOSE_SSH && set -x
 
 # Exec ssh command with modified host / port args and add nice to command.
-if [ -z "$cleanup_mux" ]; then
-  # Exec ssh command with modified host / port args and add nice to command.
-  # shellcheck disable=SC2090 # We don't need the quote/backslashes respected
-  exec ssh -p $port $opts -o BatchMode=yes "$host" -- $GHE_NICE $GHE_IONICE "$@"
-elif [ -z "$GHE_DISABLE_SSH_MUX" ]; then
-  while ssh -O check -o ControlPath="$controlpath" "$GHE_HOSTNAME" > /dev/null 2>&1; do
-    ssh -O stop -o ControlPath="$controlpath" "$GHE_HOSTNAME" > /dev/null 2>&1
-  done
-fi
+# shellcheck disable=SC2090 # We don't need the quote/backslashes respected
+exec ssh -p $port $opts -o BatchMode=yes "$host" -- $GHE_NICE $GHE_IONICE "$@"

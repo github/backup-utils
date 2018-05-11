@@ -60,7 +60,7 @@ set -e
 if [ $rc -ne 0 ]; then
   case $rc in
     255)
-      if echo "$output" | grep -i "port 22: connection refused\|port 22: no route to host\|ssh_exchange_identification: Connection closed by remote host\|Connection timed out during banner exchange\|port 22: Connection timed out" >/dev/null; then
+      if echo "$output" | grep -i "port 22: Network is unreachable\|port 22: connection refused\|port 22: no route to host\|ssh_exchange_identification: Connection closed by remote host\|Connection timed out during banner exchange\|port 22: Connection timed out" >/dev/null; then
         exec "$(basename $0)" "$hostname:122"
       fi
 
@@ -89,6 +89,15 @@ version=$(echo "$output" | sed -n 's/GitHub Enterprise version \(.*\)/\1/p')
 if [ -z "$version" ]; then
   echo "Error: failed to parse version on '$host' or this isn't a GitHub appliance." 1>&2
   exit 2
+fi
+
+if [ -z "$GHE_ALLOW_REPLICA_BACKUP" ]; then
+  if [ "$(ghe-ssh $host -- cat $GHE_REMOTE_ROOT_DIR/etc/github/repl-state 2>/dev/null || true)" = "replica" ]; then
+    echo "Error: high availability replica detected." 1>&2
+    echo "Backup Utilities should be used to backup from the primary node in" 1>&2
+    echo "high availability environments to ensure consistent and repliable backups." 1>&2
+    exit 1
+  fi
 fi
 
 # backup-utils 2.13 onwards limits support to the current and previous two releases

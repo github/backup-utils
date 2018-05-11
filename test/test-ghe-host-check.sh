@@ -2,26 +2,27 @@
 # ghe-host-check command tests
 
 # Bring in testlib
-. $(dirname "$0")/testlib.sh
+# shellcheck source=test/testlib.sh
+. "$(dirname "$0")/testlib.sh"
 
 begin_test "ghe-host-check"
 (
-    set -e
-    ghe-host-check
+  set -e
+  ghe-host-check
 
-    ghe-host-check | grep OK
-    ghe-host-check | grep localhost
+  ghe-host-check | grep OK
+  ghe-host-check | grep localhost
 )
 end_test
 
 
 begin_test "ghe-host-check with host arg"
 (
-    set -e
-    ghe-host-check example.com
+  set -e
+  ghe-host-check example.com
 
-    ghe-host-check example.com | grep OK
-    ghe-host-check example.com | grep example.com
+  ghe-host-check example.com | grep OK
+  ghe-host-check example.com | grep example.com
 )
 end_test
 
@@ -59,5 +60,17 @@ begin_test "ghe-host-check detects unsupported GitHub Enterprise versions"
   GHE_TEST_REMOTE_VERSION=2.13.999gm1 ghe-host-check
   ! GHE_TEST_REMOTE_VERSION=2.9999.1521793591.performancetest ghe-host-check
   GHE_TEST_REMOTE_VERSION=3.0.0 ghe-host-check
+)
+end_test
+
+begin_test "ghe-host-check detects high availability replica"
+(
+  set -e
+  echo "primary" > "$GHE_REMOTE_ROOT_DIR/etc/github/repl-state"
+  ghe-host-check
+
+  echo "replica" > "$GHE_REMOTE_ROOT_DIR/etc/github/repl-state"
+  ! ghe-host-check
+  GHE_ALLOW_REPLICA_BACKUP=yes ghe-host-check
 )
 end_test

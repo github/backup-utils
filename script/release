@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-#/ Usage: release [--dry-run] <version>
+#/ Usage: release [--dry-run] <version> [min_version]
 #/
 #/ Publish a backup-utils release:
 #/ * Updates the package changelog
@@ -17,6 +17,7 @@
 #/ * Export GH_OWNER and GH_REPO if you want to use a different owner/repo
 #/ * Only pull requests labeled with bug, feature or enhancement will show up in the
 #/   release page and the changelog.
+#/ * If this is a X.Y.0 release, a minimum supported version needs to be supplied too.
 #/
 require 'json'
 require 'net/http'
@@ -192,13 +193,19 @@ def release_available?(tag_name)
   false
 end
 
-def bump_version(new_version, path = 'share/github-backup-utils/version')
+def bump_version(new_version, min_version = nil, path = 'share/github-backup-utils/version')
   current_version = Gem::Version.new(File.read(path).strip.chomp)
   if Gem::Version.new(new_version) < current_version
     raise "New version should be newer than #{current_version}"
   end
   File.open("#{path}.new", 'w') { |f| f.puts new_version }
   File.rename("#{path}.new", path)
+
+  unless min_version.nil?
+    content = File.read('bin/ghe-host-check')
+    new_content = content.gsub(/supported_minimum_version="[0-9]\.[0-9]+\.0"/, "supported_minimum_version=\"#{min_version}\"")
+    File.open('bin/ghe-host-check', 'w') {|file| file.puts new_content }
+  end
 end
 
 def push_release_branch(version)
@@ -336,13 +343,16 @@ if $PROGRAM_NAME == __FILE__
       args.delete '--no-warn'
     end
 
-    raise 'Usage: release [--dry-run] <version>' if args.empty?
+    raise 'Usage: release [--dry-run] <version> [min_version]' if args.empty?
 
     begin
       version = Gem::Version.new(args[0])
+      min_version = args[1] ? args[1] : nil
     rescue ArgumentError
       raise "Error parsing version #{args[0]}"
     end
+
+    raise "Minimum supported version is required for X.Y.0 releases\n\nUsage: release [--dry-run] <version> [min_version]" if /[0-9]\.[0-9]+\.0/ =~ version.to_s && min_version.nil?
 
     raise "The repo #{GH_REPO} does not exist for #{GH_OWNER}" unless repo_exists?
 
@@ -353,9 +363,13 @@ if $PROGRAM_NAME == __FILE__
     release_a = false
     release_a = release_available? "v#{version}"
 
+    puts "Bumping version to #{version}..."
+    bump_version version, min_version
+
     if dry_run
       puts "Existing release?: #{release_a}"
       puts "New version: #{version}"
+      puts "Min version: #{min_version}" unless min_version.nil?
       puts "Owner: #{GH_OWNER}"
       puts "Repo: #{GH_REPO}"
       puts "Author: #{GH_AUTHOR}"
@@ -366,6 +380,10 @@ if $PROGRAM_NAME == __FILE__
       else
         release_changes.each { |c| puts "  * #{c}" }
       end
+      puts "Changes:"
+      puts `git diff --color`
+      `git checkout -- share/github-backup-utils/version`
+      `git checkout -- bin/ghe-host-check`
       exit
     end
 
@@ -381,9 +399,6 @@ if $PROGRAM_NAME == __FILE__
       branches.each_line { |l| out += "\n* #{l.strip.chomp}" }
       raise out
     end
-
-    puts "Bumping version to #{version}..."
-    bump_version version
 
     puts 'Updating changelog...'
     update_changelog release_changes, DEB_PKG_NAME, version

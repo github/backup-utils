@@ -11,6 +11,7 @@
 set -e
 
 # Bring in the backup configuration
+# shellcheck source=share/github-backup-utils/ghe-backup-config
 . "$( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config"
 
 # Check if the REMOTE DATA USER directory is set

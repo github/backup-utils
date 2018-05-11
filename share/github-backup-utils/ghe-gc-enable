@@ -9,20 +9,21 @@
 set -e
 
 # Bring in the backup configuration
-. $( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config
+# shellcheck source=share/github-backup-utils/ghe-backup-config
+. "$( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config"
 
 while true; do
-    case "$1" in
-        -F)
-            opts="$1 $2"
-            shift 2
-            ;;
-        *)
-            host="$1"
-            shift
-            break
-            ;;
-    esac
+  case "$1" in
+    -F)
+      opts="$1 $2"
+      shift 2
+      ;;
+    *)
+      host="$1"
+      shift
+      break
+      ;;
+  esac
 done
 
 # Show usage with no host

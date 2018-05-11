@@ -6,9 +6,9 @@
 #
 #   begin_test "the thing"
 #   (
-#        set -e
-#        echo "hello"
-#        false
+#      set -e
+#      echo "hello"
+#      false
 #   )
 #   end_test
 #
@@ -47,7 +47,8 @@ export GHE_TEST_REMOTE_VERSION
 
 # Source in the backup config and set GHE_REMOTE_XXX variables based on the
 # remote version established above or in the environment.
-. $( dirname "${BASH_SOURCE[0]}" )/../share/github-backup-utils/ghe-backup-config
+# shellcheck source=share/github-backup-utils/ghe-backup-config
+. "$( dirname "${BASH_SOURCE[0]}" )/../share/github-backup-utils/ghe-backup-config"
 ghe_parse_remote_version "$GHE_TEST_REMOTE_VERSION"
 ghe_remote_version_config "$GHE_TEST_REMOTE_VERSION"
 
@@ -61,15 +62,16 @@ failures=0
 
 # this runs at process exit
 atexit () {
-    res=$?
+  res=$?
 
-    [ -z "$KEEPTRASH" ] && rm -rf "$TRASHDIR"
-    if [ $failures -gt 0 ]
-    then exit 1
-    elif [ $res -ne 0 ]
-    then exit $res
-    else exit 0
-    fi
+  [ -z "$KEEPTRASH" ] && rm -rf "$TRASHDIR"
+  if [ $failures -gt 0 ]; then
+    exit 1
+  elif [ $res -ne 0 ]; then
+    exit $res
+  else
+    exit 0
+  fi
 }
 
 # create the trash dir and data dirs
@@ -81,22 +83,22 @@ cd "$TRASHDIR"
 # much everything. You can pass a version number in the first argument to test
 # with different remote versions.
 setup_remote_metadata () {
-    mkdir -p "$GHE_REMOTE_DATA_DIR" "$GHE_REMOTE_DATA_USER_DIR"
-    mkdir -p "$GHE_REMOTE_DATA_USER_DIR/common"
-    mkdir -p "$GHE_REMOTE_ROOT_DIR/etc/github"
+  mkdir -p "$GHE_REMOTE_DATA_DIR" "$GHE_REMOTE_DATA_USER_DIR"
+  mkdir -p "$GHE_REMOTE_DATA_USER_DIR/common"
+  mkdir -p "$GHE_REMOTE_ROOT_DIR/etc/github"
 }
 setup_remote_metadata
 
 setup_remote_license () {
-    mkdir -p "$(dirname "$GHE_REMOTE_LICENSE_FILE")"
-    echo "fake license data" > "$GHE_REMOTE_LICENSE_FILE"
+  mkdir -p "$(dirname "$GHE_REMOTE_LICENSE_FILE")"
+  echo "fake license data" > "$GHE_REMOTE_LICENSE_FILE"
 }
 setup_remote_license
 
 setup_remote_cluster () {
-    mkdir -p "$GHE_REMOTE_ROOT_DIR/etc/github"
-    touch "$GHE_REMOTE_ROOT_DIR/etc/github/cluster"
-    echo "fake cluster config" > "$GHE_REMOTE_DATA_USER_DIR/common/cluster.conf"
+  mkdir -p "$GHE_REMOTE_ROOT_DIR/etc/github"
+  touch "$GHE_REMOTE_ROOT_DIR/etc/github/cluster"
+  echo "fake cluster config" > "$GHE_REMOTE_DATA_USER_DIR/common/cluster.conf"
 }
 
 # Put the necessary files in place to mimic a configured, or not, instance into
@@ -121,19 +123,20 @@ setup_maintenance_mode () {
 # Mark the beginning of a test. A subshell should immediately follow this
 # statement.
 begin_test () {
-    test_status=$?
-    [ -n "$test_description" ] && end_test $test_status
-    unset test_status
+  test_status=$?
+  [ -n "$test_description" ] && end_test $test_status
+  unset test_status
 
-    tests=$(( tests + 1 ))
-    test_description="$1"
+  tests=$(( tests + 1 ))
+  test_description="$1"
 
-    exec 3>&1 4>&2
-    out="$TRASHDIR/out"
-    exec 1>"$out" 2>&1
+  exec 3>&1 4>&2
+  out="$TRASHDIR/out"
+  exec 1>"$out" 2>&1
 
-    # allow the subshell to exit non-zero without exiting this process
-    set -x +e
+  # allow the subshell to exit non-zero without exiting this process
+  set -x +e
+  before_time=$(date '+%s')
 }
 
 report_failure () {
@@ -142,28 +145,30 @@ report_failure () {
   failures=$(( failures + 1 ))
   printf "test: %-73s $msg\\n" "$desc ..."
   (
-      sed 's/^/    /' <"$TRASHDIR/out" |
-      grep -a -v -e '^\+ end_test' -e '^+ set +x' <"$TRASHDIR/out" |
-          sed 's/[+] test_status=/test failed. last command exited with /' |
-          sed 's/^/    /'
+    sed 's/^/    /' <"$TRASHDIR/out" |
+    grep -a -v -e '^\+ end_test' -e '^+ set +x' <"$TRASHDIR/out" |
+    sed 's/[+] test_status=/test failed. last command exited with /' |
+    sed 's/^/    /'
   ) 1>&2
 }
 
 # Mark the end of a test.
 end_test () {
-    test_status="${1:-$?}"
-    set +x -e
-    exec 1>&3 2>&4
+  test_status="${1:-$?}"
+  after_time=$(date '+%s')
+  elapsed_time=$((after_time - before_time))
+  set +x -e
+  exec 1>&3 2>&4
 
-    if [ "$test_status" -eq 0 ]; then
-      printf "test: %-60s OK\\n" "$test_description ..."
-    elif [ "$test_status" -eq 254 ]; then
-      printf "test: %-60s SKIPPED\\n" "$test_description ..."
-    else
-      report_failure "FAILED" "$test_description ..."
-    fi
+  if [ "$test_status" -eq 0 ]; then
+    printf "test: %-65s OK (${elapsed_time}s)\\n" "$test_description ..."
+  elif [ "$test_status" -eq 254 ]; then
+    printf "test: %-65s SKIPPED\\n" "$test_description ..."
+  else
+    report_failure "FAILED (${elapsed_time}s)" "$test_description ..."
+  fi
 
-    unset test_description
+  unset test_description
 }
 
 skip_test() {
@@ -247,13 +252,13 @@ setup_test_data () {
 
   mkdir -p "$loc/audit-log/"
   cd "$loc/audit-log/"
-  touch audit_log-1-$last_yr-$last_mth-1.gz
-  touch audit_log-1-$this_yr-$this_mth-1.gz
+  echo "fake audit log last yr last mth" | gzip > audit_log-1-$last_yr-$last_mth-1.gz
+  echo "fake audit log this yr this mth" | gzip > audit_log-1-$this_yr-$this_mth-1.gz
 
   # Create hookshot logs
   mkdir -p "$loc/hookshot/"
   cd "$loc/hookshot/"
-  touch hookshot-logs-2018-03-05.gz
+  echo "fake hookshot log" | gzip > hookshot-logs-2018-03-05.gz
 
   # Create some test repositories in the remote repositories dir
   mkdir -p "$loc/repositories/info"
@@ -408,6 +413,10 @@ verify_all_restored_data() {
     grep -q "fake ghe-export-ssh-host-keys data" "$TRASHDIR/restore-out"
     # verify all ES data was transferred from live directory to the temporary restore directory
     diff -ru --exclude="*.gz" "$GHE_DATA_DIR/current/elasticsearch" "$GHE_REMOTE_DATA_USER_DIR/elasticsearch-restore"
+  else
+    grep -q "fake audit log last yr last mth" "$TRASHDIR/restore-out"
+    grep -q "fake audit log this yr this mth" "$TRASHDIR/restore-out"
+    grep -q "fake hookshot log" "$TRASHDIR/restore-out"
   fi
 
   # verify settings import was *not* run due to instance already being

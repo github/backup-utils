@@ -1,1 +1,5 @@
-ghe-fake-true
+#!/usr/bin/env bash
+# Usage: ghe-es-load-json
+# Emulates the remote GitHub ghe-es-load-json command. Tests use this
+# to assert that the command was executed.
+cat -

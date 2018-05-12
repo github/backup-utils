@@ -23,6 +23,11 @@ GHE_NUM_SNAPSHOTS=10
 #
 #GHE_RESTORE_HOST="github-standby.example.com"
 
+# When verbose output is enabled with `-v`, it's written to stdout by default. If
+# you'd prefer it to be written to a separate file, set this option.
+#
+#GHE_VERBOSE_LOG="/var/log/backup-verbose.log"
+
 # Any extra options passed to the SSH command.
 # In a single instance environment, nothing is required by default.
 # In a clustering environment, "-i abs-path-to-ssh-private-key" is required.

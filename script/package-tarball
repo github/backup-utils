@@ -17,10 +17,10 @@ PKG_NAME="${PKG_BASE}-${PKG_VERS}"
 echo "Creating ${PKG_NAME}.tar.gz ..."
 mkdir -p dist
 git archive \
-    --format=tar.gz \
-    --prefix="$PKG_NAME/" \
-    --output="dist/${PKG_NAME}.tar.gz" \
-    HEAD
+  --format=tar.gz \
+  --prefix="$PKG_NAME/" \
+  --output="dist/${PKG_NAME}.tar.gz" \
+  HEAD
 
 # List archive contents for review
 gzip -dc < "dist/${PKG_NAME}.tar.gz" | tar tf -

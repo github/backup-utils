@@ -15,7 +15,7 @@ fi
 echo "$@"
 
 # Read from stdin and write to stdout when "-d @-" given.
-for a in "$@"; do
+for _ in "$@"; do
     if [ "$1" = "@-" ]; then
         cat
     fi

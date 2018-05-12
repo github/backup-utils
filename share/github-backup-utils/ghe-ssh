@@ -12,37 +12,42 @@ set -e
 
 opts="$GHE_EXTRA_SSH_OPTS"
 while true; do
-    case "$1" in
-        -p)
-            port="$2"
-            shift 2
-            ;;
-        -l|-o|-F)
-            opts="$opts $1 $2"
-            shift 2
-            ;;
-        -c|--clean)
-            cleanup_mux=1
-            shift
-            ;;
-        --)
-            echo "Error: illegal '--' in ssh invocation"
-            exit 1
-            ;;
-        *)
-            host="$1"
-            shift
-            break
-            ;;
-    esac
+  case "$1" in
+    -p)
+      port="$2"
+      shift 2
+      ;;
+    -l|-o|-F)
+      opts="$opts $1 $2"
+      shift 2
+      ;;
+    -c|--clean)
+      cleanup_mux=1
+      break
+      ;;
+    --)
+      echo "Error: illegal '--' in ssh invocation"
+      exit 1
+      ;;
+    *)
+      host="$1"
+      shift
+      break
+      ;;
+  esac
 done
+
+if [ -n "$cleanup_mux" ]; then
+  find $TMPDIR -name ".ghe-sshmux-*" -type s -exec ssh -O stop -S {} - \; >/dev/null 2>&1 || true
+  exit
+fi
 
 # Show usage with no host
 [ -z "$host" ] && print_usage
 
 # Shift off '--' if given immediately after host.
 if [ "$1" = "--" ]; then
-    shift
+  shift
 fi
 
 # Split host:port into parts. The port is only used if not specified earlier.
@@ -56,22 +61,19 @@ opts="-l $user $opts"
 
 # Bail out with error if the simple command form is used with complex commands.
 # Complex
-if echo "$*" | grep "[|;]" >/dev/null || [ $(echo "$*" | wc -l) -gt 1 ]; then
-    echo "fatal: ghe-ssh: Attempt to invoke complex command with simple command form." 1>&2
-    echo "See ghe-ssh --help for more on correcting." 1>&2
-    exit 1
-fi
-
-# Warn if git is not installed, and set GHE_DISABLE_SSH_MUX=true
-if [ -z "$GHE_DISABLE_SSH_MUX" ]; then
-  command -v git >/dev/null 2>&1 || echo "Warning: SSH multiplexing requires git but it's not installed." && export GHE_DISABLE_SSH_MUX=true
+if echo "$*" | grep "[|;]" >/dev/null || [ "$(echo "$*" | wc -l)" -gt 1 ]; then
+  echo "fatal: ghe-ssh: Attempt to invoke complex command with simple command form." 1>&2
+  echo "See ghe-ssh --help for more on correcting." 1>&2
+  exit 1
 fi
 
 if [ -z "$GHE_DISABLE_SSH_MUX" ]; then
   controlpath="$TMPDIR/.ghe-sshmux-$(echo -n "$user@$host:$port" | git hash-object --stdin | cut -c 1-8)"
+  # shellcheck disable=SC2089 # We don't use bash arrays
   opts="-o ControlMaster=auto -o ControlPath=\"$controlpath\" -o ControlPersist=10m -o ServerAliveInterval=10 $opts"
   # Workaround for https://bugzilla.mindrot.org/show_bug.cgi?id=1988
   if ! [ -S $controlpath ]; then
+    # shellcheck disable=SC2090 # We don't need the quote/backslashes respected
     ( cd "$TMPDIR" && ssh -f -p $port $opts -o BatchMode=yes "$host" -- /bin/true 1>/dev/null 2>&1 || true )
   fi
 fi
@@ -80,11 +82,5 @@ fi
 $GHE_VERBOSE_SSH && set -x
 
 # Exec ssh command with modified host / port args and add nice to command.
-if [ -z "$cleanup_mux" ]; then
-  # Exec ssh command with modified host / port args and add nice to command.
-  exec ssh -p $port $opts -o BatchMode=yes "$host" -- $GHE_NICE $GHE_IONICE "$@"
-elif [ -z "$GHE_DISABLE_SSH_MUX" ]; then
-  while ssh -O check -o ControlPath="$controlpath" "$GHE_HOSTNAME" > /dev/null 2>&1; do
-    ssh -O stop -o ControlPath="$controlpath" "$GHE_HOSTNAME" > /dev/null 2>&1
-  done
-fi
+# shellcheck disable=SC2090 # We don't need the quote/backslashes respected
+exec ssh -p $port $opts -o BatchMode=yes "$host" -- $GHE_NICE $GHE_IONICE "$@"

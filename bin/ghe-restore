@@ -73,7 +73,7 @@ cleanup () {
   fi
 
   # Cleanup SSH multiplexing
-  ghe-ssh --clean "$GHE_HOSTNAME"
+  ghe-ssh --clean
 }
 
 # Bring in the backup configuration

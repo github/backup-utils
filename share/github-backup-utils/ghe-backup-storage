@@ -137,13 +137,15 @@ for pid in $(jobs -p); do
 done
 bm_end "$(basename $0) - Storage object sync"
 
-bm_start "$(basename $0) - Verifying Routes"
+if [ -z "$GHE_SKIP_ROUTE_VERIFICATION" ]; then
+  bm_start "$(basename $0) - Verifying Routes"
 
-cat $tempdir/*.rsync | sort | uniq > $tempdir/source_routes
-(cd $backup_dir/ && find * -mindepth 3 -maxdepth 3 -type f -print | sort | uniq) > $tempdir/destination_routes
+  cat $tempdir/*.rsync | sort | uniq > $tempdir/source_routes
+  (cd $backup_dir/ && find * -mindepth 3 -maxdepth 3 -type f -print | sort | uniq) > $tempdir/destination_routes
 
-git diff -- $tempdir/source_routes $tempdir/destination_routes || echo "Warning: One or more storage objects were not found on the source appliance. Please contact GitHub Enterprise Support for assistance."
+  git diff -- $tempdir/source_routes $tempdir/destination_routes || echo "Warning: One or more storage objects were not found on the source appliance. Please contact GitHub Enterprise Support for assistance."
 
-bm_end "$(basename $0) - Verifying Routes"
+  bm_end "$(basename $0) - Verifying Routes"
+fi
 
 bm_end "$(basename $0)"

@@ -10,6 +10,28 @@ setup_test_data "$GHE_DATA_DIR/1"
 # Make the current symlink
 ln -s 1 "$GHE_DATA_DIR/current"
 
+begin_test "ghe-restore reports an error when current symlink doesn't exist"
+(
+  set -e
+  rm "$GHE_DATA_DIR/current"
+
+  ghe-restore -v -f localhost > "$TRASHDIR/restore-out" 2>&1 || true
+  ln -s 1 "$GHE_DATA_DIR/current"
+  grep -q "Error: Snapshot 'current' doesn't exist." "$TRASHDIR/restore-out"
+)
+end_test
+
+begin_test "ghe-restore reports an error when specified snapshot doesn't exist"
+(
+  set -e
+  rm "$GHE_DATA_DIR/current"
+
+  ghe-restore -v -f -s foo localhost > "$TRASHDIR/restore-out" 2>&1 || true
+  ln -s 1 "$GHE_DATA_DIR/current"
+  grep -q "Error: Snapshot 'foo' doesn't exist." "$TRASHDIR/restore-out"
+)
+end_test
+
 begin_test "ghe-restore into configured vm"
 (
   set -e

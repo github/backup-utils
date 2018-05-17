@@ -385,7 +385,7 @@ begin_test "ghe-restore cluster"
 
   # CI servers may have moreutils parallel and GNU parallel installed. We need moreutils parallel.
   if [ -x "/usr/bin/parallel.moreutils" ]; then
-    ln -s /usr/bin/parallel.moreutils "$ROOTDIR/test/bin/parallel"
+    ln -sf /usr/bin/parallel.moreutils "$ROOTDIR/test/bin/parallel"
   fi
 
   # run ghe-restore and write output to file for asserting against

@@ -7,6 +7,7 @@ matrix:
         - brew install gnu-tar
         - brew install moreutils
         - brew install shellcheck
+        - brew install jq
       script: make test
     - os: linux
       dist: trusty
@@ -21,4 +22,5 @@ matrix:
             - debhelper
             - moreutils
             - fakeroot
+            - jq
       script: debuild -uc -us

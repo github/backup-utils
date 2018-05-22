@@ -348,7 +348,8 @@ if ! $CLUSTER; then
     set -o pipefail; \
     ghe-spokes server show --json \
     | jq -r '.[] | select(.host | contains(\"git-server\")).host' \
-    | sed 's/^git-server-//g' | grep -F -x -v \"$restored_uuid\"" \
+    | sed 's/^git-server-//g' \
+    | ( grep -F -x -v \"$restored_uuid\" || true )" \
   | ghe-ssh "$GHE_HOSTNAME" -- /bin/bash)
   if [ -n "$other_nodes" ]; then
     echo "Cleaning up stale nodes ..."

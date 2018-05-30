@@ -413,8 +413,6 @@ verify_all_restored_data() {
     grep -q "fake ghe-export-ssh-host-keys data" "$TRASHDIR/restore-out"
     # verify all ES data was transferred from live directory to the temporary restore directory
     diff -ru --exclude="*.gz" "$GHE_DATA_DIR/current/elasticsearch" "$GHE_REMOTE_DATA_USER_DIR/elasticsearch-restore"
-    # verify stale servers were cleared
-    grep -q "ghe-cluster-cleanup-node OK" "$TRASHDIR/restore-out"
   else
     grep -q "fake audit log last yr last mth" "$TRASHDIR/restore-out"
     grep -q "fake audit log this yr this mth" "$TRASHDIR/restore-out"

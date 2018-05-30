@@ -341,8 +341,8 @@ else
   fi
 fi
 
-# Clean up all stale replicas
-if ! $CLUSTER; then
+# Clean up all stale replicas on configured instances.
+if ! $CLUSTER && $instance_configured; then
   restored_uuid=$(cat $GHE_RESTORE_SNAPSHOT_PATH/uuid)
   other_nodes=$(echo "
     set -o pipefail; \

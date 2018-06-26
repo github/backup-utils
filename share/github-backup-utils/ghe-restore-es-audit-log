@@ -20,7 +20,7 @@ GHE_HOSTNAME="$1"
 # Perform a host-check and establish GHE_REMOTE_XXX variables.
 ghe_remote_version_required "$GHE_HOSTNAME"
 
-indices=$(find -print0 $GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/audit-log/*.gz 2>/dev/null | xargs -0 -I{} -n1 basename {} .gz)
+indices=$(find $GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/audit-log/*.gz -print0 2>/dev/null | xargs -0 -I{} -n1 basename {} .gz)
 
 # Platform neutral and robust method of determining last month
 this_yr=$(date +"%Y")

@@ -62,3 +62,15 @@ begin_test "ghe-host-check detects unsupported GitHub Enterprise versions"
   GHE_TEST_REMOTE_VERSION=3.0.0 ghe-host-check
 )
 end_test
+
+begin_test "ghe-host-check detects high availability replica"
+(
+  set -e
+  echo "primary" > "$GHE_REMOTE_ROOT_DIR/etc/github/repl-state"
+  ghe-host-check
+
+  echo "replica" > "$GHE_REMOTE_ROOT_DIR/etc/github/repl-state"
+  ! ghe-host-check
+  GHE_ALLOW_REPLICA_BACKUP=yes ghe-host-check
+)
+end_test

@@ -14,15 +14,20 @@ set -o pipefail
 # Filter vanished file warnings from both stdout (rsync versions < 3.x) and
 # stderr (rsync versions >= 3.x). The complex redirections are necessary to
 # filter stderr while also keeping stdout and stderr separated.
-IGNOREOUT='^(file has vanished: |rsync warning: some files vanished before they could be transferred)'
+ignoreout='^(file has vanished: |rsync warning: some files vanished before they could be transferred)'
 
-if rsync -h | grep -q '\-\-ignore-missing-args'; then
-  GHE_EXTRA_RSYNC_OPTS="$GHE_EXTRA_RSYNC_OPTS --ignore-missing-args"
+# Check for --ignore-missing-args parameter support and remove if unavailable.
+if rsync -h | grep '\-\-ignore-missing-args' >/dev/null 2>&1; then
+  parameters=("$@")
+else
+  for parameter in "$@"; do
+    [[ ! $parameter == "--ignore-missing-args" ]] && parameters+=("$parameter") || ignore23=1
+  done
 fi
 
-(rsync $GHE_EXTRA_RSYNC_OPTS "${@}" 3>&1 1>&2 2>&3 3>&- |
-  (egrep -v "$IGNOREOUT" || true)) 3>&1 1>&2 2>&3 3>&- |
-  (egrep -v "$IGNOREOUT" || true)
+(rsync "${parameters[@]}" $GHE_EXTRA_RSYNC_OPTS 3>&1 1>&2 2>&3 3>&- |
+  (egrep -v "$ignoreout" || true)) 3>&1 1>&2 2>&3 3>&- |
+  (egrep -v "$ignoreout" || true)
 res=$?
 
 # Suppress exits with 24.
@@ -30,8 +35,8 @@ if [ $res = 24 ]; then
   res=0
 fi
 
-# Suppress exits with 23 if --ignore-missing-args was not used.
-if [ $res = 23 ] && [[ ! "$GHE_EXTRA_RSYNC_OPTS" =~ "--ignore-missing-args" ]]; then
+# Suppress exits with 23 if --ignore-missing-args was unavailable.
+if [ $res = 23 ] && [ -n "$ignore23" ]; then
   res=0
 fi
 

@@ -300,3 +300,47 @@ begin_test "ghe-backup cluster"
   verify_all_backedup_data
 )
 end_test
+
+begin_test "ghe-backup not missing directories or files on source appliance"
+(
+    # Tests the scenario where the database and on disk state are consistent.
+    set -e
+
+    if ! ghe-backup -v > "$TRASHDIR/backup-out" 2>&1; then
+      cat "$TRASHDIR/backup-out"
+      : ghe-backup should have completed successfully
+      false
+    fi
+
+    # Ensure the output doesn't contain the warnings
+    grep -q "Warning: One or more repository networks and/or gists were not found on the source appliance." "$TRASHDIR/backup-out" && exit 1
+    grep -q "Warning: One or more storage objects were not found on the source appliance." "$TRASHDIR/backup-out" && exit 1
+
+    verify_all_backedup_data
+)
+end_test
+
+begin_test "ghe-backup missing directories or files on source appliance"
+(
+    # Tests the scenario where something exists in the database, but not on disk.
+    set -e
+
+    rm -rf $GHE_REMOTE_DATA_USER_DIR/repositories/1
+    rm -rf $GHE_REMOTE_DATA_USER_DIR/storage/e/ed/1a/ed1aa60f0706cefde8ba2b3be662d3a0e0e1fbc94a52a3201944684cc0c5f244
+
+    if ! ghe-backup -v > "$TRASHDIR/backup-out" 2>&1; then
+      cat "$TRASHDIR/backup-out"
+      : ghe-backup should have completed successfully
+      false
+    fi
+
+    # Check the output for the warnings
+    grep -q "Warning: One or more repository networks and/or gists were not found on the source appliance." "$TRASHDIR/backup-out"
+    grep -q "\-1/23/bb/4c/gist" "$TRASHDIR/backup-out"
+    grep -q "\-1/nw/23/bb/4c/2345" "$TRASHDIR/backup-out"
+    grep -q "Warning: One or more storage objects were not found on the source appliance." "$TRASHDIR/backup-out"
+    grep -q "\-e/ed/1a/ed1aa60f0706cefde8ba2b3be662d3a0e0e1fbc94a52a3201944684cc0c5f244" "$TRASHDIR/backup-out"
+
+    verify_all_backedup_data
+)
+end_test

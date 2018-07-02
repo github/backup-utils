@@ -261,9 +261,7 @@ if [ -s "$GHE_RESTORE_SNAPSHOT_PATH/uuid" ] && ! $CLUSTER; then
 fi
 
 echo "Restoring MySQL database ..."
-bm_start "ghe-import-mysql"
-gzip -dc "$GHE_RESTORE_SNAPSHOT_PATH/mysql.sql.gz" | ghe-ssh "$GHE_HOSTNAME" -- 'ghe-import-mysql'
-bm_end "ghe-import-mysql"
+ghe-restore-mysql "$GHE_HOSTNAME" 1>&3
 
 echo "Restoring Redis database ..."
 bm_start "ghe-import-redis"

@@ -1,3 +1,25 @@
+github-backup-utils (2.13.2) UNRELEASED; urgency=medium
+
+  * Treat missing repository networks, gists, and storage objects as a non-critical error  #386
+  * Clean up stale HA nodes on restore #396
+  * Cleanup all SSH muxes in a non blocking way #402
+  * Raise an error if the current symlink doesn't exist when attempting to restore it #404
+
+ -- Colin Seymour <colin@github.com>  Fri, 22 Jun 2018 10:08:22 +0000
+
+github-backup-utils (2.13.1) UNRELEASED; urgency=medium
+
+  * Retry with the admin ssh port on network unreachable too. #377
+  * Output backup utils version on backup and restore #384
+  * Check filesystem supports hardlinks #388
+  * Switch back to optimised restore route calculation #389
+  * Optionally log verbose output to a file instead of stdout #391
+  * Switch back to optimised backup route calculation #392
+  * Remove check for git from ghe-ssh #393
+  * Use remote's mktemp to create temp dir on remote host #395
+
+ -- Colin Seymour <colin@github.com>  Wed, 09 May 2018 10:16:18 +0000
+
 github-backup-utils (2.13.0) UNRELEASED; urgency=medium
 
   * Unify the backup & restore process #375

@@ -370,7 +370,7 @@ if [ -z "$GHE_SKIP_ROUTE_VERIFICATION" ]; then
   cat $tempdir/*.rsync | sort | uniq > $tempdir/source_routes
   (cd $backup_dir/ && find * -mindepth 5 -maxdepth 6 -type d -name \*.git -exec dirname {} \; | sort | uniq) > $tempdir/destination_routes
 
-  git diff -- $tempdir/source_routes $tempdir/destination_routes || echo "Warning: One or more repository networks and/or gists were not found on the source appliance. Please contact GitHub Enterprise Support for assistance."
+  git --no-pager diff -- $tempdir/source_routes $tempdir/destination_routes || echo "Warning: One or more repository networks and/or gists were not found on the source appliance. Please contact GitHub Enterprise Support for assistance."
 
   bm_end "$(basename $0) - Verifying Routes"
 fi

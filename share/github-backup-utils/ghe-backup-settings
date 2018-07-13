@@ -26,7 +26,7 @@ echo "* Transferring license data ..." 1>&3
 ghe-ssh "$host" -- "sudo cat '$GHE_REMOTE_LICENSE_FILE'" > enterprise.ghl
 
 echo "* Transferring management console password ..." 1>&3
-ghe-ssh "$host" -- ghe-config secrets.manage > manage-password+
+ghe-ssh "$host" -- ghe-config secrets.manage > manage-password+ || true
 if [ -n "$(cat manage-password+)" ]; then
   mv manage-password+ manage-password
 else

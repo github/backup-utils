@@ -106,6 +106,15 @@ GHE_BACKUP_STRATEGY=$(cat "$GHE_RESTORE_SNAPSHOT_PATH/strategy")
 # Perform a host-check and establish the remote version in GHE_REMOTE_VERSION.
 ghe_remote_version_required "$GHE_HOSTNAME"
 
+# Block restoring snapshots to older releases of GitHub Enterprise
+snapshot_version=$(cat $GHE_RESTORE_SNAPSHOT_PATH/version)
+# shellcheck disable=SC2046 # Word splitting is required to populate the variables
+read -r snapshot_version_major snapshot_version_minor _ <<<$(ghe_parse_version $snapshot_version)
+if [ "$(version $GHE_REMOTE_VERSION)" -lt "$(version $snapshot_version_major.$snapshot_version_minor.0)" ]; then
+  echo "Error: Snapshot can not be restored to an older release of GitHub Enterprise." >&2
+  exit 1
+fi
+
 # Figure out if this instance has been configured or is entirely new.
 instance_configured=false
 if ghe-ssh "$GHE_HOSTNAME" -- "[ -f '$GHE_REMOTE_ROOT_DIR/etc/github/configured' ]"; then

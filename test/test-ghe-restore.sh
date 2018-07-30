@@ -398,18 +398,6 @@ begin_test "ghe-restore exits early on unsupported version"
 )
 end_test
 
-begin_test "ghe-restore exits early when restoring to older release"
-(
-  set -e
-  GHE_RESTORE_HOST=127.0.0.1
-  export GHE_RESTORE_HOST
-
-  # shellcheck disable=SC2046 # Word splitting is required to populate the variables
-  read -r bu_version_major bu_version_minor bu_version_patch <<<$(ghe_parse_version $GHE_TEST_REMOTE_VERSION)
-  ! GHE_TEST_REMOTE_VERSION=$bu_version_major.$((bu_version_minor-1)).$bu_version_patch ghe-restore -v
-)
-end_test
-
 # Reset data for sub-subsequent tests
 rm -rf "$GHE_DATA_DIR/1"
 setup_test_data "$GHE_DATA_DIR/1"

@@ -78,3 +78,16 @@ begin_test "ghe-host-check detects high availability replica"
   GHE_ALLOW_REPLICA_BACKUP=yes ghe-host-check
 )
 end_test
+
+begin_test "ghe-host-check blocks restore to old release"
+(
+  set -e
+  
+  mkdir -p "$GHE_DATA_DIR/current/"
+  echo "$GHE_TEST_REMOTE_VERSION" > "$GHE_DATA_DIR/current/version"
+
+  # shellcheck disable=SC2046 # Word splitting is required to populate the variables
+  read -r bu_version_major bu_version_minor bu_version_patch <<<$(ghe_parse_version $GHE_TEST_REMOTE_VERSION)
+  ! GHE_TEST_REMOTE_VERSION=$bu_version_major.$((bu_version_minor-1)).$bu_version_patch ghe-restore -v
+)
+end_test

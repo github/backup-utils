@@ -341,7 +341,7 @@ begin_test "ghe-restore fails when restore 2.9/2.10 snapshot without audit log m
   set -e
 
   # noop if not testing against 2.11
-  if [ "$GHE_VERSION_MAJOR" -ne 2 ] && [ "$GHE_VERSION_MINOR" -ne 11 ]; then
+  if [ "$(version $GHE_REMOTE_VERSION)" -ne "$(version 2.11.0)" ]; then
     skip_test
   fi
 
@@ -368,7 +368,7 @@ begin_test "ghe-restore force restore of 2.9/2.10 snapshot without audit log mig
   set -e
 
   # noop if not testing against 2.11
-  if [ "$GHE_VERSION_MAJOR" -ne 2 ] && [ "$GHE_VERSION_MINOR" -ne 11 ]; then
+  if [ "$(version $GHE_REMOTE_VERSION)" -ne "$(version 2.11.0)" ]; then
     skip_test
   fi
 

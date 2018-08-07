@@ -407,7 +407,8 @@ if $PROGRAM_NAME == __FILE__
 
     puts 'Updating changelog...'
     update_changelog release_changes, DEB_PKG_NAME, version
-    release_body = "Includes general improvements, bug fixes and support for GitHub Enterprise v#{version}"
+    release_body = "Includes general improvements & bug fixes"
+    release_body += " and support for GitHub Enterprise v#{version}" unless min_version.nil?
     release_changes.each do |c|
       release_body += "\n* #{c}"
     end

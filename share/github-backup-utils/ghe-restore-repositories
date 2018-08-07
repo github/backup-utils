@@ -193,7 +193,7 @@ bm_end "$(basename $0) - Updating repository info data"
 
 restore_warnings="$(ghe-ssh "$GHE_HOSTNAME" -- cat "$remote_warnings" 2>/dev/null || true)"
 if [ -n "$restore_warnings" ]; then
-  echo "Warning: One or more repository networks failed to restore successfully."
+  echo "Warning: One or more repository networks failed to restore successfully. Please contact GitHub Enterprise Support for assistance."
   echo "$restore_warnings"
 fi
 

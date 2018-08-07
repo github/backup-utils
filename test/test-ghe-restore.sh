@@ -515,5 +515,8 @@ begin_test "ghe-restore missing directories or files from source snapshot displa
 
     grep -q "Warning: One or more repository networks failed to restore successfully." "$TRASHDIR/restore-out"
     grep -q "Warning: One or more Gists failed to restore successfully." "$TRASHDIR/restore-out"
+
+    # Verify all the data we've restored is as expected
+    verify_all_restored_data
 )
 end_test

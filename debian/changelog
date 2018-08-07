@@ -1,3 +1,12 @@
+github-backup-utils (2.14.1) UNRELEASED; urgency=medium
+
+  * Don't fail a backup if the Management Console password isn't set #416
+  * Fix permissions issues when repeat restoring to configured cluster instance #417
+  * Add missing dependencies to debian packaging #418
+  * Prevent restoring snapshots to older releases #420
+
+ -- Colin Seymour <colin@github.com>  Tue, 07 Aug 2018 16:00:36 +0000
+
 github-backup-utils (2.14.0) UNRELEASED; urgency=medium
 
   * Disable pager and context when running git-diff #411

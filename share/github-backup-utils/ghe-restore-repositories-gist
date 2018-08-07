@@ -54,6 +54,7 @@ to_restore=$tempdir/to_restore
 remote_to_restore=$remote_tempdir/remote_to_restore
 routes_list=$tempdir/routes_list
 remote_routes_list=$remote_tempdir/remote_routes_list
+remote_warnings=$remote_tempdir/gist_warnings
 
 if $CLUSTER; then
   ssh_config_file="$tempdir/ssh_config"
@@ -154,9 +155,15 @@ if $CLUSTER; then
   ghe-ssh "$GHE_HOSTNAME" -- /bin/bash >&3 <<EOF
     split -l 1000 $remote_to_restore $remote_tempdir/chunk
     chunks=\$(find $remote_tempdir/ -name chunk\*)
-    parallel -i /bin/sh -c "cat {} | github-env ./bin/gist-cluster-restore-finalize" -- \$chunks
+    parallel -i /bin/sh -c "cat {} | github-env ./bin/gist-cluster-restore-finalize 2>>$remote_warnings" -- \$chunks
 EOF
   bm_end "$(basename $0) - Finalizing routes"
+fi
+
+restore_warnings="$(ghe-ssh "$GHE_HOSTNAME" -- cat "$remote_warnings" 2>/dev/null || true)"
+if [ -n "$restore_warnings" ]; then
+  echo "Warning: One or more Gists failed to restore successfully."
+  echo "$restore_warnings"
 fi
 
 bm_end "$(basename $0)"

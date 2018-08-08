@@ -467,7 +467,7 @@ begin_test "ghe-restore cluster"
   grep -q "dpages-cluster-restore-finalize OK" "$TRASHDIR/restore-out"
 
   # verify no warnings printed
-  grep -qv "Warning" "$TRASHDIR/restore-out"
+  ! grep -q "Warning" "$TRASHDIR/restore-out"
 
   # Verify all the data we've restored is as expected
   verify_all_restored_data

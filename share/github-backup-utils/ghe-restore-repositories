@@ -52,6 +52,7 @@ to_restore=$tempdir/to_restore
 remote_to_restore=$remote_tempdir/remote_to_restore
 routes_list=$tempdir/routes_list
 remote_routes_list=$remote_tempdir/remote_routes_list
+remote_warnings=$remote_tempdir/repo_warnings
 
 if $CLUSTER; then
   ssh_config_file="$tempdir/ssh_config"
@@ -163,7 +164,7 @@ if $CLUSTER; then
   ghe-ssh "$GHE_HOSTNAME" -- /bin/bash >&3 <<EOF
     split -l 1000 $remote_to_restore $remote_tempdir/chunk
     chunks=\$(find $remote_tempdir/ -name chunk\*)
-    parallel -i /bin/sh -c "cat {} | github-env ./bin/dgit-cluster-restore-finalize" -- \$chunks
+    parallel -i /bin/sh -c "cat {} | github-env ./bin/dgit-cluster-restore-finalize 2>>$remote_warnings" -- \$chunks
 EOF
   bm_end "$(basename $0) - Finalizing routes"
 fi
@@ -189,5 +190,11 @@ else
   fi
 fi
 bm_end "$(basename $0) - Updating repository info data"
+
+restore_warnings="$(ghe-ssh "$GHE_HOSTNAME" -- cat "$remote_warnings" 2>/dev/null || true)"
+if [ -n "$restore_warnings" ]; then
+  echo "Warning: One or more repository networks failed to restore successfully. Please contact GitHub Enterprise Support for assistance."
+  echo "$restore_warnings"
+fi
 
 bm_end "$(basename $0)"

@@ -74,7 +74,7 @@ if [ -z "$GHE_DISABLE_SSH_MUX" ]; then
   # Workaround for https://bugzilla.mindrot.org/show_bug.cgi?id=1988
   if ! [ -S $controlpath ]; then
     # shellcheck disable=SC2090 # We don't need the quote/backslashes respected
-    ( cd "$TMPDIR" && ssh -f $opts -p $port -o BatchMode=yes "$host" -- /bin/true 1>/dev/null 2>&1 || true )
+    ( cd "$TMPDIR" && ssh -f -p $port $opts -o BatchMode=yes "$host" -- /bin/true 1>/dev/null 2>&1 || true )
   fi
 fi
 
@@ -83,4 +83,4 @@ $GHE_VERBOSE_SSH && set -x
 
 # Exec ssh command with modified host / port args and add nice to command.
 # shellcheck disable=SC2090 # We don't need the quote/backslashes respected
-exec ssh $opts -p $port -o BatchMode=yes "$host" -- $GHE_NICE $GHE_IONICE "$@"
+exec ssh -p $port $opts -o BatchMode=yes "$host" -- $GHE_NICE $GHE_IONICE "$@"

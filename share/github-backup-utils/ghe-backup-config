@@ -274,7 +274,7 @@ ssh_host_part () {
 # This is used primarily to break hostspecs with non-standard ports down for
 # rsync commands.
 ssh_port_part () {
-  [ "${1##*:}" = "$1" ] && echo 22 || echo "${1##*:}"
+  [ "${1##*:}" = "$1" ] && echo 122 || echo "${1##*:}"
 }
 
 # Usage: ghe_remote_logger <message>...

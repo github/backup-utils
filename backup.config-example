@@ -48,3 +48,9 @@ GHE_NUM_SNAPSHOTS=10
 #
 # WARNING: do not enable this, only useful for debugging/development
 #GHE_BACKUP_FSCK=no
+
+# The PATH for the backup utilities to use. The default PATH used is that of the
+# executing user which may not always be customizable or contain all the utilities
+# required by the backup utilities.
+#
+#PATH=""

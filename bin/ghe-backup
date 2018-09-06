@@ -119,12 +119,14 @@ if [ -f ../in-progress ]; then
   progress=$(cat ../in-progress)
   snapshot=$(echo "$progress" | cut -d ' ' -f 1)
   pid=$(echo "$progress" | cut -d ' ' -f 2)
-  if ! ps -p $pid | grep ghe-backup; then
+  if ! ps -p "$pid" >/dev/null 2>&1; then
     # We can safely remove in-progress, ghe-prune-snapshots
     # will clean up the failed backup.
     unlink ../in-progress
   else
-    echo "Error: backup process $pid of $GHE_HOSTNAME already in progress in snapshot $snapshot. Aborting." 1>&2
+    echo "Error: A backup of $GHE_HOSTNAME may still be running on PID $pid." 1>&2
+    echo "If PID $pid is not a process related to the backup utilities, please remove" 1>&2
+    echo "the $GHE_DATA_DIR/in-progress file and try again." 1>&2
     exit 1
   fi
 fi

@@ -51,6 +51,10 @@ bm_end() {
   tstart=$(eval "echo \$$(bm_desc_to_varname "$@")_start")
   total=$(($tend - $tstart))
 
+  free -m
+  ps aux
+  echo "$1 took ${total}s"
+
   echo "$1 took ${total}s" >> $BM_FILE_PATH
   if [ -n "$GHE_DEBUG" ]; then
     echo "Debug: $1 took ${total}s (bm_end)"

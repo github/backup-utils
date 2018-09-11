@@ -1,3 +1,9 @@
+github-backup-utils (2.14.3) UNRELEASED; urgency=medium
+
+  * Improve multi-platform detection of simultaneous ghe-backup runs #435
+
+ -- Colin Seymour <colin@github.com>  Tue, 11 Sep 2018 17:03:42 +0000
+
 github-backup-utils (2.14.2) UNRELEASED; urgency=medium
 
   * Capture and display repository/gist warnings during cluster restore #423

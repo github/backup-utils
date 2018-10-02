@@ -258,8 +258,8 @@ if [ -s "$GHE_RESTORE_SNAPSHOT_PATH/uuid" ] && ! $CLUSTER; then
   echo "Restoring UUID ..."
   cat "$GHE_RESTORE_SNAPSHOT_PATH/uuid" |
   ghe-ssh "$GHE_HOSTNAME" -- "sudo sponge '$GHE_REMOTE_DATA_USER_DIR/common/uuid' 2>/dev/null"
-  ghe-ssh "$GHE_HOSTNAME" -- "sudo systemctl stop consul" || true 
-  ghe-ssh "$GHE_HOSTNAME" -- "sudo rm -rf /data/user/consul/raft || true "
+  ghe-ssh "$GHE_HOSTNAME" -- "sudo systemctl stop consul" || true
+  ghe-ssh "$GHE_HOSTNAME" -- "sudo rm -rf /data/user/consul/raft"
   fi
 
 echo "Restoring MySQL database ..."

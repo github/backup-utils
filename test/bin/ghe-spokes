@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# Usage: ghe-spokes
+# Emulates the remote GitHub ghe-spokes command. Tests use this
+# to assert that the command was executed.
+set -e
+echo '[
+  {
+    "host": "git-server-fake-uuid"
+  },
+  {
+    "host": "git-server-fake-uuid1"
+  },
+  {
+    "host": "git-server-fake-uuid2"
+  }
+]'

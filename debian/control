@@ -3,11 +3,11 @@ Maintainer: Twan Wolthof <xeago@spotify.com>
 Section: misc
 Priority: optional
 Standards-Version: 3.9.2
-Build-Depends: debhelper (>= 9), git, devscripts
+Build-Depends: debhelper (>= 9), git, devscripts, moreutils, jq
 
 Package: github-backup-utils
 Architecture: any
-Depends: ${misc:Depends}, rsync (>= 2.6.4)
+Depends: ${misc:Depends}, rsync (>= 2.6.4), moreutils, jq
 Description: Backup and recovery utilities for GitHub Enterprise
  The backup utilities implement a number of advanced capabilities for backup
  hosts, built on top of the backup and restore features already included in

@@ -12,9 +12,12 @@
     backup and restore GitHub Enterprise 2.10 and earlier.
 
  2. Copy the [`backup.config-example`][3] file to `backup.config` and modify as
-    necessary. The `GHE_HOSTNAME` value must be set to the GitHub Enterprise
+    necessary. The `GHE_HOSTNAME` value must be set to the primary GitHub Enterprise
     host name. Additional options are available and documented in the
     configuration file but none are required for basic backup functionality.
+
+    As the data on a High Availability replica may be in a transient state at the time of backup,
+    Backup Utilities should not be used to backup data from a High Availability replica.
 
     * Backup Utilities will attempt to load the backup configuration from the following
       locations, in this order:

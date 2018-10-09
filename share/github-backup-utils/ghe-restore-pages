@@ -148,8 +148,8 @@ if $CLUSTER; then
   bm_start "$(basename $0) - Finalizing routes"
   ghe_verbose "Finalizing routes"
   ghe-ssh "$GHE_HOSTNAME" -- /bin/bash >&3 <<EOF
-    split -l 1000 $routes_list $tempdir/chunk
-    chunks=\$(find $tempdir/ -name chunk\*)
+    split -l 1000 $remote_routes_list $remote_tempdir/chunk
+    chunks=\$(find $remote_tempdir/ -name chunk\*)
     parallel -i /bin/sh -c "cat {} | github-env ./bin/dpages-cluster-restore-finalize" -- \$chunks
 EOF
   bm_end "$(basename $0) - Finalizing routes"

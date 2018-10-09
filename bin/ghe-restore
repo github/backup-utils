@@ -258,12 +258,12 @@ if [ -s "$GHE_RESTORE_SNAPSHOT_PATH/uuid" ] && ! $CLUSTER; then
   echo "Restoring UUID ..."
   cat "$GHE_RESTORE_SNAPSHOT_PATH/uuid" |
   ghe-ssh "$GHE_HOSTNAME" -- "sudo sponge '$GHE_REMOTE_DATA_USER_DIR/common/uuid' 2>/dev/null"
-fi
+  ghe-ssh "$GHE_HOSTNAME" -- "sudo systemctl stop consul" || true
+  ghe-ssh "$GHE_HOSTNAME" -- "sudo rm -rf /data/user/consul/raft"
+  fi
 
 echo "Restoring MySQL database ..."
-bm_start "ghe-import-mysql"
-gzip -dc "$GHE_RESTORE_SNAPSHOT_PATH/mysql.sql.gz" | ghe-ssh "$GHE_HOSTNAME" -- 'ghe-import-mysql'
-bm_end "ghe-import-mysql"
+ghe-restore-mysql "$GHE_HOSTNAME" 1>&3
 
 echo "Restoring Redis database ..."
 bm_start "ghe-import-redis"
@@ -273,17 +273,21 @@ bm_end "ghe-import-redis"
 # Unified and enhanced restore method to 2.13.0 and newer
 if $CLUSTER || [ "$(version $GHE_REMOTE_VERSION)" -ge "$(version 2.13.0)" ]; then
   echo "Restoring Git repositories ..."
-  ghe-restore-repositories "$GHE_HOSTNAME" 1>&3
+  ghe-restore-repositories "$GHE_HOSTNAME"
 
   echo "Restoring Gists ..."
-  ghe-restore-repositories-gist "$GHE_HOSTNAME" 1>&3
+  ghe-restore-repositories-gist "$GHE_HOSTNAME"
+
+  echo "Restoring GitHub Pages ..."
+  ghe-restore-pages "$GHE_HOSTNAME" 1>&3
 else
   echo "Restoring Git repositories and Gists ..."
   ghe-restore-repositories-rsync "$GHE_HOSTNAME" 1>&3
+
+  echo "Restoring GitHub Pages ..."
+  ghe-restore-pages-rsync "$GHE_HOSTNAME" 1>&3
 fi
 
-echo "Restoring GitHub Pages ..."
-ghe-restore-pages "$GHE_HOSTNAME" 1>&3
 
 echo "Restoring SSH authorized keys ..."
 ghe-ssh "$GHE_HOSTNAME" -- 'ghe-import-authorized-keys' < "$GHE_RESTORE_SNAPSHOT_PATH/authorized-keys.json" 1>&3
@@ -341,6 +345,23 @@ else
   fi
 fi
 
+# Clean up all stale replicas on configured instances.
+if ! $CLUSTER && $instance_configured; then
+  restored_uuid=$(cat $GHE_RESTORE_SNAPSHOT_PATH/uuid)
+  other_nodes=$(echo "
+    set -o pipefail; \
+    ghe-spokes server show --json \
+    | jq -r '.[] | select(.host | contains(\"git-server\")).host' \
+    | sed 's/^git-server-//g' \
+    | ( grep -F -x -v \"$restored_uuid\" || true )" \
+  | ghe-ssh "$GHE_HOSTNAME" -- /bin/bash)
+  if [ -n "$other_nodes" ]; then
+    echo "Cleaning up stale nodes ..."
+    for uuid in $other_nodes; do
+      ghe-ssh "$GHE_HOSTNAME" -- "/usr/local/share/enterprise/ghe-cluster-cleanup-node $uuid" 1>&3
+    done
+  fi
+fi
 
 # Update the remote status to "complete". This has to happen before importing
 # ssh host keys because subsequent commands will fail due to the host key

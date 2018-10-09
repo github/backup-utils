@@ -10,6 +10,28 @@ setup_test_data "$GHE_DATA_DIR/1"
 # Make the current symlink
 ln -s 1 "$GHE_DATA_DIR/current"
 
+begin_test "ghe-restore-snapshot-path reports an error when current symlink doesn't exist"
+(
+  set -e
+  rm "$GHE_DATA_DIR/current"
+
+  ghe-restore-snapshot-path > "$TRASHDIR/restore-out" 2>&1 || true
+  ln -s 1 "$GHE_DATA_DIR/current"
+  grep -q "Error: Snapshot 'current' doesn't exist." "$TRASHDIR/restore-out"
+)
+end_test
+
+begin_test "ghe-restore-snapshot-path reports an error when specified snapshot doesn't exist"
+(
+  set -e
+  rm "$GHE_DATA_DIR/current"
+
+  ghe-restore-snapshot-path foo > "$TRASHDIR/restore-out" 2>&1 || true
+  ln -s 1 "$GHE_DATA_DIR/current"
+  grep -q "Error: Snapshot 'foo' doesn't exist." "$TRASHDIR/restore-out"
+)
+end_test
+
 begin_test "ghe-restore into configured vm"
 (
   set -e
@@ -35,6 +57,9 @@ begin_test "ghe-restore into configured vm"
 
   # verify connect to right host
   grep -q "Connect 127.0.0.1:22 OK" "$TRASHDIR/restore-out"
+
+  # verify stale servers were cleared
+  grep -q "ghe-cluster-cleanup-node OK" "$TRASHDIR/restore-out"
 
   # Verify all the data we've restored is as expected
   verify_all_restored_data
@@ -118,6 +143,12 @@ begin_test "ghe-restore -c into unconfigured vm"
   # verify connect to right host
   grep -q "Connect 127.0.0.1:22 OK" "$TRASHDIR/restore-out"
 
+  # verify attempt to clear stale servers was not made
+  grep -q "ghe-cluster-cleanup-node OK" "$TRASHDIR/restore-out" && {
+    echo "ghe-cluster-cleanup-node should not run on unconfigured nodes."
+    exit 1
+  }
+
   # Verify all the data we've restored is as expected
   verify_all_restored_data
 )
@@ -145,6 +176,12 @@ begin_test "ghe-restore into unconfigured vm"
 
   # verify connect to right host
   grep -q "Connect 127.0.0.1:22 OK" "$TRASHDIR/restore-out"
+
+  # verify attempt to clear stale servers was not made
+  grep -q "ghe-cluster-cleanup-node OK" "$TRASHDIR/restore-out" && {
+    echo "ghe-cluster-cleanup-node should not run on unconfigured nodes."
+    exit 1
+  }
 
   # Verify all the data we've restored is as expected
   verify_all_restored_data
@@ -304,7 +341,7 @@ begin_test "ghe-restore fails when restore 2.9/2.10 snapshot without audit log m
   set -e
 
   # noop if not testing against 2.11
-  if [ "$GHE_VERSION_MAJOR" -ne 2 ] && [ "$GHE_VERSION_MINOR" -ne 11 ]; then
+  if [ "$(version $GHE_REMOTE_VERSION)" -ne "$(version 2.11.0)" ]; then
     skip_test
   fi
 
@@ -331,7 +368,7 @@ begin_test "ghe-restore force restore of 2.9/2.10 snapshot without audit log mig
   set -e
 
   # noop if not testing against 2.11
-  if [ "$GHE_VERSION_MAJOR" -ne 2 ] && [ "$GHE_VERSION_MINOR" -ne 11 ]; then
+  if [ "$(version $GHE_REMOTE_VERSION)" -ne "$(version 2.11.0)" ]; then
     skip_test
   fi
 
@@ -385,7 +422,7 @@ begin_test "ghe-restore cluster"
 
   # CI servers may have moreutils parallel and GNU parallel installed. We need moreutils parallel.
   if [ -x "/usr/bin/parallel.moreutils" ]; then
-    ln -s /usr/bin/parallel.moreutils "$ROOTDIR/test/bin/parallel"
+    ln -sf /usr/bin/parallel.moreutils "$ROOTDIR/test/bin/parallel"
   fi
 
   # run ghe-restore and write output to file for asserting against
@@ -429,8 +466,57 @@ begin_test "ghe-restore cluster"
   grep -q "Pages to git-server-fake-uuid2" "$TRASHDIR/restore-out"
   grep -q "dpages-cluster-restore-finalize OK" "$TRASHDIR/restore-out"
 
+  # verify no warnings printed
+  ! grep -q "Warning" "$TRASHDIR/restore-out"
 
   # Verify all the data we've restored is as expected
   verify_all_restored_data
+)
+end_test
+
+begin_test "ghe-restore missing directories or files from source snapshot displays warning"
+(
+    # Tests the scenario where something exists in the database, but not on disk.
+    set -e
+    rm -rf "$GHE_REMOTE_ROOT_DIR"
+    setup_remote_metadata
+    setup_remote_cluster
+    echo "cluster" > "$GHE_DATA_DIR/current/strategy"
+
+    # set as configured, enable maintenance mode and create required directories
+    setup_maintenance_mode "configured"
+
+    # set restore host environ var
+    GHE_RESTORE_HOST=127.0.0.1
+    export GHE_RESTORE_HOST
+
+    # CI servers may have moreutils parallel and GNU parallel installed. We need moreutils parallel.
+    if [ -x "/usr/bin/parallel.moreutils" ]; then
+      ln -sf /usr/bin/parallel.moreutils "$ROOTDIR/test/bin/parallel"
+    fi
+
+    # Tell dgit-cluster-restore-finalize and gist-cluster-restore-finalize to return warnings
+    export GHE_DGIT_CLUSTER_RESTORE_FINALIZE_WARNING=1
+    export GHE_GIST_CLUSTER_RESTORE_FINALIZE_WARNING=1
+
+    # run ghe-restore and write output to file for asserting against
+    if ! ghe-restore -v -f > "$TRASHDIR/restore-out" 2>&1; then
+        cat "$TRASHDIR/restore-out"
+        : ghe-restore should have exited successfully
+        false
+    fi
+
+    if [ -h "$ROOTDIR/test/bin/parallel" ]; then
+      unlink "$ROOTDIR/test/bin/parallel"
+    fi
+
+    # for debugging
+    cat "$TRASHDIR/restore-out"
+
+    grep -q "Warning: One or more repository networks failed to restore successfully." "$TRASHDIR/restore-out"
+    grep -q "Warning: One or more Gists failed to restore successfully." "$TRASHDIR/restore-out"
+
+    # Verify all the data we've restored is as expected
+    verify_all_restored_data
 )
 end_test

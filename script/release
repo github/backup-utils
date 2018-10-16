@@ -217,7 +217,7 @@ def push_release_branch(version)
     raise "Creating release branch failed:\n\n#{out}"
   end
 
-  unless (out = `git commit --quiet -m 'Bump version: #{version} [ci skip]' debian/changelog share/github-backup-utils/version`)
+  unless (out = `git commit --quiet -m 'Bump version: #{version} [ci skip]' debian/changelog share/github-backup-utils/version bin/ghe-host-check test/testlib.sh`)
     raise "Error committing changelog and version:\n\n#{out}"
   end
 

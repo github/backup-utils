@@ -113,7 +113,7 @@ fi
 
 # backup-utils 2.13 onwards limits support to the current and previous two releases
 # of GitHub Enterprise.
-supported_minimum_version="2.13.0"
+supported_minimum_version="2.11.0"
 
 if [ "$(version $version)" -ge "$(version $supported_minimum_version)" ]; then
   supported=1

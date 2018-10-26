@@ -336,58 +336,6 @@ begin_test "ghe-restore honours --help and -h flags"
 )
 end_test
 
-begin_test "ghe-restore fails when restore 2.9/2.10 snapshot without audit log migration sentinel file to 2.11"
-(
-  set -e
-
-  # noop if not testing against 2.11
-  if [ "$(version $GHE_REMOTE_VERSION)" -ne "$(version 2.11.0)" ]; then
-    skip_test
-  fi
-
-  rm -rf "$GHE_REMOTE_ROOT_DIR"
-  setup_remote_metadata
-
-  echo "rsync" > "$GHE_DATA_DIR/current/strategy"
-  echo "v2.9.10" > "$GHE_DATA_DIR/current/version"
-  rm "$GHE_DATA_DIR/current/es-scan-complete"
-
-  ! output=$(ghe-restore -v localhost 2>&1)
-
-  echo $output | grep -q "Error: Snapshot must be from GitHub Enterprise v2.9 or v2.10 after running the"
-
-  echo "v2.10.5" > "$GHE_DATA_DIR/current/version"
-  ! output=$(ghe-restore -v localhost 2>&1)
-
-  echo $output | grep -q "Error: Snapshot must be from GitHub Enterprise v2.9 or v2.10 after running the"
-)
-end_test
-
-begin_test "ghe-restore force restore of 2.9/2.10 snapshot without audit log migration sentinel file to 2.11"
-(
-  set -e
-
-  # noop if not testing against 2.11
-  if [ "$(version $GHE_REMOTE_VERSION)" -ne "$(version 2.11.0)" ]; then
-    skip_test
-  fi
-
-  rm -rf "$GHE_REMOTE_ROOT_DIR"
-  setup_remote_metadata
-
-  echo "rsync" > "$GHE_DATA_DIR/current/strategy"
-  echo "v2.9.10" > "$GHE_DATA_DIR/current/version"
-
-  # Create fake remote repositories dir
-  mkdir -p "$GHE_REMOTE_DATA_USER_DIR/repositories"
-
-  ghe-restore -v -f localhost
-
-  echo "v2.10.5" > "$GHE_DATA_DIR/current/version"
-  ghe-restore -v -f localhost
-)
-end_test
-
 begin_test "ghe-restore exits early on unsupported version"
 (
   set -e

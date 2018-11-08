@@ -62,7 +62,12 @@ while true; do
       exit 1
       ;;
     *)
-      break
+      if [ -n "$1" ]; then
+        GHE_HOSTNAME="$1"
+        shift
+      else
+        break
+      fi
       ;;
   esac
 done
@@ -81,7 +86,7 @@ cleanup () {
 . "$( dirname "${BASH_SOURCE[0]}" )/../share/github-backup-utils/ghe-backup-config"
 
 # Grab the host arg
-GHE_HOSTNAME="${1:-$GHE_RESTORE_HOST}"
+GHE_HOSTNAME="${GHE_HOSTNAME:-$GHE_RESTORE_HOST}"
 
 # Hostname without any port suffix
 hostname=$(echo "$GHE_HOSTNAME" | cut -f 1 -d :)

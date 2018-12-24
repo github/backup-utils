@@ -1,18 +1,19 @@
-# GitHub Enterprise Backup Utilities
+# GitHub Enterprise Server Backup Utilities
 
-This repository includes backup and recovery utilities for [GitHub Enterprise][1].
+This repository includes backup and recovery utilities for
+[GitHub Enterprise Server][1].
 
-**Note**: the [GitHub Enterprise version requirements](docs/requirements.md#github-enterprise-version-requirements) have
+**Note**: the [GitHub Enterprise Server version requirements][2] have
 changed starting with Backup Utilities v2.13.0, released on 27 March 2018.
 
 ### Features
 
 Backup Utilities implement a number of advanced capabilities for backup
 hosts, built on top of the backup and restore features already included in
-GitHub Enterprise.
+GitHub Enterprise Server.
 
- - Complete GitHub Enterprise backup and recovery system via two simple utilities:<br>
-   `ghe-backup` and `ghe-restore`.
+ - Complete GitHub Enterprise Server backup and recovery system via two simple
+   utilities:<br>`ghe-backup` and `ghe-restore`.
  - Online backups. The GitHub appliance need not be put in maintenance mode for
    the duration of the backup run.
  - Incremental backup of Git repository data. Only changes since the last
@@ -31,7 +32,7 @@ GitHub Enterprise.
 - **[Requirements](docs/requirements.md)**
   - **[Backup host requirements](docs/requirements.md#backup-host-requirements)**
   - **[Storage requirements](docs/requirements.md#storage-requirements)**
-  - **[GitHub Enterprise version requirements](docs/requirements.md#github-enterprise-version-requirements)**
+  - **[GitHub Enterprise Server version requirements](docs/requirements.md#github-enterprise-version-requirements)**
 - **[Getting started](docs/getting-started.md)**
 - **[Using the backup and restore commands](docs/usage.md)**
 - **[Scheduling backups](docs/scheduling-backups.md)**
@@ -43,8 +44,10 @@ GitHub Enterprise.
 
 If you find a bug or would like to request a feature in Backup Utilities, please
 open an issue or pull request on this repository. If you have a question related
-to your specific GitHub Enterprise setup or would like assistance with backup
-site setup or recovery, please contact our [Enterprise support team][2] instead.
+to your specific GitHub Enterprise Server setup or would like assistance with
+backup site setup or recovery, please contact our [Enterprise support team][3]
+instead.
 
 [1]: https://enterprise.github.com
-[2]: https://enterprise.github.com/support/
+[2]: docs/requirements.md#github-enterprise-version-requirements
+[3]: https://enterprise.github.com/support/

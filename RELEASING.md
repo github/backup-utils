@@ -1,12 +1,12 @@
 # Making a Backup Utilities release
 
-Starting with Backup Utilities v2.13.0, all major releases will follow GitHub Enterprise releases and the version support is inline with that of the [GitHub Enterprise upgrade requirements](https://help.github.com/enterprise/admin/guides/installation/about-upgrade-requirements/) and as such, support is limited to three versions of GitHub Enterprise: the version that corresponds with the version of Backup Utilities, and the two releases prior to it.
+Starting with Backup Utilities v2.13.0, all major releases will follow GitHub Enterprise Server releases and the version support is inline with that of the [GitHub Enterprise Server upgrade requirements](https://help.github.com/enterprise/admin/guides/installation/about-upgrade-requirements/) and as such, support is limited to three versions of GitHub Enterprise Server: the version that corresponds with the version of Backup Utilities, and the two releases prior to it.
 
 For example, Backup Utilities 2.13.0 can be used to backup and restore all patch releases from 2.11.0 to the latest patch release of GitHub Enterprise 2.13. Backup utilities 2.14.0 will be released when GitHub Enterprise 2.14.0 is released and will then be used to backup all releases of GitHub Enterprise from 2.12.0 to the latest patch release of GitHub Enterprise 2.14.
 
-There is no need to align Backup Utilities patch releases with GitHub Enterprise patch releases.
+There is no need to align Backup Utilities patch releases with GitHub Enterprise Server patch releases.
 
-When making a `.0` release, you will need to specify the minimum supported version of GitHub Enterprise that that release supports.
+When making a `.0` release, you will need to specify the minimum supported version of GitHub Enterprise Server that that release supports.
 
 ## Automatic Process from chatops (internal to GitHub only) - Coming :soon:
 

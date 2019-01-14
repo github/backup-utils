@@ -8,6 +8,8 @@ After the initial backup, use the following commands:
    Enterprise appliance. You must add the backup host's SSH key to the target
    GitHub Enterprise appliance before using this command.
 
+These commands are run on the host you [installed][1] Backup Utilities on.
+
 ### Example backup and restore usage
 
 The following assumes that `GHE_HOSTNAME` is set to "github.example.com" in
@@ -79,3 +81,5 @@ When restoring to an already configured GitHub Enterprise instance, settings, ce
 are *not* restored to prevent overwriting manual configuration on the restore
 host. This behavior can be overridden by passing the `-c` argument to `ghe-restore`,
 forcing settings, certificate, and license data to be overwritten with the backup copy's data.
+
+[1]: https://github.com/github/backup-utils/blob/master/docs/getting-started.md

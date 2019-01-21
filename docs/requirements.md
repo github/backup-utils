@@ -40,8 +40,9 @@ Backup Utilities v2.14.0 will be released when GitHub Enterprise 2.14.0 is relea
 and will then be used to backup all releases of GitHub Enterprise from 2.12.0
 to the latest patch release of GitHub Enterprise 2.14.
 
-Backup Utilities v2.11.4 and earlier offer support for GitHub Enterprise 2.10
-and earlier releases.
+Backup Utilities v2.11.4 and earlier offer support for GitHub Enterprise Server 2.10
+and earlier releases up to GitHub Enterprise Server 2.2.0. Backup Utilities v2.11.0 and earlier
+offer support for GitHub Enterprise Server 2.1.0 and earlier.
 
 **Note**: You can restore a snapshot that's at most two feature releases behind
 the restore target's version of GitHub Enterprise. For example, to restore a

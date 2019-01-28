@@ -1,8 +1,7 @@
 github-backup-utils (2.16.0) UNRELEASED; urgency=medium
 
-  * Cater for v that may occur in the version string #458
 
- -- Colin Seymour <colin@github.com>  Tue, 22 Jan 2019 19:53:01 +0000
+ -- Colin Seymour <colin@github.com>  Tue, 22 Jan 2019 20:25:34 +0000
 
 github-backup-utils (2.15.1) UNRELEASED; urgency=medium
 

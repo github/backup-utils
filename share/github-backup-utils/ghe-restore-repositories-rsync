@@ -37,7 +37,7 @@ ghe-gc-disable $GHE_HOSTNAME
 
 # Transfer all git repository data from the latest snapshot to the GitHub
 # instance in a single rsync invocation.
-ghe-rsync -avH --delete \
+ghe-rsync -av --delete \
     --exclude ".sync_in_progress" \
     -e "ghe-ssh -p $(ssh_port_part "$GHE_HOSTNAME")" \
     --rsync-path="sudo -u git rsync" \

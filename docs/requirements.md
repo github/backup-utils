@@ -57,4 +57,4 @@ be running GitHub Enterprise Server 2.12.x or 2.13.x. You can't restore a snapsh
 [5]: https://en.wikipedia.org/wiki/Hard_link
 [6]: https://en.wikipedia.org/wiki/Symbolic_link
 [7]: https://en.wikipedia.org/wiki/Case_sensitivity
-[8]: https://help.github.com/enterprise/admin/guides/installation/about-upgrade-requirements/
+[8]: https://help.github.com/enterprise/admin/guides/installation/upgrade-requirements/

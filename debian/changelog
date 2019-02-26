@@ -1,3 +1,9 @@
+github-backup-utils (2.16.1) UNRELEASED; urgency=medium
+
+  * Detect storage user on each cluster host being backed up or restored #472
+
+ -- Colin Seymour <colin@github.com>  Tue, 26 Feb 2019 16:37:04 +0000
+
 github-backup-utils (2.16.0) UNRELEASED; urgency=medium
 
 

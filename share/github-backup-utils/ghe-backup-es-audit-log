@@ -10,6 +10,34 @@ set -e
 # shellcheck source=share/github-backup-utils/ghe-backup-config
 . "$( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config"
 
+# Function to back up ES indices
+backup_indices(){
+  if ! indices=$(ghe-ssh "$host" "curl -s \"localhost:9201/_cat/indices/audit_log*?h=index,pri.store.size&bytes=b\""); then
+    echo "Error: failed to retrieve audit log indices." 1>&2
+    exit 1
+  fi
+
+  # Exit if no indices were found
+  [ -z "$indices" ] && exit
+
+  IFS=$'\n'
+  for index in $indices; do
+    IFS=' '
+    set $index
+    index_name=$1
+    index_size=$2
+
+    if [[ -f $GHE_DATA_DIR/current/audit-log/$index_name.gz && $(cat $GHE_DATA_DIR/current/audit-log/$index_name.gz.size 2>/dev/null || true) -eq $index_size ]]; then
+      # Hard link any indices that have not changed since the last backup
+      ln $GHE_DATA_DIR/current/audit-log/$index_name.gz $GHE_SNAPSHOT_DIR/audit-log/$index_name.gz
+      ln $GHE_DATA_DIR/current/audit-log/$index_name.gz.size $GHE_SNAPSHOT_DIR/audit-log/$index_name.gz.size
+    else
+      echo "/usr/local/share/enterprise/ghe-es-dump-json \"http://localhost:9201/$index_name\" | gzip" | ghe-ssh "$host" -- /bin/bash > $GHE_SNAPSHOT_DIR/audit-log/$index_name.gz
+      echo $index_size > $GHE_SNAPSHOT_DIR/audit-log/$index_name.gz.size
+    fi
+  done
+}
+
 bm_start "$(basename $0)"
 
 # Set up remote host and root elastic backup directory based on config
@@ -21,36 +49,13 @@ ghe_remote_version_required "$host"
 # Make sure root backup dir exists if this is the first run
 mkdir -p "$GHE_SNAPSHOT_DIR/audit-log"
 
-if ! indices=$(ghe-ssh "$host" "curl -s \"localhost:9201/_cat/indices/audit_log*?h=index,pri.store.size&bytes=b\""); then
-  echo "Error: failed to retrieve audit log indices." 1>&2
-  exit 1
+# If /data/user/common/audit-log-import/complete is present, the migration
+# to MySQL has already happened and the data is already in MySQL and we are done.
+# Otherwise  we need to back up the ES indices instead.
+if  ghe-ssh "$host" test -e "$GHE_REMOTE_DATA_USER_DIR/common/audit-log-import/complete"; then
+  touch "$GHE_SNAPSHOT_DIR/audit-log/mysql-import-complete"
+else
+  backup_indices
 fi
-
-# Exit if no indices were found
-[ -z "$indices" ] && exit
-
-# Determine if the audit log migration has occurred or is needed.
-if echo 'set -o pipefail; ! test -e /data/user/common/es-scan-complete && test -f /usr/local/share/enterprise/run-audit-log-transitions.sh' | ghe-ssh "$host" /bin/bash; then
-  if echo 'set -o pipefail; echo n | /usr/local/share/enterprise/run-audit-log-transitions.sh > /dev/null 2>&1 && touch /data/user/common/es-scan-complete' | ghe-ssh "$host" /bin/bash; then
-    touch $GHE_SNAPSHOT_DIR/es-scan-complete
-  fi
-fi
-
-IFS=$'\n'
-for index in $indices; do
-  IFS=' '
-  set $index
-  index_name=$1
-  index_size=$2
-
-  if [[ -f $GHE_DATA_DIR/current/audit-log/$index_name.gz && $(cat $GHE_DATA_DIR/current/audit-log/$index_name.gz.size 2>/dev/null || true) -eq $index_size ]]; then
-    # Hard link any indices that have not changed since the last backup
-    ln $GHE_DATA_DIR/current/audit-log/$index_name.gz $GHE_SNAPSHOT_DIR/audit-log/$index_name.gz
-    ln $GHE_DATA_DIR/current/audit-log/$index_name.gz.size $GHE_SNAPSHOT_DIR/audit-log/$index_name.gz.size
-  else
-    echo "/usr/local/share/enterprise/ghe-es-dump-json \"http://localhost:9201/$index_name\" | gzip" | ghe-ssh "$host" -- /bin/bash > $GHE_SNAPSHOT_DIR/audit-log/$index_name.gz
-    echo $index_size > $GHE_SNAPSHOT_DIR/audit-log/$index_name.gz.size
-  fi
-done
 
 bm_end "$(basename $0)"

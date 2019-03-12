@@ -66,6 +66,41 @@ begin_test "ghe-restore into configured vm"
 )
 end_test
 
+begin_test "ghe-restore honours --staging flag"
+(
+  set -e
+  rm -rf "$GHE_REMOTE_ROOT_DIR"
+  setup_remote_metadata
+
+  # set as configured, enable maintenance mode and create required directories
+  setup_maintenance_mode "configured"
+
+  # set restore staging environ var
+  GHE_RESTORE_STG=true
+  export GHE_RESTORE_STG
+
+  # set restore host environ var
+  GHE_RESTORE_HOST=127.0.0.1
+  export GHE_RESTORE_HOST
+
+  # run ghe-restore and write output to file for asserting against
+  if ! GHE_DEBUG=1 ghe-restore -v -f --staging > "$TRASHDIR/restore-out" 2>&1; then
+      cat "$TRASHDIR/restore-out"
+      : ghe-restore should have exited successfully
+      false
+  fi
+
+  # for debugging
+  cat "$TRASHDIR/restore-out"
+
+  # verify uuid isn't restored
+  ! grep -q "Restoring UUID" "$TRASHDIR/restore-out"
+
+  # Verify all the data we've restored is as expected
+  verify_all_restored_data
+)
+end_test
+
 begin_test "ghe-restore logs the benchmark"
 (
   set -e

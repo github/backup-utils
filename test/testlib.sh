@@ -334,7 +334,9 @@ verify_common_data() {
   # tests that differ for cluster and single node backups and restores
   if [ "$(cat $GHE_DATA_DIR/current/strategy)" = "rsync" ]; then
     # verify the UUID was transferred
-    diff -ru "$GHE_REMOTE_DATA_USER_DIR/common/uuid" "$GHE_DATA_DIR/current/uuid"
+    if [ "$GHE_RESTORE_STG" != "true" ]; then
+      diff -ru "$GHE_REMOTE_DATA_USER_DIR/common/uuid" "$GHE_DATA_DIR/current/uuid"
+    fi
 
     # verify the audit log migration sentinel file has been created on 2.9 and above
     if [ "$GHE_VERSION_MAJOR" -eq 2 ] && [ "$GHE_VERSION_MINOR" -ge 9 ]; then

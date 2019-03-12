@@ -17,6 +17,8 @@
 #/   -v | --verbose    Enable verbose output.
 #/   -h | --help       Show this message.
 #/        --version    Display version information and exit.
+#/        --staging    Use this option to create a staging instance. Restore
+#/                     everything except UUID.
 #/   -s <snapshot-id>  Restore from the snapshot with the given id. Available
 #/                     snapshots may be listed under the data directory.
 #/   <host>            The <host> is the hostname or IP of the GitHub Enterprise
@@ -30,6 +32,7 @@ set -e
 
 # Parse arguments
 restore_settings=false
+restore_staging=false
 force=false
 while true; do
   case "$1" in
@@ -43,6 +46,10 @@ while true; do
       ;;
     -c|--config)
       restore_settings=true
+      shift
+      ;;
+    --staging)
+      restore_staging=true
       shift
       ;;
     -h|--help)
@@ -243,14 +250,14 @@ if ! $CLUSTER; then
   ghe-ssh "$GHE_HOSTNAME" -- /bin/sh 1>&3
 fi
 
-# Restore UUID if present and not restoring to cluster.
-if [ -s "$GHE_RESTORE_SNAPSHOT_PATH/uuid" ] && ! $CLUSTER; then
+# Restore UUID if present and not restoring to cluster and not for a staging instance.
+if [ -s "$GHE_RESTORE_SNAPSHOT_PATH/uuid" ] && ! $CLUSTER && ! $restore_staging ; then
   echo "Restoring UUID ..."
   cat "$GHE_RESTORE_SNAPSHOT_PATH/uuid" |
   ghe-ssh "$GHE_HOSTNAME" -- "sudo sponge '$GHE_REMOTE_DATA_USER_DIR/common/uuid' 2>/dev/null"
   ghe-ssh "$GHE_HOSTNAME" -- "sudo systemctl stop consul" || true
   ghe-ssh "$GHE_HOSTNAME" -- "sudo rm -rf /data/user/consul/raft"
-  fi
+fi
 
 echo "Restoring MySQL database ..."
 ghe-restore-mysql "$GHE_HOSTNAME" 1>&3
@@ -336,7 +343,7 @@ else
 fi
 
 # Clean up all stale replicas on configured instances.
-if ! $CLUSTER && $instance_configured; then
+if ! $CLUSTER && $instance_configured && ! $restore_staging; then
   restored_uuid=$(cat $GHE_RESTORE_SNAPSHOT_PATH/uuid)
   other_nodes=$(echo "
     set -o pipefail; \

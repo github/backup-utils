@@ -1,4 +1,5 @@
 ---
+language: bash
 matrix:
   include:
     - os: osx

@@ -1,5 +1,5 @@
 ---
-language: bash
+language: minimal
 matrix:
   include:
     - os: osx

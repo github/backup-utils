@@ -6,7 +6,7 @@ storage and must have network connectivity with the GitHub Enterprise Server app
 ## Backup host requirements
 
 Backup host software requirements are modest: Linux or other modern Unix operating
-system with [bash][1], [git][2], [OpenSSH][3] 5.6 or newer, and [rsync][4] v2.6.4 or newer.
+system with [bash][1], [git][2], [OpenSSH][3] 5.6 or newer, [rsync][4] v2.6.4 or newer, and [sed][5] v4.3 or newer.
 
 We encourage the use of [Docker](docker.md) if your backup host doesn't meet these
 requirements, or if Docker is your preferred platform.
@@ -21,16 +21,16 @@ patterns of the GitHub appliance. We recommend allocating at least 5x the amount
 of storage allocated to the primary GitHub appliance for historical snapshots
 and growth over time.
 
-Backup Utilities use [hard links][5] to store data efficiently, and the
-repositories on GitHub Enterprise Server use [symbolic links][6] so the backup snapshots
+Backup Utilities use [hard links][6] to store data efficiently, and the
+repositories on GitHub Enterprise Server use [symbolic links][7] so the backup snapshots
 must be written to a filesystem with support for symbolic and hard links.
 
-Using a [case sensitive][7] file system is also required to avoid conflicts.
+Using a [case sensitive][8] file system is also required to avoid conflicts.
 
 ## GitHub Enterprise Server version requirements
 
 Starting with Backup Utilities v2.13.0, version support is inline with that of the
-[GitHub Enterprise Server upgrade requirements][8] and as such, support is limited to
+[GitHub Enterprise Server upgrade requirements][9] and as such, support is limited to
 three versions of GitHub Enterprise Server: the version that corresponds with the version
 of Backup Utilities, and the two releases prior to it.
 
@@ -54,7 +54,8 @@ be running GitHub Enterprise Server 2.12.x or 2.13.x. You can't restore a snapsh
 [2]: https://git-scm.com/
 [3]: https://www.openssh.com/
 [4]: http://rsync.samba.org/
-[5]: https://en.wikipedia.org/wiki/Hard_link
-[6]: https://en.wikipedia.org/wiki/Symbolic_link
-[7]: https://en.wikipedia.org/wiki/Case_sensitivity
-[8]: https://help.github.com/enterprise/admin/guides/installation/upgrade-requirements/
+[5]: https://www.gnu.org/software/sed/manual/sed.html
+[6]: https://en.wikipedia.org/wiki/Hard_link
+[7]: https://en.wikipedia.org/wiki/Symbolic_link
+[8]: https://en.wikipedia.org/wiki/Case_sensitivity
+[9]: https://help.github.com/enterprise/admin/guides/installation/upgrade-requirements/

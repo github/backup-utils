@@ -26,6 +26,21 @@ begin_test "ghe-host-check with host arg"
 )
 end_test
 
+begin_test "ghe-host-check with configfile arg"
+(
+  set -e
+
+  # Fake backup config for this test
+  configfile=$(mktemp "$TRASHDIR/backup.config.XXXXXX")
+  echo 'GHE_HOSTNAME=example.com' > $configfile
+
+  ghe-host-check -F $configfile
+
+  ghe-host-check -F $configfile | grep OK
+  ghe-host-check -F $configfile | grep example.com
+)
+end_test
+
 begin_test "ghe-host-check honours --version flag"
 (
   set -e

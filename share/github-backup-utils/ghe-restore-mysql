@@ -39,7 +39,12 @@ ghe-ssh "$GHE_HOSTNAME" -- "sudo mkdir -p '$GHE_REMOTE_DATA_USER_DIR/tmp'" 1>&3
 cat $snapshot_dir/mysql.sql.gz | ghe-ssh "$GHE_HOSTNAME" -- "sudo dd of=$GHE_REMOTE_DATA_USER_DIR/tmp/mysql.sql.gz >/dev/null 2>&1"
 
 # Import the database
-echo "gunzip -cd $GHE_REMOTE_DATA_USER_DIR/tmp/mysql.sql.gz | ghe-import-mysql" | ghe-ssh "$GHE_HOSTNAME" -- /bin/bash 1>&3
+extract_cmd="gunzip -cd $GHE_REMOTE_DATA_USER_DIR/tmp/mysql.sql.gz"
 
+if $restore_staging; then
+    extract_cmd="$extract_cmd | sed -e \"s/$(cat $snapshot_dir/uuid)/\$(cat /data/user/common/uuid)/g\""
+fi
+
+echo "$extract_cmd | ghe-import-mysql" | ghe-ssh "$GHE_HOSTNAME" -- /bin/bash 1>&3
 
 bm_end "$(basename $0)"

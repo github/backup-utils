@@ -75,13 +75,16 @@ begin_test "ghe-restore honours --staging flag"
   # set as configured, enable maintenance mode and create required directories
   setup_maintenance_mode "configured"
 
-  # set restore staging environ var
+  # set an environ var to skip uuid diff test
   GHE_RESTORE_STG=true
   export GHE_RESTORE_STG
 
   # set restore host environ var
   GHE_RESTORE_HOST=127.0.0.1
   export GHE_RESTORE_HOST
+
+  # when restoring to a fresh instance, uuid should already be on the instance
+  echo "fake-uuid" > $TRASHDIR/remote/data/user/common/uuid
 
   # run ghe-restore and write output to file for asserting against
   if ! GHE_DEBUG=1 ghe-restore -v -f --staging > "$TRASHDIR/restore-out" 2>&1; then

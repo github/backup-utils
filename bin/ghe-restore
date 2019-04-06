@@ -32,7 +32,7 @@ set -e
 
 # Parse arguments
 restore_settings=false
-restore_staging=false
+RESTORE_STAGING=false
 force=false
 while true; do
   case "$1" in
@@ -49,7 +49,7 @@ while true; do
       shift
       ;;
     --staging)
-      restore_staging=true
+      RESTORE_STAGING=true
       shift
       ;;
     -h|--help)
@@ -148,6 +148,8 @@ if ghe-ssh "$GHE_HOSTNAME" -- \
   echo "       Please teardown replication before restoring." >&2
   exit 1
 fi
+
+export RESTORE_STAGING
 
 # Prompt to verify the restore host given is correct. Restoring overwrites
 # important data on the destination appliance that cannot be recovered. This is
@@ -251,7 +253,7 @@ if ! $CLUSTER; then
 fi
 
 # Restore UUID if present and not restoring to cluster and not for a staging instance.
-if [ -s "$GHE_RESTORE_SNAPSHOT_PATH/uuid" ] && ! $CLUSTER && ! $restore_staging ; then
+if [ -s "$GHE_RESTORE_SNAPSHOT_PATH/uuid" ] && ! $CLUSTER && ! $RESTORE_STAGING ; then
   echo "Restoring UUID ..."
   cat "$GHE_RESTORE_SNAPSHOT_PATH/uuid" |
   ghe-ssh "$GHE_HOSTNAME" -- "sudo sponge '$GHE_REMOTE_DATA_USER_DIR/common/uuid' 2>/dev/null"
@@ -344,7 +346,7 @@ fi
 
 # Clean up all stale replicas on configured instances.
 if ! $CLUSTER && $instance_configured; then
-  if $restore_staging; then
+  if $RESTORE_STAGING; then
     restored_uuid=$(echo "cat /data/user/common/uuid" | ghe-ssh "$GHE_HOSTNAME" -- /bin/bash)
   else
     restored_uuid=$(cat $GHE_RESTORE_SNAPSHOT_PATH/uuid)

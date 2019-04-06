@@ -343,8 +343,12 @@ else
 fi
 
 # Clean up all stale replicas on configured instances.
-if ! $CLUSTER && $instance_configured && ! $restore_staging; then
-  restored_uuid=$(cat $GHE_RESTORE_SNAPSHOT_PATH/uuid)
+if ! $CLUSTER && $instance_configured; then
+  if $restore_staging; then
+    restored_uuid=$(echo "cat /data/user/common/uuid" | ghe-ssh "$GHE_HOSTNAME" -- /bin/bash)
+  else
+    restored_uuid=$(cat $GHE_RESTORE_SNAPSHOT_PATH/uuid)
+  fi
   other_nodes=$(echo "
     set -o pipefail; \
     ghe-spokes server show --json \

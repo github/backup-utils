@@ -347,7 +347,7 @@ fi
 # Clean up all stale replicas on configured instances.
 if ! $CLUSTER && $instance_configured; then
   if $RESTORE_STAGING; then
-    restored_uuid=$(echo "cat /data/user/common/uuid" | ghe-ssh "$GHE_HOSTNAME" -- /bin/bash)
+    restored_uuid=$(echo "cat $GHE_REMOTE_DATA_USER_DIR/common/uuid" | ghe-ssh "$GHE_HOSTNAME" -- /bin/bash)
   else
     restored_uuid=$(cat $GHE_RESTORE_SNAPSHOT_PATH/uuid)
   fi

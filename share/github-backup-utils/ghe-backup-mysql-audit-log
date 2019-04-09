@@ -32,15 +32,15 @@ setup(){
 cleanup(){
   test -e "$log" || return
 
-  [ -n "$GHE_VERBOSE" ] && cat $log
-  rm -f $log
+  [ -n "$GHE_VERBOSE" ] && cat "$log"
+  rm -f "$log"
 }
 
 # Use $export_tool to fetch the current metadata for all stored
 # months in MySQL. For each month: number of entries, minum ID, maximum ID
 fetch_current_meta(){
   local meta
-  if ! meta=$(ghe-ssh "$host" "github-env $export_tool months" 2>>$log); then
+  if ! meta=$(ghe-ssh "$host" "github-env $export_tool months" 2>>"$log"); then
     echo "Error: failed to retrieve audit log metadata" 1>&2
     exit 1
   fi
@@ -73,8 +73,8 @@ dump_month(){
   local name=$2
 
   local dir="$GHE_SNAPSHOT_DIR/audit-log-mysql"
-  echo "sudo $export_tool dump $name | gzip" \
-    | ghe-ssh "$host" -- /bin/bash > "${dir}/${name}.gz" 2>>$log
+  echo "$export_tool dump $name | gzip" \
+    | ghe-ssh "$host" -- /bin/bash > "${dir}/${name}.gz" 2>>"$log"
 
   echo "$meta" > "${dir}/${name}.meta"
 }
@@ -85,7 +85,7 @@ dump_month(){
 #    (month, number of entries, minumim ID, maximum ID)
 # 2. If any month is uptodate in the current snapshot, hardlink it
 # 3. Otherwise, dump those month entries from MySQL
-do_backup(){
+backup(){
   local meta
   if ! meta=$(fetch_current_meta); then
     return
@@ -98,7 +98,7 @@ do_backup(){
 
     if is_month_synced "$month" "$month_name"; then
       # Month is in-sync with current data, create hardlink to it
-      echo "$month_name is in sync, hardlinking to it.." >>$log
+      echo "$month_name is in sync, hardlinking to it.." >>"$log"
       ln "$GHE_DATA_DIR/current/audit-log-mysql/${month_name}.gz" "$GHE_SNAPSHOT_DIR/audit-log-mysql/${month_name}.gz"
       ln "$GHE_DATA_DIR/current/audit-log-mysql/${month_name}.meta" "$GHE_SNAPSHOT_DIR/audit-log-mysql/${month_name}.meta"
       continue
@@ -111,7 +111,7 @@ do_backup(){
 main(){
   bm_start "$(basename "$0")"
   setup
-  do_backup
+  backup
   bm_end "$(basename "$0")"
 }
 

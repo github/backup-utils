@@ -131,7 +131,7 @@ dump_month(){
 backup(){
   dump_schema
 
-  if $only_schema; then
+  if [ -n "$only_schema" ]; then
     return
   fi
 

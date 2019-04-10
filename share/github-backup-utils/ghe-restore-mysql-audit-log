@@ -118,14 +118,11 @@ prepare_month_restore(){
   fi
 }
 
-# Restore a month of audit entries
-restore_month(){
-  local month=$1
-  local meta=$2
+# Restore a SQL dump of audit entries
+restore_dump(){
+  local name=$1
 
-  prepare_month_restore "$month" "$meta"
-
-  local dump="$snapshot_dir/${month}.gz"
+  local dump="$snapshot_dir/${name}.gz"
   if ! test -e "$dump"; then
     echo "snapshot is missing the $dump file" 2>>"$log"
     return 1
@@ -138,7 +135,22 @@ restore_month(){
   echo "gunzip -cd $remote_dump | sudo $export_tool restore" | ghe-ssh "$GHE_HOSTNAME" -- /bin/bash 2>>"$log"
 }
 
+# Restore a month of audit entries
+restore_month(){
+  local month=$1
+  local meta=$2
+
+  prepare_month_restore "$month" "$meta"
+  restore_dump "$month"
+}
+
+restore_schema(){
+  restore_dump schema
+}
+
 restore(){
+  restore_schema
+
   IFS=$'\n'
   for month in $(notsynced_meta); do
     local month_name

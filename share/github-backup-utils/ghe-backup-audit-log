@@ -46,12 +46,13 @@ is_import_complete(){
 backup_mysql(){
   if ! is_import_complete; then
     echo "Audit log import to MySQL is not complete" >>"$log"
+    "${base_path}/ghe-backup-mysql-audit-log" --only-schema || exit 1
     return
   fi
 
   echo "Audit log import to MySQL is complete" >>"$log"
   touch "$GHE_SNAPSHOT_DIR/audit-log/mysql-import-complete"
-  "${base_path}/ghe-backup-mysql-audit-log" || exit 1
+  "${base_path}/ghe-backup-mysql-audit-log" --only-schema || exit 1
 }
 
 # Audit log indices in Elasticsearch are backed up when:

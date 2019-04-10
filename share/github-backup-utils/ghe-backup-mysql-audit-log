@@ -2,6 +2,9 @@
 #/ Usage: ghe-backup-mysql-audit-log
 #/ Take a backup of audit logs in MySQL.
 #/
+#/ Args:
+#/    --only-schema (optional: only dump the table schema)
+#/
 #/ Note: This command typically isn't called directly. It's invoked by
 #/ ghe-backup.
 set -e
@@ -11,6 +14,7 @@ set -e
 . "$( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config"
 
 export_tool="/usr/local/share/enterprise/ghe-export-audit-logs"
+only_schema="$1"
 
 # Setup GHE_REMOTE_XXX variables, host and make sure work dir is created
 setup(){
@@ -20,8 +24,17 @@ setup(){
   # Set up remote host and root elastic backup directory based on config
   host="$GHE_HOSTNAME"
 
+  # Where the new MySQL dumps go
+  snapshot_dir="$GHE_SNAPSHOT_DIR/audit-log-mysql"
+
+  # Where the current MySQL dumps live
+  current_dir="$GHE_DATA_DIR/current/audit-log-mysql"
+
+  # Wheter we need a full backup and not incremental
+  force_full_backup=false
+
   # Make sure root backup dir exists if this is the first run
-  mkdir -p "$GHE_SNAPSHOT_DIR/audit-log-mysql"
+  mkdir -p "$snapshot_dir"
 
   log=$(mktemp -t ghe-backup-mysql-audit-log-XXXXXX)
 
@@ -57,12 +70,43 @@ is_month_synced(){
   local meta="$1"
   local name=$2
 
-  local dir="$GHE_DATA_DIR/current/audit-log-mysql"
+  test -f "${current_dir}/${name}.gz" || return 1
+  test -f "${current_dir}/${name}.meta" || return 1
 
-  test -f "${dir}/${name}.gz" || return 1
-  test -f "${dir}/${name}.meta" || return 1
+  [ "$(cat "${current_dir}/${name}.meta")" = "$meta" ] 
+}
 
-  [ "$(cat "${dir}/${name}.meta")" = "$meta" ] 
+# To compare two schemas, we filter out comments
+# and blank lines to only leave SQL statements
+filter_schema(){
+  local schema="$1"
+
+  echo "$schema" | grep -v "^--" | grep -v "^/\\*" | grep .
+}
+
+# Dump table schema and check whether it has changed when
+# compared with the schema stored in the current snapshot.
+# If it has changed, we can't do an incremental backup
+# and all data needs to be dumped in the new snapshot.
+dump_schema(){
+  local current
+  current=$(ghe-ssh "$host" "$export_tool dump --schema-only" 2>>"$log")
+
+  echo "$current" | gzip >"${snapshot_dir}/schema.gz"
+
+  if ! test -e "${current_dir}/schema.gz"; then
+    return
+  fi
+    
+  local previous
+  previous=$(gunzip -c "${current_dir}/schema.gz")
+
+  if ! diff -Naur <(filter_schema "$current") <(filter_schema "$previous") >>"$log" 2>&1; then
+    echo "Current and previous schema don't match, forcing full backup" >>"$log"
+    force_full_backup=true
+  fi
+
+  echo "Current and previous schemas match" >>"$log"
 }
 
 # Dump a month of audit entries from MySQL and store it
@@ -72,11 +116,10 @@ dump_month(){
   local meta="$1"
   local name=$2
 
-  local dir="$GHE_SNAPSHOT_DIR/audit-log-mysql"
   echo "$export_tool dump $name | gzip" \
-    | ghe-ssh "$host" -- /bin/bash > "${dir}/${name}.gz" 2>>"$log"
+    | ghe-ssh "$host" -- /bin/bash > "${snapshot_dir}/${name}.gz" 2>>"$log"
 
-  echo "$meta" > "${dir}/${name}.meta"
+  echo "$meta" > "${snapshot_dir}/${name}.meta"
 }
 
 # Backup audit log entries:
@@ -86,6 +129,12 @@ dump_month(){
 # 2. If any month is uptodate in the current snapshot, hardlink it
 # 3. Otherwise, dump those month entries from MySQL
 backup(){
+  dump_schema
+
+  if $only_schema; then
+    return
+  fi
+
   local meta
   if ! meta=$(fetch_current_meta); then
     return
@@ -96,11 +145,11 @@ backup(){
     local month_name
     month_name=$(echo "$month" | awk '{print $1}')
 
-    if is_month_synced "$month" "$month_name"; then
+    if ! $force_full_backup && is_month_synced "$month" "$month_name"; then
       # Month is in-sync with current data, create hardlink to it
       echo "$month_name is in sync, hardlinking to it.." >>"$log"
-      ln "$GHE_DATA_DIR/current/audit-log-mysql/${month_name}.gz" "$GHE_SNAPSHOT_DIR/audit-log-mysql/${month_name}.gz"
-      ln "$GHE_DATA_DIR/current/audit-log-mysql/${month_name}.meta" "$GHE_SNAPSHOT_DIR/audit-log-mysql/${month_name}.meta"
+      ln "${current_dir}/${month_name}.gz" "${snapshot_dir}/${month_name}.gz"
+      ln "${current_dir}/${month_name}.meta" "${snapshot_dir}/${month_name}.meta"
       continue
     fi
 

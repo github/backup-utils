@@ -122,6 +122,11 @@ dump_month(){
   echo "$meta" > "${snapshot_dir}/${name}.meta"
 }
 
+# Check if the export tool is available in this version
+export_tool_available(){
+  ghe-ssh "$host" "test -e $export_tool"
+}
+
 # Backup audit log entries:
 #
 # 1. Fetch metadata about the existing audit log entries in MySQL per month
@@ -129,6 +134,10 @@ dump_month(){
 # 2. If any month is uptodate in the current snapshot, hardlink it
 # 3. Otherwise, dump those month entries from MySQL
 backup(){
+  if ! export_tool_available; then
+    return
+  fi
+
   dump_schema
 
   if [ -n "$only_schema" ]; then

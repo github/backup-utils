@@ -148,7 +148,16 @@ restore_schema(){
   restore_dump schema
 }
 
+# Check if the export tool is available in this version
+export_tool_available(){
+    ghe-ssh "$GHE_HOSTNAME" "test -e $export_tool"
+}
+
 restore(){
+  if ! export_tool_available; then
+    return
+  fi
+
   restore_schema
 
   IFS=$'\n'

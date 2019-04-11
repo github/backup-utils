@@ -256,6 +256,7 @@ begin_test "ghe-restore creates audit log import to MySQL flag in file system wh
   # set as configured, enable maintenance mode and create required directories
   setup_maintenance_mode "configured"
 
+  mkdir "$GHE_DATA_DIR/current/audit-log-mysql"
   touch "$GHE_DATA_DIR/current/audit-log/mysql-import-complete"
   mkdir "$GHE_REMOTE_ROOT_DIR/data/user/common/audit-log-import"
 

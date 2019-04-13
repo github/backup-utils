@@ -116,9 +116,7 @@ dump_month(){
   local meta="$1"
   local name=$2
 
-  echo "$export_tool dump $name | gzip" \
-    | ghe-ssh "$host" -- /bin/bash > "${snapshot_dir}/${name}.gz" 2>>"$log"
-
+  ghe-ssh "$host" "$export_tool dump --use-gzip=true dump $name" >"${snapshot_dir}/${name}.gz" 2>>"$log"
   echo "$meta" > "${snapshot_dir}/${name}.meta"
 }
 

@@ -128,11 +128,8 @@ restore_dump(){
     return 1
   fi
 
-  # Transfer MySQL data from the snapshot to the GitHub instance.
-  ghe-ssh "$GHE_HOSTNAME" -- "sudo dd of=$remote_dump 2>&1" >>"$log" 2>&1 <"$dump"
-
-  # Import the entries
-  echo "gunzip -cd $remote_dump | sudo $export_tool restore" | ghe-ssh "$GHE_HOSTNAME" -- /bin/bash 2>>"$log"
+  # Transfer MySQL data from the snapshot to the GitHub instance and restore it on the fly
+  ghe-ssh "$GHE_HOSTNAME" -- "sudo $export_tool restore --use-gunzip=true" >>"$log" 2>&1 <"$dump"
 }
 
 # Restore a month of audit entries

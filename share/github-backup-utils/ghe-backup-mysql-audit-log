@@ -13,7 +13,6 @@ set -e
 # shellcheck source=share/github-backup-utils/ghe-backup-config
 . "$( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config"
 
-export_tool="/usr/local/share/enterprise/ghe-export-audit-logs"
 only_schema="$1"
 
 # Setup GHE_REMOTE_XXX variables, host and make sure work dir is created
@@ -49,11 +48,11 @@ cleanup(){
   rm -f "$log"
 }
 
-# Use $export_tool to fetch the current metadata for all stored
+# Use ghe-export-audit-logs to fetch the current metadata for all stored
 # months in MySQL. For each month: number of entries, minum ID, maximum ID
 fetch_current_meta(){
   local meta
-  if ! meta=$(ghe-ssh "$host" "github-env $export_tool months" 2>>"$log"); then
+  if ! meta=$(ghe-ssh "$host" "github-env ghe-export-audit-logs months" 2>>"$log"); then
     echo "Error: failed to retrieve audit log metadata" 1>&2
     exit 1
   fi
@@ -90,7 +89,7 @@ filter_schema(){
 # and all data needs to be dumped in the new snapshot.
 dump_schema(){
   local current
-  current=$(ghe-ssh "$host" "$export_tool dump --schema-only" 2>>"$log")
+  current=$(ghe-ssh "$host" "ghe-export-audit-logs dump --schema-only" 2>>"$log")
 
   echo "$current" | gzip >"${snapshot_dir}/schema.gz"
 
@@ -116,13 +115,13 @@ dump_month(){
   local meta="$1"
   local name=$2
 
-  ghe-ssh "$host" "$export_tool dump --use-gzip=true $name" >"${snapshot_dir}/${name}.gz" 2>>"$log"
+  ghe-ssh "$host" "ghe-export-audit-logs dump --use-gzip=true $name" >"${snapshot_dir}/${name}.gz" 2>>"$log"
   echo "$meta" > "${snapshot_dir}/${name}.meta"
 }
 
 # Check if the export tool is available in this version
 export_tool_available(){
-  ghe-ssh "$host" "test -e $export_tool"
+  ghe-ssh "$host" "test -e /usr/local/bin/ghe-export-audit-logs"
 }
 
 # Backup audit log entries:

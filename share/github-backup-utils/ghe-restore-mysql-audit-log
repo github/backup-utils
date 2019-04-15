@@ -11,8 +11,6 @@ base_path="$( dirname "${BASH_SOURCE[0]}" )"
 # shellcheck source=share/github-backup-utils/ghe-backup-config
 . "${base_path}/ghe-backup-config"
 
-export_tool="/usr/local/share/enterprise/ghe-export-audit-logs"
-
 # Show usage and bail with no arguments
 [ $# -lt 1 ] && print_usage "$@"
 
@@ -45,11 +43,11 @@ cleanup(){
   ghe-ssh "$GHE_HOSTNAME" -- "sudo rm -rf $remote_dump"
 }
 
-# Use $export_tool to fetch the current metadata for all stored
+# Use ghe-export-audit-logs to fetch the current metadata for all stored
 # months in MySQL. For each month: number of entries, minum ID, maximum ID
 fetch_current_meta(){
   local meta
-  if ! meta=$(ghe-ssh "$GHE_HOSTNAME" "github-env $export_tool months" 2>>"$log"); then
+  if ! meta=$(ghe-ssh "$GHE_HOSTNAME" "github-env ghe-export-audit-logs months" 2>>"$log"); then
     echo "Error: failed to retrieve audit log metadata" >>"$log"
     return
   fi
@@ -113,8 +111,8 @@ prepare_month_restore(){
     return
   fi
 
-  if ! ghe-ssh "$GHE_HOSTNAME" "github-env $export_tool prepare_restore $meta" 2>>"$log"; then
-    echo "failed to run $export_tool prepare_restore $meta" >>"$log"
+  if ! ghe-ssh "$GHE_HOSTNAME" "github-env ghe-export-audit-logs prepare_restore $meta" 2>>"$log"; then
+    echo "failed to run ghe-export-audit-logs prepare_restore $meta" >>"$log"
   fi
 }
 
@@ -129,7 +127,7 @@ restore_dump(){
   fi
 
   # Transfer MySQL data from the snapshot to the GitHub instance and restore it on the fly
-  ghe-ssh "$GHE_HOSTNAME" -- "sudo $export_tool restore --use-gunzip=true" >>"$log" 2>&1 <"$dump"
+  ghe-ssh "$GHE_HOSTNAME" -- "sudo ghe-export-audit-logs restore --use-gunzip=true" >>"$log" 2>&1 <"$dump"
 }
 
 # Restore a month of audit entries
@@ -147,7 +145,7 @@ restore_schema(){
 
 # Check if the export tool is available in this version
 export_tool_available(){
-    ghe-ssh "$GHE_HOSTNAME" "test -e $export_tool"
+    ghe-ssh "$GHE_HOSTNAME" "test -e /usr/local/bin/ghe-export-audit-logs"
 }
 
 restore(){

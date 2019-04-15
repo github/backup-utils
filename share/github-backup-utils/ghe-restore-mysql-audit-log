@@ -120,9 +120,11 @@ prepare_month_restore(){
 restore_dump(){
   local name=$1
 
+  echo "restoring ${name}.gz..." >>"$log"
+
   local dump="$snapshot_dir/${name}.gz"
   if ! test -e "$dump"; then
-    echo "snapshot is missing the $dump file" 2>>"$log"
+    echo "snapshot is missing the $dump file" >>"$log"
     return 1
   fi
 

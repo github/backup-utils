@@ -29,7 +29,7 @@ is_import_complete(){
   ghe-ssh "$host" test -e "$GHE_REMOTE_DATA_USER_DIR/common/audit-log-import/complete"
 }
 
-# Check whether the MySQL import is disable by verifying if
+# Check whether the MySQL import is disabled by verifying if
 # /data/user/common/audit-log-import/skip exists
 is_import_disabled(){
   ghe-ssh "$host" test -e "$GHE_REMOTE_DATA_USER_DIR/common/audit-log-import/skip"

@@ -21,18 +21,6 @@ setup(){
 
   # Make sure root backup dir exists if this is the first run
   mkdir -p "$GHE_SNAPSHOT_DIR/audit-log"
-
-  log=$(mktemp -t ghe-backup-audit-log-XXXXXX)
-
-  trap cleanup EXIT
-}
-
-# Clean up after exit
-cleanup(){
-  test -e "$log" || return
-
-  [ -n "$GHE_VERBOSE" ] && cat "$log"
-  rm -f "$log"
 }
 
 # Check whether the MySQL import is complete by checking if
@@ -51,6 +39,8 @@ is_import_disabled(){
 # And also use `ghe-backup-mysql-audit-log` to dump the audit entries.
 backup_mysql(){
   if is_import_disabled; then
+    ghe_verbose "audit log import is configured to be skipped"
+
     "${base_path}/ghe-backup-mysql-audit-log" --schema-only
     return
   fi
@@ -58,11 +48,11 @@ backup_mysql(){
   "${base_path}/ghe-backup-mysql-audit-log" 
 
   if ! is_import_complete; then
-    echo "Audit log import to MySQL is not complete" >>"$log"
+    ghe_verbose "Audit log import to MySQL is not complete"
     return
   fi
 
-  echo "Audit log import to MySQL is complete" >>"$log"
+  ghe_verbose "Audit log import to MySQL is complete"
   touch "$GHE_SNAPSHOT_DIR/audit-log/mysql-import-complete"
 }
 
@@ -80,13 +70,14 @@ es_backup_enabled(){
 
 # Use ghe-backup-es-audit-log to back up Elasticsearch indices
 backup_es(){
-  "${base_path}/ghe-backup-es-audit-log" || exit 1
+  "${base_path}/ghe-backup-es-audit-log"
 }
 
 backup(){
   backup_mysql
 
   if es_backup_enabled; then
+    ghe_verbose "Elasticsearch audit logs backup is disabled"
     backup_es
   fi
 }

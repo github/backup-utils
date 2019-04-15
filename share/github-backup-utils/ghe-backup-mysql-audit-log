@@ -94,6 +94,7 @@ dump_schema(){
   if ! diff -Naur <(filter_schema "$current") <(filter_schema "$previous") 1>&3 2>&3; then
     ghe_verbose "Current and previous schema don't match, forcing full backup"
     force_full_backup=true
+    return
   fi
 
   ghe_verbose "Current and previous schemas match"

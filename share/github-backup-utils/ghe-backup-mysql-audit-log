@@ -6,16 +6,17 @@
 #/    --only-schema (optional: only dump the table schema)
 #/
 #/ Note: This command typically isn't called directly. It's invoked by
-#/ ghe-backup.
+#/ ghe-backup-audit-log.
 set -e
 
 # Bring in the backup configuration
 # shellcheck source=share/github-backup-utils/ghe-backup-config
 . "$( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config"
 
+# Whether we just need to dump the table schema and no data
 only_schema="$1"
 
-# Setup GHE_REMOTE_XXX variables, host and make sure work dir is created
+# Setup GHE_REMOTE_XXX variables and other global variables
 setup(){
   # Perform a host-check and establish GHE_REMOTE_XXX variables.
   ghe_remote_version_required "$host"

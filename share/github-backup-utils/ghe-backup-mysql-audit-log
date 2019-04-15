@@ -52,7 +52,7 @@ cleanup(){
 # months in MySQL. For each month: number of entries, minum ID, maximum ID
 fetch_current_meta(){
   local meta
-  if ! meta=$(ghe-ssh "$host" "github-env ghe-export-audit-logs months" 2>>"$log"); then
+  if ! meta=$(ghe-ssh "$host" "sudo ghe-export-audit-logs months" 2>>"$log"); then
     echo "Error: failed to retrieve audit log metadata" 1>&2
     exit 1
   fi

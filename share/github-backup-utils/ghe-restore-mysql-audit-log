@@ -64,6 +64,7 @@ notsynced_meta(){
   if ! current_meta=$(fetch_current_meta); then
     ghe_verbose "Current instance doesn't have any audit log entries in MySQL"
     skip_prepare=true
+    echo "$snapshot_meta"
     return
   fi
 

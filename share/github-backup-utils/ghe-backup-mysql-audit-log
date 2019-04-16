@@ -64,12 +64,17 @@ is_month_synced(){
   [ "$(cat "${current_dir}/${name}.meta")" = "$meta" ] 
 }
 
-# To compare two schemas, we filter out comments
-# and blank lines to only leave SQL statements
+# To compare two schemas, we filter out comments,
+# the AUTO_INCREMENT=XXXX value and blank lines
+# to only leave SQL statements.
 filter_schema(){
   local schema="$1"
 
-  echo "$schema" | grep -v "^--" | grep -v "^/\\*" | grep .
+  echo "$schema" | \
+    grep -v "^--" |
+    grep -v "^/\\*" | \
+    grep . | \
+    sed 's/ AUTO_INCREMENT=[0-9]*\b//'
 }
 
 # Dump table schema and check whether it has changed when

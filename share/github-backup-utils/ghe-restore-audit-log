@@ -20,18 +20,6 @@ GHE_HOSTNAME="$1"
 setup(){
   # Perform a host-check and establish GHE_REMOTE_XXX variables.
   ghe_remote_version_required "$GHE_HOSTNAME"
-
-  log=$(mktemp -t ghe-restore-audit-log-XXXXXX)
-
-  trap cleanup EXIT
-}
-
-# Clean up after exit
-cleanup(){
-  test -e "$log" || return
-
-  [ -n "$GHE_VERBOSE" ] && cat "$log"
-  rm -f "$log"
 }
 
 # Check whether the snapshot comes from an instance
@@ -49,14 +37,16 @@ mysql_restored_enabled(){
 # Use `ghe-backup-mysql-audit-log` to dump the audit entries.
 # If the import to MySQL is complete, add a flag in the snapshot to indicate so.
 restore_mysql(){
+  ghe_verbose "Restoring MySQL audit logs ..."
+
   "${base_path}/ghe-restore-mysql-audit-log" "$GHE_HOSTNAME"
 
   if ! is_import_complete; then
-    echo "Audit log import to MySQL is not complete" >>"$log"
+    ghe_verbose "Audit log import to MySQL is not complete"
     return
   fi
 
-  echo "Audit log import to MySQL is complete" >>"$log"
+  ghe_verbose "Audit log import to MySQL is complete"
   ghe-ssh "$GHE_HOSTNAME" -- "sudo touch $GHE_REMOTE_ROOT_DIR/data/user/common/audit-log-import/complete" 
 }
 
@@ -74,16 +64,22 @@ es_restore_enabled(){
 
 # Use ghe-restore-es-audit-log to restore Elasticsearch indices
 restore_es(){
+  ghe_verbose "Restoring Elasticsearch audit logs ..."
+
   "${base_path}/ghe-restore-es-audit-log" "$GHE_HOSTNAME"
 }
 
 do_restore(){
   if mysql_restored_enabled; then
     restore_mysql
+  else
+    ghe_verbose "MySQL audit log restore is not enabled"
   fi
 
   if es_restore_enabled; then
     restore_es
+  else
+    ghe_verbose "Elasticsearch audit log restore is not enabled"
   fi
 }
 

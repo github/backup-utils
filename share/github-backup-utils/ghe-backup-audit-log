@@ -23,6 +23,12 @@ setup(){
   mkdir -p "$GHE_SNAPSHOT_DIR/audit-log"
 }
 
+# Check whether the MySQL backup should be enabled
+# by checking if the audit-log-import directory exists
+mysql_backup_enabled(){
+  ghe-ssh "$host" test -d "$GHE_REMOTE_DATA_USER_DIR/common/audit-log-import"
+}
+
 # Check whether the MySQL import is complete by checking if
 # /data/user/common/audit-log-import/complete exists
 is_import_complete(){
@@ -74,11 +80,18 @@ backup_es(){
 }
 
 backup(){
-  backup_mysql
+  if mysql_backup_enabled; then
+    ghe_verbose "MySQL audit logs backup is enabled"
+    backup_mysql
+  else
+    ghe_verbose "MySQL audit logs backup is disabled"
+  fi
 
   if es_backup_enabled; then
-    ghe_verbose "Elasticsearch audit logs backup is disabled"
+    ghe_verbose "Elasticsearch audit logs backup is enabled"
     backup_es
+  else
+    ghe_verbose "Elasticsearch audit logs backup is disabled"
   fi
 }
 

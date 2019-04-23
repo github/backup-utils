@@ -205,6 +205,42 @@ begin_test "ghe-restore with bad host arg"
 )
 end_test
 
+begin_test "ghe-restore with host arg and config value"
+(
+  GHE_BACKUP_CONFIG_TEMP="${GHE_BACKUP_CONFIG}.temp"
+  cp "$GHE_BACKUP_CONFIG" "$GHE_BACKUP_CONFIG_TEMP"
+  echo 'GHE_BACKUP_HOST="broken.config.file.host"' >> "$GHE_BACKUP_CONFIG_TEMP"
+
+  set -e
+  rm -rf "$GHE_REMOTE_ROOT_DIR"
+  setup_remote_metadata
+
+  # set as configured, enable maintenance mode and create required directories
+  setup_maintenance_mode "configured"
+
+  # set restore host environ var (which we shouldn't see)
+  GHE_RESTORE_HOST="broken.environ.restore.host"
+  export GHE_RESTORE_HOST
+
+  # set restore host config var (which we shouldn't see)
+  GHE_BACKUP_CONFIG_TEMP="${GHE_BACKUP_CONFIG}.temp"
+  cp "$GHE_BACKUP_CONFIG" "$GHE_BACKUP_CONFIG_TEMP"
+  echo 'GHE_BACKUP_HOST="broken.config.restore.host"' >> "$GHE_BACKUP_CONFIG_TEMP"
+
+  # run it
+  output="$(ghe-restore -f localhost)" || false
+
+  # clean up the config file
+  rm "$GHE_BACKUP_CONFIG_TEMP"
+
+  # verify host arg overrides configured restore host
+  echo "$output" | grep -q 'Connect localhost:22 OK'
+
+  # Verify all the data we've restored is as expected
+  verify_all_restored_data
+)
+end_test
+
 begin_test "ghe-restore with host arg"
 (
   set -e
@@ -214,8 +250,8 @@ begin_test "ghe-restore with host arg"
   # set as configured, enable maintenance mode and create required directories
   setup_maintenance_mode "configured"
 
-  # set restore host environ var
-  GHE_RESTORE_HOST="broken.restore.host"
+  # set restore host environ var (which we shouldn't see)
+  GHE_RESTORE_HOST="broken.environ.restore.host"
   export GHE_RESTORE_HOST
 
   # run it

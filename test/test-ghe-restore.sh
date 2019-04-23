@@ -209,7 +209,7 @@ begin_test "ghe-restore with host arg and config value"
   GHE_BACKUP_CONFIG_TEMP="${GHE_BACKUP_CONFIG}.temp"
   cp "$GHE_BACKUP_CONFIG" "$GHE_BACKUP_CONFIG_TEMP"
   echo 'GHE_BACKUP_HOST="broken.config.restore.host"' >> "$GHE_BACKUP_CONFIG_TEMP"
-  GHE_BACKUP_CONFIG="$GHE_BACKUP_CONFIG_TEST"
+  GHE_BACKUP_CONFIG="$GHE_BACKUP_CONFIG_TEMP"
   export GHE_BACKUP_CONFIG
 
   # run it

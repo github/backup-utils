@@ -188,23 +188,6 @@ begin_test "ghe-restore into unconfigured vm"
 )
 end_test
 
-begin_test "ghe-restore with bad host arg"
-(
-  set -e
-  rm -rf "$GHE_REMOTE_ROOT_DIR"
-  setup_remote_metadata
-
-  # set as configured, enable maintenance mode and create required directories
-  setup_maintenance_mode "configured"
-
-  # run it
-  output="$(ghe-restore -f broken.restore.host)" || false
-
-  # verify host arg overrides configured restore host
-  echo "$output" | grep -q 'Connect localhost:22 OK'
-)
-end_test
-
 begin_test "ghe-restore with host arg and config value"
 (
   GHE_BACKUP_CONFIG_TEMP="${GHE_BACKUP_CONFIG}.temp"

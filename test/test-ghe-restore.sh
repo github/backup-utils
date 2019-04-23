@@ -190,10 +190,6 @@ end_test
 
 begin_test "ghe-restore with host arg and config value"
 (
-  GHE_BACKUP_CONFIG_TEMP="${GHE_BACKUP_CONFIG}.temp"
-  cp "$GHE_BACKUP_CONFIG" "$GHE_BACKUP_CONFIG_TEMP"
-  echo 'GHE_BACKUP_HOST="broken.config.file.host"' >> "$GHE_BACKUP_CONFIG_TEMP"
-
   set -e
   rm -rf "$GHE_REMOTE_ROOT_DIR"
   setup_remote_metadata
@@ -208,7 +204,7 @@ begin_test "ghe-restore with host arg and config value"
   # set restore host config var (which we shouldn't see)
   GHE_BACKUP_CONFIG_TEMP="${GHE_BACKUP_CONFIG}.temp"
   cp "$GHE_BACKUP_CONFIG" "$GHE_BACKUP_CONFIG_TEMP"
-  echo 'GHE_BACKUP_HOST="broken.config.restore.host"' >> "$GHE_BACKUP_CONFIG_TEMP"
+  echo 'GHE_RESTORE_HOST="broken.config.restore.host"' >> "$GHE_BACKUP_CONFIG_TEMP"
   GHE_BACKUP_CONFIG="$GHE_BACKUP_CONFIG_TEMP"
   export GHE_BACKUP_CONFIG
 

@@ -198,7 +198,7 @@ begin_test "ghe-restore with host arg"
   setup_maintenance_mode "configured"
 
   # set restore host environ var
-  GHE_RESTORE_HOST=127.0.0.1
+  GHE_RESTORE_HOST="broken.restore.host"
   export GHE_RESTORE_HOST
 
   # run it

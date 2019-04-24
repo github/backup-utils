@@ -69,6 +69,19 @@ restore_es(){
   "${base_path}/ghe-restore-es-audit-log" "$GHE_HOSTNAME"
 }
 
+# Whether or not we should trigger a reindex from MySQL into Elasticsearch
+should_start_reindex(){
+  if [ -z "$GHE_BACKUP_ES_AUDIT_LOGS" ] || [ "$GHE_BACKUP_ES_AUDIT_LOGS" != "no" ]; then
+    ghe_verbose "GHE_BACKUP_ES_AUDIT_LOGS is not set to 'no'"
+    return 1
+  fi
+
+  if ! ghe-ssh "$GHE_HOSTNAME" -- "test -e /usr/local/share/enterprise/ghe-auditlog-repair"; then
+    ghe_verbose "ghe-auditlog-repiar doesn't exist"
+    return 1
+  fi
+}
+
 do_restore(){
   if mysql_restored_enabled; then
     restore_mysql
@@ -78,8 +91,14 @@ do_restore(){
 
   if es_restore_enabled; then
     restore_es
-  else
-    ghe_verbose "Elasticsearch audit log restore is not enabled"
+    return
+  fi
+
+  ghe_verbose "Elasticsearch audit log restore is not enabled"
+
+  if should_start_reindex; then
+    ghe_verbose "Starting audit log reindex from MySQL to Elasticsearch"
+    ghe-ssh "$GHE_HOSTNAME" -- "sudo systemctl --no-block restart auditlog-repair"; then
   fi
 }
 

@@ -98,7 +98,7 @@ do_restore(){
 
   if should_start_reindex; then
     ghe_verbose "Starting audit log reindex from MySQL to Elasticsearch"
-    ghe-ssh "$GHE_HOSTNAME" -- "sudo systemctl --no-block restart auditlog-repair"; then
+    ghe-ssh "$GHE_HOSTNAME" -- "sudo systemctl --no-block restart auditlog-repair";
   fi
 }
 

@@ -24,7 +24,8 @@ setup(){
 }
 
 # Check whether the MySQL backup should be enabled
-# by checking if the audit-log-import directory exists
+# by checking if the audit-log-import directory exists,
+# this makes it backwards-compatible with old snapshots
 mysql_backup_enabled(){
   ghe-ssh "$host" test -d "$GHE_REMOTE_DATA_USER_DIR/common/audit-log-import"
 }
@@ -41,33 +42,59 @@ is_import_disabled(){
   ghe-ssh "$host" test -e "$GHE_REMOTE_DATA_USER_DIR/common/audit-log-import/skip"
 }
 
+# Check whether the instance ships an audit log reconciler, if it doesn't
+# we can't dump audit_entries data, only the schema
+is_reconciler_available(){
+  ghe-ssh "$GHE_HOSTNAME" -- "test -e /usr/local/share/enterprise/ghe-auditlog-repair"
+}
+
+# Check whether we only need to back up the audit_entries schema and
+# ignore the actual data.
+#
+# This is the case when:
+#   - The import to MySQL is not complete
+#   - The import is disabled
+#   - The reconciler tool is not available
+skip_mysql_entries(){
+  if ! is_import_complete; then
+    ghe_verbose "audit log import is not complete"
+    return
+  fi
+
+  if is_import_disabled; then
+    ghe_verbose "audit log import is disabled"
+    return
+  fi
+
+  if ! is_reconciler_available; then
+    ghe_verbose "audit log reconciler is not available"
+    return
+  fi
+
+  return 1
+}
+
 # If the import to MySQL is complete, add a flag in the snapshot to indicate so.
 # And also use `ghe-backup-mysql-audit-log` to dump the audit entries.
 backup_mysql(){
-  if is_import_disabled; then
-    ghe_verbose "audit log import is configured to be skipped"
-
+  if skip_mysql_entries; then
+    ghe_verbose "only backing up audit log table schema"
     "${base_path}/ghe-backup-mysql-audit-log" --schema-only
     return
   fi
 
-  "${base_path}/ghe-backup-mysql-audit-log" 
-
-  if ! is_import_complete; then
-    ghe_verbose "Audit log import to MySQL is not complete"
-    return
-  fi
-
-  ghe_verbose "Audit log import to MySQL is complete"
+  "${base_path}/ghe-backup-mysql-audit-log"
   touch "$GHE_SNAPSHOT_DIR/audit-log/mysql-import-complete"
 }
 
 # Audit log indices in Elasticsearch are backed up when:
 #
-#   - import to MySQL is not complete
+#   - Import is not complete
+#   - Import is disabled
+#   - Reconciler is not available
 #   - GHE_BACKUP_ES_AUDIT_LOGS is not set to 'no'
 es_backup_enabled(){
-  if ! is_import_complete; then
+  if skip_mysql_entries; then
     return
   fi
 

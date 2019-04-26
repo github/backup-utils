@@ -43,6 +43,7 @@ restore_mysql(){
 
   if ! is_import_complete; then
     ghe_verbose "Audit log import to MySQL is not complete"
+    ghe-ssh "$GHE_HOSTNAME" -- "sudo rm -rf $GHE_REMOTE_ROOT_DIR/data/user/common/audit-log-import/complete" 1>&3 2>&3
     return
   fi
 

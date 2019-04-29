@@ -344,19 +344,3 @@ begin_test "ghe-backup missing directories or files on source appliance"
     verify_all_backedup_data
 )
 end_test
-
-begin_test "ghe-backup creates audit log import to MySQL flag in snapshot when present"
-(
-  set -e
-
-  mkdir "$GHE_REMOTE_DATA_USER_DIR/common/audit-log-import"
-  touch "$GHE_REMOTE_DATA_USER_DIR/common/audit-log-import/complete"
-
-  if ! output=$(ghe-backup -v 2>&1); then
-    echo "Error: failed to backup $output" >&2
-    exit 1
-  fi
-
-  test -e "$GHE_DATA_DIR/current/audit-log/mysql-import-complete"
-)
-end_test

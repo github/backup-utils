@@ -85,6 +85,11 @@ should_start_reindex(){
     ghe_verbose "ghe-auditlog-repiar doesn't exist"
     return 1
   fi
+
+  if ! $CLUSTER; then
+    ghe_verbose "skipping ghe-auditlog-repair as remote instance is not a clustering setup"
+    return 1
+  fi
 }
 
 do_restore(){

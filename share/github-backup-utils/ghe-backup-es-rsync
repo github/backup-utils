@@ -35,7 +35,7 @@ echo elasticsearch.yml >"$exclude_file"
 # as those indices will be rebuilt from MySQL during a restore
 if [ "$GHE_BACKUP_ES_AUDIT_LOGS" = "no" ] && ghe-ssh "$host" test -e "/data/user/common/audit-log-import/complete"; then
   ghe_verbose "* Excluding Audit Log indices"
-  ghe-ssh "$host" curl -s 'localhost:9201/_cat/indices/audit_log?h=uuid' >>$exclude_file 2>&3
+  ghe-ssh "$host" curl -s 'http://localhost:9201/_cat/indices/audit_log?h=uuid' >>$exclude_file 2>&3
 fi
 
 # Verify that the /data/elasticsearch directory exists.

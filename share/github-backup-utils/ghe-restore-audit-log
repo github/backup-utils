@@ -34,6 +34,17 @@ mysql_restored_enabled(){
   test -e "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/audit-log-mysql"
 }
 
+remove_complete_flag(){
+  ghe_verbose "Setting instance(s) as pending for audit log import to MySQL"
+  ghe-ssh "$GHE_HOSTNAME" -- "sudo rm -rf $GHE_REMOTE_ROOT_DIR/data/user/common/audit-log-import/complete" 1>&3 2>&3
+
+  if $CLUSTER; then
+    if ! ghe-ssh "$GHE_HOSTNAME" -- "ghe-cluster-each -- sudo rm -rf /data/user/common/audit-log-import/complete" 1>&3 2>&3; then
+      ghe_verbose "Failed to set as pending for audit log import to MySQL all instances in cluster"
+    fi
+  fi
+}
+
 # Use `ghe-backup-mysql-audit-log` to dump the audit entries.
 # If the import to MySQL is complete, add a flag in the snapshot to indicate so.
 restore_mysql(){
@@ -42,8 +53,7 @@ restore_mysql(){
   "${base_path}/ghe-restore-mysql-audit-log" "$GHE_HOSTNAME"
 
   if ! is_import_complete; then
-    ghe_verbose "Audit log import to MySQL is not complete"
-    ghe-ssh "$GHE_HOSTNAME" -- "sudo rm -rf $GHE_REMOTE_ROOT_DIR/data/user/common/audit-log-import/complete" 1>&3 2>&3
+    remove_complete_flag
     return
   fi
 
@@ -88,6 +98,7 @@ do_restore(){
     restore_mysql
   else
     ghe_verbose "MySQL audit log restore is not enabled"
+    remove_complete_flag
   fi
 
   if es_restore_enabled; then

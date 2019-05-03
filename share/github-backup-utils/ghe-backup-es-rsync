@@ -27,6 +27,17 @@ fi
 # Make sure root backup dir exists if this is the first run
 mkdir -p "$GHE_SNAPSHOT_DIR/elasticsearch"
 
+# Create exclude file
+exclude_file="$(mktemp)"
+echo elasticsearch.yml >"$exclude_file"
+
+# Exclude audit log indices when configuration says so and import to MySQL is complete
+# as those indices will be rebuilt from MySQL during a restore
+if [ "$GHE_BACKUP_ES_AUDIT_LOGS" = "no" ] && ghe-ssh "$host" test -e "/data/user/common/audit-log-import/complete"; then
+  ghe_verbose "* Excluding Audit Log indices"
+  ghe-ssh "$host" curl -s 'http://localhost:9201/_cat/indices/audit_log?h=uuid' >>$exclude_file 2>&3
+fi
+
 # Verify that the /data/elasticsearch directory exists.
 if ! ghe-ssh "$host" -- "[ -d '$GHE_REMOTE_DATA_USER_DIR/elasticsearch' ]"; then
   ghe_verbose "* The '$GHE_REMOTE_DATA_USER_DIR/elasticsearch' directory doesn't exist."
@@ -47,15 +58,16 @@ ghe-rsync -avz \
   -e "ghe-ssh -p $(ssh_port_part "$host")" \
   --rsync-path="sudo -u elasticsearch rsync" \
   $link_dest \
-  --exclude='elasticsearch.yml' \
+  --exclude-from="$exclude_file" \
   "$(ssh_host_part "$host"):$GHE_REMOTE_DATA_USER_DIR/elasticsearch/" \
   "$GHE_SNAPSHOT_DIR/elasticsearch" 1>&3
 
-# Set up a trap to re-enable flushing on exit
+# Set up a trap to re-enable flushing on exit and remove temp file
 cleanup () {
   ghe_verbose "* Enabling ES index flushing ..."
   echo '{"index":{"translog.disable_flush":false}}' |
   ghe-ssh "$host" -- curl -s -XPUT "localhost:9200/_settings" -d @- >/dev/null
+  ghe-ssh "$host" rm -rf "$exclude_file"
 }
 trap 'cleanup' EXIT
 trap 'exit $?' INT # ^C always terminate
@@ -72,7 +84,7 @@ ghe-rsync -avz \
   -e "ghe-ssh -p $(ssh_port_part "$host")" \
   --rsync-path="sudo -u elasticsearch rsync" \
   $link_dest \
-  --exclude='elasticsearch.yml' \
+  --exclude-from="$exclude_file" \
   "$(ssh_host_part "$host"):$GHE_REMOTE_DATA_USER_DIR/elasticsearch/" \
   "$GHE_SNAPSHOT_DIR/elasticsearch" 1>&3
 

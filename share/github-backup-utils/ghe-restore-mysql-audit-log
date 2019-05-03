@@ -174,8 +174,7 @@ has_schema_changed(){
 
 # Add DROP TABLE to a table schema dump
 add_drop_table(){
-  # shellcheck disable=SC2016
-  sed '/40101 SET @saved_cs_client/i DROP TABLE IF EXISTS `audit_entries`;'
+  awk '/40101 SET @saved_cs_client/{print "DROP TABLE IF EXISTS `audit_entries`;"}1'
 }
 
 # Restore the audit_entries table schema if it has changed
@@ -185,7 +184,7 @@ restore_schema(){
   fi
 
   gunzip -c "${snapshot_dir}/schema.gz" | add_drop_table | gzip > "${snapshot_dir}/schema.new.gz" 2>&3
-  zcat "${snapshot_dir}/schema.new.gz" 1>&3
+  zcat <"${snapshot_dir}/schema.new.gz" 1>&3
 
   restore_dump schema.new
 }

@@ -1,0 +1,223 @@
+#!/usr/bin/env bash
+#/ Usage: ghe-restore-mysql-audit-log
+#/ Restore MySQL audit logs.
+#/
+#/ Note: This command typically isn't called directly. It's invoked by
+#/ ghe-restore-audit-log
+set -e
+
+# Bring in the backup configuration
+base_path="$( dirname "${BASH_SOURCE[0]}" )"
+# shellcheck source=share/github-backup-utils/ghe-backup-config
+. "${base_path}/ghe-backup-config"
+
+# Show usage and bail with no arguments
+[ $# -lt 1 ] && print_usage "$@"
+
+GHE_HOSTNAME="$1"
+
+# Setup GHE_REMOTE_XXX variables, snapshot_dir,
+# remote_dir, remote_dump and skip_prepare
+setup(){
+  # Perform a host-check and establish GHE_REMOTE_XXX variables.
+  ghe_remote_version_required "$GHE_HOSTNAME"
+
+  snapshot_dir="$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/audit-log-mysql"
+  remote_dir="$GHE_REMOTE_DATA_USER_DIR/tmp"
+  remote_dump="$remote_dump/month.gz"
+  skip_prepare=false
+
+  ghe-ssh "$GHE_HOSTNAME" -- "sudo mkdir -p '$remote_dir'" 1>&3 2>&3
+  trap cleanup EXIT
+}
+
+# Clean up on exit
+cleanup(){
+  ghe-ssh "$GHE_HOSTNAME" -- "sudo rm -rf $remote_dump"
+}
+
+# Use ghe-export-audit-logs to fetch the current metadata for all stored
+# months in MySQL. For each month: number of entries, minum ID, maximum ID
+fetch_current_meta(){
+  local meta
+  if ! meta=$(ghe-ssh "$GHE_HOSTNAME" "sudo ghe-export-audit-logs months" | grep -v NULL 2>&3); then
+    ghe_verbose "Error: failed to retrieve audit log metadata"
+    return
+  fi
+
+  [ -z "$meta" ] && return 1
+
+  echo "$meta"
+}
+
+# Read the audt log metadata for all stored months in the current snapshot
+fetch_snapshot_meta(){
+  local indices
+  if ! indices=$(cat "${snapshot_dir}"/*.meta 2>/dev/null); then
+    ghe_verbose "Snapshot doesn't contain MySQL audit log dumps"
+    return 1
+  fi
+
+  echo "$indices"
+}
+
+# Return metadata of months that need to be restored by
+# checking snapshot's metadata vs intances's.
+# i.e: metadata doesn't match or doesn't exist in MySQL
+# This allows us to do a incremental restore.
+notsynced_meta(){
+  local snapshot_meta
+  if ! snapshot_meta=$(fetch_snapshot_meta); then
+    return
+  fi
+
+  local current_meta
+  if ! current_meta=$(fetch_current_meta); then
+    ghe_verbose "Current instance doesn't have any audit log entries in MySQL"
+    skip_prepare=true
+    echo "$snapshot_meta"
+    return
+  fi
+
+  IFS=$'\n'
+  for m in $snapshot_meta; do
+    if echo "$current_meta" | grep -qx "$m"; then
+      ghe_verbose "$m is in sync"
+      continue
+    fi
+
+    ghe_verbose "$m is NOT in sync"
+    echo "$m"
+  done
+  unset IFS
+}
+
+# Prepare restore: remove audit entries that match the month to be restored to
+# avoid ID collisions
+prepare_month_restore(){
+  local month=$1
+  local meta=$2
+
+  # If table doesn't exist in the first place, we don't need
+  # to delete anything
+  if $skip_prepare; then
+    return
+  fi
+
+  if ! ghe-ssh "$GHE_HOSTNAME" "sudo ghe-export-audit-logs prepare_restore $meta" 2>&3; then
+    ghe_verbose "failed to run ghe-export-audit-logs prepare_restore $meta"
+  fi
+}
+
+# Restore a SQL dump of audit entries
+restore_dump(){
+  local name=$1
+
+  ghe_verbose "restoring ${name}.gz..."
+
+  local dump="$snapshot_dir/${name}.gz"
+  if ! test -e "$dump"; then
+    ghe_verbose "snapshot is missing the $dump file"
+    return 1
+  fi
+
+  # Transfer MySQL data from the snapshot to the GitHub instance.
+  ghe-ssh "$GHE_HOSTNAME" -- "sudo dd of=$remote_dump" 1>&3 2>&3 <"$dump"
+
+  # Import the entries
+  echo "gunzip -cd $remote_dump | sudo ghe-export-audit-logs restore" | ghe-ssh "$GHE_HOSTNAME" -- /bin/bash 2>&3
+}
+
+# Restore a month of audit entries
+restore_month(){
+  local month=$1
+  local meta=$2
+
+  prepare_month_restore "$month" "$meta"
+  restore_dump "$month"
+}
+
+# To compare two schemas, we filter out comments,
+# the AUTO_INCREMENT=XXXX value and blank lines
+# to only leave SQL statements.
+filter_schema(){
+  local schema="$1"
+
+  echo "$schema" | \
+    grep -v "^--" |
+    grep -v "^/\\*" | \
+    grep . | \
+    sed 's/ AUTO_INCREMENT=[0-9]*\b//'
+}
+
+# Check whether the snapshot's schema and the instance's
+# are the same. If they are not the same, we can't do
+# an incremental restore.
+has_schema_changed(){
+  local current
+  if ! current=$(ghe-ssh "$GHE_HOSTNAME" "ghe-export-audit-logs dump --schema-only" 2>&3); then
+    ghe_verbose "Failed to dump current table schema, forcing full restore"
+    return
+  fi
+
+  local previous
+  previous=$(gunzip -c "${snapshot_dir}/schema.gz")
+
+  if ! diff -Naur <(filter_schema "$current") <(filter_schema "$previous") 1>&3 2>&3; then
+    ghe_verbose "Current and previous schema don't match, forcing full restore"
+    return
+  fi
+
+  ghe_verbose "Current and previous schemas match"
+  return 1
+}
+
+# Add DROP TABLE to a table schema dump
+add_drop_table(){
+  awk '/40101 SET @saved_cs_client/{print "DROP TABLE IF EXISTS `audit_entries`;"}1'
+}
+
+# Restore the audit_entries table schema if it has changed
+restore_schema(){
+  if ! has_schema_changed; then
+    return
+  fi
+
+  gunzip -c "${snapshot_dir}/schema.gz" | add_drop_table | gzip > "${snapshot_dir}/schema.new.gz" 2>&3
+  zcat <"${snapshot_dir}/schema.new.gz" 1>&3
+
+  restore_dump schema.new
+}
+
+# Check if the export tool is available in this version
+export_tool_available(){
+    ghe-ssh "$GHE_HOSTNAME" "test -e /usr/local/bin/ghe-export-audit-logs"
+}
+
+# Restore table schema and audit entries
+restore(){
+  if ! export_tool_available; then
+    ghe_verbose "ghe-export-audit-logs is not available"
+    return
+  fi
+
+  restore_schema
+
+  IFS=$'\n'
+  for month in $(notsynced_meta); do
+    local month_name
+    month_name=$(echo "$month" | awk '{print $1}')
+
+    restore_month "$month_name" "$month"
+  done
+  unset IFS
+}
+
+main(){
+  bm_start "$(basename "$0")"
+  setup
+  restore
+  bm_end "$(basename "$0")"
+}
+
+main

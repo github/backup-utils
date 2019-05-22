@@ -63,7 +63,7 @@ while true; do
       ;;
     *)
       if [ -n "$1" ]; then
-        GHE_RESTORE_HOST="$1"
+        GHE_RESTORE_HOST_OPT="$1"
         shift
       else
         break
@@ -86,7 +86,7 @@ cleanup () {
 . "$( dirname "${BASH_SOURCE[0]}" )/../share/github-backup-utils/ghe-backup-config"
 
 # Grab the host arg
-GHE_HOSTNAME="$GHE_RESTORE_HOST"
+GHE_HOSTNAME="${GHE_RESTORE_HOST_OPT:-$GHE_RESTORE_HOST}"
 
 # Hostname without any port suffix
 hostname=$(echo "$GHE_HOSTNAME" | cut -f 1 -d :)
@@ -301,8 +301,8 @@ fi
 # Restore exported audit and hookshot logs to 2.12.9 and newer single nodes and
 # all releases of cluster
 if $CLUSTER || [ "$(version $GHE_REMOTE_VERSION)" -ge "$(version 2.12.9)" ]; then
-  echo "Restoring Elasticsearch Audit logs ..."
-  ghe-restore-es-audit-log "$GHE_HOSTNAME" 1>&3
+  echo "Restoring Audit logs ..."
+  ghe-restore-audit-log "$GHE_HOSTNAME" 1>&3
 
   echo "Restoring hookshot logs ..."
   ghe-restore-es-hookshot "$GHE_HOSTNAME" 1>&3

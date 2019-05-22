@@ -38,7 +38,7 @@ github/backup-utils ghe-backup
 
 ## SSH Keys
 
-A SSH private key that has been added to the GitHub Enterprise [Management Console
+A SSH private key that has been added to the GitHub Enterprise Server [Management Console
 for administrative SSH access][1] needs to be mounted into the container from the
 host system. It is also recommended to mount a SSH `.ssh/known_hosts` file into
 the container.
@@ -57,7 +57,7 @@ github/backup-utils ghe-backup
 ### Using ssh-agent
 
 If your SSH private key is protected with a passphrase, you can mount the `ssh-agent`
-socket from the Docker host into the GitHub Enterprise Backup Utilities image.
+socket from the Docker host into the GitHub Enterprise Server Backup Utilities image.
 
 1. Start the ssh-agent in the background.
 

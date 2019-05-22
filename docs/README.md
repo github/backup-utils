@@ -1,9 +1,9 @@
-# GitHub Enterprise Backup Utilities Documentation
+# GitHub Enterprise Server Backup Utilities Documentation
 
 - **[Requirements](requirements.md)**
   - **[Backup host requirements](requirements.md#backup-host-requirements)**
   - **[Storage requirements](requirements.md#storage-requirements)**
-  - **[GitHub Enterprise version requirements](requirements.md#github-enterprise-version-requirements)**
+  - **[GitHub Enterprise Server version requirements](requirements.md#github-enterprise-version-requirements)**
 - **[Getting started](getting-started.md)**
 - **[Using the backup and restore commands](usage.md)**
 - **[Scheduling backups](scheduling-backups.md)**

@@ -188,6 +188,40 @@ begin_test "ghe-restore into unconfigured vm"
 )
 end_test
 
+begin_test "ghe-restore with host arg and config value"
+(
+  set -e
+  rm -rf "$GHE_REMOTE_ROOT_DIR"
+  setup_remote_metadata
+
+  # set as configured, enable maintenance mode and create required directories
+  setup_maintenance_mode "configured"
+
+  # set restore host environ var (which we shouldn't see)
+  GHE_RESTORE_HOST="broken.config.restore.host"
+  export GHE_RESTORE_HOST
+
+  # set restore host config var (which we shouldn't see)
+  GHE_BACKUP_CONFIG_TEMP="${GHE_BACKUP_CONFIG}.temp"
+  cp "$GHE_BACKUP_CONFIG" "$GHE_BACKUP_CONFIG_TEMP"
+  echo 'GHE_RESTORE_HOST="broken.config.restore.host"' >> "$GHE_BACKUP_CONFIG_TEMP"
+  GHE_BACKUP_CONFIG="$GHE_BACKUP_CONFIG_TEMP"
+  export GHE_BACKUP_CONFIG
+
+  # run it
+  output="$(ghe-restore -f localhost)" || false
+
+  # clean up the config file
+  rm "$GHE_BACKUP_CONFIG_TEMP"
+
+  # verify host arg overrides configured restore host
+  echo "$output" | grep -q 'Connect localhost:22 OK'
+
+  # Verify all the data we've restored is as expected
+  verify_all_restored_data
+)
+end_test
+
 begin_test "ghe-restore with host arg"
 (
   set -e
@@ -198,7 +232,7 @@ begin_test "ghe-restore with host arg"
   setup_maintenance_mode "configured"
 
   # set restore host environ var
-  GHE_RESTORE_HOST=127.0.0.1
+  GHE_RESTORE_HOST="broken.environ.restore.host"
   export GHE_RESTORE_HOST
 
   # run it
@@ -243,6 +277,32 @@ begin_test "ghe-restore with no pages backup"
 
   # run it
   ghe-restore -v -f localhost
+)
+end_test
+
+begin_test "ghe-restore removes audit log import to MySQL flag when is a < 2.17 snapshot"
+(
+  set -e
+
+  rm -rf "$GHE_REMOTE_ROOT_DIR"
+  setup_remote_metadata
+
+  # set as configured, enable maintenance mode and create required directories
+  setup_maintenance_mode "configured"
+
+  flag="$GHE_REMOTE_ROOT_DIR/data/user/common/audit-log-import/complete"
+  mkdir -p "$(dirname $flag)"
+  touch "$flag"
+
+  if ! output=$(ghe-restore -v -f localhost 2>&1); then
+    echo "Error: failed to restore $output" >&2
+    exit 1
+  fi
+
+  ! test -e "$flag" || {
+    echo "Error: the restore process should've removed $flag" >&2
+    exit 1
+  }
 )
 end_test
 

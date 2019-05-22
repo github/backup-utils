@@ -1,6 +1,6 @@
-# GitHub Enterprise backup configuration file
+# GitHub Enterprise Server backup configuration file
 
-# The hostname of the GitHub Enterprise appliance to back up. The host
+# The hostname of the GitHub Enterprise Server appliance to back up. The host
 # must be reachable via SSH from the backup host.
 GHE_HOSTNAME="github.example.com"
 
@@ -48,3 +48,10 @@ GHE_NUM_SNAPSHOTS=10
 #
 # WARNING: do not enable this, only useful for debugging/development
 #GHE_BACKUP_FSCK=no
+
+# If set to 'no', Elasticsearch audit log indices will not be backed up.
+# Note that they will still be backed up from MySQL. This will reduce
+# the time and size of the backup process but it will take longer
+# for the audit log entries to be searchable as they need to be reindexed
+# in Elasticsearch.
+#GHE_BACKUP_ES_AUDIT_LOGS=no

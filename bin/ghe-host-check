@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 #/ Usage: ghe-host-check [-h] [--version] [<host>]
 #/
-#/ Verify connectivity with the GitHub Enterprise host.
+#/ Verify connectivity with the GitHub Enterprise Server host.
 #/
 #/ OPTIONS:
 #/   -h | --help       Show this message.
 #/        --version    Display version information.
-#/   <host>            The GitHub Enterprise host to check. When no <host> is
-#/                     provided, the $GHE_HOSTNAME configured in backup.config
-#/                     is assumed.
+#/   <host>            The GitHub Enterprise Server host to check. When no
+#/                     <host> is provided, the $GHE_HOSTNAME configured in
+#/                     backup.config is assumed.
 #/
 
 set -e
@@ -70,7 +70,7 @@ if [ $rc -ne 0 ]; then
       echo "* https://enterprise.github.com/help/articles/adding-an-ssh-key-for-shell-access" 1>&2
       ;;
     101)
-      echo "Error: couldn't read GitHub Enterprise fingerprint on '$host' or this isn't a GitHub appliance." 1>&2
+      echo "Error: couldn't read GitHub Enterprise Server fingerprint on '$host' or this isn't a GitHub appliance." 1>&2
       ;;
     1)
       if [ "${port:-22}" -eq 22 ] && echo "$output" | grep "use port 122" >/dev/null; then
@@ -84,20 +84,20 @@ if [ $rc -ne 0 ]; then
   exit $rc
 fi
 
-version=$(echo "$output" | sed -n 's/GitHub Enterprise version \(.*\)/\1/p')
+version=$(echo "$output" | sed -E -n 's/GitHub Enterprise( Server)? version (.*)/\2/p')
 
 if [ -z "$version" ]; then
   echo "Error: failed to parse version on '$host' or this isn't a GitHub appliance." 1>&2
   exit 2
 fi
 
-# Block restoring snapshots to older releases of GitHub Enterprise
+# Block restoring snapshots to older releases of GitHub Enterprise Server
 if [ -n "$GHE_RESTORE_SNAPSHOT_PATH" ]; then
   snapshot_version=$(cat $GHE_RESTORE_SNAPSHOT_PATH/version)
   # shellcheck disable=SC2046 # Word splitting is required to populate the variables
   read -r snapshot_version_major snapshot_version_minor _ <<<$(ghe_parse_version $snapshot_version)
   if [ "$(version $GHE_REMOTE_VERSION)" -lt "$(version $snapshot_version_major.$snapshot_version_minor.0)" ]; then
-    echo "Error: Snapshot can not be restored to an older release of GitHub Enterprise." >&2
+    echo "Error: Snapshot can not be restored to an older release of GitHub Enterprise Server." >&2
     exit 1
   fi
 fi
@@ -112,17 +112,17 @@ if [ -z "$GHE_ALLOW_REPLICA_BACKUP" ]; then
 fi
 
 # backup-utils 2.13 onwards limits support to the current and previous two releases
-# of GitHub Enterprise.
-supported_minimum_version="2.13.0"
+# of GitHub Enterprise Server.
+supported_minimum_version="2.14.0"
 
 if [ "$(version $version)" -ge "$(version $supported_minimum_version)" ]; then
   supported=1
 fi
 
 if [ -z "$supported" ]; then
-  echo "Error: unsupported release of GitHub Enterprise detected." 1>&2
-  echo "Backup Utilities v$BACKUP_UTILS_VERSION requires GitHub Enterprise v$supported_minimum_version or newer." 1>&2
-  echo "Please update your GitHub Enterprise appliance or use an older version of Backup Utilities." 1>&2
+  echo "Error: unsupported release of GitHub Enterprise Server detected." 1>&2
+  echo "Backup Utilities v$BACKUP_UTILS_VERSION requires GitHub Enterprise Server v$supported_minimum_version or newer." 1>&2
+  echo "Please update your GitHub Enterprise Server appliance or use an older version of Backup Utilities." 1>&2
   exit 1
 fi
 

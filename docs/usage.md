@@ -6,7 +6,9 @@ After the initial backup, use the following commands:
    along with full snapshots of all other pertinent data stores.
  - The `ghe-restore` command restores snapshots to the same or separate GitHub
    Enterprise appliance. You must add the backup host's SSH key to the target
-   GitHub Enterprise appliance before using this command.
+   GitHub Enterprise Server appliance before using this command.
+
+These commands are run on the host you [installed][1] Backup Utilities on.
 
 ### Example backup and restore usage
 
@@ -34,7 +36,7 @@ Creating a backup snapshot:
     Checking for leaked ssh keys ...
     * No leaked keys found
 
-Restoring from last successful snapshot to a newly provisioned GitHub Enterprise
+Restoring from last successful snapshot to a newly provisioned GitHub Enterprise Server
 appliance at IP "5.5.5.5":
 
     $ ghe-restore 5.5.5.5
@@ -70,12 +72,14 @@ The `ghe-backup` and `ghe-restore` commands also have a verbose output mode
 (`-v`) that lists files as they're being transferred. It's often useful to
 enable when output is logged to a file.
 
-When restoring to a new GitHub Enterprise instance, settings, certificate, and
+When restoring to a new GitHub Enterprise Server instance, settings, certificate, and
 license data *are* restored. These settings must be reviewed and saved before
-using the GitHub Enterprise to ensure all migrations take place and all required
+using the GitHub Enterprise Server to ensure all migrations take place and all required
 services are started.
 
-When restoring to an already configured GitHub Enterprise instance, settings, certificate, and license data
+When restoring to an already configured GitHub Enterprise Server instance, settings, certificate, and license data
 are *not* restored to prevent overwriting manual configuration on the restore
 host. This behavior can be overridden by passing the `-c` argument to `ghe-restore`,
 forcing settings, certificate, and license data to be overwritten with the backup copy's data.
+
+[1]: https://github.com/github/backup-utils/blob/master/docs/getting-started.md

@@ -209,6 +209,10 @@ def bump_version(new_version, min_version = nil, path = 'share/github-backup-uti
     content = File.read('test/testlib.sh')
     new_content = content.gsub(/GHE_TEST_REMOTE_VERSION:=[0-9]\.[0-9]+\.0/,"GHE_TEST_REMOTE_VERSION:=#{new_version}")
     File.open('test/testlib.sh', 'w') {|file| file.puts new_content }
+
+    content = File.read('script/cibuild')
+    new_content = content.gsub(/^REMOTE_VERSIONS=.*$/, "REMOTE_VERSIONS=\"#{min_version} #{new_version}\"")
+    File.open('script/cibuild', 'w') {|file| file.puts new_content }
   end
 end
 
@@ -217,7 +221,7 @@ def push_release_branch(version)
     raise "Creating release branch failed:\n\n#{out}"
   end
 
-  unless (out = `git commit --quiet -m 'Bump version: #{version} [ci skip]' debian/changelog share/github-backup-utils/version bin/ghe-host-check test/testlib.sh`)
+  unless (out = `git commit --quiet -m 'Bump version: #{version} [ci skip]' debian/changelog share/github-backup-utils/version bin/ghe-host-check test/testlib.sh script/cibuild`)
     raise "Error committing changelog and version:\n\n#{out}"
   end
 
@@ -408,7 +412,7 @@ if $PROGRAM_NAME == __FILE__
     puts 'Updating changelog...'
     update_changelog release_changes, DEB_PKG_NAME, version
     release_body = "Includes general improvements & bug fixes"
-    release_body += " and support for GitHub Enterprise v#{version}" unless min_version.nil?
+    release_body += " and support for GitHub Enterprise Server v#{version}" unless min_version.nil?
     release_changes.each do |c|
       release_body += "\n* #{c}"
     end
@@ -424,7 +428,7 @@ if $PROGRAM_NAME == __FILE__
     tag "v#{version}", res['sha']
 
     puts 'Creating release...'
-    release_title = "GitHub Enterprise Backup Utilities v#{version}"
+    release_title = "GitHub Enterprise Server Backup Utilities v#{version}"
     res = create_release "v#{version}", 'master', release_title, release_body, true
 
     # Tidy up before building tarball and deb pkg

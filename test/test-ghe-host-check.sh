@@ -49,7 +49,7 @@ begin_test "ghe-host-check honours --help and -h flags"
 )
 end_test
 
-begin_test "ghe-host-check detects unsupported GitHub Enterprise versions"
+begin_test "ghe-host-check detects unsupported GitHub Enterprise Server versions"
 (
   set -e
   # shellcheck disable=SC2046 # Word splitting is required to populate the variables

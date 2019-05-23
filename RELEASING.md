@@ -16,7 +16,7 @@ Prior to making a release,
 2. Go through the list of closed pull requests since the last release and ensure those that should be included in the changelog:
   - have a "bug", "enhancement" or "feature" label,
   - have a title that clearly describes the changes in that pull request. Reword if necessary.
-3. Perform a dry run (add `--dry-run` to one of the command below) and verify the version strings are going to be changed and verify the changelog and release content.
+3. Perform a dry run (add `--dry-run` to one of the commands below) and verify the version strings are going to be changed and verify the changelog and release content.
 
 ## Automatic Process from chatops (internal to GitHub only)
 

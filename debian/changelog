@@ -1,3 +1,10 @@
+github-backup-utils (2.17.0) UNRELEASED; urgency=medium
+
+  * Restore target is ignored when specified on the command line #476
+  * Support incremental backups for MySQL-stored audit logs #485
+
+ -- Colin Seymour <colin@github.com>  Thu, 23 May 2019 08:20:15 +0000
+
 github-backup-utils (2.16.1) UNRELEASED; urgency=medium
 
   * Detect storage user on each cluster host being backed up or restored #472

@@ -113,12 +113,11 @@ if ! ls $tempdir/*.rsync >/dev/null 2>&1; then
   exit 0
 fi
 
-storage_user=$(ghe-ssh "$GHE_HOSTNAME" -- stat -c %U /data/user/storage || echo git)
-
 # rsync all the storage objects
 bm_start "$(basename $0) - Storage object sync"
 for file_list in $tempdir/*.rsync; do
   hostname=$(basename $file_list .rsync)
+  storage_user=$(ghe-ssh $ssh_config_file_opt $hostname:$port -- stat -c %U /data/user/storage || echo git)
 
   object_num=$(cat $file_list | wc -l)
   ghe_verbose "* Transferring $object_num objects from $hostname"

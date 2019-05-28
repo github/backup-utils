@@ -106,14 +106,14 @@ if [ -z "$GHE_ALLOW_REPLICA_BACKUP" ]; then
   if [ "$(ghe-ssh $host -- cat $GHE_REMOTE_ROOT_DIR/etc/github/repl-state 2>/dev/null || true)" = "replica" ]; then
     echo "Error: high availability replica detected." 1>&2
     echo "Backup Utilities should be used to backup from the primary node in" 1>&2
-    echo "high availability environments to ensure consistent and repliable backups." 1>&2
+    echo "high availability environments to ensure consistent and reliable backups." 1>&2
     exit 1
   fi
 fi
 
 # backup-utils 2.13 onwards limits support to the current and previous two releases
 # of GitHub Enterprise Server.
-supported_minimum_version="2.14.0"
+supported_minimum_version="2.15.0"
 
 if [ "$(version $version)" -ge "$(version $supported_minimum_version)" ]; then
   supported=1

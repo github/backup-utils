@@ -28,6 +28,12 @@ GHE_NUM_SNAPSHOTS=10
 #
 #GHE_VERBOSE_LOG="/var/log/backup-verbose.log"
 
+# If set to 'yes', a file `rsync.log` containing all rsync file operations
+# is stored in the snapshot along with the backup data. This log file can
+# be used to analyze the changes between snapshots.
+#
+#GHE_RSYNC_LOG=yes
+
 # Any extra options passed to the SSH command.
 # In a single instance environment, nothing is required by default.
 # In a clustering environment, "-i abs-path-to-ssh-private-key" is required.

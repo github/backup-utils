@@ -25,6 +25,12 @@ else
   done
 fi
 
+# If rsync logging is enabled and the rsync version supports the log file flag
+# (since v2.6.9), then generate logs with the format "<Operation>:<filename>"
+if [ "$GHE_RSYNC_LOG" = "yes" ] && rsync -h | grep '\-\-log-file-format' >/dev/null 2>&1; then
+  GHE_EXTRA_RSYNC_OPTS="$GHE_EXTRA_RSYNC_OPTS --log-file=$GHE_SNAPSHOT_DIR/rsync.log --log-file-format='%o:%f'"
+fi
+
 (rsync "${parameters[@]}" $GHE_EXTRA_RSYNC_OPTS 3>&1 1>&2 2>&3 3>&- |
   (egrep -v "$ignoreout" || true)) 3>&1 1>&2 2>&3 3>&- |
   (egrep -v "$ignoreout" || true)

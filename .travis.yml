@@ -1,5 +1,4 @@
 ---
-language: minimal
 matrix:
   include:
     - os: osx

@@ -119,6 +119,8 @@ if ! ls $tempdir/*.rsync >/dev/null 2>&1; then
   exit 0
 fi
 
+storage_user=$(ghe-ssh "$GHE_HOSTNAME" -- stat -c %U /data/user/storage || echo git)
+
 # rsync all the objects to the storage server where they belong.
 # One rsync invocation per server available.
 bm_start "$(basename $0) - Restoring objects"
@@ -128,8 +130,6 @@ for file_list in $tempdir/*.rsync; do
   else
     server=$host
   fi
-  storage_user=$(ghe-ssh $ssh_config_file_opt $server:$port -- stat -c %U /data/user/storage || echo git)
-
   ghe_verbose "* Transferring data to $server ..."
   ghe-rsync -arvHR --delete \
     -e "ssh -q $opts -p $port $ssh_config_file_opt -l $user" \

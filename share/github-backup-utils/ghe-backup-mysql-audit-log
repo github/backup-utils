@@ -41,7 +41,7 @@ setup(){
 # months in MySQL. For each month: number of entries, minum ID, maximum ID
 fetch_current_meta(){
   local meta
-  if ! meta=$(ghe-ssh "$host" "sudo ghe-export-audit-logs months" | grep -v NULL 2>&3); then
+  if ! meta=$(ghe-ssh "$host" "sudo ghe-export-audit-logs months" 2>&3 | grep -v NULL 2>&3); then
     ghe_verbose "Error: failed to retrieve audit log metadata"
     exit 1
   fi

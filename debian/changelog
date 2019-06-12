@@ -1,9 +1,3 @@
-github-backup-utils (2.17.1) UNRELEASED; urgency=medium
-
-  * Redirect ghe-export-audit-logs stderr output unless using verbose output #497
-
- -- Colin Seymour <colin@github.com>  Wed, 05 Jun 2019 08:43:25 +0000
-
 github-backup-utils (2.17.0) UNRELEASED; urgency=medium
 
   * Restore target is ignored when specified on the command line #476

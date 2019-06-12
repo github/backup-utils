@@ -215,6 +215,22 @@ if ! type readlink 1>/dev/null 2>&1; then
   }
 fi
 
+# Check the version of a given command and print a warning if the minimum
+# recommended version is not met.
+check_version () {
+  local cmd=$1
+  local cmd_version_option=$2
+  local min_version=$3
+  if ! $cmd $cmd_version_option 2>&1 | perl -pse '
+    use version;
+    my @v = $_ =~ /([0-9]+([.][0-9]+)+)/;
+    exit (version->parse(@v[0]) lt version->parse($min));
+    ' -- -min=$min_version >/dev/null 2>&1; then
+      echo "Warning: outdated $cmd version detected,"\
+           "GitHub recommends to upgrade to $min_version or higher"
+  fi
+}
+
 # Run ghe-host-check and establish the version of the remote GitHub instance in
 # the exported GHE_REMOTE_VERSION variable. If the remote version has already
 # been established then don't perform the host check again. Utilities in share/github-backup-utils

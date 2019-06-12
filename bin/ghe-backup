@@ -41,6 +41,14 @@ done
 # shellcheck source=share/github-backup-utils/ghe-backup-config
 . "$( dirname "${BASH_SOURCE[0]}" )/../share/github-backup-utils/ghe-backup-config"
 
+# Recommend recent versions of the dependencies
+# Please keep these versions in sync with the docs!
+# https://github.com/github/backup-utils/blob/master/docs/requirements.md#backup-host-requirements
+check_version bash  --version 4.4.12
+check_version git   --version 2.11.0
+check_version rsync --version 3.1.2
+check_version ssh   -V        7.4
+
 # Used to record failed backup steps
 failures=
 

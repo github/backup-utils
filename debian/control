@@ -3,7 +3,7 @@ Maintainer: Twan Wolthof <xeago@spotify.com>
 Section: misc
 Priority: optional
 Standards-Version: 3.9.2
-Build-Depends: debhelper (>= 9), git, devscripts, moreutils, jq
+Build-Depends: debhelper (>= 9), git, devscripts, moreutils, jq, rsync (>= 2.6.4)
 
 Package: github-backup-utils
 Architecture: any

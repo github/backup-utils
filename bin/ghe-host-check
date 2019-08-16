@@ -84,7 +84,7 @@ if [ $rc -ne 0 ]; then
   exit $rc
 fi
 
-version=$(echo "$output" | head -1 | awk '{print $NF}')
+version=$(echo "$output" | grep "GitHub Enterprise" | awk '{print $NF}')
 
 if [ -z "$version" ]; then
   echo "Error: failed to parse version on '$host' or this isn't a GitHub appliance." 1>&2

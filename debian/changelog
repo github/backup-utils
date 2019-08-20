@@ -1,3 +1,9 @@
+github-backup-utils (2.18.0) UNRELEASED; urgency=medium
+
+  * Replace "sed -E" in ghe-host-check with a more portable solution #509
+
+ -- Colin Seymour <colin@github.com>  Tue, 20 Aug 2019 18:49:44 +0000
+
 github-backup-utils (2.17.1) UNRELEASED; urgency=medium
 
   * Redirect ghe-export-audit-logs stderr output unless using verbose output #497

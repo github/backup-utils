@@ -82,7 +82,7 @@ cleanup () {
 }
 
 # Grab the host arg
-export GHE_HOSTNAME="${GHE_RESTORE_HOST_OPT:-$GHE_RESTORE_HOST}"
+GHE_HOSTNAME="${GHE_RESTORE_HOST_OPT:-$GHE_RESTORE_HOST}"
 
 # Bring in the backup configuration
 # shellcheck source=share/github-backup-utils/ghe-backup-config

@@ -67,7 +67,7 @@ cleanup () {
   ghe_verbose "* Enabling ES index flushing ..."
   echo '{"index":{"translog.disable_flush":false}}' |
   ghe-ssh "$host" -- curl -s -XPUT "localhost:9200/_settings" -d @- >/dev/null
-  ghe-ssh "$host" rm -rf "$exclude_file"
+  rm -rf "$exclude_file"
 }
 trap 'cleanup' EXIT
 trap 'exit $?' INT # ^C always terminate

@@ -16,6 +16,9 @@ base_path="$( dirname "${BASH_SOURCE[0]}" )"
 
 GHE_HOSTNAME="$1"
 
+# Whether we just need to imprt the table schema and no data
+only_schema="$2"
+
 # Setup GHE_REMOTE_XXX variables, snapshot_dir,
 # remote_dir, remote_dump and skip_prepare
 setup(){
@@ -202,6 +205,10 @@ restore(){
   fi
 
   restore_schema
+  if [ -n "$only_schema" ]; then
+    ghe_verbose "only table schema was imported"
+    return
+  fi
 
   IFS=$'\n'
   for month in $(notsynced_meta); do

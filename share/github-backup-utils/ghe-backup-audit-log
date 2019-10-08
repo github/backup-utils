@@ -23,8 +23,20 @@ setup(){
   mkdir -p "$GHE_SNAPSHOT_DIR/audit-log"
 }
 
+# Check whether the flag to skip the MySQL audit_entries table truncation
+# exists.
+is_skip_truncate_enabled(){
+  ghe-ssh "$host" test -e "$GHE_REMOTE_DATA_USER_DIR/common/audit-log-import/skip_truncate"
+}
+
 backup_mysql(){
-  "${base_path}/ghe-backup-mysql-audit-log" --schema-only
+  if is_skip_truncate_enabled; then
+    # As skip_truncate exists, we need to also backup the audit entries
+    # in MySQL because Elasticsearch may not be fully synced.
+    "${base_path}/ghe-backup-mysql-audit-log"
+  else
+    "${base_path}/ghe-backup-mysql-audit-log" --schema-only
+  fi
 }
 
 # Use ghe-backup-es-audit-log to back up Elasticsearch indices

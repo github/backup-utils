@@ -82,7 +82,7 @@ restore_es(){
 do_restore(){
   if is_mysql_supported; then
     ghe_verbose "Add flag to skip transition to MySQL"
-    set_skip_transtion_flag
+    set_skip_transition_flag
   fi
 
   # ES data is available, restore it along

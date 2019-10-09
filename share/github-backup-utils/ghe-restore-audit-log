@@ -55,11 +55,11 @@ set_remote_flag(){
 }
 
 set_skip_transition_flag(){
-  set_remote_flag "skip" "add flag to skip audit log import to MySQL"
+  set_remote_flag "skip" "Add flag to skip audit log import to MySQL"
 }
 
 set_skip_truncate_flag(){
-  set_remote_flag "skip_truncate" "add flag to skip truncating audit log table in MySQL"
+  set_remote_flag "skip_truncate" "Add flag to skip truncating audit log table in MySQL"
 }
 
 # Use `ghe-backup-mysql-audit-log` to dump the audit entries.
@@ -81,13 +81,14 @@ restore_es(){
 
 do_restore(){
   if is_mysql_supported; then
-    ghe_verbose "Add flag to skip transition to MySQL"
     set_skip_transition_flag
   fi
 
   # ES data is available, restore it along
   # with the table schema
   if es_data_available; then
+    ghe_verbose "Elasticsearch data is available"
+
     restore_es
     restore_mysql --only-schema
     return
@@ -96,6 +97,8 @@ do_restore(){
   # Only MySQL data is available, restore it
   # and trigger a reindex
   if mysql_dump_available; then
+    ghe_verbose "Only MySQL data is available"
+
     restore_mysql
 
     if ! is_mysql_supported; then
@@ -109,6 +112,7 @@ do_restore(){
   fi
 
   # Only the table schema is available, restore it
+  ghe_verbose "Only audit_entries schema is available"
   restore_mysql --only-schema
 }
 

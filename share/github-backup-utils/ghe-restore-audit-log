@@ -25,13 +25,13 @@ setup(){
 # Check whether the snapshot contains audit logs that
 # were taken from Elasticsearch
 es_data_available(){
-  ls -A "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/audit-log/*.size" >/dev/null 2>&1
+  ls -A "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT"/audit-log/*.size >/dev/null 2>&1
 }
 
 # Check whether the snapshot contains audit logs that
 # were taken from MySQL
 mysql_dump_available(){
-  ls -A "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/audit-log-mysql/20*.gz" >/dev/null 2>&1
+  ls -A "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT"/audit-log-mysql/20*.gz >/dev/null 2>&1
 }
 
 # Check whether the remote host is running a version where the MySQL backend

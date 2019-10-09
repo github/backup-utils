@@ -4,7 +4,7 @@
 #/
 #/ Note: This command typically isn't called directly. It's invoked by
 #/ ghe-restore-audit-log
-set -e
+set -ex
 
 # Bring in the backup configuration
 base_path="$( dirname "${BASH_SOURCE[0]}" )"

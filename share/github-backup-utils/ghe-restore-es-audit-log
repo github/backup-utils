@@ -4,7 +4,7 @@
 #/
 #/ Note: This command typically isn't called directly. It's invoked by
 #/ ghe-restore.
-set -ex
+set -e
 
 # Bring in the backup configuration
 # shellcheck source=share/github-backup-utils/ghe-backup-config

@@ -45,6 +45,8 @@ is_mysql_supported(){
    [ "$(version "$GHE_REMOTE_VERSION")" -lt "$(version 2.19.0)" ]
 }
 
+# Helper function to set remote flags in `/data/user/common/audit-log-import`
+# if it's supported, i.e: directory exists.
 set_remote_flag(){
   local flag=$1
   local msg=$2
@@ -66,10 +68,12 @@ set_remote_flag(){
   fi
 }
 
+# Add flag to not trigger transitions from MySQL to Elasticsearch
 set_skip_transition_flag(){
   set_remote_flag "skip" "Add flag to skip audit log import to MySQL"
 }
 
+# Add flag to not trigger the truncation of the MySQL audit log table
 set_skip_truncate_flag(){
   set_remote_flag "skip_truncate" "Add flag to skip truncating audit log table in MySQL"
 }

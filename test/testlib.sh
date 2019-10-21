@@ -253,7 +253,9 @@ setup_test_data () {
   mkdir -p "$loc/audit-log/"
   cd "$loc/audit-log/"
   echo "fake audit log last yr last mth" | gzip > audit_log-1-$last_yr-$last_mth-1.gz
+  echo "1" > audit_log-1-$last_yr-$last_mth-1.size
   echo "fake audit log this yr this mth" | gzip > audit_log-1-$this_yr-$this_mth-1.gz
+  echo "1" > audit_log-1-$this_yr-$this_mth-1.size
 
   # Create hookshot logs
   mkdir -p "$loc/hookshot/"

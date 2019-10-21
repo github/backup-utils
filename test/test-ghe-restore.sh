@@ -280,32 +280,6 @@ begin_test "ghe-restore with no pages backup"
 )
 end_test
 
-begin_test "ghe-restore removes audit log import to MySQL flag when is a < 2.17 snapshot"
-(
-  set -e
-
-  rm -rf "$GHE_REMOTE_ROOT_DIR"
-  setup_remote_metadata
-
-  # set as configured, enable maintenance mode and create required directories
-  setup_maintenance_mode "configured"
-
-  flag="$GHE_REMOTE_ROOT_DIR/data/user/common/audit-log-import/complete"
-  mkdir -p "$(dirname $flag)"
-  touch "$flag"
-
-  if ! output=$(ghe-restore -v -f localhost 2>&1); then
-    echo "Error: failed to restore $output" >&2
-    exit 1
-  fi
-
-  ! test -e "$flag" || {
-    echo "Error: the restore process should've removed $flag" >&2
-    exit 1
-  }
-)
-end_test
-
 begin_test "ghe-restore cluster backup to non-cluster appliance"
 (
   set -e

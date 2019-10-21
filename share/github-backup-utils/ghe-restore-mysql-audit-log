@@ -39,6 +39,11 @@ cleanup(){
   ghe-ssh "$GHE_HOSTNAME" -- "sudo rm -rf $remote_dump"
 }
 
+# Check whether the snapshot contains any MySQL data at all
+is_mysql_snapshot(){
+  test -d "$snapshot_dir"
+}
+
 # Use ghe-export-audit-logs to fetch the current metadata for all stored
 # months in MySQL. For each month: number of entries, minum ID, maximum ID
 fetch_current_meta(){
@@ -201,6 +206,11 @@ export_tool_available(){
 restore(){
   if ! export_tool_available; then
     ghe_verbose "ghe-export-audit-logs is not available"
+    return
+  fi
+
+  if ! is_mysql_snapshot; then
+    ghe_verbose "snapshot doesn't contain MySQL data"
     return
   fi
 

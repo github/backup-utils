@@ -42,7 +42,7 @@ mysql_table_schema_available(){
 # Check whether the remote host is running a version where the MySQL backend
 # is supported, i.e: < 2.19
 is_mysql_supported(){
-  ghe-ssh sudo grep -q "ENTERPRISE_AUDIT_LOG_MYSQL_LOGGER_ENABLED='1'" \
+  ghe-ssh "$GHE_HOSTNAME" sudo grep -q "ENTERPRISE_AUDIT_LOG_MYSQL_LOGGER_ENABLED='1'" \
     /data/github/current/.app-config/env.d/99-instance.sh
 }
 

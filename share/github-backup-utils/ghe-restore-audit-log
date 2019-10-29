@@ -42,7 +42,8 @@ mysql_table_schema_available(){
 # Check whether the remote host is running a version where the MySQL backend
 # is supported, i.e: < 2.19
 is_mysql_supported(){
-   [ "$(version "$GHE_REMOTE_VERSION")" -lt "$(version 2.19.0)" ]
+  echo 'sudo bash -c ". /data/github/current/.app-config/env.d/99-instance.sh;' \
+     'test \"\$ENTERPRISE_AUDIT_LOG_MYSQL_LOGGER_ENABLED\" = \"1\""' | ghe-ssh "$GHE_HOSTNAME" -- /bin/bash
 }
 
 # Helper function to set remote flags in `/data/user/common/audit-log-import`

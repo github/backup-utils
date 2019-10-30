@@ -7,7 +7,7 @@ Build-Depends: debhelper (>= 9), git, devscripts, moreutils, jq, rsync (>= 2.6.4
 
 Package: github-backup-utils
 Architecture: any
-Depends: ${misc:Depends}, rsync (>= 2.6.4), moreutils, jq
+Depends: ${misc:Depends}, rsync (>= 2.6.4), moreutils, jq, git
 Description: Backup and recovery utilities for GitHub Enterprise Server
  The backup utilities implement a number of advanced capabilities for backup
  hosts, built on top of the backup and restore features already included in

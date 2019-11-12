@@ -1,3 +1,10 @@
+github-backup-utils (2.19.0) UNRELEASED; urgency=medium
+
+  * Remove temporary exclude file from the backup host not the target GHES appliance #516
+  * Update Debian package depends to include git #520
+
+ -- Colin Seymour <colin@github.com>  Tue, 12 Nov 2019 18:57:12 +0000
+
 github-backup-utils (2.18.0) UNRELEASED; urgency=medium
 
   * Replace "sed -E" in ghe-host-check with a more portable solution #509

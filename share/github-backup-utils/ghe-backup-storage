@@ -105,10 +105,10 @@ if [ "$GHE_BACKUP_STRATEGY" != "cluster" ]; then
   server=$host
 fi
 cat $routes_list | awk -v tempdir="$tempdir" -v server="$server" '{ for(i=2;i<=NF;i++){ server != "" ? host=server : host=$i; print $1 > (tempdir"/"host".rsync") }}'
-ghe_debug "\n$(ls -l $tempdir/*.rsync)"
+ghe_debug "\n$(find "$tempdir" -maxdepth 1 -name '*.rsync')"
 bm_end "$(basename $0) - Processing routes"
 
-if ! ls $tempdir/*.rsync >/dev/null 2>&1; then
+if [ -z "$(find "$tempdir" -maxdepth 1 -name '*.rsync')" ]; then
   echo "Warning: no routes found, skipping storage backup ..."
   exit 0
 fi

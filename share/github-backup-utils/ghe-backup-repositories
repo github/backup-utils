@@ -367,8 +367,24 @@ bm_end "$(basename $0) - Special Data Directories Sync"
 if [ -z "$GHE_SKIP_ROUTE_VERIFICATION" ]; then
   bm_start "$(basename $0) - Verifying Routes"
 
+  # The list of gists returned by the source changed in 2.16.22, 2.17.13, 2.18.7 & 2.19.1
+  # so we need to account for this difference here.
+  parse_paths() {
+    while read -r line; do
+      if [[ "$GHE_REMOTE_VERSION" =~ 2.16 && "$(version $GHE_REMOTE_VERSION)" -ge "$(version 2.16.22)" ]] || \
+         [[ "$GHE_REMOTE_VERSION" =~ 2.17 && "$(version $GHE_REMOTE_VERSION)" -ge "$(version 2.17.13)" ]] || \
+         [[ "$GHE_REMOTE_VERSION" =~ 2.18 && "$(version $GHE_REMOTE_VERSION)" -ge "$(version 2.18.7)" ]] || \
+         [[ "$GHE_REMOTE_VERSION" =~ 2.19 && "$(version $GHE_REMOTE_VERSION)" -ge "$(version 2.19.1)" ]] && \
+         (echo "$line" | grep -q "gist"); then
+        echo "$line"
+      else
+        dirname "$line"
+      fi
+    done
+  }
+
   cat $tempdir/*.rsync | sort | uniq > $tempdir/source_routes
-  (cd $backup_dir/ && find * -mindepth 5 -maxdepth 6 -type d -name \*.git | while read -r line; do if [[ ! $line == */gist/* ]]; then dirname "$line"; else echo "$line"; fi; done | sort | uniq) > $tempdir/destination_routes
+  (cd $backup_dir/ && find * -mindepth 5 -maxdepth 6 -type d -name \*.git | parse_paths | sort | uniq) > $tempdir/destination_routes
 
   git --no-pager diff --unified=0 --no-prefix -- $tempdir/source_routes $tempdir/destination_routes || echo "Warning: One or more repository networks and/or gists were not found on the source appliance. Please contact GitHub Enterprise Support for assistance."
 

@@ -47,7 +47,7 @@ is_mysql_supported(){
 }
 
 is_binary_backup(){
-  ghe-ssh "$host" ghe-config --true "mysql.backup.binary"
+  ghe-ssh "$GHE_HOSTNAME" ghe-config --true "mysql.backup.binary"
 }
 
 # Helper function to set remote flags in `/data/user/common/audit-log-import`

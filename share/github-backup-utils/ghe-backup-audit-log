@@ -35,7 +35,7 @@ is_binary_backup(){
 
 backup_mysql(){
   if is_binary_backup; then
-    ghe-verbose "Skip backup audit_entries for Mysql since it is using binary backup"
+    ghe_verbose "Skip backup audit_entries for Mysql since it is using binary backup"
     return
   fi
   if is_skip_truncate_enabled; then

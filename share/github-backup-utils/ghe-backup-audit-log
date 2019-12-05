@@ -29,7 +29,15 @@ is_skip_truncate_enabled(){
   ghe-ssh "$host" test -e "$GHE_REMOTE_DATA_USER_DIR/common/audit-log-import/skip_truncate"
 }
 
+is_binary_backup(){
+  ghe-ssh "$host" ghe-config --true "mysql.backup.binary"
+}
+
 backup_mysql(){
+  if is_binary_backup; then
+    ghe_verbose "Skip backup audit_entries for Mysql since it is using binary backup"
+    return
+  fi
   if is_skip_truncate_enabled; then
     # As skip_truncate exists, we need to also backup the audit entries
     # in MySQL because Elasticsearch may not be fully synced.

@@ -91,6 +91,11 @@ restore_mysql(){
 
   ghe_verbose "Restoring MySQL audit logs ..."
 
+  if ! mysql_table_schema_available; then
+    ghe_verbose "schema.gz does not exist"
+    return
+  fi
+
   "${base_path}/ghe-restore-mysql-audit-log" "$GHE_HOSTNAME" "$only_schema"
 }
 

@@ -1,3 +1,10 @@
+github-backup-utils (2.19.1) UNRELEASED; urgency=medium
+
+  * Cater for more explicit gist paths used in routes file #524
+  * Suppress "*.rsync': No such file or directory" errors when no data to backup or restore #525
+
+ -- Colin Seymour <colin@github.com>  Wed, 11 Dec 2019 09:33:01 +0000
+
 github-backup-utils (2.19.0) UNRELEASED; urgency=medium
 
   * Remove temporary exclude file from the backup host not the target GHES appliance #516

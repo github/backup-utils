@@ -43,14 +43,22 @@ is_binary_backup_feature_on(){
   ghe-ssh "$GHE_HOSTNAME" ghe-config --true "mysql.backup.binary"
 }
 
-if is_binary_backup; then
-  if ! is_binary_backup_feature_on; then
+if is_binary_backup_feature_on; then
+  # Feature "mysql.backup.binary" is on, which means new backup scripts are available
+  if is_binary_backup; then
+    IMPORT_MYSQL=ghe-import-mysql-xtrabackup
+  else
+    IMPORT_MYSQL=ghe-import-mysql-mysqldump
+  fi
+else
+  # We do not allow to restore binary backup without "mysql.backup.binary" set 
+  if is_binary_backup; then
     echo "To restore from a binary backup, you have to set ghe-config \"mysql.backup.binary\" to true" >&2  
     exit 2
+  else
+    # legacy mode
+    IMPORT_MYSQL=ghe-import-mysql
   fi
-  IMPORT_MYSQL=ghe-import-mysql-xtrabackup
-else
-  IMPORT_MYSQL=ghe-import-mysql-mysqldump
 fi
 
 ghe-ssh "$GHE_HOSTNAME" -- "sudo mkdir -p '$GHE_REMOTE_DATA_USER_DIR/tmp'" 1>&3

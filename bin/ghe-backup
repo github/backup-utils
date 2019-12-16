@@ -174,10 +174,18 @@ ghe-ssh "$GHE_HOSTNAME" -- 'ghe-export-ssh-host-keys' > ssh-host-keys.tar ||
 failures="$failures ssh-host-keys"
 bm_end "ghe-export-ssh-host-keys"
 
+# if we are going to take a binary backup
+is_binary_backup(){
+  ghe-ssh "$GHE_HOSTNAME" ghe-config --true "mysql.backup.binary"
+}
+
 echo "Backing up MySQL database ..."
 bm_start "ghe-export-mysql"
 echo 'set -o pipefail; ghe-export-mysql | gzip' |
 ghe-ssh "$GHE_HOSTNAME" -- /bin/bash > mysql.sql.gz || failures="$failures mysql"
+if is_binary_backup; then
+  touch mysql-binary-backup-sentinel
+fi
 bm_end "ghe-export-mysql"
 
 echo "Backing up Redis database ..."

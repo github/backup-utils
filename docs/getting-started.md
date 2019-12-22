@@ -34,7 +34,7 @@
     * In a clustering environment, the `GHE_EXTRA_SSH_OPTS` key must be configured
       with the `-i <abs path to private key>` SSH option.
 
- 3. Add the backup host's (in this case your computer) SSH key to the GitHub appliance as an *Authorized SSH
+ 3. Add the backup host's SSH key to the GitHub appliance as an *Authorized SSH
     key*. See [Adding an SSH key for shell access][4] for instructions.
 
  4. Run `./bin/ghe-host-check` to verify SSH connectivity with the GitHub

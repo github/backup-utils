@@ -197,8 +197,9 @@ ghe-backup-audit-log || failures="$failures audit-log"
 echo "Backing up hookshot logs ..."
 ghe-backup-es-hookshot || failures="$failures hookshot"
 
+# TODO: introduce fork in logic for rsync vs gitbackups
 echo "Backing up Git repositories ..."
-ghe-backup-repositories || failures="$failures repositories"
+ghe-backup-repositories-rsync || failures="$failures repositories"
 
 echo "Backing up GitHub Pages ..."
 ghe-backup-pages || failures="$failures pages"

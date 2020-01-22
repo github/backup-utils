@@ -197,9 +197,18 @@ ghe-backup-audit-log || failures="$failures audit-log"
 echo "Backing up hookshot logs ..."
 ghe-backup-es-hookshot || failures="$failures hookshot"
 
-# TODO: introduce fork in logic for rsync vs gitbackups
+# if we should use gitbackups to backup repositories
+should_use_gitbackups_for_repositories(){
+  # TODO: Confirm re-using this setting is OK: https://github.slack.com/archives/CSG4WQ8G0/p1579655068042700?thread_ts=1578693309.052800&cid=CSG4WQ8G0
+  ghe-ssh "$host" ghe-config --true "app.github.gitbackups"
+}
+
 echo "Backing up Git repositories ..."
-ghe-backup-repositories-rsync || failures="$failures repositories"
+if should_use_gitbackups_for_repositories; then
+  ghe-backup-repositories-gitbackups || failures="$failures repositories"
+else
+  ghe-backup-repositories-rsync || failures="$failures repositories"
+fi
 
 echo "Backing up GitHub Pages ..."
 ghe-backup-pages || failures="$failures pages"

@@ -203,9 +203,20 @@ should_use_gitbackups_for_repositories(){
   ghe-ssh "$GHE_HOSTNAME" ghe-config --true "app.github.gitbackups"
 }
 
+# check that the appliance supports using gitbackups for repositories
+can_use_gitbackups_for_repositories(){
+  ghe-ssh "$GHE_HOSTNAME" test -e /data/github/current/bin/backup-repositories
+}
+
 if should_use_gitbackups_for_repositories; then
-  echo "Backing up Git repositories using gitbackups ..."
-  ghe-backup-repositories-gitbackups || failures="$failures repositories"
+  if can_use_gitbackups_for_repositories; then
+    echo "Backing up Git repositories using gitbackups ..."
+    ghe-backup-repositories-gitbackups || failures="$failures repositories"
+  else
+    # we should probably just default to rsync version in this case?
+    echo "Warning: This version of GHES does not support gitbackups for backing up repositories."
+    echo "Disable app.github.gitbackups config setting and rerun to use rsync."
+  fi
 else
   echo "Backing up Git repositories using rsync ..."
   ghe-backup-repositories-rsync || failures="$failures repositories"

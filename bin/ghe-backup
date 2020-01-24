@@ -203,10 +203,11 @@ should_use_gitbackups_for_repositories(){
   ghe-ssh "$GHE_HOSTNAME" ghe-config --true "app.github.gitbackups"
 }
 
-echo "Backing up Git repositories ..."
 if should_use_gitbackups_for_repositories; then
+  echo "Backing up Git repositories using gitbackups ..."
   ghe-backup-repositories-gitbackups || failures="$failures repositories"
 else
+  echo "Backing up Git repositories using rsync ..."
   ghe-backup-repositories-rsync || failures="$failures repositories"
 fi
 

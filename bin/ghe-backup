@@ -94,7 +94,7 @@ can_use_gitbackups_for_repositories(){
 # Exit early if the appliance is missing script to backup repositories using gitbackups
 if should_use_gitbackups_for_repositories; then
   if ! can_use_gitbackups_for_repositories; then
-    echo "Error: Configuration setting 'app.github.gitbackups' is enabled but gitbackups cannot be used to back up repositories via 'ghe-backup'."
+    echo "Error: Configuration setting 'app.github.gitbackups' is enabled but this version of GHES cannot use gitbackups to back up repositories via 'ghe-backup'."
     echo "Disable configuration setting 'app.github.gitbackups' and re-run 'ghe-backup' to use rsync."
     exit 1
   fi

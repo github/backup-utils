@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-#/ Usage: ghe-backup-repositories
-#/ Take an online, incremental snapshot of all Git repository data.
+#/ Usage: ghe-backup-repositories-rsync
+#/ Take an online, incremental snapshot of all Git repository data using rsync.
 #/
 #/ Note: This command typically isn't called directly. It's invoked by
 #/ ghe-backup.

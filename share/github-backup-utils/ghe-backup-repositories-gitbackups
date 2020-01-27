@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+#/ Usage: ghe-backup-repositories-gitbackups
+#/ Take an online, incremental snapshot of all Git repository data using gitbackups.
+#/
+#/ Note: This command typically isn't called directly. It's invoked by
+#/ ghe-backup.
+set -e
+
+# Bring in the backup configuration
+# shellcheck source=share/github-backup-utils/ghe-backup-config
+. "$( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config"
+
+bm_start "$(basename $0)"
+
+echo "github-env ./bin/backup-repositories" | ghe-ssh "$GHE_HOSTNAME" -- /bin/bash
+
+bm_end "$(basename $0)"

@@ -263,7 +263,7 @@ bm_end "ghe-import-redis"
 # Unified and enhanced restore method to 2.13.0 and newer
 if $CLUSTER || [ "$(version $GHE_REMOTE_VERSION)" -ge "$(version 2.13.0)" ]; then
   echo "Restoring Git repositories ..."
-  ghe-restore-repositories "$GHE_HOSTNAME"
+  ghe-restore-repositories-rsync "$GHE_HOSTNAME"
 
   echo "Restoring Gists ..."
   ghe-restore-repositories-gist "$GHE_HOSTNAME"

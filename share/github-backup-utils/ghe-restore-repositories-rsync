@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#/ Usage: ghe-restore-repositories <host>
+#/ Usage: ghe-restore-repositories-rsync <host>
 #/ Restore repositories from an rsync snapshot of all Git repository data.
 #/
 #/ Note: This script typically isn't called directly. It's invoked by the

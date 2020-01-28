@@ -260,24 +260,30 @@ bm_start "ghe-import-redis"
 ghe-ssh "$GHE_HOSTNAME" -- 'ghe-import-redis' < "$GHE_RESTORE_SNAPSHOT_PATH/redis.rdb" 1>&3
 bm_end "ghe-import-redis"
 
-# Unified and enhanced restore method to 2.13.0 and newer
-if $CLUSTER || [ "$(version $GHE_REMOTE_VERSION)" -ge "$(version 2.13.0)" ]; then
-  echo "Restoring Git repositories ..."
+should_use_gitbackups_for_repositories(){
+  # TODO: Figure out how to control flow for this feature
+}
+
+if should_use_gitbackups_for_repositories; then
+  echo "Restoring Git repositories using gitbackups..."
+  ghe-restore-repositories-gitbackups
+elif  $CLUSTER || [ "$(version $GHE_REMOTE_VERSION)" -ge "$(version 2.13.0)" ]; then
+  # Unified and enhanced restore method to 2.13.0 and newer
+  echo "Restoring Git repositories using rsync ..."
   ghe-restore-repositories-rsync "$GHE_HOSTNAME"
 
-  echo "Restoring Gists ..."
+  echo "Restoring Gists using rsync ..."
   ghe-restore-gists-rsync "$GHE_HOSTNAME"
 
   echo "Restoring GitHub Pages ..."
   ghe-restore-pages "$GHE_HOSTNAME" 1>&3
 else
-  echo "Restoring Git repositories and Gists ..."
+  echo "Restoring Git repositories and Gists using rsync ..."
   ghe-restore-repositories-gists-rsync "$GHE_HOSTNAME" 1>&3
 
   echo "Restoring GitHub Pages ..."
   ghe-restore-pages-rsync "$GHE_HOSTNAME" 1>&3
 fi
-
 
 echo "Restoring SSH authorized keys ..."
 ghe-ssh "$GHE_HOSTNAME" -- 'ghe-import-authorized-keys' < "$GHE_RESTORE_SNAPSHOT_PATH/authorized-keys.json" 1>&3

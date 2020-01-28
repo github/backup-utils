@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+#/ Usage: ghe-restore-repositories-gitbackups
+#/ Restore repositories from gitbackups snapshot of all Git repository data.
+#/
+#/ Note: This script typically isn't called directly. It's invoked by the
+#/ ghe-restore command.
+set -e
+
+# Bring in the backup configuration
+# shellcheck source=share/github-backup-utils/ghe-backup-config
+. "$( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config"
+
+# TODO: Call into gitbackups-powered restore script

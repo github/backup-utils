@@ -380,7 +380,7 @@ if [ -z "$GHE_SKIP_ROUTE_VERIFICATION" ]; then
       if [[ "$GHE_REMOTE_VERSION" =~ 2.16 && "$version_GHE_REMOTE_VERSION" -ge "$version_2_16_23" ]] || \
          [[ "$GHE_REMOTE_VERSION" =~ 2.17 && "$version_GHE_REMOTE_VERSION" -ge "$version_2_17_14" ]] || \
          [[ "$GHE_REMOTE_VERSION" =~ 2.18 && "$version_GHE_REMOTE_VERSION" -ge "$version_2_18_8" ]] || \
-         [[ "$GHE_REMOTE_VERSION" =~ 2.19 && "$version_GHE_REMOTE_VERSION" -ge "$vesrion_2_19_3" ]] && \
+         [[ "$GHE_REMOTE_VERSION" =~ 2.19 && "$version_GHE_REMOTE_VERSION" -ge "$version_2_19_3" ]] && \
          (echo "$line" | grep -q "gist"); then
         echo "$line"
       else

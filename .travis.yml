@@ -9,7 +9,6 @@ matrix:
         - brew install moreutils
         - brew install shellcheck
         - brew install jq
-        - brew install coreutils
       script: make test
     - os: linux
       dist: trusty
@@ -25,5 +24,4 @@ matrix:
             - moreutils
             - fakeroot
             - jq
-            - coreutils
       script: debuild -uc -us

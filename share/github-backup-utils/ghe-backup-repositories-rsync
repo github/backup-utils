@@ -370,11 +370,17 @@ if [ -z "$GHE_SKIP_ROUTE_VERIFICATION" ]; then
   # The list of gists returned by the source changed in 2.16.23, 2.17.14, 2.18.8 & 2.19.3
   # so we need to account for this difference here.
   parse_paths() {
+    local version_GHE_REMOTE_VERSION=$(version $GHE_REMOTE_VERSION)
+    local version_2_16_23=$(version 2.16.23)
+    local version_2_17_14=$(version 2.17.14)
+    local version_2_18_8=$(version 2.18.8)
+    local vesrion_2_19_3=$(version 2.19.3)
+    
     while read -r line; do
-      if [[ "$GHE_REMOTE_VERSION" =~ 2.16 && "$(version $GHE_REMOTE_VERSION)" -ge "$(version 2.16.23)" ]] || \
-         [[ "$GHE_REMOTE_VERSION" =~ 2.17 && "$(version $GHE_REMOTE_VERSION)" -ge "$(version 2.17.14)" ]] || \
-         [[ "$GHE_REMOTE_VERSION" =~ 2.18 && "$(version $GHE_REMOTE_VERSION)" -ge "$(version 2.18.8)" ]] || \
-         [[ "$GHE_REMOTE_VERSION" =~ 2.19 && "$(version $GHE_REMOTE_VERSION)" -ge "$(version 2.19.3)" ]] && \
+      if [[ "$GHE_REMOTE_VERSION" =~ 2.16 && "$version_GHE_REMOTE_VERSION" -ge "$version_2_16_23" ]] || \
+         [[ "$GHE_REMOTE_VERSION" =~ 2.17 && "$version_GHE_REMOTE_VERSION" -ge "$version_2_17_14" ]] || \
+         [[ "$GHE_REMOTE_VERSION" =~ 2.18 && "$version_GHE_REMOTE_VERSION" -ge "$version_2_18_8" ]] || \
+         [[ "$GHE_REMOTE_VERSION" =~ 2.19 && "$version_GHE_REMOTE_VERSION" -ge "$vesrion_2_19_3" ]] && \
          (echo "$line" | grep -q "gist"); then
         echo "$line"
       else

@@ -350,9 +350,10 @@ begin_test "ghe-backup backup gist"
 (
     set -e
     timeout 2 bash -c "
-    source \"$TESTS_DIR\"/../share/github-backup-utils/ghe-backup-config;
-    GHE_REMOTE_VERSION=2.16.23;
-    seq 1 100000 | sed -e 's/$/ gist/' | fix_paths_for_ghe_version | grep -c gist"
+        source \"$TESTS_DIR\"/../share/github-backup-utils/ghe-backup-config;
+        GHE_REMOTE_VERSION=2.16.23;
+        seq 1 100000 | sed -e 's/$/ gist/' | fix_paths_for_ghe_version | grep -c gist
+    "
 )
 end_test
 
@@ -361,8 +362,9 @@ begin_test "ghe-backup backup wiki"
 (
     set -e
     timeout 2 bash -c "
-    source \"$TESTS_DIR\"/../share/github-backup-utils/ghe-backup-config;
-    GHE_REMOTE_VERSION=2.16.23;
-    seq 1 100000 | sed -e 's/$/ wiki/' | fix_paths_for_ghe_version | grep -c '^\.$'"
+        source \"$TESTS_DIR\"/../share/github-backup-utils/ghe-backup-config;
+        GHE_REMOTE_VERSION=2.16.23;
+        seq 1 100000 | sed -e 's/$/ wiki/' | fix_paths_for_ghe_version | grep -c '^\.$'
+    "
 )
 end_test

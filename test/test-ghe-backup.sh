@@ -346,24 +346,24 @@ begin_test "ghe-backup missing directories or files on source appliance"
 end_test
 
 # acceptance criteria is less then 2 seconds for 100,000 lines
-begin_test "ghe-backup backup gist"
+begin_test "ghe-backup fix_paths_for_ghe_version performance tests - gists"
 (
     set -e
     timeout 2 bash -c "
-        source \"$TESTS_DIR\"/../share/github-backup-utils/ghe-backup-config;
-        GHE_REMOTE_VERSION=2.16.23;
+        source '$TESTS_DIR/../share/github-backup-utils/ghe-backup-config'
+        GHE_REMOTE_VERSION=2.16.23
         seq 1 100000 | sed -e 's/$/ gist/' | fix_paths_for_ghe_version | grep -c gist
     "
 )
 end_test
 
 # acceptance criteria is less then 2 seconds for 100,000 lines
-begin_test "ghe-backup backup wiki"
+begin_test "ghe-backup fix_paths_for_ghe_version performance tests - wikis"
 (
     set -e
     timeout 2 bash -c "
-        source \"$TESTS_DIR\"/../share/github-backup-utils/ghe-backup-config;
-        GHE_REMOTE_VERSION=2.16.23;
+        source '$TESTS_DIR/../share/github-backup-utils/ghe-backup-config'
+        GHE_REMOTE_VERSION=2.16.23
         seq 1 100000 | sed -e 's/$/ wiki/' | fix_paths_for_ghe_version | grep -c '^\.$'
     "
 )
@@ -378,15 +378,15 @@ begin_test "ghe-backup fix_paths_for_ghe_version newer/older"
     for ver in 2.16.23 2.17.14 2.18.8 2.19.3 2.20.0 3.0.0; do
         echo == $ver, not gist
         [ "$(bash -c "
-            source \"$TESTS_DIR\"/../share/github-backup-utils/ghe-backup-config;
-            GHE_REMOTE_VERSION=$ver;
+            source '$TESTS_DIR/../share/github-backup-utils/ghe-backup-config'
+            GHE_REMOTE_VERSION=$ver
             echo foo/bar | fix_paths_for_ghe_version
         ")" == "foo" ]
 
         echo == $ver, gist
         [ "$(bash -c "
-            source \"$TESTS_DIR\"/../share/github-backup-utils/ghe-backup-config;
-            GHE_REMOTE_VERSION=$ver;
+            source '$TESTS_DIR/../share/github-backup-utils/ghe-backup-config'
+            GHE_REMOTE_VERSION=$ver
             echo foo/gist | fix_paths_for_ghe_version
         ")" == "foo/gist" ]
     done
@@ -395,15 +395,15 @@ begin_test "ghe-backup fix_paths_for_ghe_version newer/older"
     for ver in 2.0.0 2.15.123 2.16.22 2.17.13 2.18.7 2.19.2; do
         echo == $ver, not gist
         [ "$(bash -c "
-            source \"$TESTS_DIR\"/../share/github-backup-utils/ghe-backup-config;
-            GHE_REMOTE_VERSION=$ver;
+            source '$TESTS_DIR/../share/github-backup-utils/ghe-backup-config'
+            GHE_REMOTE_VERSION=$ver
             echo foo/bar | fix_paths_for_ghe_version
         ")" == "foo" ]
 
         echo == $ver, gist
         [ "$(bash -c "
-            source \"$TESTS_DIR\"/../share/github-backup-utils/ghe-backup-config;
-            GHE_REMOTE_VERSION=$ver;
+            source '$TESTS_DIR/../share/github-backup-utils/ghe-backup-config'
+            GHE_REMOTE_VERSION=$ver
             echo foo/gist | fix_paths_for_ghe_version
         ")" == "foo" ]
     done

@@ -4,7 +4,7 @@
 TESTS_DIR="$PWD/$(dirname "$0")"
 # Bring in testlib
 # shellcheck source=test/testlib.sh
-. "$(dirname "$0")/testlib.sh"
+. "$TESTS_DIR/testlib.sh"
 
 # Create the backup data dir and fake remote repositories dirs
 mkdir -p "$GHE_DATA_DIR" "$GHE_REMOTE_DATA_USER_DIR"

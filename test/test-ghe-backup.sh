@@ -345,7 +345,7 @@ setup_test_data $GHE_REMOTE_DATA_USER_DIR
 # )
 # end_test
 
-# acceptance criteria is less then 2 seconds for 10,000 lines
+# acceptance criteria is less then 2 seconds for 100,000 lines
 begin_test "ghe-backup backup gist"
 (
     set -e
@@ -356,7 +356,7 @@ begin_test "ghe-backup backup gist"
 )
 end_test
 
-# acceptance criteria is less then 2 seconds for 10,000 lines
+# acceptance criteria is less then 2 seconds for 100,000 lines
 begin_test "ghe-backup backup wiki"
 (
     set -e

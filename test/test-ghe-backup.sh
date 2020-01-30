@@ -379,14 +379,14 @@ begin_test "ghe-backup fix_paths_for_ghe_version newer/older"
         echo == $ver, not gist
         [ "$(bash -c "
             source '$TESTS_DIR/../share/github-backup-utils/ghe-backup-config'
-            GHE_REMOTE_VERSION=$ver
+            GHE_REMOTE_VERSION="$ver"
             echo foo/bar | fix_paths_for_ghe_version
         ")" == "foo" ]
 
         echo == $ver, gist
         [ "$(bash -c "
             source '$TESTS_DIR/../share/github-backup-utils/ghe-backup-config'
-            GHE_REMOTE_VERSION=$ver
+            GHE_REMOTE_VERSION="$ver"
             echo foo/gist | fix_paths_for_ghe_version
         ")" == "foo/gist" ]
     done
@@ -396,14 +396,14 @@ begin_test "ghe-backup fix_paths_for_ghe_version newer/older"
         echo == $ver, not gist
         [ "$(bash -c "
             source '$TESTS_DIR/../share/github-backup-utils/ghe-backup-config'
-            GHE_REMOTE_VERSION=$ver
+            GHE_REMOTE_VERSION="$ver"
             echo foo/bar | fix_paths_for_ghe_version
         ")" == "foo" ]
 
         echo == $ver, gist
         [ "$(bash -c "
             source '$TESTS_DIR/../share/github-backup-utils/ghe-backup-config'
-            GHE_REMOTE_VERSION=$ver
+            GHE_REMOTE_VERSION="$ver"
             echo foo/gist | fix_paths_for_ghe_version
         ")" == "foo" ]
     done

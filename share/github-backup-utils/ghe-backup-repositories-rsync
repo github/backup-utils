@@ -374,7 +374,7 @@ if [ -z "$GHE_SKIP_ROUTE_VERIFICATION" ]; then
     version_2_16_23=$(version 2.16.23)
     version_2_17_14=$(version 2.17.14)
     version_2_18_8=$(version 2.18.8)
-    vesrion_2_19_3=$(version 2.19.3)
+    version_2_19_3=$(version 2.19.3)
     
     while read -r line; do
       if [[ "$GHE_REMOTE_VERSION" =~ 2.16 && "$version_GHE_REMOTE_VERSION" -ge "$version_2_16_23" ]] || \

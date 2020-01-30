@@ -346,6 +346,12 @@ begin_test "ghe-backup missing directories or files on source appliance"
 )
 end_test
 
+if [ "$(uname)" == "Darwin" ]; then
+    timeout() {
+        ruby -rtimeout -e 'duration = ARGV.shift.to_i; Timeout::timeout(duration) { system(*ARGV) }' "$@"
+    }
+fi
+
 # acceptance criteria is less then 2 seconds for 100,000 lines
 begin_test "ghe-backup fix_paths_for_ghe_version performance tests - gists"
 (

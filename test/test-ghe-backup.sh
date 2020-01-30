@@ -3,7 +3,7 @@
 TESTS_DIR="$(realpath "$(dirname "$0")")"
 # Bring in testlib
 # shellcheck source=test/testlib.sh
-. "$TESTS_DIR/testlib.sh"
+. "$(dirname "$0")/testlib.sh"
 
 # Create the backup data dir and fake remote repositories dirs
 mkdir -p "$GHE_DATA_DIR" "$GHE_REMOTE_DATA_USER_DIR"

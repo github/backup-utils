@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # ghe-backup command tests
-TESTS_DIR="$(realpath "$(dirname "$0")")"
+
+TESTS_DIR="$PWD/$(dirname "$0")"
 # Bring in testlib
 # shellcheck source=test/testlib.sh
 . "$(dirname "$0")/testlib.sh"

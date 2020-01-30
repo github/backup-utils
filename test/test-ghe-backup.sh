@@ -408,5 +408,14 @@ begin_test "ghe-backup fix_paths_for_ghe_version newer/older"
         ")" == "foo" ]
     done
 
+    # garbage versions make fix_paths_for_ghe_version fail
+    for ver in 1.0.0 bob "a b c" "-" "." ""; do
+        echo == $ver, should fail
+        bash -c "
+            source '$TESTS_DIR/../share/github-backup-utils/ghe-backup-config'
+            GHE_REMOTE_VERSION="$ver"
+            ! echo foo/bar | fix_paths_for_ghe_version
+        "
+    done
 )
 end_test

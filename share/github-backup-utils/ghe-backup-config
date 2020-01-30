@@ -306,21 +306,23 @@ version() {
 }
 
 fix_paths_for_ghe_version() {
-  local version_GHE_REMOTE_VERSION=$(version $GHE_REMOTE_VERSION)
-  local version_2_16_23=$(version 2.16.23)
-  local version_2_17_14=$(version 2.17.14)
-  local version_2_18_8=$(version 2.18.8)
-  local vesrion_2_19_3=$(version 2.19.3)
-  
-  while read -r line; do
-    if [[ "$GHE_REMOTE_VERSION" =~ 2.16. && "$version_GHE_REMOTE_VERSION" -ge "$version_2_16_23" ]] || \
-       [[ "$GHE_REMOTE_VERSION" =~ 2.17. && "$version_GHE_REMOTE_VERSION" -ge "$version_2_17_14" ]] || \
-       [[ "$GHE_REMOTE_VERSION" =~ 2.18. && "$version_GHE_REMOTE_VERSION" -ge "$version_2_18_8" ]] || \
-       [[ "$GHE_REMOTE_VERSION" =~ 2.19. && "$version_GHE_REMOTE_VERSION" -ge "$vesrion_2_19_3" ]] && \
-       [[ "$line" =~ gist ]]; then
-      echo "$line"
-    else
-      dirname "$line"
-    fi
-  done
+  ruby -e '
+    ghe_remote_version = ARGV.first
+    version_array = ghe_remote_version.split(".").map(&:to_i)
+    fail unless version_array.first >= 2
+    is_modern = version_array[0] > 2 ||
+      (version_array[0] == 2 && version_array[1] > 19) ||
+      (version_array[0] == 2 && version_array[1] == 19 && version_array[2] >= 3) ||
+      (version_array[0] == 2 && version_array[1] == 18 && version_array[2] >= 8) ||
+      (version_array[0] == 2 && version_array[1] == 17 && version_array[2] >= 14) ||
+      (version_array[0] == 2 && version_array[1] == 16 && version_array[2] >= 23)
+
+    $stdin.each_line do |line|
+      if is_modern && line =~ /gist/
+        puts line
+      else
+        puts File.dirname(line)
+      end
+    end
+  ' $(version $GHE_REMOTE_VERSION)
 }

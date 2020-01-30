@@ -324,5 +324,5 @@ fix_paths_for_ghe_version() {
         puts File.dirname(line)
       end
     end
-  ' $(version $GHE_REMOTE_VERSION)
+  ' "$GHE_REMOTE_VERSION"
 }

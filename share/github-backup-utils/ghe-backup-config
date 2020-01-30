@@ -305,7 +305,7 @@ version() {
   echo "${@#v}" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }';
 }
 
-parse_paths() {
+fix_paths_for_ghe_version() {
   local version_GHE_REMOTE_VERSION=$(version $GHE_REMOTE_VERSION)
   local version_2_16_23=$(version 2.16.23)
   local version_2_17_14=$(version 2.17.14)

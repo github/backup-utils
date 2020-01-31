@@ -1,3 +1,9 @@
+github-backup-utils (2.19.2) UNRELEASED; urgency=medium
+
+  * Fix `ghe-backup-repositories` performance for large instances #541
+
+ -- Evgenii Khramkov <ewgenius@github.com>  Fri, 31 Jan 2020 19:13:46 +0000
+
 github-backup-utils (2.19.1) UNRELEASED; urgency=medium
 
   * Cater for more explicit gist paths used in routes file #524

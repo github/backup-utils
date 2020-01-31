@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 # ghe-backup command tests
 
+TESTS_DIR="$PWD/$(dirname "$0")"
 # Bring in testlib
 # shellcheck source=test/testlib.sh
-. "$(dirname "$0")/testlib.sh"
+. "$TESTS_DIR/testlib.sh"
 
 # Create the backup data dir and fake remote repositories dirs
 mkdir -p "$GHE_DATA_DIR" "$GHE_REMOTE_DATA_USER_DIR"
@@ -342,5 +343,70 @@ begin_test "ghe-backup missing directories or files on source appliance"
     grep -q "\-e/ed/1a/ed1aa60f0706cefde8ba2b3be662d3a0e0e1fbc94a52a3201944684cc0c5f244" "$TRASHDIR/backup-out"
 
     verify_all_backedup_data
+)
+end_test
+
+# acceptance criteria is less then 2 seconds for 100,000 lines
+begin_test "ghe-backup fix_paths_for_ghe_version performance tests - gists"
+(
+    set -e
+    timeout 2 bash -c "
+        source '$TESTS_DIR/../share/github-backup-utils/ghe-backup-config'
+        GHE_REMOTE_VERSION=2.16.23
+        seq 1 100000 | sed -e 's/$/ gist/' | fix_paths_for_ghe_version | grep -c gist
+    "
+)
+end_test
+
+# acceptance criteria is less then 2 seconds for 100,000 lines
+begin_test "ghe-backup fix_paths_for_ghe_version performance tests - wikis"
+(
+    set -e
+    timeout 2 bash -c "
+        source '$TESTS_DIR/../share/github-backup-utils/ghe-backup-config'
+        GHE_REMOTE_VERSION=2.16.23
+        seq 1 100000 | sed -e 's/$/ wiki/' | fix_paths_for_ghe_version | grep -c '^\.$'
+    "
+)
+end_test
+
+# check fix_paths_for_ghe_version version thresholds
+begin_test "ghe-backup fix_paths_for_ghe_version newer/older"
+(
+    set -e
+
+    # modern versions keep foo/gist as foo/gist
+    for ver in 2.16.23 v2.16.23 v2.17.14 v2.18.8 v2.19.3 v2.20.0 v3.0.0; do
+        echo "## $ver, not gist"
+        [ "$(bash -c "
+            source '$TESTS_DIR/../share/github-backup-utils/ghe-backup-config'
+            GHE_REMOTE_VERSION=$ver
+            echo foo/bar | fix_paths_for_ghe_version
+        ")" == "foo" ]
+
+        echo "## $ver, gist"
+        [ "$(bash -c "
+            source '$TESTS_DIR/../share/github-backup-utils/ghe-backup-config'
+            GHE_REMOTE_VERSION=$ver
+            echo foo/gist | fix_paths_for_ghe_version
+        ")" == "foo/gist" ]
+    done
+
+    # old versions change foo/gist to foo
+    for ver in 1.0.0 bob a.b.c "" 1.2.16 2.0.0 v2.0.0 v2.15.123 v2.16.22 v2.17.13 v2.18.7 v2.19.2; do
+        echo "## $ver, not gist"
+        [ "$(bash -c "
+            source '$TESTS_DIR/../share/github-backup-utils/ghe-backup-config'
+            GHE_REMOTE_VERSION=$ver
+            echo foo/bar | fix_paths_for_ghe_version
+        ")" == "foo" ]
+
+        echo "## $ver, gist"
+        [ "$(bash -c "
+            source '$TESTS_DIR/../share/github-backup-utils/ghe-backup-config'
+            GHE_REMOTE_VERSION=$ver
+            echo foo/gist | fix_paths_for_ghe_version
+        ")" == "foo" ]
+    done
 )
 end_test

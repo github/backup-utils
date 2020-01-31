@@ -382,7 +382,7 @@ begin_test "ghe-backup fix_paths_for_ghe_version newer/older"
     set -e
 
     # modern versions keep foo/gist as foo/gist
-    for ver in 2.16.23 2.17.14 2.18.8 2.19.3 2.20.0 3.0.0; do
+    for ver in 2.16.23 v2.16.23 v2.17.14 v2.18.8 v2.19.3 v2.20.0 v3.0.0; do
         echo "## $ver, not gist"
         [ "$(bash -c "
             source '$TESTS_DIR/../share/github-backup-utils/ghe-backup-config'
@@ -399,7 +399,7 @@ begin_test "ghe-backup fix_paths_for_ghe_version newer/older"
     done
 
     # old versions change foo/gist to foo
-    for ver in 2.0.0 2.15.123 2.16.22 2.17.13 2.18.7 2.19.2; do
+    for ver in 2.0.0 v2.0.0 v2.15.123 v2.16.22 v2.17.13 v2.18.7 v2.19.2; do
         echo "## $ver, not gist"
         [ "$(bash -c "
             source '$TESTS_DIR/../share/github-backup-utils/ghe-backup-config'

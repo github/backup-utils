@@ -309,7 +309,8 @@ version() {
 # 2.18.8, and 2.19.3.  So we need to account for this difference here.
 fix_paths_for_ghe_version() {
   ruby -e '
-    ghe_remote_version = ARGV.first[1..-1] # removing "v" literal from version string
+    version = ARGV.first
+    ghe_remote_version = version[0] == "v" ? version[1..-1] : version # removing "v" literal from version string
     version_array = ghe_remote_version.split(".").map(&:to_i)
     fail unless version_array.first >= 2
     is_modern = version_array[0] > 2 ||

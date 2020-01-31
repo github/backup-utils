@@ -399,7 +399,7 @@ begin_test "ghe-backup fix_paths_for_ghe_version newer/older"
     done
 
     # old versions change foo/gist to foo
-    for ver in 2.0.0 v2.0.0 v2.15.123 v2.16.22 v2.17.13 v2.18.7 v2.19.2; do
+    for ver in 1.0.0 bob a.b.c "" 1.2.16 2.0.0 v2.0.0 v2.15.123 v2.16.22 v2.17.13 v2.18.7 v2.19.2; do
         echo "## $ver, not gist"
         [ "$(bash -c "
             source '$TESTS_DIR/../share/github-backup-utils/ghe-backup-config'
@@ -413,16 +413,6 @@ begin_test "ghe-backup fix_paths_for_ghe_version newer/older"
             GHE_REMOTE_VERSION=$ver
             echo foo/gist | fix_paths_for_ghe_version
         ")" == "foo" ]
-    done
-
-    # garbage versions make fix_paths_for_ghe_version fail
-    for ver in 1.0.0 bob "a b c" "-" "." ""; do
-        echo "## $ver, should fail"
-        bash -c "
-            source '$TESTS_DIR/../share/github-backup-utils/ghe-backup-config'
-            GHE_REMOTE_VERSION=$ver
-            ! echo foo/bar | fix_paths_for_ghe_version
-        "
     done
 )
 end_test

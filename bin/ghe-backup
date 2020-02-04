@@ -180,6 +180,11 @@ echo 'set -o pipefail; ghe-export-mysql | gzip' |
 ghe-ssh "$GHE_HOSTNAME" -- /bin/bash > mysql.sql.gz || failures="$failures mysql"
 bm_end "ghe-export-mysql"
 
+echo "Backing up MSSQL databases ..."
+bm_start "ghe-export-mssql"
+ghe-ssh "$GHE_HOSTNAME" -- 'ghe-export-mssql' || failures="$failures mssql"
+bm_end "ghe-export-mssql"
+
 echo "Backing up Redis database ..."
 ghe-backup-redis > redis.rdb || failures="$failures redis"
 

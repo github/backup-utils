@@ -200,7 +200,7 @@ is_binary_backup(){
 
 echo "Backing up MySQL database ..."
 bm_start "ghe-export-mysql"
-echo 'set -o pipefail; ghe-export-mysql | gzip' |
+echo 'set -o pipefail; ghe-export-mysql | pigz' |
 ghe-ssh "$GHE_HOSTNAME" -- /bin/bash > mysql.sql.gz || failures="$failures mysql"
 if is_binary_backup; then
   touch mysql-binary-backup-sentinel

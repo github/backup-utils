@@ -1,0 +1,175 @@
+#!/usr/bin/env bash
+#/ Usage: ghe-backup-mysql-audit-log
+#/ Take a backup of audit logs in MySQL.
+#/
+#/ Args:
+#/    --only-schema (optional: only dump the table schema)
+#/
+#/ Note: This command typically isn't called directly. It's invoked by
+#/ ghe-backup-audit-log.
+set -e
+
+# Bring in the backup configuration
+# shellcheck source=share/github-backup-utils/ghe-backup-config
+. "$( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config"
+
+# Whether we just need to dump the table schema and no data
+only_schema="$1"
+
+# Setup GHE_REMOTE_XXX variables and other global variables
+setup(){
+  # Perform a host-check and establish GHE_REMOTE_XXX variables.
+  ghe_remote_version_required "$host"
+
+  # Set up remote host and root elastic backup directory based on config
+  host="$GHE_HOSTNAME"
+
+  # Where the new MySQL dumps go
+  snapshot_dir="$GHE_SNAPSHOT_DIR/audit-log-mysql"
+
+  # Where the current MySQL dumps live
+  current_dir="$GHE_DATA_DIR/current/audit-log-mysql"
+
+  # Wheter we need a full backup and not incremental
+  force_full_backup=false
+
+  # Make sure root backup dir exists if this is the first run
+  mkdir -p "$snapshot_dir"
+}
+
+# Use ghe-export-audit-logs to fetch the current metadata for all stored
+# months in MySQL. For each month: number of entries, minum ID, maximum ID
+fetch_current_meta(){
+  local meta
+  if ! meta=$(ghe-ssh "$host" "sudo ghe-export-audit-logs months" 2>&3 | grep -v NULL 2>&3); then
+    ghe_verbose "Error: failed to retrieve audit log metadata"
+    exit 1
+  fi
+
+  [ -z "$meta" ] && return 1
+
+  echo "$meta"
+}
+
+# Check if a month data exists in the current snapshot. Use its
+# size, minimum ID and maximum ID to assume it's the same if
+# they all match.
+is_month_synced(){
+  local meta="$1"
+  local name=$2
+
+  test -f "${current_dir}/${name}.gz" || return 1
+  test -f "${current_dir}/${name}.meta" || return 1
+
+  [ "$(cat "${current_dir}/${name}.meta")" = "$meta" ] 
+}
+
+# To compare two schemas, we filter out comments,
+# the AUTO_INCREMENT=XXXX value and blank lines
+# to only leave SQL statements.
+filter_schema(){
+  local schema="$1"
+
+  echo "$schema" | \
+    grep -v "^--" |
+    grep -v "^/\\*" | \
+    grep . | \
+    sed 's/ AUTO_INCREMENT=[0-9]*\b//'
+}
+
+# Dump table schema and check whether it has changed when
+# compared with the schema stored in the current snapshot.
+# If it has changed, we can't do an incremental backup
+# and all data needs to be dumped in the new snapshot.
+dump_schema(){
+  ghe_verbose "dumping table schema..."
+
+  local current
+  current=$(ghe-ssh "$host" "ghe-export-audit-logs dump --schema-only" 2>&3)
+
+  echo "$current" | gzip >"${snapshot_dir}/schema.gz"
+
+  if ! test -e "${current_dir}/schema.gz"; then
+    return
+  fi
+    
+  local previous
+  previous=$(gunzip -c "${current_dir}/schema.gz")
+
+  if ! diff -Naur <(filter_schema "$current") <(filter_schema "$previous") 1>&3 2>&3; then
+    ghe_verbose "Current and previous schema don't match, forcing full backup"
+    force_full_backup=true
+    return
+  fi
+
+  ghe_verbose "Current and previous schemas match"
+}
+
+# Dump a month of audit entries from MySQL and store it
+# in $name.gz. 
+# Create $name.meta with number of entries, minimum ID and maximum ID.
+dump_month(){
+  local meta="$1"
+  local name=$2
+
+  ghe_verbose "dumping ${meta}..."
+
+  ghe-ssh "$host" "ghe-export-audit-logs dump --use-gzip=true $name" >"${snapshot_dir}/${name}.gz" 2>&3
+  echo "$meta" > "${snapshot_dir}/${name}.meta"
+}
+
+# Check if the export tool is available in this version
+export_tool_available(){
+  ghe-ssh "$host" "test -e /usr/local/bin/ghe-export-audit-logs"
+}
+
+# Backup audit log entries:
+#
+# 1. Fetch metadata about the existing audit log entries in MySQL per month
+#    (month, number of entries, minumim ID, maximum ID)
+# 2. If any month is uptodate in the current snapshot, hardlink it
+# 3. Otherwise, dump those month entries from MySQL
+backup(){
+  if ! export_tool_available; then
+    ghe_verbose "ghe-export-audit-logs is not available"
+    return
+  fi
+
+  dump_schema
+
+  if [ -n "$only_schema" ]; then
+    ghe_verbose "only table schema was dumped"
+    return
+  fi
+
+  local meta
+  if ! meta=$(fetch_current_meta); then
+    ghe_verbose "there are no current audit log entries"
+    return
+  fi
+
+  IFS=$'\n'
+  for month in $meta; do
+    local month_name
+    month_name=$(echo "$month" | awk '{print $1}')
+
+    if ! $force_full_backup && is_month_synced "$month" "$month_name"; then
+      # Month is in-sync with current data, create hardlink to it
+      ghe_verbose "$month_name is in sync, hardlinking to it.."
+      ln "${current_dir}/${month_name}.gz" "${snapshot_dir}/${month_name}.gz"
+      ln "${current_dir}/${month_name}.meta" "${snapshot_dir}/${month_name}.meta"
+      continue
+    fi
+
+    dump_month "$month" "$month_name"
+  done
+}
+
+main(){
+  bm_start "$(basename "$0")"
+  setup
+  backup
+  bm_end "$(basename "$0")"
+}
+
+main

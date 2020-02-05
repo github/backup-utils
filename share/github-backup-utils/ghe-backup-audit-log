@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+#/ Usage: ghe-backup-audit-log
+#/ Take a backup of audit logs.
+#/
+#/ Note: This command typically isn't called directly. It's invoked by
+#/ ghe-backup.
+set -e
+
+base_path="$( dirname "${BASH_SOURCE[0]}" )"
+# Bring in the backup configuration
+# shellcheck source=share/github-backup-utils/ghe-backup-config
+. "${base_path}/ghe-backup-config"
+
+# Setup GHE_REMOTE_XXX variables, host and make sure work dir is created
+setup(){
+  # Perform a host-check and establish GHE_REMOTE_XXX variables.
+  ghe_remote_version_required "$host"
+
+  # Set up remote host and root elastic backup directory based on config
+  host="$GHE_HOSTNAME"
+
+  # Make sure root backup dir exists if this is the first run
+  mkdir -p "$GHE_SNAPSHOT_DIR/audit-log"
+}
+
+# Check whether the flag to skip the MySQL audit_entries table truncation
+# exists.
+is_skip_truncate_enabled(){
+  ghe-ssh "$host" test -e "$GHE_REMOTE_DATA_USER_DIR/common/audit-log-import/skip_truncate"
+}
+
+# Check whether the audit_entries table is deleted
+audit_entries_deleted(){
+   [ -z "$(ghe-ssh "$host" -- "/usr/local/share/enterprise/github-mysql 'SHOW TABLES LIKE \"audit_entries\"'")" ]
+}
+
+is_binary_backup(){
+  ghe-ssh "$host" ghe-config --true "mysql.backup.binary"
+}
+
+backup_mysql(){
+  if is_binary_backup; then
+    ghe_verbose "Skip backup audit_entries for Mysql since it is using binary backup"
+    return
+  fi
+
+  if audit_entries_deleted; then
+    ghe_verbose "audit_entries table does not exist"
+  elif is_skip_truncate_enabled; then
+    # As skip_truncate exists, we need to also backup the audit entries
+    # in MySQL because Elasticsearch may not be fully synced.
+    "${base_path}/ghe-backup-mysql-audit-log"
+  else
+    "${base_path}/ghe-backup-mysql-audit-log" --schema-only
+  fi
+}
+
+# Use ghe-backup-es-audit-log to back up Elasticsearch indices
+backup_es(){
+  "${base_path}/ghe-backup-es-audit-log"
+}
+
+backup(){
+    backup_mysql
+    backup_es
+}
+
+main(){
+  bm_start "$(basename "$0")"
+  setup
+  backup
+  bm_end "$(basename "$0")"
+}
+
+main

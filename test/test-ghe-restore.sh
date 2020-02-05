@@ -188,6 +188,40 @@ begin_test "ghe-restore into unconfigured vm"
 )
 end_test
 
+begin_test "ghe-restore with host arg and config value"
+(
+  set -e
+  rm -rf "$GHE_REMOTE_ROOT_DIR"
+  setup_remote_metadata
+
+  # set as configured, enable maintenance mode and create required directories
+  setup_maintenance_mode "configured"
+
+  # set restore host environ var (which we shouldn't see)
+  GHE_RESTORE_HOST="broken.config.restore.host"
+  export GHE_RESTORE_HOST
+
+  # set restore host config var (which we shouldn't see)
+  GHE_BACKUP_CONFIG_TEMP="${GHE_BACKUP_CONFIG}.temp"
+  cp "$GHE_BACKUP_CONFIG" "$GHE_BACKUP_CONFIG_TEMP"
+  echo 'GHE_RESTORE_HOST="broken.config.restore.host"' >> "$GHE_BACKUP_CONFIG_TEMP"
+  GHE_BACKUP_CONFIG="$GHE_BACKUP_CONFIG_TEMP"
+  export GHE_BACKUP_CONFIG
+
+  # run it
+  output="$(ghe-restore -f localhost)" || false
+
+  # clean up the config file
+  rm "$GHE_BACKUP_CONFIG_TEMP"
+
+  # verify host arg overrides configured restore host
+  echo "$output" | grep -q 'Connect localhost:22 OK'
+
+  # Verify all the data we've restored is as expected
+  verify_all_restored_data
+)
+end_test
+
 begin_test "ghe-restore with host arg"
 (
   set -e
@@ -198,7 +232,7 @@ begin_test "ghe-restore with host arg"
   setup_maintenance_mode "configured"
 
   # set restore host environ var
-  GHE_RESTORE_HOST=127.0.0.1
+  GHE_RESTORE_HOST="broken.environ.restore.host"
   export GHE_RESTORE_HOST
 
   # run it
@@ -333,58 +367,6 @@ begin_test "ghe-restore honours --help and -h flags"
 
   # Make sure a Usage: string is returned and that it's the same for -h and --help
   [ "$arg_help" = "$arg_h" ] && echo $arg_help | grep -q "Usage: ghe-restore"
-)
-end_test
-
-begin_test "ghe-restore fails when restore 2.9/2.10 snapshot without audit log migration sentinel file to 2.11"
-(
-  set -e
-
-  # noop if not testing against 2.11
-  if [ "$(version $GHE_REMOTE_VERSION)" -ne "$(version 2.11.0)" ]; then
-    skip_test
-  fi
-
-  rm -rf "$GHE_REMOTE_ROOT_DIR"
-  setup_remote_metadata
-
-  echo "rsync" > "$GHE_DATA_DIR/current/strategy"
-  echo "v2.9.10" > "$GHE_DATA_DIR/current/version"
-  rm "$GHE_DATA_DIR/current/es-scan-complete"
-
-  ! output=$(ghe-restore -v localhost 2>&1)
-
-  echo $output | grep -q "Error: Snapshot must be from GitHub Enterprise v2.9 or v2.10 after running the"
-
-  echo "v2.10.5" > "$GHE_DATA_DIR/current/version"
-  ! output=$(ghe-restore -v localhost 2>&1)
-
-  echo $output | grep -q "Error: Snapshot must be from GitHub Enterprise v2.9 or v2.10 after running the"
-)
-end_test
-
-begin_test "ghe-restore force restore of 2.9/2.10 snapshot without audit log migration sentinel file to 2.11"
-(
-  set -e
-
-  # noop if not testing against 2.11
-  if [ "$(version $GHE_REMOTE_VERSION)" -ne "$(version 2.11.0)" ]; then
-    skip_test
-  fi
-
-  rm -rf "$GHE_REMOTE_ROOT_DIR"
-  setup_remote_metadata
-
-  echo "rsync" > "$GHE_DATA_DIR/current/strategy"
-  echo "v2.9.10" > "$GHE_DATA_DIR/current/version"
-
-  # Create fake remote repositories dir
-  mkdir -p "$GHE_REMOTE_DATA_USER_DIR/repositories"
-
-  ghe-restore -v -f localhost
-
-  echo "v2.10.5" > "$GHE_DATA_DIR/current/version"
-  ghe-restore -v -f localhost
 )
 end_test
 

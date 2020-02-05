@@ -105,10 +105,10 @@ if [ "$GHE_BACKUP_STRATEGY" != "cluster" ]; then
   server=$host
 fi
 cat $routes_list | awk -v tempdir="$tempdir" -v server="$server" '{ for(i=2;i<=NF;i++){ server != "" ? host=server : host=$i; print $1 > (tempdir"/"host".rsync") }}'
-ghe_debug "\n$(ls -l $tempdir/*.rsync)"
+ghe_debug "\n$(find "$tempdir" -maxdepth 1 -name '*.rsync')"
 bm_end "$(basename $0) - Processing routes"
 
-if ! ls $tempdir/*.rsync >/dev/null 2>&1; then
+if [ -z "$(find "$tempdir" -maxdepth 1 -name '*.rsync')" ]; then
   echo "Warning: no routes found, skipping storage backup ..."
   exit 0
 fi
@@ -117,6 +117,7 @@ fi
 bm_start "$(basename $0) - Storage object sync"
 for file_list in $tempdir/*.rsync; do
   hostname=$(basename $file_list .rsync)
+  storage_user=$(ghe-ssh $ssh_config_file_opt $hostname:$port -- stat -c %U /data/user/storage || echo git)
 
   object_num=$(cat $file_list | wc -l)
   ghe_verbose "* Transferring $object_num objects from $hostname"
@@ -124,7 +125,7 @@ for file_list in $tempdir/*.rsync; do
   ghe-rsync -avr \
   -e "ssh -q $opts -p $port $ssh_config_file_opt -l $user" \
   $link_dest "$@" \
-  --rsync-path='sudo -u git rsync' \
+  --rsync-path="sudo -u $storage_user rsync" \
   --files-from="$file_list" \
   --ignore-missing-args \
   --size-only \

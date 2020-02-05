@@ -111,10 +111,10 @@ bm_end "$(basename $0) - Fetching routes"
 
 bm_start "$(basename $0) - Processing routes"
 cat $routes_list | awk -v tempdir="$tempdir" '{ for(i=2;i<=NF;i++){ print substr($1,1,1) "/" substr($1,1,2) "/" substr($1,3,2) "/" $1 > (tempdir"/"$i".rsync") }}'
-ghe_debug "\n$(ls -l $tempdir/*.rsync)"
+ghe_debug "\n$(find "$tempdir" -maxdepth 1 -name '*.rsync')"
 bm_end "$(basename $0) - Processing routes"
 
-if ! ls $tempdir/*.rsync >/dev/null 2>&1; then
+if [ -z "$(find "$tempdir" -maxdepth 1 -name '*.rsync')" ]; then
   echo "Warning: no routes found, skipping storage restore ..."
   exit 0
 fi
@@ -128,10 +128,12 @@ for file_list in $tempdir/*.rsync; do
   else
     server=$host
   fi
+  storage_user=$(ghe-ssh $ssh_config_file_opt $server:$port -- stat -c %U /data/user/storage || echo git)
+
   ghe_verbose "* Transferring data to $server ..."
   ghe-rsync -arvHR --delete \
     -e "ssh -q $opts -p $port $ssh_config_file_opt -l $user" \
-    --rsync-path="sudo -u git rsync" \
+    --rsync-path="sudo -u $storage_user rsync" \
     --files-from=$file_list \
     --size-only \
     "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/storage/./" \

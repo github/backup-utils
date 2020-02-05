@@ -129,10 +129,10 @@ bm_end "$(basename $0) - Fetching routes"
 bm_start "$(basename $0) - Processing routes"
 cat $routes_list | awk -v tempdir="$tempdir" '{ for(i=2;i<=NF;i++){ print $1 > (tempdir"/"$i".rsync") }}'
 cat $routes_list | awk '{ n = split($1, p, "/"); printf p[n] " /data/repositories/" $1; $1=""; print $0}' > $to_restore
-ghe_debug "\n$(ls -l $tempdir/*.rsync && cat $to_restore)"
+ghe_debug "\n$(find "$tempdir" -maxdepth 1 -name '*.rsync')"
 bm_end "$(basename $0) - Processing routes"
 
-if ! ls $tempdir/*.rsync >/dev/null 2>&1; then
+if [ -z "$(find "$tempdir" -maxdepth 1 -name '*.rsync')" ]; then
   echo "Warning: no routes found, skipping repositories restore ..."
   exit 0
 fi
@@ -147,7 +147,7 @@ for file_list in $tempdir/*.rsync; do
     server=$host
   fi
   ghe_verbose "* Transferring repository networks to $server ..."
-  ghe-rsync -avrHR --delete \
+  ghe-rsync -avrR --delete \
     -e "ssh -q $opts -p $port $ssh_config_file_opt -l $user" \
     --rsync-path="sudo -u git rsync" \
     --files-from=$file_list \

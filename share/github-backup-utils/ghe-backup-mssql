@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+#/ Usage: ghe-backup-mssql
+#/ 
+#/
+#/ Note: This command typically isn't called directly. It's invoked by
+#/ ghe-backup.
+set -e
+
+# Bring in the backup configuration
+# shellcheck source=share/github-backup-utils/ghe-backup-config
+. "$( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config"
+
+# Set up remote host and root backup snapshot directory based on config
+host="$GHE_HOSTNAME"
+backup_dir="$GHE_SNAPSHOT_DIR/mssql"
+
+# Make sure root backup dir exists if this is the first run
+mkdir -p "$backup_dir"
+
+bm_start "$(basename $0)"
+ghe-ssh "$host" -- 'ghe-export-mssql' || failures="$failures mssql"
+bm_end "$(basename $0)"
+
+# Verify rsync is available.
+if ! rsync --version 1>/dev/null 2>&1; then
+  echo "Error: rsync not found." 1>&2
+  exit 1
+fi
+
+appliance_dir="/data/user/mssql/backups"
+backups=$(ghe-ssh "$host" "sudo ls $appliance_dir")
+for b in $backups
+do
+  ghe-ssh "$host" "sudo cat $appliance_dir/$b" > $backup_dir/$b
+done

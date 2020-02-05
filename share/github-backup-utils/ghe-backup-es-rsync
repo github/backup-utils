@@ -47,11 +47,10 @@ ghe-rsync -avz \
   -e "ghe-ssh -p $(ssh_port_part "$host")" \
   --rsync-path="sudo -u elasticsearch rsync" \
   $link_dest \
-  --exclude='elasticsearch.yml' \
   "$(ssh_host_part "$host"):$GHE_REMOTE_DATA_USER_DIR/elasticsearch/" \
   "$GHE_SNAPSHOT_DIR/elasticsearch" 1>&3
 
-# Set up a trap to re-enable flushing on exit
+# Set up a trap to re-enable flushing on exit and remove temp file
 cleanup () {
   ghe_verbose "* Enabling ES index flushing ..."
   echo '{"index":{"translog.disable_flush":false}}' |
@@ -72,7 +71,6 @@ ghe-rsync -avz \
   -e "ghe-ssh -p $(ssh_port_part "$host")" \
   --rsync-path="sudo -u elasticsearch rsync" \
   $link_dest \
-  --exclude='elasticsearch.yml' \
   "$(ssh_host_part "$host"):$GHE_REMOTE_DATA_USER_DIR/elasticsearch/" \
   "$GHE_SNAPSHOT_DIR/elasticsearch" 1>&3
 

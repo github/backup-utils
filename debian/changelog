@@ -1,3 +1,63 @@
+github-backup-utils (2.19.1) UNRELEASED; urgency=medium
+
+  * Cater for more explicit gist paths used in routes file #524
+  * Suppress "*.rsync': No such file or directory" errors when no data to backup or restore #525
+
+ -- Colin Seymour <colin@github.com>  Wed, 11 Dec 2019 09:33:01 +0000
+
+github-backup-utils (2.19.0) UNRELEASED; urgency=medium
+
+  * Remove temporary exclude file from the backup host not the target GHES appliance #516
+  * Update Debian package depends to include git #520
+
+ -- Colin Seymour <colin@github.com>  Tue, 12 Nov 2019 18:57:12 +0000
+
+github-backup-utils (2.18.0) UNRELEASED; urgency=medium
+
+  * Replace "sed -E" in ghe-host-check with a more portable solution #509
+
+ -- Colin Seymour <colin@github.com>  Tue, 20 Aug 2019 18:49:44 +0000
+
+github-backup-utils (2.17.1) UNRELEASED; urgency=medium
+
+  * Redirect ghe-export-audit-logs stderr output unless using verbose output #497
+
+ -- Colin Seymour <colin@github.com>  Wed, 05 Jun 2019 08:43:25 +0000
+
+github-backup-utils (2.17.0) UNRELEASED; urgency=medium
+
+  * Restore target is ignored when specified on the command line #476
+  * Support incremental backups for MySQL-stored audit logs #485
+
+ -- Colin Seymour <colin@github.com>  Thu, 23 May 2019 08:20:15 +0000
+
+github-backup-utils (2.16.1) UNRELEASED; urgency=medium
+
+  * Detect storage user on each cluster host being backed up or restored #472
+
+ -- Colin Seymour <colin@github.com>  Tue, 26 Feb 2019 16:37:04 +0000
+
+github-backup-utils (2.16.0) UNRELEASED; urgency=medium
+
+
+ -- Colin Seymour <colin@github.com>  Tue, 22 Jan 2019 20:25:34 +0000
+
+github-backup-utils (2.15.1) UNRELEASED; urgency=medium
+
+  * Restoring to an un-configured appliance fails due to a missing license file #449
+
+ -- Colin Seymour <colin@github.com>  Tue, 13 Nov 2018 17:34:21 +0000
+
+github-backup-utils (2.15.0) UNRELEASED; urgency=medium
+
+
+ -- Colin Seymour <colin@github.com>  Tue, 16 Oct 2018 16:40:03 +0000
+
+github-backup-utils (2.15.0) UNRELEASED; urgency=medium
+
+
+ -- Colin Seymour <colin@github.com>  Tue, 16 Oct 2018 16:07:36 +0000
+
 github-backup-utils (2.14.3) UNRELEASED; urgency=medium
 
   * Improve multi-platform detection of simultaneous ghe-backup runs #435

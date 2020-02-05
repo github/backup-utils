@@ -62,7 +62,12 @@ while true; do
       exit 1
       ;;
     *)
-      break
+      if [ -n "$1" ]; then
+        GHE_RESTORE_HOST_OPT="$1"
+        shift
+      else
+        break
+      fi
       ;;
   esac
 done
@@ -81,7 +86,7 @@ cleanup () {
 . "$( dirname "${BASH_SOURCE[0]}" )/../share/github-backup-utils/ghe-backup-config"
 
 # Grab the host arg
-GHE_HOSTNAME="${1:-$GHE_RESTORE_HOST}"
+GHE_HOSTNAME="${GHE_RESTORE_HOST_OPT:-$GHE_RESTORE_HOST}"
 
 # Hostname without any port suffix
 hostname=$(echo "$GHE_HOSTNAME" | cut -f 1 -d :)
@@ -135,21 +140,6 @@ if ghe-ssh "$GHE_HOSTNAME" -- \
   echo "Error: Restoring to an appliance with replication enabled is not supported." >&2
   echo "       Please teardown replication before restoring." >&2
   exit 1
-fi
-
-# Only allow restores of 2.9 and 2.10 snapshots that have run the audit log migration to 2.11 and above
-if ! $force; then
-  snapshot_instance_version=$(cat $GHE_RESTORE_SNAPSHOT_PATH/version)
-  snapshot_version_major=$(echo "${snapshot_instance_version#v}" | cut -f 1 -d .)
-  snapshot_version_minor=$(echo "$snapshot_instance_version"     | cut -f 2 -d .)
-  if ! test -f $GHE_RESTORE_SNAPSHOT_PATH/es-scan-complete && \
-     [ "$snapshot_version_major" -eq 2 ] && [ "$snapshot_version_minor" -lt 11 ] && \
-     [ "$GHE_VERSION_MAJOR" -eq 2 ] && [ "$GHE_VERSION_MINOR" -ge 11 ]; then
-        echo "Error: Snapshot must be from GitHub Enterprise v2.9 or v2.10 after running the" >&2
-        echo "       audit log migration, or from v2.11.0 or above." >&2
-        echo "Please see https://git.io/v5rCE for the audit log migration procedure." >&2
-        exit 1
-  fi
 fi
 
 # Prompt to verify the restore host given is correct. Restoring overwrites
@@ -311,8 +301,8 @@ fi
 # Restore exported audit and hookshot logs to 2.12.9 and newer single nodes and
 # all releases of cluster
 if $CLUSTER || [ "$(version $GHE_REMOTE_VERSION)" -ge "$(version 2.12.9)" ]; then
-  echo "Restoring Elasticsearch Audit logs ..."
-  ghe-restore-es-audit-log "$GHE_HOSTNAME" 1>&3
+  echo "Restoring Audit logs ..."
+  ghe-restore-audit-log "$GHE_HOSTNAME" 1>&3
 
   echo "Restoring hookshot logs ..."
   ghe-restore-es-hookshot "$GHE_HOSTNAME" 1>&3

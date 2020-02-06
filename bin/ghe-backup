@@ -83,12 +83,12 @@ rm -rf src dest1 dest2
 
 # if we should use gitbackups to backup repositories
 should_use_gitbackups_for_repositories(){
-  ghe-ssh "$GHE_HOSTNAME" ghe-config --true "app.github.gitbackups"
+  ghe-ssh -p 122 "$GHE_HOSTNAME" ghe-config --true "app.github.gitbackups"
 }
 
 # check that the appliance supports using gitbackups for repositories
 can_use_gitbackups_for_repositories(){
-  ghe-ssh "$GHE_HOSTNAME" test -e /data/github/current/bin/ghe-backup-repositories
+  ghe-ssh -p 122 "$GHE_HOSTNAME" test -e /data/github/current/bin/ghe-backup-repositories
 }
 
 # Exit early if the appliance is missing script to backup repositories using gitbackups

@@ -12,6 +12,6 @@ set -e
 
 bm_start "$(basename $0)"
 
-echo "github-env ./bin/ghe-backup-repositories" | ghe-ssh "$GHE_HOSTNAME" -- /bin/bash
+echo "github-env ./bin/ghe-backup-repositories" | ghe-ssh -p 122 "$GHE_HOSTNAME" -- /bin/bash
 
 bm_end "$(basename $0)"

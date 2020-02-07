@@ -39,7 +39,7 @@ is_binary_backup_feature_on(){
 }
 
 port=$(ssh_port_part "$GHE_HOSTNAME")
-ghe_mysql_master=$(ghe-ssh "$GHE_HOSTNAME" ghe-config "cluster.mysql-master"):$port
+ghe_mysql_master=$(ghe-ssh "$GHE_HOSTNAME" ghe-config "cluster.mysql-master")${port:+:$port}
 
 if is_binary_backup_feature_on; then
   # Feature "mysql.backup.binary" is on, which means new backup scripts are available

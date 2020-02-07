@@ -83,7 +83,7 @@ rm -rf src dest1 dest2
 
 # if we should use gitbackups to backup repositories
 should_use_gitbackups_for_repositories(){
-  ghe-ssh "$GHE_HOSTNAME" ghe-config --true "app.github.gitbackups"
+  ghe-ssh "$GHE_HOSTNAME" ghe-config "app.github.gitbackups" true
 }
 
 # check that the appliance supports using gitbackups for repositories
@@ -195,7 +195,7 @@ bm_end "ghe-export-ssh-host-keys"
 
 # if we are going to take a binary backup
 is_binary_backup(){
-  ghe-ssh "$GHE_HOSTNAME" ghe-config --true "mysql.backup.binary"
+  ghe-ssh "$GHE_HOSTNAME" ghe-config "mysql.backup.binary" true
 }
 
 echo "Backing up MySQL database ..."

@@ -35,7 +35,7 @@ audit_entries_deleted(){
 }
 
 is_binary_backup(){
-  ghe-ssh "$host" ghe-config --true "mysql.backup.binary"
+  ghe-ssh "$host" ghe-config "mysql.backup.binary" true
 }
 
 backup_mysql(){

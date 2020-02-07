@@ -35,7 +35,7 @@ is_binary_backup(){
 
 # if mysql.backup.binary feature flag is on
 is_binary_backup_feature_on(){
-  ghe-ssh "$GHE_HOSTNAME" ghe-config --true "mysql.backup.binary"
+  ghe-ssh "$GHE_HOSTNAME" ghe-config "mysql.backup.binary" true
 }
 
 if ghe-ssh "$GHE_HOSTNAME" test -f /etc/github/cluster ; then

@@ -38,12 +38,16 @@ is_binary_backup_feature_on(){
   ghe-ssh "$GHE_HOSTNAME" ghe-config --true "mysql.backup.binary"
 }
 
-port=$(ssh_port_part "$GHE_HOSTNAME")
-ghe_mysql_master=$(ghe-ssh "$GHE_HOSTNAME" ghe-config "cluster.mysql-master")
-if [ -z $ghe_mysql_master ]; then
-  ghe_mysql_master=$GHE_HOSTNAME
+if ghe-ssh "$GHE_HOSTNAME" test -f /etc/github/cluster ; then
+  ghe_mysql_master=$(ghe-ssh "$GHE_HOSTNAME" ghe-config "cluster.mysql-master")
+  if [ -z $ghe_mysql_master ]; then
+    ghe_mysql_master=$GHE_HOSTNAME
+  else
+    port=$(ssh_port_part "$GHE_HOSTNAME")
+    ghe_mysql_master=$ghe_mysql_master${port:+:$port}
+  fi
 else
-  ghe_mysql_master=$ghe_mysql_master${port:+:$port}
+  ghe_mysql_master=$GHE_HOSTNAME
 fi
 
 if is_binary_backup_feature_on; then
@@ -51,7 +55,7 @@ if is_binary_backup_feature_on; then
   if is_binary_backup; then
     # Check if the decompress needed by looking into the sentinel file 
     # In 2.19.5 we compress the binary backup twice
-    if [ $(cat $snapshot_dir/mysql-binary-backup-sentinel) = "NO_ADDITIONAL_COMPRESSION" ]; then
+    if [ "$(cat $snapshot_dir/mysql-binary-backup-sentinel)" = "NO_ADDITIONAL_COMPRESSION" ]; then
       IMPORT_MYSQL=ghe-import-mysql-xtrabackup
       GHE_RESTORE_HOST=$ghe_mysql_master
     else

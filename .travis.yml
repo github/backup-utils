@@ -9,6 +9,7 @@ matrix:
         - brew install moreutils
         - brew install shellcheck
         - brew install jq
+        - brew install git
       script: make test
     - os: linux
       dist: trusty

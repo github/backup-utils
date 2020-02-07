@@ -54,8 +54,6 @@ begin_test "ghe-backup logs the benchmark"
 
   # wait a second for snapshot timestamp
   sleep 1
-  echo "GIT VERSION"
-  echo $(git --version)
 
   export BM_TIMESTAMP=foo
 

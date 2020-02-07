@@ -28,11 +28,6 @@ ghe_remote_version_required "$GHE_HOSTNAME"
 # The directory holding the snapshot to restore
 snapshot_dir="$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT"
 
-cleanup() {
-  ghe-ssh "$GHE_HOSTNAME" -- "sudo rm -rf $GHE_REMOTE_DATA_USER_DIR/tmp/mysql.sql.gz"
-}
-trap 'cleanup' INT TERM EXIT
-
 # Check if the backup is binary by looking up the sentinel file 
 is_binary_backup(){
   test -f $snapshot_dir/mysql-binary-backup-sentinel 
@@ -43,6 +38,9 @@ is_binary_backup_feature_on(){
   ghe-ssh "$GHE_HOSTNAME" ghe-config --true "mysql.backup.binary"
 }
 
+port=$(ssh_port_part "$GHE_HOSTNAME")
+ghe_mysql_master=$(ghe-ssh "$GHE_HOSTNAME" ghe-config "cluster.mysql-master"):$port
+
 if is_binary_backup_feature_on; then
   # Feature "mysql.backup.binary" is on, which means new backup scripts are available
   if is_binary_backup; then
@@ -50,11 +48,14 @@ if is_binary_backup_feature_on; then
     # In 2.19.5 we compress the binary backup twice
     if [ $(cat $snapshot_dir/mysql-binary-backup-sentinel) = "NO_ADDITIONAL_COMPRESSION" ]; then
       IMPORT_MYSQL=ghe-import-mysql-xtrabackup
+      GHE_RESTORE_HOST=$ghe_mysql_master
     else
       IMPORT_MYSQL="unpigz | ghe-import-mysql-xtrabackup"
+      GHE_RESTORE_HOST=$ghe_mysql_master
     fi
   else
     IMPORT_MYSQL="unpigz | ghe-import-mysql-mysqldump"
+    GHE_RESTORE_HOST=$GHE_HOSTNAME
   fi
 else
   # We do not allow to restore binary backup without "mysql.backup.binary" set 
@@ -64,15 +65,21 @@ else
   else
     # legacy mode
     IMPORT_MYSQL="unpigz | ghe-import-mysql-mysqldump"
+    GHE_RESTORE_HOST=$GHE_HOSTNAME
   fi
 fi
 
-ghe-ssh "$GHE_HOSTNAME" -- "sudo mkdir -p '$GHE_REMOTE_DATA_USER_DIR/tmp'" 1>&3
+cleanup() {
+  ghe-ssh "$GHE_RESTORE_HOST" -- "sudo rm -rf $GHE_REMOTE_DATA_USER_DIR/tmp/mysql.sql.gz"
+}
+trap 'cleanup' INT TERM EXIT
+
+ghe-ssh "$GHE_RESTORE_HOST" -- "sudo mkdir -p '$GHE_REMOTE_DATA_USER_DIR/tmp'" 1>&3
 
 # Transfer MySQL data from the snapshot to the GitHub instance.
-cat $snapshot_dir/mysql.sql.gz | ghe-ssh "$GHE_HOSTNAME" -- "sudo dd of=$GHE_REMOTE_DATA_USER_DIR/tmp/mysql.sql.gz >/dev/null 2>&1"
+cat $snapshot_dir/mysql.sql.gz | ghe-ssh "$GHE_RESTORE_HOST" -- "sudo dd of=$GHE_REMOTE_DATA_USER_DIR/tmp/mysql.sql.gz >/dev/null 2>&1"
 
 # Import the database
-echo "cat $GHE_REMOTE_DATA_USER_DIR/tmp/mysql.sql.gz | $IMPORT_MYSQL" | ghe-ssh "$GHE_HOSTNAME" -- /bin/bash 1>&3
+echo "cat $GHE_REMOTE_DATA_USER_DIR/tmp/mysql.sql.gz | $IMPORT_MYSQL" | ghe-ssh "$GHE_RESTORE_HOST" -- /bin/bash 1>&3
 
 bm_end "$(basename $0)"

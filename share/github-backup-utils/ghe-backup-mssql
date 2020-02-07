@@ -40,15 +40,15 @@ find_timestamp() {
 }
 
 # Find last snapshot to create potential hard links
-count=$(ls $GHE_SNAPSHOT_DIR/.. | egrep '\d{8}T\d{6}' | sort | tail -2 | wc -l)
+count=$(ls $GHE_DATA_DIR | egrep '\d{8}T\d{6}' | sort | tail -2 | wc -l)
 if [ $count -gt 1 ]
 then
-  last=$(ls $GHE_SNAPSHOT_DIR/.. | egrep '\d{8}T\d{6}' | sort | tail -2 | head -1)
+  last=$(ls $GHE_DATA_DIR | egrep '\d{8}T\d{6}' | sort | tail -2 | head -1)
 else
   unset last
 fi
 
-last_mssql=$GHE_SNAPSHOT_DIR/../$last/mssql
+last_mssql=$GHE_DATA_DIR/$last/mssql
 
 if [ -z $last ] || [ ! -d $last_mssql ] || [ -z $(find $last_mssql -type f -name "*.bak") ]
 then

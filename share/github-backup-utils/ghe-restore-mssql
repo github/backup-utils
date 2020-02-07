@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+#/ Usage: ghe-restore-mssql <host>
+#/ Restore MSSQL backup to a GitHub Actions service instance.
+#/
+#/ Note: This script typically isn't called directly. It's invoked by the ghe-restore command.
+set -e
+
+# Bring in the backup configuration
+# shellcheck source=share/github-backup-utils/ghe-backup-config
+. "$( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config"
+
+# Show usage and bail with no arguments
+[ -z "$*" ] && print_usage
+
+bm_start "$(basename $0)"
+
+# Grab host arg
+GHE_HOSTNAME="$1"
+
+# Perform a host-check and establish the remote version in GHE_REMOTE_VERSION.
+ghe_remote_version_required "$GHE_HOSTNAME"
+
+# The snapshot to restore should be set by the ghe-restore command but this lets
+# us run this script directly.
+: ${GHE_RESTORE_SNAPSHOT:=current}
+
+# The directory holding the snapshot to restore
+snapshot_dir_mssql="$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/mssql"
+
+# Transfer backup files from appliance to backup host
+appliance_dir="/data/user/mssql/backups"
+echo "set -o pipefail; sudo rm -rf $appliance_dir; sudo mkdir -p $appliance_dir" | ghe-ssh $GHE_HOSTNAME /bin/bash
+for b in $(ls $snapshot_dir_mssql)
+do
+  echo "Transferring $b to appliance host"
+  cat $snapshot_dir_mssql/$b | ghe-ssh $GHE_HOSTNAME "sudo tee -a $appliance_dir/$b >/dev/null 2>&1"
+done
+
+# Change owner to mssql:mssql to ready for restore
+ghe-ssh $GHE_HOSTNAME "sudo chown -R mssql:mssql $appliance_dir"
+
+# Invoke restore command
+ghe-ssh $GHE_HOSTNAME -- "ghe-import-mssql" || failures="$failures mssql"
+
+bm_start "$(basename $0)"

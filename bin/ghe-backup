@@ -88,7 +88,7 @@ should_use_gitbackups_for_repositories(){
 
 # check that the appliance supports using gitbackups for repositories
 can_use_gitbackups_for_repositories(){
-  ghe-ssh "$GHE_HOSTNAME" test -e /data/github/current/bin/backup-repositories
+  ghe-ssh "$GHE_HOSTNAME" test -e /data/github/current/bin/ghe-backup-repositories
 }
 
 # Exit early if the appliance is missing script to backup repositories using gitbackups

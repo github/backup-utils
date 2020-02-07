@@ -24,4 +24,5 @@ matrix:
             - moreutils
             - fakeroot
             - jq
+            - pigz
       script: debuild -uc -us

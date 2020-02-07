@@ -26,4 +26,5 @@ matrix:
             - fakeroot
             - jq
             - pigz
+            - git
       script: debuild -uc -us

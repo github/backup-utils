@@ -205,7 +205,7 @@ if ! is_binary_backup; then
   # binary backup is already compressed
   export_command+=" | pigz"
 fi
-echo "set -o pipefail; ${export_command}" |
+echo "set -o pipefail; $export_command" |
 ghe-ssh "$GHE_HOSTNAME" -- /bin/bash > mysql.sql.gz || failures="$failures mysql"
 if is_binary_backup; then
   echo "NO_ADDITIONAL_COMPRESSION" > mysql-binary-backup-sentinel

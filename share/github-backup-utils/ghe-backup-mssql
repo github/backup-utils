@@ -22,6 +22,17 @@ full_expire=
 diff_expire=
 tran_expire=
 
+# Check if the export tool is available in this version
+export_tool_available() {
+  ghe-ssh "$host" "test -e /usr/local/bin/ghe-export-mssql"
+}
+
+if ! export_tool_available
+then
+  ghe_verbose "ghe-export-mssql is not available"
+  exit
+fi
+
 add_minute() {
   # Expect date string in the format of yyyymmddTHHMMSS
   # Here parse date differently depending on GNU Linux vs BSD MacOS
@@ -52,7 +63,7 @@ last_mssql=$GHE_DATA_DIR/$last/mssql
 
 if [ -z $last ] || [ ! -d $last_mssql ] || [ -z $(find $last_mssql -type f -name "*.bak") ]
 then
-  # Take initial full backup
+  ghe_verbose "Taking first full backup"
   take_full=1
   backup_command='ghe-export-mssql'
 else
@@ -67,7 +78,7 @@ else
   full_expire="${full_expire//T}"
 
   diff=$(find "$last_mssql" -type f -name "*.diff")
-  if [ ! -z $diff ]
+  if [ -f "$diff" ]
   then
     diff=$(find_timestamp $diff)
     diff_expire=$(add_minute $diff ${cadence[1]})
@@ -82,22 +93,22 @@ else
   tran_expire=$(add_minute $tran ${cadence[2]})
   tran_expire="${tran_expire//T}"
 
-  echo "current $current, full expire $full_expire, diff expire $diff_expire, tran expire $tran_expire"
+  ghe_verbose "current $current, full expire $full_expire, diff expire $diff_expire, tran expire $tran_expire"
 
   # Determine the type of backup to take
   if [ $current -gt $full_expire ]
   then
-    echo "Taking full backup"
+    ghe_verbose "Taking full backup"
     take_full=1
     backup_command='ghe-export-mssql'
   elif [ $current -gt $diff_expire ]
   then
-    echo "Taking diff backup"
+    ghe_verbose "Taking diff backup"
     take_diff=1
     backup_command='ghe-export-mssql -d'
   elif [ $current -gt $tran_expire ]
   then
-    echo "Taking transaction backup"
+    ghe_verbose "Taking transaction backup"
     backup_command='ghe-export-mssql -t'
   fi
 fi
@@ -106,7 +117,7 @@ fi
 mkdir -p "$backup_dir"
 
 # Create hard links to save disk space and time
-if [ ! -z $last ]
+if [ -d $last_mssql ]
 then
   for p in $(ls $last_mssql)
   do
@@ -129,15 +140,15 @@ then
       transfer=1
     fi
 
-    if [ ! -z $transfer ]
+    if [ -n "$transfer" ]
     then
-      echo "Creating hard link to $p"
+      ghe_verbose "Creating hard link to $p"
       ln $last_mssql/$p $backup_dir/$p
     fi
   done
 fi
 
-if [ ! -z "$backup_command" ]
+if [ -n "$backup_command" ]
 then
   bm_start "$(basename $0)"
   ghe-ssh "$host" -- "$backup_command" || failures="$failures mssql"
@@ -148,7 +159,7 @@ then
   backups=$(echo "set -o pipefail; if sudo test -d \"$appliance_dir\"; then sudo ls \"$appliance_dir\"; fi" | ghe-ssh "$host" /bin/bash)
   for b in $backups
   do
-    echo "Transferring $b to backup host"
+    ghe_verbose "Transferring $b to backup host"
     ghe-ssh "$host" "sudo cat $appliance_dir/$b" > $backup_dir/$b
   done
 fi

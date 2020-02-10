@@ -32,7 +32,7 @@ appliance_dir="/data/user/mssql/backups"
 echo "set -o pipefail; sudo rm -rf $appliance_dir; sudo mkdir -p $appliance_dir" | ghe-ssh $GHE_HOSTNAME /bin/bash
 for b in $(ls $snapshot_dir_mssql)
 do
-  echo "Transferring $b to appliance host"
+  ghe_verbose "Transferring $b to appliance host"
   cat $snapshot_dir_mssql/$b | ghe-ssh $GHE_HOSTNAME "sudo tee -a $appliance_dir/$b >/dev/null 2>&1"
 done
 

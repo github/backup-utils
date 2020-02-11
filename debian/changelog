@@ -1,6 +1,13 @@
 github-backup-utils (2.20.0) UNRELEASED; urgency=medium
 
   * Fix `ghe-backup-repositories` performance for large instances #541
+  * Fix two issues with binary backup (slow gzip compression and support for restore from instances other than SQL master) #551
+
+ -- Alejandro Figueroa <thejandroman@github.com>  Tue, 11 Feb 2020 20:03:13 +0000
+
+github-backup-utils (2.20.0) UNRELEASED; urgency=medium
+
+  * Fix `ghe-backup-repositories` performance for large instances #541
 
  -- Alejandro Figueroa <thejandroman@github.com>  Tue, 11 Feb 2020 18:36:18 +0000
 

@@ -208,7 +208,7 @@ fi
 bm_end "ghe-export-mysql"
 
 echo "Backing up MSSQL databases ..."
-ghe-backup-mssql || failures = "$failures mssql"
+ghe-backup-mssql 1>&3 || failures = "$failures mssql"
 
 echo "Backing up Redis database ..."
 ghe-backup-redis > redis.rdb || failures="$failures redis"

@@ -12,7 +12,19 @@ set -e
 # Show usage and bail with no arguments
 [ -z "$*" ] && print_usage
 
-bm_start "$(basename $0)"
+# Check if the import tool is available in this version
+import_tool_available() {
+  if [ -z "$GHE_TEST_REMOTE_VERSION" ]; then
+    ghe-ssh "$GHE_HOSTNAME" "test -e /usr/local/bin/ghe-import-mssql"
+  else
+    ghe-ssh "$GHE_HOSTNAME" "type ghe-import-mssql"
+  fi
+}
+
+if ! import_tool_available; then
+  ghe_verbose "ghe-import-mssql is not available"
+  exit
+fi
 
 # Grab host arg
 GHE_HOSTNAME="$1"
@@ -28,7 +40,7 @@ ghe_remote_version_required "$GHE_HOSTNAME"
 snapshot_dir_mssql="$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/mssql"
 
 # Transfer backup files from appliance to backup host
-appliance_dir="/data/user/mssql/backups"
+appliance_dir="$GHE_REMOTE_DATA_USER_DIR/mssql/backups"
 echo "set -o pipefail; sudo rm -rf $appliance_dir; sudo mkdir -p $appliance_dir" | ghe-ssh $GHE_HOSTNAME /bin/bash
 for b in $(ls $snapshot_dir_mssql)
 do
@@ -40,6 +52,6 @@ done
 ghe-ssh $GHE_HOSTNAME "sudo chown -R mssql:mssql $appliance_dir"
 
 # Invoke restore command
-ghe-ssh $GHE_HOSTNAME -- "ghe-import-mssql" || failures="$failures mssql"
-
 bm_start "$(basename $0)"
+ghe-ssh "$GHE_HOSTNAME" -- "ghe-import-mssql" < "/dev/null" 1>&3
+bm_end "$(basename $0)"

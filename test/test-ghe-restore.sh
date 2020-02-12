@@ -280,6 +280,31 @@ begin_test "ghe-restore with no pages backup"
 )
 end_test
 
+begin_test "ghe-restore invokes ghe-import-mssql"
+(
+  set -e
+  rm -rf "$GHE_REMOTE_ROOT_DIR"
+  setup_remote_metadata
+
+  # enable maintenance mode and create required directories
+  setup_maintenance_mode
+
+  # set restore host environ var
+  GHE_RESTORE_HOST=127.0.0.1
+  export GHE_RESTORE_HOST
+
+  # run ghe-restore and write output to file for asserting against
+  if ! ghe-restore -v -f > "$TRASHDIR/restore-out" 2>&1; then
+      cat "$TRASHDIR/restore-out"
+      : ghe-restore should have exited successfully
+      false
+  fi
+
+  grep -q "Restoring MSSQL database" "$TRASHDIR/restore-out"
+  grep -q "ghe-import-mssql .* OK" "$TRASHDIR/restore-out"
+)
+end_test
+
 begin_test "ghe-restore cluster backup to non-cluster appliance"
 (
   set -e

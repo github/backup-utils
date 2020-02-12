@@ -11,7 +11,6 @@ set -e
 . "$( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config"
 
 # Set up remote host and root backup snapshot directory based on config
-host="$GHE_HOSTNAME"
 backup_dir="$GHE_SNAPSHOT_DIR/mssql"
 last=
 last_mssql=
@@ -24,11 +23,14 @@ tran_expire=
 
 # Check if the export tool is available in this version
 export_tool_available() {
-  ghe-ssh "$host" "test -e /usr/local/bin/ghe-export-mssql"
+  if [ -z "$GHE_TEST_REMOTE_VERSION" ]; then
+    ghe-ssh "$GHE_HOSTNAME" "test -e /usr/local/bin/ghe-export-mssql"
+  else
+    ghe-ssh "$GHE_HOSTNAME" "type ghe-export-mssql"
+  fi
 }
 
-if ! export_tool_available
-then
+if ! export_tool_available; then
   ghe_verbose "ghe-export-mssql is not available"
   exit
 fi
@@ -39,7 +41,8 @@ add_minute() {
   if date -v -1d > /dev/null 2>&1; then
     echo $(date -v+$2M -ujf'%Y%m%dT%H%M%S' $1 +%Y%m%dT%H%M%S)
   else
-    echo $(date '+%Y%m%dT%H%M%S' -d "${dt:0:8} ${dt:9:2}:${dt:11:2}:${dt:13:2} + $2 min")
+    echo $(date '+%Y%m%dT%H%M%S' \
+      -d "${dt:0:8} ${dt:9:2}:${dt:11:2}:${dt:13:2} + $2 min")
   fi
 }
 
@@ -50,19 +53,10 @@ find_timestamp() {
   echo $datetime_part
 }
 
-# Find last snapshot to create potential hard links
-count=$(ls $GHE_DATA_DIR | egrep '\d{8}T\d{6}' | sort | tail -2 | wc -l)
-if [ $count -gt 1 ]
-then
-  last=$(ls $GHE_DATA_DIR | egrep '\d{8}T\d{6}' | sort | tail -2 | head -1)
-else
-  unset last
-fi
+last_mssql=$GHE_DATA_DIR/current/mssql
 
-last_mssql=$GHE_DATA_DIR/$last/mssql
-
-if [ -z $last ] || [ ! -d $last_mssql ] || [ -z $(find $last_mssql -type f -name "*.bak") ]
-then
+if [ ! -d $last_mssql ] \
+  || [ -z "$(find $last_mssql -type f -name '*.bak' | head -n 1)" ]; then
   ghe_verbose "Taking first full backup"
   take_full=1
   backup_command='ghe-export-mssql'
@@ -72,14 +66,13 @@ else
 
   current=$(date -u +%Y%m%d%H%M%S)
 
-  full=$(find "$last_mssql" -type f -name "*.bak")
+  full=$(find "$last_mssql" -type f -name "*.bak" | head -n 1)
   full=$(find_timestamp $full)
   full_expire=$(add_minute $full ${cadence[0]})
   full_expire="${full_expire//T}"
 
-  diff=$(find "$last_mssql" -type f -name "*.diff")
-  if [ -f "$diff" ]
-  then
+  diff=$(find "$last_mssql" -type f -name "*.diff" | head -n 1)
+  if [ -f "$diff" ]; then
     diff=$(find_timestamp $diff)
     diff_expire=$(add_minute $diff ${cadence[1]})
     diff_expire="${diff_expire//T}"
@@ -93,21 +86,19 @@ else
   tran_expire=$(add_minute $tran ${cadence[2]})
   tran_expire="${tran_expire//T}"
 
-  ghe_verbose "current $current, full expire $full_expire, diff expire $diff_expire, tran expire $tran_expire"
+  ghe_verbose "current $current, full expire $full_expire, \
+diff expire $diff_expire, tran expire $tran_expire"
 
   # Determine the type of backup to take
-  if [ $current -gt $full_expire ]
-  then
+  if [ $current -gt $full_expire ]; then
     ghe_verbose "Taking full backup"
     take_full=1
     backup_command='ghe-export-mssql'
-  elif [ $current -gt $diff_expire ]
-  then
+  elif [ $current -gt $diff_expire ]; then
     ghe_verbose "Taking diff backup"
     take_diff=1
     backup_command='ghe-export-mssql -d'
-  elif [ $current -gt $tran_expire ]
-  then
+  elif [ $current -gt $tran_expire ]; then
     ghe_verbose "Taking transaction backup"
     backup_command='ghe-export-mssql -t'
   fi
@@ -117,49 +108,44 @@ fi
 mkdir -p "$backup_dir"
 
 # Create hard links to save disk space and time
-if [ -d $last_mssql ]
-then
+if [ -d $last_mssql ]; then
   for p in $(ls $last_mssql)
   do
     filename="${p##*/}"
     extension="${filename##*.}"
     transfer=
 
-    if [ $extension = "bak" ] && [ -z $take_full ]
-    then
+    if [ $extension = "bak" ] && [ -z $take_full ]; then
       transfer=1
     fi
 
-    if [ $extension = "diff" ] && [ -z $take_full ] && [ -z $take_diff ]
-    then
+    if [ $extension = "diff" ] && [ -z $take_full ] && [ -z $take_diff ]; then
       transfer=1
     fi
 
-    if [ $extension = "log" ] && [ -z $take_full ] && [ -z $take_diff ]
-    then
+    if [ $extension = "log" ] && [ -z $take_full ] && [ -z $take_diff ]; then
       transfer=1
     fi
 
-    if [ -n "$transfer" ]
-    then
+    if [ -n "$transfer" ]; then
       ghe_verbose "Creating hard link to $p"
       ln $last_mssql/$p $backup_dir/$p
     fi
   done
 fi
 
-if [ -n "$backup_command" ]
-then
+if [ -n "$backup_command" ]; then
   bm_start "$(basename $0)"
-  ghe-ssh "$host" -- "$backup_command" || failures="$failures mssql"
+  ghe-ssh "$GHE_HOSTNAME" -- "$backup_command" || failures="$failures mssql"
   bm_end "$(basename $0)"
 
   # Transfer backup files from appliance to backup host
-  appliance_dir="/data/user/mssql/backups"
-  backups=$(echo "set -o pipefail; if sudo test -d \"$appliance_dir\"; then sudo ls \"$appliance_dir\"; fi" | ghe-ssh "$host" /bin/bash)
+  appliance_dir="$GHE_REMOTE_DATA_DIR/user/mssql/backups"
+  backups=$(echo "set -o pipefail; if sudo test -d \"$appliance_dir\"; then \
+    sudo ls \"$appliance_dir\"; fi" | ghe-ssh "$GHE_HOSTNAME" /bin/bash)
   for b in $backups
   do
-    ghe_verbose "Transferring $b to backup host"
-    ghe-ssh "$host" "sudo cat $appliance_dir/$b" > $backup_dir/$b
+    ghe_verbose "Transferring to backup host $b"
+    ghe-ssh "$GHE_HOSTNAME" "sudo cat $appliance_dir/$b" > $backup_dir/$b
   done
 fi

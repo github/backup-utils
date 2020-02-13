@@ -261,10 +261,11 @@ ghe-ssh "$GHE_HOSTNAME" -- 'ghe-import-redis' < "$GHE_RESTORE_SNAPSHOT_PATH/redi
 bm_end "ghe-import-redis"
 
 should_use_gitbackups_for_repositories(){
-  # TODO: Figure out how to control flow for this feature
+  [ ! -d $GHE_RESTORE_SNAPSHOT_PATH/repositories ]
 }
 
 if should_use_gitbackups_for_repositories; then
+  # TODO: do the check that only latest (current) snapshot can be restored with gitbackups
   echo "Restoring Git repositories using gitbackups..."
   ghe-restore-repositories-gitbackups
 elif  $CLUSTER || [ "$(version $GHE_REMOTE_VERSION)" -ge "$(version 2.13.0)" ]; then

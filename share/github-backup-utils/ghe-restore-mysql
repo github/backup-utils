@@ -38,7 +38,7 @@ is_binary_backup_feature_on(){
   ghe-ssh "$GHE_HOSTNAME" ghe-config --true "mysql.backup.binary"
 }
 
-ssh_config_file_opt=""
+ssh_config_file_opt=
 if $CLUSTER ; then
   ghe_mysql_master=$(ghe-ssh "$GHE_HOSTNAME" ghe-config "cluster.mysql-master")
   if [ -z $ghe_mysql_master ]; then
@@ -48,7 +48,6 @@ if $CLUSTER ; then
     tempdir=$(mktemp -d -t backup-utils-restore-XXXXXX)
     ssh_config_file="$tempdir/ssh_config"
     ssh_config_file_opt="-F $ssh_config_file"
-    opts="$opts -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no"
     ghe-ssh-config "$GHE_HOSTNAME" "$ghe_mysql_master" > "$ssh_config_file"
     port=$(ssh_port_part "$GHE_HOSTNAME")
     ghe_mysql_master=$ghe_mysql_master${port:+:$port}

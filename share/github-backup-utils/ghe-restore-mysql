@@ -42,7 +42,8 @@ ssh_config_file_opt=""
 if $CLUSTER ; then
   ghe_mysql_master=$(ghe-ssh "$GHE_HOSTNAME" ghe-config "cluster.mysql-master")
   if [ -z $ghe_mysql_master ]; then
-    ghe_mysql_master=$GHE_HOSTNAME
+    echo "Something is wrong with configuration: cluster.mysql-master not found" >&2
+    exit 2
   else
     tempdir=$(mktemp -d -t backup-utils-restore-XXXXXX)
     ssh_config_file="$tempdir/ssh_config"

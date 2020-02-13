@@ -44,6 +44,7 @@ if $CLUSTER ; then
   if [ -z $ghe_mysql_master ]; then
     ghe_mysql_master=$GHE_HOSTNAME
   else
+    tempdir=$(mktemp -d -t backup-utils-restore-XXXXXX)
     ssh_config_file="$tempdir/ssh_config"
     ssh_config_file_opt="-F $ssh_config_file"
     opts="$opts -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no"

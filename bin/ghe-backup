@@ -88,7 +88,7 @@ should_use_gitbackups_for_repositories(){
 
 # check that the appliance supports using gitbackups for repositories
 can_use_gitbackups_for_repositories(){
-  ghe-ssh "$GHE_HOSTNAME" test -e /data/github/current/bin/backup-repositories
+  ghe-ssh "$GHE_HOSTNAME" test -e /data/github/current/bin/ghe-backup-repositories
 }
 
 # Exit early if the appliance is missing script to backup repositories using gitbackups
@@ -200,10 +200,15 @@ is_binary_backup(){
 
 echo "Backing up MySQL database ..."
 bm_start "ghe-export-mysql"
-echo 'set -o pipefail; ghe-export-mysql | gzip' |
+export_command="ghe-export-mysql"
+if ! is_binary_backup; then
+  # binary backup is already compressed
+  export_command+=" | pigz"
+fi
+echo "set -o pipefail; $export_command" |
 ghe-ssh "$GHE_HOSTNAME" -- /bin/bash > mysql.sql.gz || failures="$failures mysql"
 if is_binary_backup; then
-  touch mysql-binary-backup-sentinel
+  echo "NO_ADDITIONAL_COMPRESSION" > mysql-binary-backup-sentinel
 fi
 bm_end "ghe-export-mysql"
 

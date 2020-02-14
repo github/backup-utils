@@ -502,3 +502,19 @@ begin_test "ghe-restore missing directories or files from source snapshot displa
     verify_all_restored_data
 )
 end_test
+
+# Reset data for sub-subsequent tests
+rm -rf "$GHE_DATA_DIR/1"
+setup_test_data --gitbackups "$GHE_DATA_DIR/1"
+
+# Make the current symlink
+ln -s 1 "$GHE_DATA_DIR/current"
+
+begin_test "ghe-restore invokes ghe-restore-repositories-gitbackups when the repositories directory is not present in the snapshot being restored"
+(
+    # Tests if we invoke the correct restore script if the repositories directory is missing from the snapshot
+    set -e
+    ghe-restore -f > "$TRASHDIR/restore-out"
+    grep -q "Restoring Git repositories using gitbackups..." "$TRASHDIR/restore-out"
+)
+end_test

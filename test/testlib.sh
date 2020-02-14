@@ -177,13 +177,31 @@ skip_test() {
 
 # Create dummy data used for testing
 # This same method can be used to generate the data used for testing backups
-# and restores by passing in the appropriate location, for example:
+# and restores by passing in the appropriate location. If the -g/--gitbackups
+# flag is supplied, skip setting up the repositories directory. For example:
 #
-# Testing backups: setup_test_data $GHE_REMOTE_DATA_USER_DIR
-# Testing restores: setup_test_data "$GHE_DATA_DIR/1"
+# Testing backups with rsync: setup_test_data $GHE_REMOTE_DATA_USER_DIR
+# Testing restores with rsync: setup_test_data "$GHE_DATA_DIR/1"
+# Testing restores with gitbackups: setup_test_data -g "$GHE_DATA_DIR/1"
 #
 setup_test_data () {
-  local loc=$1
+  gitbackups=false
+  while true; do
+    case "$1" in
+      -g|--gitbackups)
+        gitbackups=true
+        shift
+        ;;
+	  *)
+        if [ -n "$1" ]; then
+          loc=$1
+          shift
+        else
+          break
+        fi
+        ;;
+    esac
+  done
 
   # Create some fake pages data in the remote data directory
   mkdir -p "$loc/pages"
@@ -263,54 +281,56 @@ setup_test_data () {
   echo "fake hookshot log" | gzip > hookshot-logs-2018-03-05.gz
 
   # Create some test repositories in the remote repositories dir
-  mkdir -p "$loc/repositories/info"
-  mkdir -p "$TRASHDIR/hooks"
+  if ! $gitbackups; then
+    mkdir -p "$loc/repositories/info"
+    mkdir -p "$TRASHDIR/hooks"
 
-  cd "$loc/repositories"
-  echo "fake nw-layout" > info/nw-layout
-  echo "fake svn-v4-upgrade" > info/svn-v4-upgraded
+    cd "$loc/repositories"
+    echo "fake nw-layout" > info/nw-layout
+    echo "fake svn-v4-upgrade" > info/svn-v4-upgraded
 
-  repo1="0/nw/01/aa/3f/1234/1234.git"
-  repo2="0/nw/01/aa/3f/1234/1235.git"
-  repo3="1/nw/23/bb/4c/2345/broken.git"
-  mkdir -p "$repo1" "$repo2" "$repo3"
+    repo1="0/nw/01/aa/3f/1234/1234.git"
+    repo2="0/nw/01/aa/3f/1234/1235.git"
+    repo3="1/nw/23/bb/4c/2345/broken.git"
+    mkdir -p "$repo1" "$repo2" "$repo3"
 
-  wiki1="0/nw/01/aa/3f/1234/1234.wiki.git"
-  mkdir -p "$wiki1"
+    wiki1="0/nw/01/aa/3f/1234/1234.wiki.git"
+    mkdir -p "$wiki1"
 
-  gist1="0/01/aa/3f/gist/93069ad4c391b6203f183e147d52a97a.git"
-  gist2="1/23/bb/4c/gist/1234.git"
-  mkdir -p "$gist1" "$gist2"
+    gist1="0/01/aa/3f/gist/93069ad4c391b6203f183e147d52a97a.git"
+    gist2="1/23/bb/4c/gist/1234.git"
+    mkdir -p "$gist1" "$gist2"
 
-  # Initialize test repositories with a fake commit
-  while IFS= read -r -d '' repo; do
-    git init -q --bare "$repo"
-    git --git-dir="$repo" --work-tree=. commit -q --allow-empty -m 'test commit'
-    rm -rf "$repo/hooks"
-    ln -s "$TRASHDIR/hooks" "$repo/hooks"
-  done <   <(find . -type d -name '*.git' -prune -print0)
+    # Initialize test repositories with a fake commit
+    while IFS= read -r -d '' repo; do
+      git init -q --bare "$repo"
+      git --git-dir="$repo" --work-tree=. commit -q --allow-empty -m 'test commit'
+      rm -rf "$repo/hooks"
+      ln -s "$TRASHDIR/hooks" "$repo/hooks"
+    done <   <(find . -type d -name '*.git' -prune -print0)
 
-  # Add some fake svn data to repo2
-  echo "fake svn history data" > "$repo2/svn.history.msgpack"
-  mkdir "$repo2/svn_data"
-  echo "fake property history data" > "$repo2/svn_data/property_history.msgpack"
+    # Add some fake svn data to repo2
+    echo "fake svn history data" > "$repo2/svn.history.msgpack"
+    mkdir "$repo2/svn_data"
+    echo "fake property history data" > "$repo2/svn_data/property_history.msgpack"
 
-  # Break a repo to test fsck
-  rm -f $repo3/objects/4b/825dc642cb6eb9a060e54bf8d69288fbee4904
+    # Break a repo to test fsck
+    rm -f $repo3/objects/4b/825dc642cb6eb9a060e54bf8d69288fbee4904
 
-  if [ "$loc" != "$GHE_REMOTE_DATA_USER_DIR" ]; then
-    # create a fake backups for each datastore
-    echo "fake ghe-export-mysql data" | gzip > "$loc/mysql.sql.gz"
-    echo "fake ghe-export-redis data" > "$loc/redis.rdb"
-    echo "fake ghe-export-authorized-keys data" > "$loc/authorized-keys.json"
-    echo "fake ghe-export-ssh-host-keys data" > "$TRASHDIR/ssh-host-keys"
-    tar -C $TRASHDIR -cf "$loc/ssh-host-keys.tar" ssh-host-keys
-    echo "fake ghe-export-settings data" > "$loc/settings.json"
-    echo "fake ghe-export-ssl-ca-certificates data" > "$loc/ssl-ca-certificates.tar"
-    echo "fake license data" > "$loc/enterprise.ghl"
-    echo "fake password hash data" > "$loc/manage-password"
-    echo "rsync" > "$loc/strategy"
-    echo "$GHE_REMOTE_VERSION" >  "$loc/version"
+    if [ "$loc" != "$GHE_REMOTE_DATA_USER_DIR" ]; then
+      # create a fake backups for each datastore
+      echo "fake ghe-export-mysql data" | gzip > "$loc/mysql.sql.gz"
+      echo "fake ghe-export-redis data" > "$loc/redis.rdb"
+      echo "fake ghe-export-authorized-keys data" > "$loc/authorized-keys.json"
+      echo "fake ghe-export-ssh-host-keys data" > "$TRASHDIR/ssh-host-keys"
+      tar -C $TRASHDIR -cf "$loc/ssh-host-keys.tar" ssh-host-keys
+      echo "fake ghe-export-settings data" > "$loc/settings.json"
+      echo "fake ghe-export-ssl-ca-certificates data" > "$loc/ssl-ca-certificates.tar"
+      echo "fake license data" > "$loc/enterprise.ghl"
+      echo "fake password hash data" > "$loc/manage-password"
+      echo "rsync" > "$loc/strategy"
+      echo "$GHE_REMOTE_VERSION" >  "$loc/version"
+    fi
   fi
 }
 

@@ -514,6 +514,7 @@ begin_test "ghe-restore invokes ghe-restore-repositories-gitbackups when the rep
 (
     # Tests if we invoke the correct restore script if the repositories directory is missing from the snapshot
     set -e
+    export GHE_RESTORE_HOST=127.0.0.1
     ghe-restore -f | tee "$TRASHDIR/restore-out"
     grep -q "Restoring Git repositories using gitbackups..." "$TRASHDIR/restore-out"
 )

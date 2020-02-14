@@ -331,6 +331,8 @@ setup_test_data () {
       echo "rsync" > "$loc/strategy"
       echo "$GHE_REMOTE_VERSION" >  "$loc/version"
     fi
+  else
+    echo "gitbackups" > "$loc/strategy"
   fi
 }
 

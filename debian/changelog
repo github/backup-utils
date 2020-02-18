@@ -1,3 +1,9 @@
+github-backup-utils (2.19.4) UNRELEASED; urgency=medium
+
+  * Fix the way we connect to mysql master using ssh forwarding for binary backups #567
+
+ -- Hao Jiang <jianghao0718@github.com>  Tue, 18 Feb 2020 17:54:31 +0000
+
 github-backup-utils (2.19.3) UNRELEASED; urgency=medium
 
   * Fix two issues with binary backup (slow gzip compression and support for restore from instances other than SQL master) #551

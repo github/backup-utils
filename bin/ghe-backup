@@ -81,25 +81,6 @@ if [ "$(ls -il dest1/testfile | awk '{ print $1 }')" != "$(ls -il dest2/testfile
 fi
 rm -rf src dest1 dest2
 
-# if we should use gitbackups to backup repositories
-should_use_gitbackups_for_repositories(){
-  ghe-ssh "$GHE_HOSTNAME" ghe-config --true "app.github.gitbackups"
-}
-
-# check that the appliance supports using gitbackups for repositories
-can_use_gitbackups_for_repositories(){
-  ghe-ssh "$GHE_HOSTNAME" test -e /data/github/current/bin/ghe-backup-repositories
-}
-
-# Exit early if the appliance is missing script to backup repositories using gitbackups
-if should_use_gitbackups_for_repositories; then
-  if ! can_use_gitbackups_for_repositories; then
-    echo "Error: Configuration setting 'app.github.gitbackups' is enabled but this version of GHES cannot use gitbackups to back up repositories via 'ghe-backup'."
-    echo "Disable configuration setting 'app.github.gitbackups' and re-run 'ghe-backup' to use rsync."
-    exit 1
-  fi
-fi
-
 # To prevent multiple backup runs happening at the same time, we create a
 # in-progress file with the timestamp and pid of the backup process,
 # giving us a form of locking.
@@ -200,10 +181,15 @@ is_binary_backup(){
 
 echo "Backing up MySQL database ..."
 bm_start "ghe-export-mysql"
-echo 'set -o pipefail; ghe-export-mysql | gzip' |
+export_command="ghe-export-mysql"
+if ! is_binary_backup; then
+  # binary backup is already compressed
+  export_command+=" | pigz"
+fi
+echo "set -o pipefail; $export_command" |
 ghe-ssh "$GHE_HOSTNAME" -- /bin/bash > mysql.sql.gz || failures="$failures mysql"
 if is_binary_backup; then
-  touch mysql-binary-backup-sentinel
+  echo "NO_ADDITIONAL_COMPRESSION" > mysql-binary-backup-sentinel
 fi
 bm_end "ghe-export-mysql"
 
@@ -216,13 +202,8 @@ ghe-backup-audit-log || failures="$failures audit-log"
 echo "Backing up hookshot logs ..."
 ghe-backup-es-hookshot || failures="$failures hookshot"
 
-if should_use_gitbackups_for_repositories && can_use_gitbackups_for_repositories; then
-  echo "Backing up Git repositories using gitbackups ..."
-  ghe-backup-repositories-gitbackups || failures="$failures repositories"
-else
-  echo "Backing up Git repositories using rsync ..."
-  ghe-backup-repositories-rsync || failures="$failures repositories"
-fi
+echo "Backing up Git repositories ..."
+ghe-backup-repositories || failures="$failures repositories"
 
 echo "Backing up GitHub Pages ..."
 ghe-backup-pages || failures="$failures pages"

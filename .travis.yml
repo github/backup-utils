@@ -9,6 +9,7 @@ matrix:
         - brew install moreutils
         - brew install shellcheck
         - brew install jq
+        - brew install coreutils
         - brew install pigz
       script: make test
     - os: linux
@@ -25,5 +26,6 @@ matrix:
             - moreutils
             - fakeroot
             - jq
+            - coreutils
             - pigz
       script: debuild -uc -us

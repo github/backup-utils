@@ -1,3 +1,9 @@
+github-backup-utils (2.20.1) UNRELEASED; urgency=medium
+
+  * Fixes gist route calculation for GHES version 2.20
+
+ -- Caine Jette <cainejette@github.com>  Wed, 19 Feb 2020 21:47:18 +0000
+
 github-backup-utils (2.19.4) UNRELEASED; urgency=medium
 
   * Fix the way we connect to mysql master using ssh forwarding for binary backups #567

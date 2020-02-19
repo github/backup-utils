@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Usage: dgit-cluster-backup-routes
-# Emulates the remote GitHub enterprise-configure command. Tests use this
-# to assert that the command was executed.
+# Emulates the remote GitHub dgit-cluster-backup-routes command. Tests use this
+# to assert that all repos and gists get backed up.
 set -e
 cat <<EOF
 0/nw/01/aa/3f/1234 git-server-fake-uuid

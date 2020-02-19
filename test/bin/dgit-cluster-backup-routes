@@ -9,8 +9,8 @@ version() {
 }
 
 if [ -z "$GHE_REMOTE_VERSION" ]; then
-	echo GHE_REMOTE_VERSION must be set for this script to work.
-	exit 1
+  echo GHE_REMOTE_VERSION must be set for this script to work.
+  exit 1
 fi
 
 # The list of gists returned by the source changed in 2.16.23, 2.17.14,
@@ -19,10 +19,10 @@ if [[ "$GHE_REMOTE_VERSION" =~ 2.16. && "$(version $GHE_REMOTE_VERSION)" -ge "$(
    [[ "$GHE_REMOTE_VERSION" =~ 2.17. && "$(version $GHE_REMOTE_VERSION)" -ge "$(version 2.17.14)" ]] || \
    [[ "$GHE_REMOTE_VERSION" =~ 2.18. && "$(version $GHE_REMOTE_VERSION)" -ge "$(version 2.18.8)" ]] || \
    [[ "$(version $GHE_REMOTE_VERSION)" -ge "$(version 2.19.3)" ]]; then
-		echo 0/nw/01/aa/3f/1234 git-server-fake-uuid
-	  echo 1/nw/23/bb/4c/2345 git-server-fake-uuid1
-	  echo 0/01/aa/3f/gist/93069ad4c391b6203f183e147d52a97a.git git-server-fake-uuid2
-	  echo 1/23/bb/4c/gist/03de86b717f901789a864375baaab36c.git git-server-fake-uuid
+    echo 0/nw/01/aa/3f/1234 git-server-fake-uuid
+    echo 1/nw/23/bb/4c/2345 git-server-fake-uuid1
+    echo 0/01/aa/3f/gist/93069ad4c391b6203f183e147d52a97a.git git-server-fake-uuid2
+    echo 1/23/bb/4c/gist/03de86b717f901789a864375baaab36c.git git-server-fake-uuid
 else
     echo 0/nw/01/aa/3f/1234 git-server-fake-uuid
     echo 1/nw/23/bb/4c/2345 git-server-fake-uuid1

@@ -304,3 +304,29 @@ ghe_debug() {
 version() {
   echo "${@#v}" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }';
 }
+
+# The list of gists returned by the source changed in 2.16.23, 2.17.14,
+# 2.18.8, and 2.19.3.  We need to account for this difference here.
+# In older versions, all paths need to be truncated with `dirname`.
+# In newer versions, gist paths are unmodified, and only other repo types
+# are truncated with `dirname`.
+fix_paths_for_ghe_version() {
+  if [[ "$GHE_REMOTE_VERSION" =~ 2.16. && "$(version $GHE_REMOTE_VERSION)" -ge "$(version 2.16.23)" ]] || \
+     [[ "$GHE_REMOTE_VERSION" =~ 2.17. && "$(version $GHE_REMOTE_VERSION)" -ge "$(version 2.17.14)" ]] || \
+     [[ "$GHE_REMOTE_VERSION" =~ 2.18. && "$(version $GHE_REMOTE_VERSION)" -ge "$(version 2.18.8)" ]] || \
+     [[ "$(version $GHE_REMOTE_VERSION)" -ge "$(version 2.19.3)" ]]; then
+    GIST_FILTER="-e /gist/b"
+  else
+    unset GIST_FILTER
+  fi
+
+  # This sed expression is equivalent to running `dirname` on each line,
+  # but without all the fork+exec overhead of calling `dirname` that many
+  # times:
+  #   1. strip off trailing slashes
+  #   2. if the result has no slashes in it, the dirname is "."
+  #   3. truncate from the final slash (if any) to the end
+  # If the GIST_FILTER was set above (because we're on a modern version of
+  # GHES), then don't modify lines with "gist" in them.
+  sed $GIST_FILTER -e 's/\/$//; s/^[^\/]*$/./; s/\/[^\/]*$//'
+}

@@ -79,7 +79,7 @@ else
     exit 2
   else
     # legacy mode
-    IMPORT_MYSQL="unpigz | ghe-import-mysql-mysqldump"
+    IMPORT_MYSQL="unpigz | ghe-import-mysql"
     GHE_RESTORE_HOST=$GHE_HOSTNAME
   fi
 fi

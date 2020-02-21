@@ -82,7 +82,7 @@ else
     diff_expire="${diff_expire//T}"
   fi
 
-  tran=$(find "$last_mssql" -type f -name "*.log" | egrep '\d{8}T\d{6}' | sort | tail -1)
+  tran=$(find "$last_mssql" -type f -name "*.log" | egrep '[0-9]{8}T[0-9]{6}' | sort | tail -1)
   tran=$(find_timestamp $tran)
   tran_expire=$(add_minute $tran ${cadence[2]})
   tran_expire="${tran_expire//T}"

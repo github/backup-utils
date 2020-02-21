@@ -383,8 +383,8 @@ begin_test "ghe-backup takes diff backup upon expiration"
 
   output=$(ghe-backup -v)
   echo $output | grep "Taking diff backup"
-  echo $output | egrep "Creating hard link to full_mssql@\d{8}T\d{6}\.bak"
-  ! echo $output | egrep "Creating hard link to full_mssql@\d{8}T\d{6}\.log"
+  echo $output | egrep "Creating hard link to full_mssql@[0-9]{8}T[0-9]{6}\.bak"
+  ! echo $output | egrep "Creating hard link to full_mssql@[0-9]{8}T[0-9]{6}\.log"
 )
 end_test
 
@@ -396,7 +396,7 @@ begin_test "ghe-backup takes transaction backup upon expiration"
 
   output=$(ghe-backup -v)
   echo $output | grep "Taking transaction backup"
-  echo $output | egrep "Creating hard link to full_mssql@\d{8}T\d{6}\.bak"
-  echo $output | egrep "Creating hard link to full_mssql@\d{8}T\d{6}\.log"
+  echo $output | egrep "Creating hard link to full_mssql@[0-9]{8}T[0-9]{6}\.bak"
+  echo $output | egrep "Creating hard link to full_mssql@[0-9]{8}T[0-9]{6}\.log"
 )
 end_test

@@ -1,3 +1,9 @@
+github-backup-utils (2.19.5) UNRELEASED; urgency=medium
+
+  * In legacy mode we should use ghe-import-mysql #581
+
+ -- Caine Jette <cainejette@github.com>  Fri, 21 Feb 2020 19:13:17 +0000
+
 github-backup-utils (2.19.4) UNRELEASED; urgency=medium
 
   * Fix the way we connect to mysql master using ssh forwarding for binary backups #567

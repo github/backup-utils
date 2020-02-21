@@ -24,9 +24,10 @@ Coming :soon:
 
 ## Automatic Process from CLI
 
-1. Install the Debian `devscripts` package:
-  `sudo apt-get install devscripts`
-2. Run...
+1. Install the Debian `devscripts` and `moreutils` packages:
+  `sudo apt-get install devscripts moreutils`
+2. Generate a PAT through github.com with access to the `github/backup-utils` repository. This will be used for the `GH_RELEASE_TOKEN` environment variable in the next step.
+3. Run...
   - Feature release:
   `GH_AUTHOR="Bob Smith <bob@example.com>" GH_RELEASE_TOKEN=your-amazing-secure-token script/release 2.13.0 2.11.0`
   - Patch release:
@@ -36,8 +37,8 @@ Coming :soon:
 
 In the event you can't perform the automatic process, or a problem is encountered with the automatic process, these are the manual steps you need to perform for a release.
 
-1. Install the Debian `devscripts` package:
-  `sudo apt-get install devscripts`
+1. Install the Debian `devscripts` and `moreutils` packages:
+  `sudo apt-get install devscripts moreutils`
 2. Add a new version and release notes to the `debian/changelog` file:
   `dch --newversion 2.13.0 --release-heuristic log`
   You can use `make pending-prs` to craft the release notes.

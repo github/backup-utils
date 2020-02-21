@@ -453,10 +453,10 @@ subtract_minute() {
   # Expect date string in the format of yyyymmddTHHMMSS
   # Here parse date differently depending on GNU Linux vs BSD MacOS
   if date -v -1d > /dev/null 2>&1; then
-    echo $(date -v -$2M -ujf'%Y%m%dT%H%M%S' $1 +%Y%m%dT%H%M%S)
+    echo "$(date -v -$2M -ujf'%Y%m%dT%H%M%S' $1 +%Y%m%dT%H%M%S)"
   else
     dt=$1
-    echo $(date '+%Y%m%dT%H%M%S' -d "${dt:0:8} ${dt:9:2}:${dt:11:2}:${dt:13:2} $2 minutes ago")
+    echo "$(date '+%Y%m%dT%H%M%S' -d "${dt:0:8} ${dt:9:2}:${dt:11:2}:${dt:13:2} $2 minutes ago")"
   fi
 }
 

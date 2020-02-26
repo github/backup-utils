@@ -18,7 +18,7 @@
 GHE_BACKUP_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/../.." && pwd )"
 
 # Get the version from the version file.
-BACKUP_UTILS_VERSION="$(cat $GHE_BACKUP_ROOT/share/github-backup-utils/version)"
+BACKUP_UTILS_VERSION="$(cat "$GHE_BACKUP_ROOT/share/github-backup-utils/version")"
 
 # If a version check was requested, show the current version and exit
 if [ -n "$GHE_SHOW_VERSION" ]; then

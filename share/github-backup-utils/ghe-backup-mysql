@@ -28,7 +28,7 @@ fi
 echo "set -o pipefail; $export_command" |
 ghe-ssh "$GHE_HOSTNAME" -- /bin/bash > "$GHE_SNAPSHOT_DIR/mysql.sql.gz"
 if is_binary_backup_feature_on; then
-  echo "NO_ADDITIONAL_COMPRESSION" > mysql-binary-backup-sentinel
+  echo "NO_ADDITIONAL_COMPRESSION" > "$GHE_SNAPSHOT_DIR/mysql-binary-backup-sentinel"
 fi
 
 bm_end "$(basename $0)"

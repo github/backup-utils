@@ -10,13 +10,7 @@ set -e
 # shellcheck source=share/github-backup-utils/ghe-backup-config
 . "$( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config"
 
-# Show usage and bail with no arguments
-[ -z "$*" ] && print_usage
-
 bm_start "$(basename $0)"
-
-# Grab host arg
-GHE_HOSTNAME="$1"
 
 # Perform a host-check and establish the remote version in GHE_REMOTE_VERSION.
 ghe_remote_version_required "$GHE_HOSTNAME"

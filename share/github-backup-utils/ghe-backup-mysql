@@ -13,7 +13,7 @@ set -e
 bm_start "$(basename $0)"
 
 # Perform a host-check and establish the remote version in GHE_REMOTE_VERSION.
-ghe_remote_version_required "$GHE_HOSTNAME"
+#ghe_remote_version_required "$GHE_HOSTNAME"
 
 # if we are going to take a binary backup
 is_binary_backup_feature_on(){

@@ -92,12 +92,12 @@ fi
 #
 bm_start "$(basename $0) - Generating routes"
 echo "github-env ./bin/storage-cluster-backup-routes > $remote_routes_list" | ghe-ssh "$GHE_HOSTNAME" -- /bin/bash
-ghe_debug "\n$(ghe-ssh "$GHE_HOSTNAME" -- cat $remote_routes_list)"
+ghe-ssh "$GHE_HOSTNAME" -- cat $remote_routes_list | ghe_debug
 bm_end "$(basename $0) - Generating routes"
 
 bm_start "$(basename $0) - Fetching routes"
 ghe-ssh "$GHE_HOSTNAME" -- cat $remote_routes_list > $routes_list
-ghe_debug "\n$(cat $routes_list)"
+cat $routes_list | ghe_debug
 bm_end "$(basename $0) - Fetching routes"
 
 bm_start "$(basename $0) - Processing routes"

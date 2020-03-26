@@ -293,11 +293,19 @@ ghe_verbose() {
   fi
 }
 
-# Usage: ghe_debug <message>
+# Usage: ghe_debug <message> OR echo <message> | ghe_debug
 # Log if debug mode is enabled (GHE_DEBUG).
 ghe_debug() {
-  if [ -n "$GHE_DEBUG" ]; then
+  [ -z "$GHE_DEBUG" ] && return
+
+  if [ $# -ne 0 ]; then
     echo -e "Debug: $*" 1>&3
+  elif [ -p /dev/stdin ]; then
+    echo "\n" 1>&3
+    while read line
+    do
+      echo -e "Debug: $line" 1>&3
+    done < /dev/stdin
   fi
 }
 

@@ -5,9 +5,10 @@
 #/ the MySQL database, instance settings, GitHub Pages data, etc.
 #/
 #/ OPTIONS:
-#/   -v | --verbose    Enable verbose output.
-#/   -h | --help       Show this message.
-#/        --version    Display version information.
+#/   -v | --verbose       Enable verbose output.
+#/   -h | --help          Show this message.
+#/        --version       Display version information.
+#/        --skip-pages    Skip backup of GitHub Pages artifacts.
 #/
 
 set -e
@@ -25,6 +26,10 @@ while true; do
       ;;
     -v|--verbose)
       export GHE_VERBOSE=true
+      shift
+      ;;
+    --skip-pages)
+      export GHE_SKIP_PAGES=true
       shift
       ;;
     -*)
@@ -189,8 +194,12 @@ ghe-backup-es-hookshot || failures="$failures hookshot"
 echo "Backing up Git repositories ..."
 ghe-backup-repositories || failures="$failures repositories"
 
-echo "Backing up GitHub Pages ..."
-ghe-backup-pages || failures="$failures pages"
+if [ -z "$GHE_SKIP_PAGES" ]; then
+  echo "Backing up GitHub Pages artifacts ..."
+  ghe-backup-pages || failures="$failures pages"
+else
+  echo "Skipping backup of GitHub Pages artifacts ..."
+fi
 
 echo "Backing up storage data ..."
 ghe-backup-storage || failures="$failures storage"

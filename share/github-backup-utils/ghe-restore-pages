@@ -23,16 +23,7 @@ GHE_HOSTNAME="$1"
 : ${GHE_RESTORE_SNAPSHOT:=current}
 
 # Find the pages to restore
-check_pages=$(cd $GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/ && find pages -mindepth 5 -maxdepth 5 2> /dev/null)
-
-# Check if there were pages in backup, if no skip restore 
-if [[ $? -ne 0 ]]; then
-  echo "Skipping: No Pages artifact backup ..."
-  exit 0
-fi
-
-#  Otherwise Find the path
-pages_paths="$(echo "$check_pages" | cut -d / -f2-)"
+pages_paths=$(cd $GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/ && find pages -mindepth 5 -maxdepth 5 | cut -d / -f2-)
 
 # No need to restore anything, early exit
 if [ -z "$pages_paths" ]; then

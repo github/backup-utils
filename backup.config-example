@@ -23,6 +23,9 @@ GHE_NUM_SNAPSHOTS=10
 #
 #GHE_RESTORE_HOST="github-standby.example.com"
 
+# If set to 'no', skip restoring audit logs to speed up restore time
+RESTORE_AUDIT_LOGS=yes
+
 # When verbose output is enabled with `-v`, it's written to stdout by default. If
 # you'd prefer it to be written to a separate file, set this option.
 #
@@ -42,9 +45,6 @@ GHE_NUM_SNAPSHOTS=10
 # and restore/backup will exit 8
 #
 #GHE_CREATE_DATA_DIR=yes
-
-# If set to 'no', skip restoring audit logs to speed up restore time
-RESTORE_AUDIT_LOGS=no
 
 # If set to 'yes', git fsck will run on the repositories
 # and print some additional info.

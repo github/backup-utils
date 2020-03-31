@@ -14,7 +14,7 @@
 #/                        datastores. Settings are not restored by default to
 #/                        prevent overwriting different configuration on the
 #/                        restore host.
-#/        --skip-pages    Skip backup of GitHub Pages artifacts.
+#/        --skip-pages    Skip restore of GitHub Pages artifacts.
 #/   -v | --verbose       Enable verbose output.
 #/   -h | --help          Show this message.
 #/        --version       Display version information and exit.

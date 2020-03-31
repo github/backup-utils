@@ -23,7 +23,6 @@ GHE_HOSTNAME="$1"
 : ${GHE_RESTORE_SNAPSHOT:=current}
 
 # Find the pages to restore
-
 check_pages=$(cd $GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/ && find pages -mindepth 5 -maxdepth 5 2> /dev/null)
 
 # Check if there were pages in backup, if no skip restore 

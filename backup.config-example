@@ -43,6 +43,9 @@ GHE_NUM_SNAPSHOTS=10
 #
 #GHE_CREATE_DATA_DIR=yes
 
+# If set to 'no', skip restoring audit logs to speed up restore time
+RESTORE_AUDIT_LOGS=no
+
 # If set to 'yes', git fsck will run on the repositories
 # and print some additional info.
 #

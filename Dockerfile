@@ -7,6 +7,7 @@ RUN apt-get -q -y update && \
     ca-certificates \
     ssh \
     git \
+    moreutils \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /backup-utils

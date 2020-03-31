@@ -66,6 +66,26 @@ for f in "$GHE_BACKUP_CONFIG" "$GHE_BACKUP_ROOT/backup.config" \
   fi
 done
 
+# Check that moreutils ts has been installed
+if ! echo "moreutils" | ts &>/dev/null; then
+  echo "Error: moreutils not found. Please install https://joeyh.name/code/moreutils" 1>&2
+  exit 1
+fi
+
+ghe_parallel_check() {
+  # Some machines may have both moreutils parallel and GNU parallel installed.
+  parallel_command="parallel"
+  if [ -x "/usr/bin/parallel.moreutils" ]; then
+    parallel_command="/usr/bin/parallel.moreutils"
+  fi
+
+  # Check that the parallel_command is pointing to moreutils parallel
+  if ! $parallel_command -h | grep -q "parallel \[OPTIONS\] command -- arguments"; then
+    echo "Error: moreutils not found. Please install https://joeyh.name/code/moreutils" 1>&2
+    exit 1
+  fi
+}
+
 # Check that the config file exists before we source it in.
 if ! $config_found; then
   echo "Error: No backup configuration file found. Tried:" 1>&2
@@ -80,7 +100,8 @@ fi
 # otherwise, redirect it to /dev/null. Write verbose output to fd 3.
 if [ -n "$GHE_VERBOSE" ]; then
   if [ -n "$GHE_VERBOSE_LOG" ]; then
-    exec 3>> "$GHE_VERBOSE_LOG"
+    calling_script_name="$(caller | sed 's:.*/::')"
+    exec 3> >(sed "s/^/$calling_script_name: /" | ts >> "$GHE_VERBOSE_LOG")
   else
     exec 3>&1
   fi

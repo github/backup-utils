@@ -24,7 +24,7 @@ GHE_NUM_SNAPSHOTS=10
 #GHE_RESTORE_HOST="github-standby.example.com"
 
 # If set to 'no', skip restoring audit logs to speed up restore time
-RESTORE_AUDIT_LOGS=yes
+GHE_RESTORE_AUDIT_LOGS=yes
 
 # When verbose output is enabled with `-v`, it's written to stdout by default. If
 # you'd prefer it to be written to a separate file, set this option.

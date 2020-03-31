@@ -189,7 +189,7 @@ ghe-backup-es-hookshot || failures="$failures hookshot"
 echo "Backing up Git repositories ..."
 ghe-backup-repositories || failures="$failures repositories"
 
-if [ "$GHE_RESTORE_SKIP_PAGES" = "yes" ]; then
+if [ "$GHE_BACKUP_SKIP_PAGES" = "yes" ]; then
   echo "Skipping backup of GitHub Pages artifacts ..."
 else
   echo "Backing up GitHub Pages artifacts ..."

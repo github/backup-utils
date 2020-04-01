@@ -181,7 +181,7 @@ echo "Backing up Redis database ..."
 ghe-backup-redis > redis.rdb || failures="$failures redis"
 
 echo "Backing up audit log ..."
-ghe-backup-audit-log || failures="$failures audit-log"
+ghe-backup-es-audit-log || failures="$failures audit-log"
 
 echo "Backing up hookshot logs ..."
 ghe-backup-es-hookshot || failures="$failures hookshot"
@@ -189,8 +189,12 @@ ghe-backup-es-hookshot || failures="$failures hookshot"
 echo "Backing up Git repositories ..."
 ghe-backup-repositories || failures="$failures repositories"
 
-echo "Backing up GitHub Pages ..."
-ghe-backup-pages || failures="$failures pages"
+if [ "$GHE_BACKUP_SKIP_PAGES" = "yes" ]; then
+  echo "Skipping backup of GitHub Pages artifacts ..."
+else
+  echo "Backing up GitHub Pages artifacts ..."
+  ghe-backup-pages || failures="$failures pages"
+fi
 
 echo "Backing up storage data ..."
 ghe-backup-storage || failures="$failures storage"

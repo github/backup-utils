@@ -10,7 +10,7 @@ After the initial backup, use the following commands:
 
 These commands are run on the host you [installed][1] Backup Utilities on.
 
-## Understanding Configuration
+## Configuring backup and restore behavior
 
 Users can supply their own configuration file or use the example configuration file as a template where they can set up their environment for backing up and restoring.
 

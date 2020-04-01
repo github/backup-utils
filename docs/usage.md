@@ -10,7 +10,13 @@ After the initial backup, use the following commands:
 
 These commands are run on the host you [installed][1] Backup Utilities on.
 
-### Example backup and restore usage
+## Understanding Configuration
+
+Users can supply their own configuration file or use the example configuration file as a template where they can set up their environment for backing up and restoring.
+
+Among other levers, here is where you can specify if you want to skip backing up and/or reestoring pages artifacts with `GHE_BACKUP_SKIP_PAGES` and `GHE_RESTORE_SKIP_PAGES` respectively.
+
+## Example backup and restore usage
 
 The following assumes that `GHE_HOSTNAME` is set to "github.example.com" in
 `backup.config`.

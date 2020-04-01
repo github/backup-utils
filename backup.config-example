@@ -58,6 +58,6 @@ GHE_NUM_SNAPSHOTS=10
 #GHE_BACKUP_SKIP_PAGES=no
 
 # If set to 'yes', ghe-restore will omit the restore of Pages artifacts
-# contained in the backup and will rebuild them instead.
+# contained in the backup.
 #
 #GHE_RESTORE_SKIP_PAGES=no

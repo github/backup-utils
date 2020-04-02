@@ -139,6 +139,9 @@ fi
 
 # rsync all the repository networks to the git server where they belong.
 # One rsync invocation per server available.
+
+# NOTES(oakeyc): Can we parallelize the calls to each server? (this was attempted in https://github.com/github/backup-utils/pull/456/files)
+# We could leverage changes: https://github.com/github/backup-utils/pull/597/files
 bm_start "$(basename $0) - Restoring repository networks"
 for file_list in $tempdir/*.rsync; do
   if $CLUSTER; then
@@ -172,6 +175,8 @@ fi
 bm_start "$(basename $0) - Updating repository info data"
 if [ -d $GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/repositories/info ]; then
   ghe_verbose "* Transferring repository info data"
+
+  # NOTES(oakeyc): Can we parallelize the calls to each host? 
   for hostname in $hostnames; do
     if ! ghe-rsync -av --delete \
       -e "ssh -q $opts -p $port $ssh_config_file_opt -l $user" \

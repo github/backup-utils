@@ -46,8 +46,7 @@ ghe_parallel_check
 
 # Used to record failed backup steps
 failures=
-tempdir="$(mktemp -d -t backup-utils-backup-XXXXXX)"
-failures_file="$tempdir/failures"
+failures_file="$(mktemp -t backup-utils-backup-failures-XXXXXX)"
 
 # CPU and IO throttling to keep backups from thrashing around.
 export GHE_NICE=${GHE_NICE:-"nice -n 19"}
@@ -105,7 +104,7 @@ cleanup () {
     fi
   fi
 
-  rm -rf "$tempdir"
+  rm -rf "$failures_file"
 
   # Cleanup SSH multiplexing
   ghe-ssh --clean

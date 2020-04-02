@@ -127,16 +127,3 @@ begin_test "ghe-backup-config ghe_parse_remote_version v2.x series"
 )
 end_test
 
-begin_test "ghe-backup-config verbose log redirects to file"
-(
-  set -e
-
-  export GHE_VERBOSE=1
-  export GHE_VERBOSE_LOG="$TRASHDIR/verbose.log"
-  . "share/github-backup-utils/ghe-backup-config"
-  ghe_verbose "Hello world"
-  [ "$(wc -l <"$GHE_VERBOSE_LOG")" -gt 0 ]
-  unset GHE_VERBOSE
-  unset GHE_VERBOSE_LOG
-)
-end_test

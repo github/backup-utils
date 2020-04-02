@@ -74,15 +74,28 @@ fi
 
 ghe_parallel_check() {
   # Some machines may have both moreutils parallel and GNU parallel installed.
-  parallel_command="parallel"
+  GHE_PARALLEL_COMMAND="parallel"
   if [ -x "/usr/bin/parallel.moreutils" ]; then
-    parallel_command="/usr/bin/parallel.moreutils"
+    GHE_PARALLEL_COMMAND="/usr/bin/parallel.moreutils"
   fi
 
-  # Check that the parallel_command is pointing to moreutils parallel
-  if ! $parallel_command -h | grep -q "parallel \[OPTIONS\] command -- arguments"; then
+  # Check that the GHE_PARALLEL_COMMAND is pointing to moreutils parallel
+  if ! $GHE_PARALLEL_COMMAND -h | grep -q "parallel \[OPTIONS\] command -- arguments"; then
     echo "Error: moreutils not found. Please install https://joeyh.name/code/moreutils" 1>&2
     exit 1
+  fi
+
+  GHE_PARALLEL_COMMAND_OPTIONS=""
+  if [ "$GHE_PARALLEL_ENABLED" != "yes" ]; then
+    GHE_PARALLEL_MAX_JOBS="1"
+    GHE_PARALLEL_MAX_LOAD=""
+  fi
+
+  if [ -n "$GHE_PARALLEL_MAX_JOBS" ]; then
+    GHE_PARALLEL_COMMAND_OPTIONS="-j $GHE_PARALLEL_MAX_JOBS"
+  fi
+  if [ -n "$GHE_PARALLEL_MAX_LOAD" ]; then
+    GHE_PARALLEL_COMMAND_OPTIONS+=" -l $GHE_PARALLEL_MAX_LOAD"
   fi
 }
 

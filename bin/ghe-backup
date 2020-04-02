@@ -184,7 +184,7 @@ bm_end "ghe-export-ssh-host-keys"
 echo "Backing up MySQL database ..."
 ghe-backup-mysql || failures="$failures mysql"
 
-$parallel_command -- "
+$GHE_PARALLEL_COMMAND $GHE_PARALLEL_COMMAND_OPTIONS -- "
 echo \"Backing up Redis database ...\"
 ghe-backup-redis > redis.rdb || printf %s \"redis \" >> \"$failures_file\"
 " "

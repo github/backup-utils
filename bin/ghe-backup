@@ -215,7 +215,7 @@ if [ \"$GHE_BACKUP_STRATEGY\" = \"rsync\" ]; then
 fi
 "
 
-if [ -f "$failures_file" ]; then
+if [ -s "$failures_file" ]; then
   failures="$failures $(cat "$failures_file")"
 fi
 

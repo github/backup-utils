@@ -66,12 +66,6 @@ for f in "$GHE_BACKUP_CONFIG" "$GHE_BACKUP_ROOT/backup.config" \
   fi
 done
 
-# Check that moreutils ts has been installed
-if ! echo "moreutils" | ts &>/dev/null; then
-  echo "Error: moreutils not found. Please install https://joeyh.name/code/moreutils" 1>&2
-  exit 1
-fi
-
 ghe_parallel_check() {
   # Some machines may have both moreutils parallel and GNU parallel installed.
   GHE_PARALLEL_COMMAND="parallel"
@@ -114,7 +108,7 @@ fi
 if [ -n "$GHE_VERBOSE" ]; then
   if [ -n "$GHE_VERBOSE_LOG" ]; then
     calling_script_name="$(caller | sed 's:.*/::')"
-    exec 3> >(sed "s/^/$calling_script_name: /" | ts >> "$GHE_VERBOSE_LOG")
+    exec 3> >(awk -v c=$calling_script_name '{ print strftime("%b %d %H:%M:%S"), c":", $0; fflush(); }' >> "$GHE_VERBOSE_LOG")
   else
     exec 3>&1
   fi

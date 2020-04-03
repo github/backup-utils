@@ -5,6 +5,7 @@ matrix:
     - os: osx
       before_install:
         - brew update
+        - brew install gawk
         - brew install gnu-tar
         - brew install moreutils
         - brew install shellcheck

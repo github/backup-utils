@@ -3,6 +3,8 @@
 This repository includes backup and recovery utilities for
 [GitHub Enterprise Server][1].
 
+**UPDATE**: `ghe-backup` now requires the installation of [moreutils](https://joeyh.name/code/moreutils).
+
 **Note**: the [GitHub Enterprise Server version requirements][2] have
 changed starting with Backup Utilities v2.13.0, released on 27 March 2018.
 

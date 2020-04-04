@@ -61,3 +61,21 @@ GHE_NUM_SNAPSHOTS=10
 # contained in the backup.
 #
 #GHE_RESTORE_SKIP_PAGES=no
+
+# If set to 'yes', ghe-backup jobs will run in parallel. Defaults to 'no'.
+#
+# WARNING: this feature is in beta.
+#GHE_PARALLEL_ENABLED=yes
+
+# Sets the maximum number of jobs to run in parallel. Defaults to the number
+# of available processing units on the machine.
+#
+# WARNING: this feature is in beta.
+#GHE_PARALLEL_MAX_JOBS=2
+
+# When jobs are running in parallel wait as needed to avoid starting new jobs
+# when the system's load average is not below the specified limit. Defaults to
+# unrestricted.
+#
+# WARNING: this feature is in beta.
+GHE_PARALLEL_MAX_LOAD=50

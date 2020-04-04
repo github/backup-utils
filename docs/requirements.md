@@ -6,7 +6,7 @@ storage and must have network connectivity with the GitHub Enterprise Server app
 ## Backup host requirements
 
 Backup host software requirements are modest: Linux or other modern Unix operating
-system with [bash][1], [git][2], [moreutils parallel][9], [OpenSSH][3] 5.6 or newer, and [rsync][4] v2.6.4 or newer.
+system with [awk][10], [bash][1], [git][2], [moreutils][9], [OpenSSH][3] 5.6 or newer, and [rsync][4] v2.6.4 or newer.
 
 We encourage the use of [Docker](docker.md) if your backup host doesn't meet these
 requirements, or if Docker is your preferred platform.
@@ -59,3 +59,4 @@ be running GitHub Enterprise Server 2.12.x or 2.13.x. You can't restore a snapsh
 [7]: https://en.wikipedia.org/wiki/Case_sensitivity
 [8]: https://help.github.com/enterprise/admin/guides/installation/upgrade-requirements/
 [9]: https://joeyh.name/code/moreutils
+[10]: https://www.gnu.org/software/gawk

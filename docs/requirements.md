@@ -6,7 +6,7 @@ storage and must have network connectivity with the GitHub Enterprise Server app
 ## Backup host requirements
 
 Backup host software requirements are modest: Linux or other modern Unix operating
-system with [awk][10], [bash][1], [git][2], [moreutils][9], [OpenSSH][3] 5.6 or newer, and [rsync][4] v2.6.4 or newer.
+system with [GNU awk][10], [bash][1], [git][2], [moreutils][9], [OpenSSH][3] 5.6 or newer, and [rsync][4] v2.6.4 or newer.
 
 We encourage the use of [Docker](docker.md) if your backup host doesn't meet these
 requirements, or if Docker is your preferred platform.

@@ -67,7 +67,7 @@ for f in "$GHE_BACKUP_CONFIG" "$GHE_BACKUP_ROOT/backup.config" \
 done
 
 if ! echo | awk '{ print strftime("%b %d %H:%M:%S"); fflush(); }' &>/dev/null; then
-  echo "Error: awk not found. Please install https://www.gnu.org/software/gawk" 1>&2
+  echo "Error: awk command failed. Please install https://www.gnu.org/software/gawk" 1>&2
   exit 1
 fi
 

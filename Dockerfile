@@ -8,6 +8,7 @@ RUN apt-get -q -y update && \
     ssh \
     git \
     moreutils \
+    gawk \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /backup-utils

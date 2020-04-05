@@ -56,17 +56,17 @@ if [ -s "$tmp_list" ]; then
     --rsync-path="sudo -u elasticsearch rsync" \
     --files-from=$tmp_list \
     "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/audit-log/" \
-    "$(ssh_host_part "$GHE_HOSTNAME"):$GHE_REMOTE_DATA_USER_DIR/elasticsearch-restore/" 1>&3
+    "$(ssh_host_part "$GHE_HOSTNAME"):$GHE_REMOTE_DATA_USER_DIR/elasticsearch-restore/audit-log/" 1>&3
 
   if $CLUSTER || [ -n "$configured" ]; then
     for index in $(cat $tmp_list | sed 's/\.gz$//g'); do
       ghe_verbose "* Restoring $index"
-      echo "export PATH=\$PATH:/usr/local/share/enterprise && sudo gzip -dc $GHE_REMOTE_DATA_USER_DIR/elasticsearch-restore/$index | ghe-es-load-json 'http://localhost:9201/$index'" |
+      echo "export PATH=\$PATH:/usr/local/share/enterprise && sudo gzip -dc $GHE_REMOTE_DATA_USER_DIR/elasticsearch-restore/audit-log/$index | ghe-es-load-json 'http://localhost:9201/$index'" |
       ghe-ssh "$GHE_HOSTNAME" -- /bin/bash 1>&3
     done
-
-    ghe-ssh "$GHE_HOSTNAME" -- "sudo sh -c 'rm $GHE_REMOTE_DATA_USER_DIR/elasticsearch-restore/*.gz'" 1>&3
   fi
+
+  ghe-ssh "$GHE_HOSTNAME" -- "sudo sh -c 'rm -rf $GHE_REMOTE_DATA_USER_DIR/elasticsearch-restore/audit-log/'" 1>&3
 
   rm $tmp_list
 fi

@@ -74,7 +74,7 @@ GHE_NUM_SNAPSHOTS=10
 #GHE_PARALLEL_MAX_JOBS=2
 
 # When jobs are running in parallel wait as needed to avoid starting new jobs
-# when the system's load average is not below the specified limit. Defaults to
+# when the system's load average is not below the specified percentage. Defaults to
 # unrestricted.
 #
 # WARNING: this feature is in beta.

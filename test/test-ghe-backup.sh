@@ -190,11 +190,7 @@ begin_test "ghe-backup with leaked SSH host key detection for current backup"
 (
   set -e
 
-  # Rename ghe-export-ssh-keys to generate a fake ssh
-  cd "$ROOTDIR/test/bin"
-  mv "ghe-export-ssh-host-keys" "ghe-export-ssh-host-keys.orig"
-  ln -s ghe-gen-fake-ssh-tar ghe-export-ssh-host-keys
-  cd -
+  export GHE_GEN_FAKE_SSH_TAR="yes"
 
   # Inject the fingerprint into the blacklist
   export FINGERPRINT_BLACKLIST="98:d8:99:d3:be:c0:55:05:db:b0:53:2f:1f:ad:b3:60"
@@ -202,8 +198,7 @@ begin_test "ghe-backup with leaked SSH host key detection for current backup"
   # Run it
   output=$(ghe-backup -v)
 
-  # Set the export ssh back
-  mv "$ROOTDIR/test/bin/ghe-export-ssh-host-keys.orig" "$ROOTDIR/test/bin/ghe-export-ssh-host-keys"
+  unset GHE_GEN_FAKE_SSH_TAR
 
   # Test the output for leaked key detection
   echo $output| grep "The current backup contains leaked SSH host keys"

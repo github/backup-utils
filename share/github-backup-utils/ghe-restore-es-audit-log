@@ -64,6 +64,8 @@ if [ -s "$tmp_list" ]; then
       echo "export PATH=\$PATH:/usr/local/share/enterprise && sudo gzip -dc $GHE_REMOTE_DATA_USER_DIR/elasticsearch-restore/audit-log/$index | ghe-es-load-json 'http://localhost:9201/$index'" |
       ghe-ssh "$GHE_HOSTNAME" -- /bin/bash 1>&3
     done
+  else
+    ghe-ssh "$GHE_HOSTNAME" -- "sudo sh -c 'mv $GHE_REMOTE_DATA_USER_DIR/elasticsearch-restore/audit-log/* $GHE_REMOTE_DATA_USER_DIR/elasticsearch-restore/'" 1>&3
   fi
 
   ghe-ssh "$GHE_HOSTNAME" -- "sudo sh -c 'rm -rf $GHE_REMOTE_DATA_USER_DIR/elasticsearch-restore/audit-log/'" 1>&3

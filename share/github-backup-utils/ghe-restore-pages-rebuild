@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+#/ Usage: ghe-restore-pages-rebuild <host>
+#/ Rebuilds the pages artifacts during a restore
+#/
+#/ Note: This script typically isn't called directly. It's invoked by the
+#/ ghe-restore command when the GHE_RESTORE_SKIP_PAGES=yes environment variable is used.
+set -e
+
+# Bring in the backup configuration
+# shellcheck source=share/github-backup-utils/ghe-backup-config
+. "$( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config"
+
+# Show usage and bail with no arguments
+[ -z "$*" ] && print_usage
+
+bm_start "$(basename $0)"
+
+# Grab host arg
+GHE_HOSTNAME="$1"
+
+# Call into appliance to rebuild pages artifacts
+ghe-ssh "$GHE_HOSTNAME" -- ghe-dpages rebuild-all
+
+bm_end "$(basename $0)"

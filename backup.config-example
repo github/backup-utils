@@ -78,4 +78,4 @@ GHE_NUM_SNAPSHOTS=10
 # unrestricted.
 #
 # WARNING: this feature is in beta.
-GHE_PARALLEL_MAX_LOAD=50
+#GHE_PARALLEL_MAX_LOAD=50

@@ -85,6 +85,9 @@ cleanup () {
 # shellcheck source=share/github-backup-utils/ghe-backup-config
 . "$( dirname "${BASH_SOURCE[0]}" )/../share/github-backup-utils/ghe-backup-config"
 
+# Check to make sure moreutils parallel is installed and working properly
+ghe_parallel_check
+
 # Grab the host arg
 GHE_HOSTNAME="${GHE_RESTORE_HOST_OPT:-$GHE_RESTORE_HOST}"
 
@@ -255,50 +258,57 @@ if [ -s "$GHE_RESTORE_SNAPSHOT_PATH/uuid" ] && ! $CLUSTER; then
 echo "Restoring MySQL database ..."
 ghe-restore-mysql "$GHE_HOSTNAME" 1>&3
 
-echo "Restoring Redis database ..."
-bm_start "ghe-import-redis"
-ghe-ssh "$GHE_HOSTNAME" -- 'ghe-import-redis' < "$GHE_RESTORE_SNAPSHOT_PATH/redis.rdb" 1>&3
-bm_end "ghe-import-redis"
+commands=("
+echo \"Restoring Redis database ...\"
+ghe-ssh \"$GHE_HOSTNAME\" -- 'ghe-import-redis' < \"$GHE_RESTORE_SNAPSHOT_PATH/redis.rdb\" 1>&3")
 
 # Unified and enhanced restore method to 2.13.0 and newer
 if $CLUSTER || [ "$(version $GHE_REMOTE_VERSION)" -ge "$(version 2.13.0)" ]; then
-  echo "Restoring Git repositories ..."
-  ghe-restore-repositories "$GHE_HOSTNAME"
+  commands+=("
+  echo \"Restoring Git repositories ...\"
+  ghe-restore-repositories \"$GHE_HOSTNAME\"")
 
-  echo "Restoring Gists ..."
-  ghe-restore-repositories-gist "$GHE_HOSTNAME"
+  commands+=("
+  echo \"Restoring Gists ...\"
+  ghe-restore-repositories-gist \"$GHE_HOSTNAME\"")
 
   if [ "$GHE_RESTORE_SKIP_PAGES" = "yes" ]; then
     echo "Skipping restore of GitHub Pages artifacts ..."
   else
     if [ -d "$GHE_RESTORE_SNAPSHOT_PATH/pages" ]; then
-        echo "Restoring GitHub Pages artifacts ..."
-        ghe-restore-pages "$GHE_HOSTNAME" 1>&3
+        commands+=("
+        echo \"Restoring GitHub Pages artifacts ...\"
+        ghe-restore-pages \"$GHE_HOSTNAME\" 1>&3")
     else
         echo "No GitHub Pages artifacts found in backup, skipping restore ..."
     fi
   fi
 else
-  echo "Restoring Git repositories and Gists ..."
-  ghe-restore-repositories-rsync "$GHE_HOSTNAME" 1>&3
+  commands+=("
+  echo \"Restoring Git repositories and Gists ...\"
+  ghe-restore-repositories-rsync \"$GHE_HOSTNAME\" 1>&3")
 
-  echo "Restoring GitHub Pages ..."
-  ghe-restore-pages-rsync "$GHE_HOSTNAME" 1>&3
+  commands+=("
+  echo \"Restoring GitHub Pages ...\"
+  ghe-restore-pages-rsync \"$GHE_HOSTNAME\" 1>&3")
 fi
 
+commands+=("
+echo \"Restoring SSH authorized keys ...\"
+ghe-ssh \"$GHE_HOSTNAME\" -- 'ghe-import-authorized-keys' < \"$GHE_RESTORE_SNAPSHOT_PATH/authorized-keys.json\" 1>&3")
 
-echo "Restoring SSH authorized keys ..."
-ghe-ssh "$GHE_HOSTNAME" -- 'ghe-import-authorized-keys' < "$GHE_RESTORE_SNAPSHOT_PATH/authorized-keys.json" 1>&3
+commands+=("
+echo \"Restoring storage data ...\"
+ghe-restore-storage \"$GHE_HOSTNAME\" 1>&3")
 
-echo "Restoring storage data ..."
-ghe-restore-storage "$GHE_HOSTNAME" 1>&3
-
-echo "Restoring custom Git hooks ..."
-ghe-restore-git-hooks "$GHE_HOSTNAME" 1>&3
+commands+=("
+echo \"Restoring custom Git hooks ...\"
+ghe-restore-git-hooks \"$GHE_HOSTNAME\" 1>&3")
 
 if ! $CLUSTER && [ -d "$GHE_RESTORE_SNAPSHOT_PATH/elasticsearch" ]; then
-  echo "Restoring Elasticsearch indices ..."
-  ghe-restore-es-rsync "$GHE_HOSTNAME" 1>&3
+  commands+=("
+  echo \"Restoring Elasticsearch indices ...\"
+  ghe-restore-es-rsync \"$GHE_HOSTNAME\" 1>&3")
 fi
 
 # Restore the audit log migration sentinel file, if it exists in the snapshot
@@ -312,12 +322,22 @@ if $CLUSTER || [ "$(version $GHE_REMOTE_VERSION)" -ge "$(version 2.12.9)" ]; the
   if [[ "$GHE_RESTORE_SKIP_AUDIT_LOGS" = "yes" ]]; then
     echo "Skipping restore of audit logs."
   else
-    echo "Restoring Audit logs ..."
-    ghe-restore-es-audit-log "$GHE_HOSTNAME" 1>&3
+    commands+=("
+    echo \"Restoring Audit logs ...\"
+    ghe-restore-es-audit-log \"$GHE_HOSTNAME\" 1>&3")
   fi
+  
+  commands+=("
+  echo \"Restoring hookshot logs ...\"
+  ghe-restore-es-hookshot \"$GHE_HOSTNAME\" 1>&3")
+fi
 
-  echo "Restoring hookshot logs ..."
-  ghe-restore-es-hookshot "$GHE_HOSTNAME" 1>&3
+if [ "$GHE_PARALLEL_ENABLED" = "yes" ]; then
+  $GHE_PARALLEL_COMMAND $GHE_PARALLEL_COMMAND_OPTIONS -- "${commands[@]}"
+else
+  for c in "${commands[@]}"; do
+    eval "$c"
+  done
 fi
 
 # Restart an already running memcached to reset the cache after restore

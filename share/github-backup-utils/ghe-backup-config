@@ -66,6 +66,32 @@ for f in "$GHE_BACKUP_CONFIG" "$GHE_BACKUP_ROOT/backup.config" \
   fi
 done
 
+ghe_parallel_check() {
+  if [ "$GHE_PARALLEL_ENABLED" != "yes" ]; then
+    return 0
+  fi
+
+  # Some machines may have both moreutils parallel and GNU parallel installed.
+  GHE_PARALLEL_COMMAND="parallel"
+  if [ -x "/usr/bin/parallel.moreutils" ]; then
+    GHE_PARALLEL_COMMAND="/usr/bin/parallel.moreutils"
+  fi
+
+  # Check that the GHE_PARALLEL_COMMAND is pointing to moreutils parallel
+  if ! $GHE_PARALLEL_COMMAND -h | grep -q "parallel \[OPTIONS\] command -- arguments"; then
+    echo "Error: moreutils not found. Please install https://joeyh.name/code/moreutils" 1>&2
+    exit 1
+  fi
+
+  if [ -n "$GHE_PARALLEL_MAX_JOBS" ]; then
+    GHE_PARALLEL_COMMAND_OPTIONS="-j $GHE_PARALLEL_MAX_JOBS"
+  fi
+
+  if [ -n "$GHE_PARALLEL_MAX_LOAD" ]; then
+    GHE_PARALLEL_COMMAND_OPTIONS+=" -l $GHE_PARALLEL_MAX_LOAD"
+  fi
+}
+
 # Check that the config file exists before we source it in.
 if ! $config_found; then
   echo "Error: No backup configuration file found. Tried:" 1>&2
@@ -80,7 +106,16 @@ fi
 # otherwise, redirect it to /dev/null. Write verbose output to fd 3.
 if [ -n "$GHE_VERBOSE" ]; then
   if [ -n "$GHE_VERBOSE_LOG" ]; then
-    exec 3>> "$GHE_VERBOSE_LOG"
+    if [ "$GHE_PARALLEL_ENABLED" != "yes" ]; then
+      exec 3>> "$GHE_VERBOSE_LOG"
+    else
+      if ! echo | awk '{ print strftime("%b %d %H:%M:%S"); fflush(); }' &>/dev/null; then
+        echo "Error: awk command failed. Please install https://www.gnu.org/software/gawk" 1>&2
+        exit 1
+      fi
+      calling_script_name="$(caller | sed 's:.*/::')"
+      exec 3> >(awk -v c=$calling_script_name '{ print strftime("%b %d %H:%M:%S"), c":", $0; fflush(); }' >> "$GHE_VERBOSE_LOG")
+    fi
   else
     exec 3>&1
   fi

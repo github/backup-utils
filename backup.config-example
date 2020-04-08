@@ -73,6 +73,13 @@ GHE_NUM_SNAPSHOTS=10
 # WARNING: this feature is in beta.
 #GHE_PARALLEL_MAX_JOBS=2
 
+# Sets the maximum number of rsync jobs to run in parallel. Defaults to the
+# configured GHE_PARALLEL_MAX_JOBS, or the number of available processing 
+# units on the machine.
+#
+# WARNING: this feature is in beta.
+# GHE_PARALLEL_RSYNC_MAX_JOBS=3
+
 # When jobs are running in parallel wait as needed to avoid starting new jobs
 # when the system's load average is not below the specified percentage. Defaults to
 # unrestricted.

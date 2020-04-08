@@ -269,14 +269,14 @@ if $CLUSTER || [ "$(version $GHE_REMOTE_VERSION)" -ge "$(version 2.13.0)" ]; the
   ghe-restore-repositories-gist "$GHE_HOSTNAME"
 
   if [ "$GHE_RESTORE_SKIP_PAGES" = "yes" ]; then
-    echo "Skipping restore of GitHub Pages artifacts. Rebuilding artifacts ..."
+    echo "Skipping restore of GitHub Pages artifacts. Enqueuing job to rebuild artifacts asynchronously ..."
     ghe-restore-pages-rebuild "$GHE_HOSTNAME" 1>&3
   else
     if [ -d "$GHE_RESTORE_SNAPSHOT_PATH/pages" ]; then
         echo "Restoring GitHub Pages artifacts ..."
         ghe-restore-pages "$GHE_HOSTNAME" 1>&3
     else
-        echo "No GitHub Pages artifacts found in backup. Rebuilding artifacts ..."
+        echo "No GitHub Pages artifacts found in backup. Enqueuing job to rebuild artifacts asynchronously ..."
         ghe-restore-pages-rebuild "$GHE_HOSTNAME" 1>&3
     fi
   fi

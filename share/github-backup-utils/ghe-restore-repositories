@@ -130,7 +130,24 @@ ghe_debug "\n$(cat $routes_list)"
 bm_end "$(basename $0) - Fetching routes"
 
 bm_start "$(basename $0) - Processing routes"
-cat $routes_list | awk -v tempdir="$tempdir" '{ for(i=2;i<=NF;i++){ print $1 > (tempdir"/"$i".rsync") }}'
+# cat $routes_list | awk -v tempdir="$tempdir" '{ for(i=2;i<=NF;i++){ print $1 > (tempdir"/"$i".rsync") }}'
+jobs=1
+if [ "$GHE_PARALLEL_ENABLED" = "yes" ]; then
+  jobs=$(nproc)
+  if [ ! -z $GHE_PARALLEL_MAX_RSYNC_JOBS ]; then
+    jobs=$GHE_PARALLEL_MAX_RSYNC_JOBS
+  fi
+fi
+
+cat $routes_list | awk -v tempdir="$tempdir" -v jobs="$jobs" '{
+  chunks = int(jobs / (NF - 1))
+  for(i=2;i<=NF;i++) {
+    line = (NR - 1) * (NF - 1) + (i - 1)
+    file = (tempdir"/"$i"."line % chunks".rsync")
+    print $1 > file
+  }
+}'
+
 cat $routes_list | awk '{ n = split($1, p, "/"); printf p[n] " /data/repositories/" $1; $1=""; print $0}' > $to_restore
 ghe_debug "\n$(find "$tempdir" -maxdepth 1 -name '*.rsync')"
 bm_end "$(basename $0) - Processing routes"
@@ -146,15 +163,20 @@ bm_start "$(basename $0) - Restoring repository networks"
 rsync_commands=()
 for file_list in $tempdir/*.rsync; do
   if $CLUSTER; then
-    server=$(basename $file_list .rsync)
+    filename=$(basename $file_list .rsync)
+    chunk="${filename##*.}"
+    server="${filename%.*}"
   else
+    # TODO: double check for single node configuration
     server=$host
   fi
 
   rsync_commands+=("
     if [ -n \"$GHE_VERBOSE\" ]; then
-      echo \"* Transferring repository networks to $server ...\" 1>&3
+      echo \"* Transferring repository networks to $server (process #$chunk) ...\" 1>&3
     fi
+
+    echo \"* Transferring repository networks to $server (process #$chunk) ...\"
 
     ghe-rsync -avrR --delete \
       -e \"ssh -q $opts -p $port $ssh_config_file_opt -l $user\" \

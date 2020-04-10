@@ -53,6 +53,15 @@ GHE_NUM_SNAPSHOTS=10
 # WARNING: do not enable this, only useful for debugging/development
 #GHE_BACKUP_FSCK=no
 
+# If set to 'yes', ghe-backup will omit the backup of Pages artifacts.
+#
+#GHE_BACKUP_SKIP_PAGES=no
+
+# If set to 'yes', ghe-restore will omit the restore of Pages artifacts
+# contained in the backup.
+#
+#GHE_RESTORE_SKIP_PAGES=no
+
 # If set to 'yes', ghe-backup jobs will run in parallel. Defaults to 'no'.
 #
 # WARNING: this feature is in beta.

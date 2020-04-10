@@ -87,11 +87,11 @@ ghe_parallel_check() {
     GHE_PARALLEL_COMMAND_OPTIONS="-j $GHE_PARALLEL_MAX_JOBS"
     # Default to the number of max rsync jobs to the same as GHE_PARALLEL_MAX_JOBS, if not set.
     # This is only applicable to ghe-restore-repositories currently.
-    : ${GHE_PARALLEL_MAX_RSYNC_JOBS:="$GHE_PARALLEL_MAX_JOBS"}
+    : ${GHE_PARALLEL_RSYNC_MAX_JOBS:="$GHE_PARALLEL_MAX_JOBS"}
   fi
 
-  if [ -n "$GHE_PARALLEL_MAX_RSYNC_JOBS" ]; then
-    GHE_PARALLEL_RSYNC_COMMAND_OPTIONS="-j $GHE_PARALLEL_MAX_RSYNC_JOBS"
+  if [ -n "$GHE_PARALLEL_RSYNC_MAX_JOBS" ]; then
+    GHE_PARALLEL_RSYNC_COMMAND_OPTIONS="-j $GHE_PARALLEL_RSYNC_MAX_JOBS"
   fi
 
   if [ -n "$GHE_PARALLEL_MAX_LOAD" ]; then

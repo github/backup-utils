@@ -192,7 +192,6 @@ fi
 bm_start "$(basename $0) - Updating repository info data"
 if [ -d $GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/repositories/info ]; then
   ghe_verbose "* Transferring repository info data"
-
   for hostname in $hostnames; do
     if ! ghe-rsync -av --delete \
       -e "ssh -q $opts -p $port $ssh_config_file_opt -l $user" \
@@ -202,7 +201,6 @@ if [ -d $GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/repositories/info ]; then
       echo "Error restoring /data/repositories/info to $hostname" 1>&2
     fi
   done
-
 else
   ghe_verbose "* Removing repository info data"
   if $CLUSTER; then

@@ -152,10 +152,7 @@ for file_list in $tempdir/*.rsync; do
   fi
 
   rsync_commands+=("
-    if [ -n \"$GHE_VERBOSE\" ]; then
-      echo \"* Transferring repository networks to $server ($file_list) ...\" 1>&3
-      cat $file_list
-    fi
+    echo \"* Transferring repository networks to $server ($file_list) ...\" 1>&3
 
     ghe-rsync -avrR --delete \
       -e \"ssh -q $opts -p $port $ssh_config_file_opt -l $user\" \

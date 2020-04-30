@@ -106,17 +106,17 @@ bm_end "$(basename $0) - Building gist list"
 #
 bm_start "$(basename $0) - Transferring gist list"
 cat $tmp_list | ghe-ssh "$GHE_HOSTNAME" -- sponge $remote_tmp_list
-ghe_debug "\n$(cat $tmp_list)"
+cat $tmp_list | ghe_debug
 bm_end "$(basename $0) - Transferring gist list"
 
 bm_start "$(basename $0) - Generating routes"
 echo "cat $remote_tmp_list | github-env ./bin/gist-cluster-restore-routes > $remote_routes_list" | ghe-ssh "$GHE_HOSTNAME" -- /bin/bash
-ghe_debug "\n$(ghe-ssh "$GHE_HOSTNAME" -- cat $remote_routes_list)"
+ghe-ssh "$GHE_HOSTNAME" -- cat $remote_routes_list | ghe_debug
 bm_end "$(basename $0) - Generating routes"
 
 bm_start "$(basename $0) - Transferring routes"
 ghe-ssh "$GHE_HOSTNAME" -- cat $remote_routes_list > $routes_list
-ghe_debug "\n$(cat $routes_list)"
+cat $routes_list | ghe_debug
 bm_end "$(basename $0) - Transferring routes"
 
 bm_start "$(basename $0) - Processing routes"

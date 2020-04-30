@@ -163,3 +163,24 @@ begin_test "ghe-backup-config verbose log redirects to file under parallel"
   exit 1
 )
 end_test
+
+begin_test "ghe-backup-config ghe_debug accepts stdin as well as argument"
+(
+  set -e
+
+  export GHE_DEBUG=1
+  export GHE_VERBOSE=1
+  export GHE_VERBOSE_LOG="$TRASHDIR/verbose.log"
+  . "share/github-backup-utils/ghe-backup-config"
+
+  ghe_debug "debug arg"
+  grep -q "debug arg" ${GHE_VERBOSE_LOG}
+
+  echo "debug stdin" | ghe_debug
+  grep -q "debug stdin" ${GHE_VERBOSE_LOG}
+
+  unset GHE_DEBUG
+  unset GHE_VERBOSE
+  unset GHE_VERBOSE_LOG
+)
+end_test

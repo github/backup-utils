@@ -41,8 +41,12 @@ done
 # shellcheck source=share/github-backup-utils/ghe-backup-config
 . "$( dirname "${BASH_SOURCE[0]}" )/../share/github-backup-utils/ghe-backup-config"
 
+# Check to make sure moreutils parallel is installed and working properly
+ghe_parallel_check
+
 # Used to record failed backup steps
 failures=
+failures_file="$(mktemp -t backup-utils-backup-failures-XXXXXX)"
 
 # CPU and IO throttling to keep backups from thrashing around.
 export GHE_NICE=${GHE_NICE:-"nice -n 19"}
@@ -99,6 +103,8 @@ cleanup () {
       unlink ../in-progress
     fi
   fi
+
+  rm -rf "$failures_file"
 
   # Cleanup SSH multiplexing
   ghe-ssh --clean
@@ -177,30 +183,50 @@ bm_end "ghe-export-ssh-host-keys"
 echo "Backing up MySQL database ..."
 ghe-backup-mysql || failures="$failures mysql"
 
-echo "Backing up Redis database ..."
-ghe-backup-redis > redis.rdb || failures="$failures redis"
+commands=("
+echo \"Backing up Redis database ...\"
+ghe-backup-redis > redis.rdb || printf %s \"redis \" >> \"$failures_file\"")
 
-echo "Backing up audit log ..."
-ghe-backup-audit-log || failures="$failures audit-log"
+commands+=("
+echo \"Backing up audit log ...\"
+ghe-backup-es-audit-log || printf %s \"audit-log \" >> \"$failures_file\"")
 
-echo "Backing up hookshot logs ..."
-ghe-backup-es-hookshot || failures="$failures hookshot"
+commands+=("
+echo \"Backing up hookshot logs ...\"
+ghe-backup-es-hookshot || printf %s \"hookshot \" >> \"$failures_file\"")
 
-echo "Backing up Git repositories ..."
-ghe-backup-repositories || failures="$failures repositories"
+commands+=("
+echo \"Backing up Git repositories ...\"
+ghe-backup-repositories || printf %s \"repositories \" >> \"$failures_file\"")
 
-echo "Backing up GitHub Pages ..."
-ghe-backup-pages || failures="$failures pages"
+commands+=("
+echo \"Backing up GitHub Pages artifacts ...\"
+ghe-backup-pages || printf %s \"pages \" >> \"$failures_file\"")
 
-echo "Backing up storage data ..."
-ghe-backup-storage || failures="$failures storage"
+commands+=("
+echo \"Backing up storage data ...\"
+ghe-backup-storage || printf %s \"storage \" >> \"$failures_file\"")
 
-echo "Backing up custom Git hooks ..."
-ghe-backup-git-hooks || failures="$failures git-hooks"
+commands+=("
+echo \"Backing up custom Git hooks ...\"
+ghe-backup-git-hooks || printf %s \"git-hooks \" >> \"$failures_file\"")
 
 if [ "$GHE_BACKUP_STRATEGY" = "rsync" ]; then
-  echo "Backing up Elasticsearch indices ..."
-  ghe-backup-es-rsync || failures="$failures elasticsearch"
+  commands+=("
+  echo \"Backing up Elasticsearch indices ...\"
+  ghe-backup-es-rsync || printf %s \"elasticsearch \" >> \"$failures_file\"")
+fi
+
+if [ "$GHE_PARALLEL_ENABLED" = "yes" ]; then
+  $GHE_PARALLEL_COMMAND $GHE_PARALLEL_COMMAND_OPTIONS -- "${commands[@]}"
+else
+  for c in "${commands[@]}"; do
+    eval "$c"
+  done
+fi
+
+if [ -s "$failures_file" ]; then
+  failures="$failures $(cat "$failures_file")"
 fi
 
 # git fsck repositories after the backup

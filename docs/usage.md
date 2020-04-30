@@ -10,7 +10,13 @@ After the initial backup, use the following commands:
 
 These commands are run on the host you [installed][1] Backup Utilities on.
 
-### Example backup and restore usage
+## Configuring backup and restore behavior
+
+You can supply your own configuration file or use the example configuration file as a template where you can set up your environment for backing up and restoring.
+
+An example configuration file with documentation on possible settings can found in [backup.config-example](../backup.config-example).
+
+## Example backup and restore usage
 
 The following assumes that `GHE_HOSTNAME` is set to "github.example.com" in
 `backup.config`.

@@ -4,7 +4,7 @@
 #/
 #/ Note: This script typically isn't called directly. It's invoked by the
 #/ ghe-restore command.
-set -e
+set -ex
 
 # Bring in the backup configuration
 # shellcheck source=share/github-backup-utils/ghe-backup-config
@@ -98,9 +98,13 @@ for path in $network_paths; do
   # i.e. /data/repositories/a/nw/a5/bf/c9/37 network ID would be 37
   ghe_verbose "* Adding network_path $path to the list of networks to send"
   echo $path
+  ghe_verbose "* 1"
 done > $tmp_list
+ghe_verbose "* 2"
 IFS=$OLDIFS
+ghe_verbose "* 3"
 bm_end "$(basename $0) - Building network list"
+ghe_verbose "* 4"
 
 # The server returns a list of routes:
 #
@@ -115,35 +119,53 @@ bm_end "$(basename $0) - Building network list"
 # more performant than performing over an SSH pipe.
 #
 bm_start "$(basename $0) - Transferring network list"
+ghe_verbose "* 5"
 cat $tmp_list | ghe-ssh "$GHE_HOSTNAME" -- sponge $remote_tmp_list
+ghe_verbose "* 6"
 cat $tmp_list | ghe_debug
+ghe_verbose "* 7"
 bm_end "$(basename $0) - Transferring network list"
+ghe_verbose "* 8"
 
 bm_start "$(basename $0) - Generating routes"
+ghe_verbose "* 9"
 echo "cat $remote_tmp_list | github-env ./bin/dgit-cluster-restore-routes > $remote_routes_list" | ghe-ssh "$GHE_HOSTNAME" -- /bin/bash
+ghe_verbose "* 10"
 ghe-ssh "$GHE_HOSTNAME" -- cat $remote_routes_list | ghe_debug
+ghe_verbose "* 11"
 bm_end "$(basename $0) - Generating routes"
-
+ghe_verbose "* 12"
 bm_start "$(basename $0) - Fetching routes"
+ghe_verbose "* 13"
 ghe-ssh "$GHE_HOSTNAME" -- cat $remote_routes_list > $routes_list
+ghe_verbose "* 14"
 cat $routes_list | ghe_debug
+ghe_verbose "* 15"
 bm_end "$(basename $0) - Fetching routes"
+ghe_verbose "* 16"
 
 bm_start "$(basename $0) - Processing routes"
+ghe_verbose "* 17"
 cat $routes_list | awk -v tempdir="$tempdir" '{ for(i=2;i<=NF;i++){ print $1 > (tempdir"/"$i".rsync") }}'
+ghe_verbose "* 18"
 cat $routes_list | awk '{ n = split($1, p, "/"); printf p[n] " /data/repositories/" $1; $1=""; print $0}' > $to_restore
+ghe_verbose "* 19"
 ghe_debug "\n$(find "$tempdir" -maxdepth 1 -name '*.rsync')"
+ghe_verbose "* 20"
 bm_end "$(basename $0) - Processing routes"
-
+ghe_verbose "* 21"
 if [ -z "$(find "$tempdir" -maxdepth 1 -name '*.rsync')" ]; then
+  ghe_verbose "* 22"
   echo "Warning: no routes found, skipping repositories restore ..."
   exit 0
 fi
-
+ghe_verbose "* 23"
 # rsync all the repository networks to the git server where they belong.
 # One rsync invocation per server available.
 bm_start "$(basename $0) - Restoring repository networks"
+ghe_verbose "* 24"
 rsync_commands=()
+ghe_verbose "* 25"
 for file_list in $tempdir/*.rsync; do
   if $CLUSTER; then
     server=$(basename $file_list .rsync)

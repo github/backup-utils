@@ -129,6 +129,7 @@ ghe_verbose "* 8"
 
 bm_start "$(basename $0) - Generating routes"
 ghe_verbose "* 9"
+cat "$remote_tmp_list"
 echo "cat $remote_tmp_list | github-env ./bin/dgit-cluster-restore-routes > $remote_routes_list" | ghe-ssh "$GHE_HOSTNAME" -- /bin/bash
 ghe_verbose "* 10"
 ghe-ssh "$GHE_HOSTNAME" -- cat $remote_routes_list | ghe_debug

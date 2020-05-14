@@ -181,9 +181,9 @@ failures="$failures ssh-host-keys"
 bm_end "ghe-export-ssh-host-keys"
 
 if is_binary_backup_feature_on; then
-  echo "Backing up MySQL database using binary backup ..."
+  echo "Backing up MySQL database using binary backup strategy ..."
 else
-  echo "Backing up MySQL database using logical backup ..."
+  echo "Backing up MySQL database using logical backup strategy ..."
 fi
 ghe-backup-mysql || failures="$failures mysql"
 

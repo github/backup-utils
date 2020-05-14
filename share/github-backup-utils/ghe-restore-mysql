@@ -28,18 +28,6 @@ ghe_remote_version_required "$GHE_HOSTNAME"
 # The directory holding the snapshot to restore
 snapshot_dir="$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT"
 
-if is_binary_backup_feature_on; then
-  echo "Appliance is configured for binary backups."
-else
-  echo "Appliance is configured for logical backups."
-fi
-
-if is_binary_backup $snapshot_dir; then
-  echo "Backup being restored is a binary backup."
-else
-  echo "Backup being restored is a logical backup."
-fi
-
 ssh_config_file_opt=
 if is_binary_backup_feature_on; then
   # Feature "mysql.backup.binary" is on, which means new backup scripts are available

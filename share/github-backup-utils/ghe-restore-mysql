@@ -28,18 +28,13 @@ ghe_remote_version_required "$GHE_HOSTNAME"
 # The directory holding the snapshot to restore
 snapshot_dir="$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT"
 
-# Check if the backup is binary by looking up the sentinel file
-is_binary_backup(){
-  test -f $snapshot_dir/mysql-binary-backup-sentinel
-}
-
 if is_binary_backup_feature_on; then
   echo "Appliance is configured for binary backups."
 else
   echo "Appliance is configured for logical backups."
 fi
 
-if is_binary_backup; then
+if is_binary_backup $snapshot_dir; then
   echo "Backup being restored is a binary backup."
 else
   echo "Backup being restored is a logical backup."
@@ -48,7 +43,7 @@ fi
 ssh_config_file_opt=
 if is_binary_backup_feature_on; then
   # Feature "mysql.backup.binary" is on, which means new backup scripts are available
-  if is_binary_backup; then
+  if is_binary_backup $snapshot_dir; then
     if $CLUSTER ; then
       ghe_mysql_master=$(ghe-ssh "$GHE_HOSTNAME" ghe-config "cluster.mysql-master")
       if [ -z $ghe_mysql_master ]; then
@@ -81,7 +76,7 @@ if is_binary_backup_feature_on; then
   fi
 else
   # We do not allow to restore binary backup without "mysql.backup.binary" set
-  if is_binary_backup; then
+  if is_binary_backup $snapshot_dir; then
     echo "To restore from a binary backup, you have to set ghe-config \"mysql.backup.binary\" to true" >&2
     exit 2
   else

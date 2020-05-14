@@ -385,3 +385,8 @@ fix_paths_for_ghe_version() {
 is_binary_backup_feature_on(){
   ghe-ssh "$GHE_HOSTNAME" ghe-config --true "mysql.backup.binary"
 }
+
+# Check if the backup is binary by looking up the sentinel file
+is_binary_backup(){
+  test -f "$1/mysql-binary-backup-sentinel"
+}

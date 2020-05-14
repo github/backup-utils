@@ -381,3 +381,7 @@ fix_paths_for_ghe_version() {
   # GHES), then don't modify lines with "gist" in them.
   sed $GIST_FILTER -e 's/\/$//; s/^[^\/]*$/./; s/\/[^\/]*$//'
 }
+
+is_binary_backup_feature_on(){
+  ghe-ssh "$GHE_HOSTNAME" ghe-config --true "mysql.backup.binary"
+}

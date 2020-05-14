@@ -15,11 +15,6 @@ bm_start "$(basename $0)"
 # Perform a host-check and establish the remote version in GHE_REMOTE_VERSION.
 ghe_remote_version_required "$GHE_HOSTNAME"
 
-# if we are going to take a binary backup
-is_binary_backup_feature_on(){
-  ghe-ssh "$GHE_HOSTNAME" ghe-config --true "mysql.backup.binary"
-}
-
 export_command="ghe-export-mysql"
 if ! is_binary_backup_feature_on; then
   # binary backup is already compressed

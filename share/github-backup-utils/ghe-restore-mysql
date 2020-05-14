@@ -33,6 +33,18 @@ is_binary_backup(){
   test -f $snapshot_dir/mysql-binary-backup-sentinel
 }
 
+if is_binary_backup_feature_on; then
+  echo "Appliance is configured for binary backups."
+else
+  echo "Appliance is configured for logical backups."
+fi
+
+if is_binary_backup; then
+  echo "Backup being restored is a binary backup."
+else
+  echo "Backup being restored is a logical backup."
+fi
+
 ssh_config_file_opt=
 if is_binary_backup_feature_on; then
   # Feature "mysql.backup.binary" is on, which means new backup scripts are available

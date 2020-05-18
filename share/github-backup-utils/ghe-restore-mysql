@@ -28,20 +28,10 @@ ghe_remote_version_required "$GHE_HOSTNAME"
 # The directory holding the snapshot to restore
 snapshot_dir="$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT"
 
-# Check if the backup is binary by looking up the sentinel file 
-is_binary_backup(){
-  test -f $snapshot_dir/mysql-binary-backup-sentinel 
-}
-
-# if mysql.backup.binary feature flag is on
-is_binary_backup_feature_on(){
-  ghe-ssh "$GHE_HOSTNAME" ghe-config --true "mysql.backup.binary"
-}
-
 ssh_config_file_opt=
 if is_binary_backup_feature_on; then
   # Feature "mysql.backup.binary" is on, which means new backup scripts are available
-  if is_binary_backup; then
+  if is_binary_backup "$snapshot_dir"; then
     if $CLUSTER ; then
       ghe_mysql_master=$(ghe-ssh "$GHE_HOSTNAME" ghe-config "cluster.mysql-master")
       if [ -z $ghe_mysql_master ]; then
@@ -59,7 +49,7 @@ if is_binary_backup_feature_on; then
       ghe_mysql_master=$GHE_HOSTNAME
     fi
 
-    # Check if the decompress needed by looking into the sentinel file 
+    # Check if the decompress needed by looking into the sentinel file
     # In 2.19.5 we compress the binary backup twice
     if [ "$(cat $snapshot_dir/mysql-binary-backup-sentinel)" = "NO_ADDITIONAL_COMPRESSION" ]; then
       IMPORT_MYSQL=ghe-import-mysql-xtrabackup
@@ -73,9 +63,9 @@ if is_binary_backup_feature_on; then
     GHE_RESTORE_HOST=$GHE_HOSTNAME
   fi
 else
-  # We do not allow to restore binary backup without "mysql.backup.binary" set 
-  if is_binary_backup; then
-    echo "To restore from a binary backup, you have to set ghe-config \"mysql.backup.binary\" to true" >&2  
+  # We do not allow to restore binary backup without "mysql.backup.binary" set
+  if is_binary_backup "$snapshot_dir"; then
+    echo "To restore from a binary backup, you have to set ghe-config \"mysql.backup.binary\" to true" >&2
     exit 2
   else
     # legacy mode

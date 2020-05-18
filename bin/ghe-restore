@@ -274,28 +274,17 @@ commands=("
 echo \"Restoring Redis database ...\"
 ghe-ssh \"$GHE_HOSTNAME\" -- 'ghe-import-redis' < \"$GHE_RESTORE_SNAPSHOT_PATH/redis.rdb\" 1>&3")
 
-# Unified and enhanced restore method to 2.13.0 and newer
-if $CLUSTER || [ "$(version $GHE_REMOTE_VERSION)" -ge "$(version 2.13.0)" ]; then
-  commands+=("
-  echo \"Restoring Git repositories ...\"
-  ghe-restore-repositories \"$GHE_HOSTNAME\"")
+commands+=("
+echo \"Restoring Git repositories ...\"
+ghe-restore-repositories \"$GHE_HOSTNAME\"")
 
-  commands+=("
-  echo \"Restoring Gists ...\"
-  ghe-restore-repositories-gist \"$GHE_HOSTNAME\"")
+commands+=("
+echo \"Restoring Gists ...\"
+ghe-restore-repositories-gist \"$GHE_HOSTNAME\"")
 
-  commands+=("
-  echo \"Restoring GitHub Pages artifacts ...\"
-  ghe-restore-pages \"$GHE_HOSTNAME\" 1>&3")
-else
-  commands+=("
-  echo \"Restoring Git repositories and Gists ...\"
-  ghe-restore-repositories-rsync \"$GHE_HOSTNAME\" 1>&3")
-
-  commands+=("
-  echo \"Restoring GitHub Pages ...\"
-  ghe-restore-pages-rsync \"$GHE_HOSTNAME\" 1>&3")
-fi
+commands+=("
+echo \"Restoring GitHub Pages artifacts ...\"
+ghe-restore-pages \"$GHE_HOSTNAME\" 1>&3")
 
 commands+=("
 echo \"Restoring SSH authorized keys ...\"

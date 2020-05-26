@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+#/ Usage: ghe-restore-pages-rsync <host>
+#/ Restore an rsync snapshot of all Pages data to a GitHub instance.
+#/
+#/ Note: This script typically isn't called directly. It's invoked by the
+#/ ghe-restore command when the rsync strategy is used.
+set -e
+
+# Bring in the backup configuration
+# shellcheck source=share/github-backup-utils/ghe-backup-config
+. "$( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config"
+
+# Show usage and bail with no arguments
+[ -z "$*" ] && print_usage
+
+bm_start "$(basename $0)"
+
+# Restore all pages data via rsync
+ghe-restore-userdata pages "$1"
+
+bm_end "$(basename $0)"

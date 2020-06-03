@@ -18,8 +18,9 @@ ghe_remote_version_required "$GHE_HOSTNAME"
 if is_service_external 'mysql'; then
   # Trigger client mysql backup hook
   $EXTERNAL_DATABASE_BACKUP_SCRIPT
-  # Exit early. If the script returns a non-zero exit code, it will be caught by
-  # `set -e`
+  # Finsh the benchmark and exit early. If the script returns a non-zero 
+  # exit code, it will be caught by`set -e`
+  bm_end "$(basename $0)"
   exit 0
 fi
 

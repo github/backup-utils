@@ -16,7 +16,6 @@ bm_start "$(basename $0)"
 ghe_remote_version_required "$GHE_HOSTNAME"
 
 if is_service_external 'mysql'; then
-  # Trigger client mysql backup hook
   echo "Backing up external MySQL database using customer-provided script..."
   if [ -n "$EXTERNAL_DATABASE_BACKUP_SCRIPT" ]; then
     $EXTERNAL_DATABASE_BACKUP_SCRIPT

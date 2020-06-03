@@ -390,3 +390,15 @@ is_binary_backup_feature_on(){
 is_binary_backup(){
   test -f "$1/mysql-binary-backup-sentinel"
 }
+
+is_service_external(){
+  service=$1
+  case $service in
+    "mysql")
+      ghe-ssh "$GHE_HOSTNAME" ghe-config --true "mysql.external.enabled"
+      ;;
+    *)
+      return 1
+      ;;
+    esac
+}

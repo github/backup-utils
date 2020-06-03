@@ -15,6 +15,20 @@ bm_start "$(basename $0)"
 # Perform a host-check and establish the remote version in GHE_REMOTE_VERSION.
 ghe_remote_version_required "$GHE_HOSTNAME"
 
+if is_service_external 'mysql'; then
+  # Trigger client mysql backup hook
+  $EXTERNAL_DATABASE_BACKUP_SCRIPT
+  # Exit early. If the script returns a non-zero exit code, it will be caught by
+  # `set -e`
+  exit 0
+fi
+
+if is_binary_backup_feature_on; then
+  echo "Backing up MySQL database using binary backup strategy ..."
+else
+  echo "Backing up MySQL database using logical backup strategy ..."
+fi
+
 export_command="ghe-export-mysql"
 if ! is_binary_backup_feature_on; then
   # binary backup is already compressed

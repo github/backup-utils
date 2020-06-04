@@ -255,16 +255,21 @@ if [ -s "$GHE_RESTORE_SNAPSHOT_PATH/uuid" ] && ! $CLUSTER; then
   ghe-ssh "$GHE_HOSTNAME" -- "sudo rm -rf /data/user/consul/raft"
   fi
 
-if is_binary_backup_feature_on; then
-  appliance_strategy="binary"
-else
-  appliance_strategy="logical"
-fi
+if is_service_external 'mysql'; then
+   appliance_strategy="external"
+   backup_snapshot_strategy="external"
+else 
+  if is_binary_backup_feature_on; then
+    appliance_strategy="binary"
+  else
+    appliance_strategy="logical"
+  fi
 
-if is_binary_backup "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT"; then
-  backup_snapshot_strategy="binary"
-else
-  backup_snapshot_strategy="logical"
+  if is_binary_backup "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT"; then
+    backup_snapshot_strategy="binary"
+  else
+    backup_snapshot_strategy="logical"
+  fi
 fi
 
 echo "Restoring MySQL database from ${backup_snapshot_strategy} backup snapshot on an appliance configured for ${appliance_strategy} backups ..."

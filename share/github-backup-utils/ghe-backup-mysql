@@ -18,7 +18,7 @@ ghe_remote_version_required "$GHE_HOSTNAME"
 if is_service_external 'mysql'; then
   echo "Backing up external MySQL database using customer-provided script..."
   if [ -n "$EXTERNAL_DATABASE_BACKUP_SCRIPT" ]; then
-    $EXTERNAL_DATABASE_BACKUP_SCRIPT
+    $EXTERNAL_DATABASE_BACKUP_SCRIPT > "$GHE_SNAPSHOT_DIR/mysql.sql.gz"
   else
     echo "Error: EXTERNAL_DATABASE_BACKUP_SCRIPT is not configured. Please configure in backup.config."
     exit 1

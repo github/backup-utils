@@ -41,6 +41,13 @@ if [ -f "$GHE_RESTORE_SNAPSHOT_PATH/manage-password" ]; then
   ghe-ssh "$GHE_HOSTNAME" -- /bin/bash
 fi
 
+# Restore external MySQL password if running external MySQL DB.
+if [ -f "$GHE_RESTORE_SNAPSHOT_PATH/external-mysql-password"]; then
+  echo "Restoring external MySQL password ..."
+  echo "ghe-config secrets.external.mysql '$(cat "$GHE_RESTORE_SNAPSHOT_PATH/external-mysql-password")'" |
+  ghe-ssh "$GHE_HOSTNAME" -- /bin/bash
+fi
+
 # Restore SAML keys if present.
 if [ -f "$GHE_RESTORE_SNAPSHOT_PATH/saml-keys.tar" ]; then
   echo "Restoring SAML keys ..."

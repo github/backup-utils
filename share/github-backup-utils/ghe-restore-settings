@@ -28,6 +28,13 @@ GHE_RESTORE_SNAPSHOT_PATH="$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT"
 echo "Restoring license ..."
 ghe-ssh "$GHE_HOSTNAME" -- 'ghe-import-license' < "$GHE_RESTORE_SNAPSHOT_PATH/enterprise.ghl" 1>&3
 
+# Restore external MySQL password if running external MySQL DB.
+if [ -f "$GHE_RESTORE_SNAPSHOT_PATH/external-mysql-password" ]; then
+  echo "Restoring external MySQL password ..."
+  echo "ghe-config secrets.external.mysql '$(cat "$GHE_RESTORE_SNAPSHOT_PATH/external-mysql-password")'" |
+  ghe-ssh "$GHE_HOSTNAME" -- /bin/bash
+fi
+
 echo "Restoring settings ..."
 # work around issue importing settings with bad storage mode values
 ( cat "$GHE_RESTORE_SNAPSHOT_PATH/settings.json" && echo ) |
@@ -38,13 +45,6 @@ echo "Restoring settings ..."
 if [ -f "$GHE_RESTORE_SNAPSHOT_PATH/manage-password" ]; then
   echo "Restoring management console password ..."
   echo "ghe-config secrets.manage '$(cat "$GHE_RESTORE_SNAPSHOT_PATH/manage-password")'" |
-  ghe-ssh "$GHE_HOSTNAME" -- /bin/bash
-fi
-
-# Restore external MySQL password if running external MySQL DB.
-if [ -f "$GHE_RESTORE_SNAPSHOT_PATH/external-mysql-password" ]; then
-  echo "Restoring external MySQL password ..."
-  echo "ghe-config secrets.external.mysql '$(cat "$GHE_RESTORE_SNAPSHOT_PATH/external-mysql-password")'" |
   ghe-ssh "$GHE_HOSTNAME" -- /bin/bash
 fi
 

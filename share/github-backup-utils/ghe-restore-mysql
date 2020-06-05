@@ -29,7 +29,7 @@ ghe_remote_version_required "$GHE_HOSTNAME"
 snapshot_dir="$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT"
 
 # When customer uses external database, we rely on customer to implement the restore process
-if is_service_external 'mysql'; then
+if is_service_external 'mysql' "$snapshot_dir/settings.json"; then
   echo "Restore external MySQL database using customer-provided script ..."
   cat $snapshot_dir/mysql.sql.gz | $EXTERNAL_DATABASE_RESTORE_SCRIPT
 else

@@ -393,9 +393,15 @@ is_binary_backup(){
 
 is_service_external(){
   service=$1
+  config_file=$2
   case $service in
     "mysql")
-      ghe-ssh "$GHE_HOSTNAME" ghe-config --true "mysql.external.enabled"
+      if [ -n "$config_file" ]; then
+        enabled=$(GIT_CONFIG="$config_file" git config mysql.external.enabled)
+        [ "$enabled" == "true" ];
+      else
+        ghe-ssh "$GHE_HOSTNAME" ghe-config --true "mysql.external.enabled"
+      fi
       ;;
     *)
       return 1

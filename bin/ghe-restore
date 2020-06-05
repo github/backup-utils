@@ -255,7 +255,7 @@ if [ -s "$GHE_RESTORE_SNAPSHOT_PATH/uuid" ] && ! $CLUSTER; then
   ghe-ssh "$GHE_HOSTNAME" -- "sudo rm -rf /data/user/consul/raft"
   fi
 
-if is_service_external 'mysql'; then
+if is_service_external 'mysql' "$GHE_RESTORE_SNAPSHOT_PATH/settings.json"; then
    appliance_strategy="external"
    backup_snapshot_strategy="external"
 else 

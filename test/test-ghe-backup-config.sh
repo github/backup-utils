@@ -184,3 +184,44 @@ begin_test "ghe-backup-config ghe_debug accepts stdin as well as argument"
   unset GHE_VERBOSE_LOG
 )
 end_test
+
+begin_test "ghe-backup-config is_service_external enabled external mysql"
+(
+  set -e
+
+  tmpfile=$(mktemp /tmp/abc-script.XXXXXX)
+  echo "
+[mysql \"external\"]
+  enabled = true
+" > $tmpfile
+  is_service_external 'mysql' $tmpfile
+)
+end_test
+
+begin_test "ghe-backup-config is_service_external disabled external mysql"
+(
+  set -e
+
+  tmpfile=$(mktemp /tmp/abc-script.XXXXXX)
+  echo "
+[mysql \"external\"]
+  enabled = false
+" > $tmpfile
+
+  ! is_service_external 'mysql' $tmpfile
+)
+end_test
+
+begin_test "ghe-backup-config is_service_external unknown service"
+(
+  set -e
+
+  tmpfile=$(mktemp /tmp/abc-script.XXXXXX)
+  echo "
+[mysql \"external\"]
+  enabled = false
+" > $tmpfile
+
+  ! is_service_external 'hubot' $tmpfile
+)
+end_test

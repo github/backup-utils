@@ -152,6 +152,7 @@ fi
 if [ ${GHE_DATA_DIR:0:1} != "/" ]; then
   GHE_DATA_DIR="$( cd "$GHE_BACKUP_ROOT" && readlink -m "$GHE_DATA_DIR" 2> /dev/null || echo "$GHE_BACKUP_ROOT/$GHE_DATA_DIR" )"
 fi
+export GHE_DATA_DIR
 
 # Assign the Release File path if it hasn't been provided (eg: by test suite)
 : ${GHE_RELEASE_FILE:="/etc/github/enterprise-release"}

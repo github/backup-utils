@@ -13,7 +13,58 @@ matrix:
         - brew install pigz
       script: make test
     - os: linux
-      dist: trusty
+      dist: trusty #14.04
+      sudo: required
+      install:
+        - wget "https://storage.googleapis.com/shellcheck/shellcheck-v0.4.7.linux.x86_64.tar.xz"
+        - tar --xz -xvf "shellcheck-v0.4.7.linux.x86_64.tar.xz"
+      addons:
+        apt:
+          packages:
+            - devscripts
+            - debhelper
+            - moreutils
+            - fakeroot
+            - jq
+            - coreutils
+            - pigz
+      script: debuild -uc -us
+    - os: linux
+      dist: precise #12.04
+      sudo: required
+      install:
+        - wget "https://storage.googleapis.com/shellcheck/shellcheck-v0.4.7.linux.x86_64.tar.xz"
+        - tar --xz -xvf "shellcheck-v0.4.7.linux.x86_64.tar.xz"
+      addons:
+        apt:
+          packages:
+            - devscripts
+            - debhelper
+            - moreutils
+            - fakeroot
+            - jq
+            - coreutils
+            - pigz
+      script: debuild -uc -us
+    - os: linux
+      dist: xenial #16.04
+      sudo: required
+      install:
+        - wget "https://storage.googleapis.com/shellcheck/shellcheck-v0.4.7.linux.x86_64.tar.xz"
+        - tar --xz -xvf "shellcheck-v0.4.7.linux.x86_64.tar.xz"
+      addons:
+        apt:
+          packages:
+            - devscripts
+            - debhelper
+            - moreutils
+            - fakeroot
+            - jq
+            - coreutils
+            - pigz
+      script: debuild -uc -us
+    - os: linux
+      dist: bionic #18.04
       sudo: required
       install:
         - wget "https://storage.googleapis.com/shellcheck/shellcheck-v0.4.7.linux.x86_64.tar.xz"

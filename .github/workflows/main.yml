@@ -27,12 +27,13 @@ jobs:
       if: matrix.os == 'macos-latest'
     - name: Get Sources
       uses: actions/checkout@v2
-    - name: Test
+    - name: Test (macOS)
       run: |
         export PATH="$PATH:/snap/bin"
         make test
       shell: bash
-    - name: Build
+      if: matrix.os == 'macos-latest'
+    - name: Build (Linux)
       run: debuild -uc -us
       if: matrix.os != 'macos-latest'     
  

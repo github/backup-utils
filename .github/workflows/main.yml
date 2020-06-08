@@ -32,7 +32,6 @@ jobs:
         export PATH="$PATH:/snap/bin"
         make test
       shell: bash
-      if: matrix.os == 'macos-latest'
     - name: Build (Linux)
       run: DEB_BUILD_OPTIONS=nocheck debuild -us -uc
       if: matrix.os != 'macos-latest'     

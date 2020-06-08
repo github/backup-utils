@@ -24,6 +24,7 @@ ghe_remote_version_required "$GHE_HOSTNAME"
 # The snapshot to restore should be set by the ghe-restore command but this lets
 # us run this script directly.
 : ${GHE_RESTORE_SNAPSHOT:=current}
+export GHE_RESTORE_SNAPSHOT
 
 # The directory holding the snapshot to restore
 snapshot_dir="$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT"

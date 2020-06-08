@@ -152,6 +152,7 @@ fi
 if [ ${GHE_DATA_DIR:0:1} != "/" ]; then
   GHE_DATA_DIR="$( cd "$GHE_BACKUP_ROOT" && readlink -m "$GHE_DATA_DIR" 2> /dev/null || echo "$GHE_BACKUP_ROOT/$GHE_DATA_DIR" )"
 fi
+export GHE_DATA_DIR
 
 # Assign the Release File path if it hasn't been provided (eg: by test suite)
 : ${GHE_RELEASE_FILE:="/etc/github/enterprise-release"}
@@ -389,4 +390,22 @@ is_binary_backup_feature_on(){
 # Check if the backup is binary by looking up the sentinel file
 is_binary_backup(){
   test -f "$1/mysql-binary-backup-sentinel"
+}
+
+is_service_external(){
+  service=$1
+  config_file=$2
+  case $service in
+    "mysql")
+      if [ -n "$config_file" ]; then
+        enabled=$(GIT_CONFIG="$config_file" git config mysql.external.enabled)
+        [ "$enabled" == "true" ];
+      else
+        ghe-ssh "$GHE_HOSTNAME" ghe-config --true "mysql.external.enabled"
+      fi
+      ;;
+    *)
+      return 1
+      ;;
+    esac
 }

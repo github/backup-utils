@@ -24,9 +24,24 @@ ghe_remote_version_required "$GHE_HOSTNAME"
 # The snapshot to restore should be set by the ghe-restore command but this lets
 # us run this script directly.
 : ${GHE_RESTORE_SNAPSHOT:=current}
+export GHE_RESTORE_SNAPSHOT
 
 # The directory holding the snapshot to restore
 snapshot_dir="$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT"
+
+# When customer uses external database, we rely on customer to implement the restore process
+if is_service_external 'mysql' "$snapshot_dir/settings.json"; then
+  if [ -n "$EXTERNAL_DATABASE_RESTORE_SCRIPT" ]; then
+    $EXTERNAL_DATABASE_RESTORE_SCRIPT
+  else
+    echo "Error: EXTERNAL_DATABASE_RESTORE_SCRIPT is not configured. Please configure in backup.config."
+    exit 1
+  fi
+  # Finsh the benchmark and exit early. If the script returns a non-zero 
+  # exit code, it will be caught by`set -e`
+  bm_end "$(basename $0)"
+  exit 0
+fi
 
 ssh_config_file_opt=
 if is_binary_backup_feature_on; then
@@ -84,6 +99,7 @@ ghe-ssh $ssh_config_file_opt "$GHE_RESTORE_HOST" -- "sudo mkdir -p '$GHE_REMOTE_
 # Transfer MySQL data from the snapshot to the GitHub instance.
 cat $snapshot_dir/mysql.sql.gz | ghe-ssh $ssh_config_file_opt "$GHE_RESTORE_HOST" -- "sudo dd of=$GHE_REMOTE_DATA_USER_DIR/tmp/mysql.sql.gz >/dev/null 2>&1"
 
+echo "Restore MySQL database ..."
 # Import the database
 echo "cat $GHE_REMOTE_DATA_USER_DIR/tmp/mysql.sql.gz | $IMPORT_MYSQL" | ghe-ssh $ssh_config_file_opt "$GHE_RESTORE_HOST" -- /bin/bash 1>&3
 

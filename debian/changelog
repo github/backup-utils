@@ -1,15 +1,3 @@
-github-backup-utils (2.21.0) UNRELEASED; urgency=medium
-
-  * Introduce option to skip restoring of audit logs #596
-  * Beta: Execute ghe-backup tasks in parallel #597
-  * Beta: Execute ghe-restore tasks in parallel #601
-  * Run repositories restore in parallel #603
-  * Fix mismatched `bm_start` and `bm_end` commands #607
-  * remove rsync restore method used by GHES versions prior to 2.13 #608
-  * Output MySQL backup strategy for clarity during backup and restore #610
-
- -- Hao Jiang <jianghao0718@github.com>  Tue, 09 Jun 2020 17:59:06 +0000
-
 github-backup-utils (2.19.5) UNRELEASED; urgency=medium
 
   * In legacy mode we should use ghe-import-mysql #581

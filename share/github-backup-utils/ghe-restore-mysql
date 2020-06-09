@@ -29,8 +29,12 @@ export GHE_RESTORE_SNAPSHOT
 # The directory holding the snapshot to restore
 snapshot_dir="$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT"
 
-# When customer uses external database, we rely on customer to implement the restore process
+# When customer uses external database, we rely on customer to implement the restore process.
 if is_service_external 'mysql' "$snapshot_dir/settings.json"; then
+  if $SKIP_MYSQL; then
+    exit 0
+  fi
+
   if [ -n "$EXTERNAL_DATABASE_RESTORE_SCRIPT" ]; then
     $EXTERNAL_DATABASE_RESTORE_SCRIPT
   else

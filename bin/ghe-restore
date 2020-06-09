@@ -10,6 +10,7 @@
 #/
 #/ OPTIONS:
 #/   -f | --force      Don't prompt for confirmation before restoring.
+#/   --skip-mysql      Skip MySQL restore steps. Only applicable to external databases.
 #/   -c | --config     Restore appliance settings and license in addition to
 #/                     datastores. Settings are not restored by default to
 #/                     prevent overwriting different configuration on the
@@ -31,8 +32,16 @@ set -e
 # Parse arguments
 restore_settings=false
 force=false
+
+: ${SKIP_MYSQL:=false}
+export SKIP_MYSQL
+
 while true; do
   case "$1" in
+    --skip-mysql)
+      SKIP_MYSQL=true
+      shift
+      ;;
     -f|--force)
       force=true
       shift
@@ -116,10 +125,30 @@ ghe_remote_version_required "$GHE_HOSTNAME"
 
 # Figure out if this instance has been configured or is entirely new.
 instance_configured=false
-if ghe-ssh "$GHE_HOSTNAME" -- "[ -f '$GHE_REMOTE_ROOT_DIR/etc/github/configured' ]"; then
+if instance_is_configured; then
   instance_configured=true
 else
   restore_settings=true
+fi
+
+# Check backup is compatible with running appliance.
+if check_external_database_snapshot_compatibility; then
+  # External DB backup with non external DB appliance
+  if external_database_snapshot_to_internal_database; then
+    echo "Error: Snapshot from GitHub Enterprise with a External Database configured" \
+    "cannot be restored to an appliance without external database configured. Aborting." \
+    "To restore this snapshot, you must restore the appliance configuration (-c)" \
+    "or skip the MySQL restore steps (--skip-mysql) after restoring manually." >&2
+    exit 1
+  fi
+
+  if internal_database_snapshow_to_external_database; then
+    echo "Error: Snapshot from GitHub Enterprise with internal database" \
+    "cannot be restored to an appliance with an external database configured. Aborting." \
+    "To restore this snapshot, you must restore the appliance configuration (-c)" \
+    "or skip the MySQL restore steps (--skip-mysql) after restoring manually." >&2
+    exit 1
+  fi
 fi
 
 # Figure out if we're restoring into cluster

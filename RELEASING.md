@@ -8,6 +8,8 @@ There is no need to align Backup Utilities patch releases with GitHub Enterprise
 
 When making a `.0` release, you will need to specify the minimum supported version of GitHub Enterprise Server that that release supports.
 
+Only repo administrator is allowed to run the release script, otherwise it will fail.
+
 ## Pre-release Actions
 
 Prior to making a release,

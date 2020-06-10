@@ -30,8 +30,11 @@
 set -e
 
 # Parse arguments
-restore_settings=false
-force=false
+: ${RESTORE_SETTINGS:=false}
+export RESTORE_SETTINGS
+
+: ${FORCE:=false}
+export FORCE
 
 : ${SKIP_MYSQL:=false}
 export SKIP_MYSQL
@@ -43,7 +46,7 @@ while true; do
       shift
       ;;
     -f|--force)
-      force=true
+      FORCE=true
       shift
       ;;
     -s)
@@ -51,7 +54,7 @@ while true; do
       shift 2
       ;;
     -c|--config)
-      restore_settings=true
+      RESTORE_SETTINGS=true
       shift
       ;;
     -h|--help)
@@ -128,7 +131,7 @@ instance_configured=false
 if instance_is_configured; then
   instance_configured=true
 else
-  restore_settings=true
+  RESTORE_SETTINGS=true
 fi
 
 # Check backup is compatible with running appliance.
@@ -178,7 +181,7 @@ fi
 # important data on the destination appliance that cannot be recovered. This is
 # mostly to prevent accidents where the backup host is given to restore instead
 # of a separate restore host since they're used in such close proximity.
-if $instance_configured && ! $force; then
+if $instance_configured && ! $FORCE; then
   echo
   echo "WARNING: All data on GitHub Enterprise appliance $hostname ($GHE_REMOTE_VERSION)"
   echo "         will be overwritten with data from snapshot ${GHE_RESTORE_SNAPSHOT}."
@@ -263,7 +266,7 @@ fi
 
 # Restore settings and license if restoring to an unconfigured appliance or when
 # specified manually.
-if $restore_settings; then
+if $RESTORE_SETTINGS; then
   ghe-restore-settings "$GHE_HOSTNAME"
 fi
 

@@ -421,7 +421,7 @@ check_external_database_snapshot_compatibility(){
   fi
   
   # If restoring settings, the target appliance will be converted.
-  if $restore_settings; then
+  if $RESTORE_SETTINGS; then
     return 1
   fi
 

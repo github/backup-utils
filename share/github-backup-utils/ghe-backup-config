@@ -416,17 +416,17 @@ instance_is_configured(){
 
 check_external_database_snapshot_compatibility(){
   # always restore to an unconfigured instance.
-  if !instance_is_configured; then
+  if ! instance_is_configured; then
     return 1
   fi
   
   # If restoring settings, the target appliance will be converted.
-  if restore_settings; then
+  if $restore_settings; then
     return 1
   fi
 
   # If skipping MySQL steps, assume the MySQL backup has already been restored prior to ghe-restore.
-  if SKIP_MYSQL; then
+  if $SKIP_MYSQL; then
     return 1
   fi
 
@@ -434,9 +434,15 @@ check_external_database_snapshot_compatibility(){
 }
 
 external_database_snapshot_to_internal_database(){
-  !is_service_external "mysql" && is_service_external "mysql" "$GHE_RESTORE_SNAPSHOT/settings.json"
+  ! is_service_external "mysql" && is_service_external "mysql" "$GHE_RESTORE_SNAPSHOT/settings.json"
 }
 
 internal_database_snapshow_to_external_database(){
-  is_service_external "mysql" && !is_service_external "mysql" "$GHE_RESTORE_SNAPSHOT/settings.json"
+  is_service_external "mysql" && ! is_service_external "mysql" "$GHE_RESTORE_SNAPSHOT/settings.json"
+}
+
+is_external_database_restore(){
+  # Check if restoring a snapshot with an external database configured, or restoring
+  # to an appliance with an external database configured.
+  is_service_external 'mysql' "$GHE_RESTORE_SNAPSHOT_PATH/settings.json" || is_service_external 'mysql'
 }

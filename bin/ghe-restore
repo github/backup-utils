@@ -284,7 +284,7 @@ if [ -s "$GHE_RESTORE_SNAPSHOT_PATH/uuid" ] && ! $CLUSTER; then
   ghe-ssh "$GHE_HOSTNAME" -- "sudo rm -rf /data/user/consul/raft"
   fi
 
-if is_service_external 'mysql' "$GHE_RESTORE_SNAPSHOT_PATH/settings.json"; then
+if is_external_database_restore; then
    appliance_strategy="external"
    backup_snapshot_strategy="external"
 else 
@@ -301,8 +301,12 @@ else
   fi
 fi
 
-echo "Restoring MySQL database from ${backup_snapshot_strategy} backup snapshot on an appliance configured for ${appliance_strategy} backups ..."
-ghe-restore-mysql "$GHE_HOSTNAME" 1>&3
+if is_external_database_restore && $SKIP_MYSQL; then
+  echo "Skipping MySQL restore."
+else
+  echo "Restoring MySQL database from ${backup_snapshot_strategy} backup snapshot on an appliance configured for ${appliance_strategy} backups ..."
+  ghe-restore-mysql "$GHE_HOSTNAME" 1>&3
+fi
 
 commands=("
 echo \"Restoring Redis database ...\"

@@ -401,7 +401,7 @@ is_service_external(){
         enabled=$(GIT_CONFIG="$config_file" git config mysql.external.enabled)
         [ "$enabled" == "true" ];
       else
-        ghe-ssh "$GHE_HOSTNAME" ghe-config --true "mysql.external.enabled"
+        ghe-ssh "$GHE_HOSTNAME" -- ghe-config --true "mysql.external.enabled"
       fi
       ;;
     *)
@@ -434,15 +434,15 @@ check_external_database_snapshot_compatibility(){
 }
 
 external_database_snapshot_to_internal_database(){
-  ! is_service_external "mysql" && is_service_external "mysql" "$GHE_RESTORE_SNAPSHOT/settings.json"
+  ! is_service_external "mysql" && is_service_external "mysql" "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/settings.json"
 }
 
 internal_database_snapshow_to_external_database(){
-  is_service_external "mysql" && ! is_service_external "mysql" "$GHE_RESTORE_SNAPSHOT/settings.json"
+  is_service_external "mysql" && ! is_service_external "mysql" "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/settings.json"
 }
 
 is_external_database_restore(){
   # Check if restoring a snapshot with an external database configured, or restoring
   # to an appliance with an external database configured.
-  is_service_external 'mysql' "$GHE_RESTORE_SNAPSHOT_PATH/settings.json" || is_service_external 'mysql'
+  is_service_external 'mysql' "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/settings.json" || is_service_external 'mysql'
 }

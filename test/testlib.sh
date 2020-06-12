@@ -300,7 +300,9 @@ setup_test_data () {
 
   if [ "$loc" != "$GHE_REMOTE_DATA_USER_DIR" ]; then
     # create a fake backups for each datastore
-    echo "fake ghe-export-mysql data" | gzip > "$loc/mysql.sql.gz"
+    if [ -z "$SKIP_MYSQL" ]; then
+      echo "fake ghe-export-mysql data" | gzip > "$loc/mysql.sql.gz"
+    fi
     echo "fake ghe-export-redis data" > "$loc/redis.rdb"
     echo "fake ghe-export-authorized-keys data" > "$loc/authorized-keys.json"
     echo "fake ghe-export-ssh-host-keys data" > "$TRASHDIR/ssh-host-keys"
@@ -363,7 +365,9 @@ verify_all_backedup_data() {
   [ "$(cat "$GHE_DATA_DIR/current/settings.json")" = "fake ghe-export-settings data" ]
 
   # check that mysql data was backed up
-  [ "$(gzip -dc < "$GHE_DATA_DIR/current/mysql.sql.gz")" = "fake ghe-export-mysql data" ]
+  if [ -z "$SKIP_MYSQL" ]; then
+    [ "$(gzip -dc < "$GHE_DATA_DIR/current/mysql.sql.gz")" = "fake ghe-export-mysql data" ]
+  fi
 
   # check that redis data was backed up
   [ "$(cat "$GHE_DATA_DIR/current/redis.rdb")" = "fake redis data" ]
@@ -406,7 +410,9 @@ verify_all_restored_data() {
   set -e
 
   # verify all import scripts were run
-  grep -q "fake ghe-export-mysql data" "$TRASHDIR/restore-out"
+  if [ -z "$SKIP_MYSQL" ]; then
+    grep -q "fake ghe-export-mysql data" "$TRASHDIR/restore-out"
+  fi
   grep -q "fake ghe-export-redis data" "$TRASHDIR/restore-out"
   grep -q "fake ghe-export-authorized-keys data" "$TRASHDIR/restore-out"
 

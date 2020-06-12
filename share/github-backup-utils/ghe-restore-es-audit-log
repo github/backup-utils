@@ -36,7 +36,7 @@ last_month=$(printf "audit_log(-[0-9]+)?-%4d-%02d(-[0-9]+)?" $last_yr $last_mth)
 current_month=$(printf "audit_log(-[0-9]+)?-%4d-%02d(-[0-9]+)?" $this_yr $this_mth)
 
 tmp_list="$(mktemp -t backup-utils-restore-XXXXXX)"
-if instance_is_configured; then
+if is_instance_configured; then
   configured=true
 fi
 

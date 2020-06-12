@@ -410,13 +410,13 @@ is_service_external(){
     esac
 }
 
-instance_is_configured(){
+is_instance_configured(){
   ghe-ssh "$GHE_HOSTNAME" -- "[ -f '$GHE_REMOTE_ROOT_DIR/etc/github/configured' ]"
 }
 
 check_external_database_snapshot_compatibility(){
   # always restore to an unconfigured instance.
-  if ! instance_is_configured; then
+  if ! is_instance_configured; then
     return 1
   fi
   

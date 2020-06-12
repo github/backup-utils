@@ -156,7 +156,7 @@ begin_test "ghe-restore allows restore of non external DB snapshot with --skip-m
   export SKIP_MYSQL
 
   # run ghe-restore and write output to file for asserting against
-  if ! GHE_DEBUG=1  ghe-restore -v -f --skip-mysql > "$TRASHDIR/restore-out" 2>&1; then
+  if ! GHE_DEBUG=1 ghe-restore -v -f --skip-mysql > "$TRASHDIR/restore-out" 2>&1; then
     # for debugging
     cat "$TRASHDIR/restore-out"
     : ghe-restore should have exited successfully

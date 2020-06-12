@@ -128,7 +128,7 @@ ghe_remote_version_required "$GHE_HOSTNAME"
 
 # Figure out if this instance has been configured or is entirely new.
 instance_configured=false
-if instance_is_configured; then
+if is_instance_configured; then
   instance_configured=true
 else
   RESTORE_SETTINGS=true

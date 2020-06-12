@@ -38,7 +38,7 @@ begin_test "ghe-restore allows restore of external DB snapshot to external DB in
   export EXTERNAL_DATABASE_RESTORE_SCRIPT="echo 'fake ghe-export-mysql data'"
 
   # run ghe-restore and write output to file for asserting against
-  if ! GHE_DEBUG=1 bash -x ghe-restore -v -f > "$TRASHDIR/restore-out" 2>&1; then
+  if ! GHE_DEBUG=1  ghe-restore -v -f > "$TRASHDIR/restore-out" 2>&1; then
     # for debugging
     cat "$TRASHDIR/restore-out"
     : ghe-restore should have exited successfully
@@ -92,7 +92,7 @@ begin_test "ghe-restore prevents restore of non external DB snapshot to external
   git config -f "$GHE_REMOTE_DATA_USER_DIR/common/github.conf" mysql.external.enabled true
 
   # run ghe-restore and write output to file for asserting against
-  if ! GHE_DEBUG=1 bash -x ghe-restore -v -f > "$TRASHDIR/restore-out" 2>&1; then
+  if ! GHE_DEBUG=1  ghe-restore -v -f > "$TRASHDIR/restore-out" 2>&1; then
     # Verify that the restore failed due to snapshot compatability.
     grep -q "Snapshot from GitHub Enterprise with internal database cannot be restored 
     to an appliance with an external database configured." "$TRASHDIR/restore-out"
@@ -121,7 +121,7 @@ begin_test "ghe-restore allows restore of external DB snapshot with --skip-mysql
   export SKIP_MYSQL
 
   # run ghe-restore and write output to file for asserting against
-  if ! GHE_DEBUG=1 bash -x ghe-restore -v -f --skip-mysql > "$TRASHDIR/restore-out" 2>&1; then
+  if ! GHE_DEBUG=1  ghe-restore -v -f --skip-mysql > "$TRASHDIR/restore-out" 2>&1; then
     # for debugging
     cat "$TRASHDIR/restore-out"
     : ghe-restore should have exited successfully
@@ -143,18 +143,10 @@ end_test
 begin_test "ghe-restore allows restore of non external DB snapshot with --skip-mysql"
 (
   set -e 
-  rm -rf "$GHE_REMOTE_ROOT_DIR"
-  setup_remote_metadata
 
-  # set as configured, enable maintenance mode and create required directories
-  setup_maintenance_mode "configured"
 
-  # set restore host environ var
-  GHE_RESTORE_HOST=127.0.0.1
-  export GHE_RESTORE_HOST
+  setup
 
-  # Enable external database in snapshot
-  rm -rf "$GHE_DATA_DIR/current/settings.json"
   git config -f "$GHE_DATA_DIR/current/settings.json" mysql.external.enabled false
 
   # Disable external database on remote host
@@ -164,7 +156,7 @@ begin_test "ghe-restore allows restore of non external DB snapshot with --skip-m
   export SKIP_MYSQL
 
   # run ghe-restore and write output to file for asserting against
-  if ! GHE_DEBUG=1 bash -x ghe-restore -v -f --skip-mysql > "$TRASHDIR/restore-out" 2>&1; then
+  if ! GHE_DEBUG=1  ghe-restore -v -f --skip-mysql > "$TRASHDIR/restore-out" 2>&1; then
     # for debugging
     cat "$TRASHDIR/restore-out"
     : ghe-restore should have exited successfully
@@ -172,6 +164,69 @@ begin_test "ghe-restore allows restore of non external DB snapshot with --skip-m
   fi
 
   grep -q "Skipping MySQL restore." "$TRASHDIR/restore-out"
+
+  # verify connect to right host
+  grep -q "Connect 127.0.0.1:22 OK" "$TRASHDIR/restore-out"
+
+  # verify stale servers were cleared
+  grep -q "ghe-cluster-cleanup-node OK" "$TRASHDIR/restore-out"
+
+  verify_all_restored_data
+)
+end_test
+
+begin_test "ghe-restore allows restore of non external DB snapshot with -c"
+(
+  set -e 
+
+  setup
+
+  git config -f "$GHE_DATA_DIR/current/settings.json" mysql.external.enabled false
+
+  # Disable external database on remote host
+  git config -f "$GHE_REMOTE_DATA_USER_DIR/common/github.conf" mysql.external.enabled true
+
+  # run ghe-restore and write output to file for asserting against
+  if ! GHE_DEBUG=1  ghe-restore -v -f -c > "$TRASHDIR/restore-out" 2>&1; then
+    # for debugging
+    cat "$TRASHDIR/restore-out"
+    : ghe-restore should have exited successfully
+    false
+  fi
+
+  grep -q "Restoring MySQL database from logical backup snapshot on an appliance configured for logical backups ..." "$TRASHDIR/restore-out"
+
+  # verify connect to right host
+  grep -q "Connect 127.0.0.1:22 OK" "$TRASHDIR/restore-out"
+
+  # verify stale servers were cleared
+  grep -q "ghe-cluster-cleanup-node OK" "$TRASHDIR/restore-out"
+
+  verify_all_restored_data
+)
+end_test
+
+begin_test "ghe-restore allows restore of external DB snapshot with -c"
+(
+  set -e 
+  setup
+
+  git config -f "$GHE_DATA_DIR/current/settings.json" mysql.external.enabled true
+
+  # Disable external database on remote host
+  git config -f "$GHE_REMOTE_DATA_USER_DIR/common/github.conf" mysql.external.enabled false
+
+  export EXTERNAL_DATABASE_RESTORE_SCRIPT="echo 'fake ghe-export-mysql data'"
+
+  # run ghe-restore and write output to file for asserting against
+  if ! GHE_DEBUG=1  ghe-restore -v -f -c > "$TRASHDIR/restore-out" 2>&1; then
+    # for debugging
+    cat "$TRASHDIR/restore-out"
+    : ghe-restore should have exited successfully
+    false
+  fi
+
+  grep -q "Restoring MySQL database from external backup snapshot on an appliance configured for external backups ..." "$TRASHDIR/restore-out"
 
   # verify connect to right host
   grep -q "Connect 127.0.0.1:22 OK" "$TRASHDIR/restore-out"

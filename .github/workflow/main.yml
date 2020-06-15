@@ -32,6 +32,6 @@ jobs:
         make test
       shell: bash
     - name: Build
-      run: debuild -uc -us
-      if: matrix.os == 'ubuntu-latest'     
+      run: DEB_BUILD_OPTIONS=nocheck debuild -uc -us
+      if: matrix.os != 'macos-latest'     
  

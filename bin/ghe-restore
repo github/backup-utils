@@ -134,26 +134,6 @@ else
   RESTORE_SETTINGS=true
 fi
 
-# Check backup is compatible with running appliance.
-if check_external_database_snapshot_compatibility; then
-  # External DB backup with non external DB appliance
-  if external_database_snapshot_to_internal_database; then
-    echo "Error: Snapshot from GitHub Enterprise with a External Database configured" \
-    "cannot be restored to an appliance without external database configured. Aborting." \
-    "To restore this snapshot, you must restore the appliance configuration (-c)" \
-    "or skip the MySQL restore steps (--skip-mysql) after restoring manually." >&2
-    exit 1
-  fi
-
-  if internal_database_snapshow_to_external_database; then
-    echo "Error: Snapshot from GitHub Enterprise with internal database" \
-    "cannot be restored to an appliance with an external database configured. Aborting." \
-    "To restore this snapshot, you must restore the appliance configuration (-c)" \
-    "or skip the MySQL restore steps (--skip-mysql) after restoring manually." >&2
-    exit 1
-  fi
-fi
-
 # Figure out if we're restoring into cluster
 CLUSTER=false
 if ghe-ssh "$GHE_HOSTNAME" -- \
@@ -166,6 +146,10 @@ export CLUSTER
 if ! $CLUSTER && [ "$GHE_BACKUP_STRATEGY" = "cluster" ]; then
   echo "Error: Snapshot from a GitHub Enterprise cluster cannot be restored" \
     "to a standalone appliance. Aborting." >&2
+  exit 1
+fi
+
+if ! ghe-restore-external-database-check; then
   exit 1
 fi
 
@@ -287,7 +271,7 @@ if [ -s "$GHE_RESTORE_SNAPSHOT_PATH/uuid" ] && ! $CLUSTER; then
   ghe-ssh "$GHE_HOSTNAME" -- "sudo rm -rf /data/user/consul/raft"
   fi
 
-if is_external_database_restore; then
+if is_external_database_target_or_snapshot; then
    appliance_strategy="external"
    backup_snapshot_strategy="external"
 else 
@@ -304,7 +288,7 @@ else
   fi
 fi
 
-if is_external_database_restore && $SKIP_MYSQL; then
+if is_external_database_target_or_snapshot && $SKIP_MYSQL; then
   echo "Skipping MySQL restore."
 else
   echo "Restoring MySQL database from ${backup_snapshot_strategy} backup snapshot on an appliance configured for ${appliance_strategy} backups ..."

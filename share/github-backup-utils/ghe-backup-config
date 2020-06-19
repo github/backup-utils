@@ -437,11 +437,11 @@ external_database_snapshot_to_internal_database(){
   ! is_service_external "mysql" && is_service_external "mysql" "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/settings.json"
 }
 
-internal_database_snapshow_to_external_database(){
+internal_database_snapshot_to_external_database(){
   is_service_external "mysql" && ! is_service_external "mysql" "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/settings.json"
 }
 
-is_external_database_restore(){
+is_external_database_target_or_snapshot(){
   # If restoring settings, only check the snapshot.
   if $RESTORE_SETTINGS; then
     is_service_external 'mysql' "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/settings.json"
@@ -450,4 +450,28 @@ is_external_database_restore(){
     # to an appliance with an external database configured.
     is_service_external 'mysql' "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/settings.json" || is_service_external 'mysql'
   fi
+}
+
+check_external_db_compatibility() {
+  # Check backup is compatible with running appliance.
+if check_external_database_snapshot_compatibility; then
+  # External DB backup with non external DB appliance
+  if external_database_snapshot_to_internal_database; then
+    echo "Error: Snapshot from GitHub Enterprise with an External Database configured" \
+    "cannot be restored to an appliance without external database configured. Aborting." \
+    "To restore this snapshot, you must restore the appliance configuration (-c)" \
+    "or skip the MySQL restore steps (--skip-mysql) after restoring manually." >&2
+    return 1
+  fi
+
+  if internal_database_snapshot_to_external_database; then
+    echo "Error: Snapshot from GitHub Enterprise with internal database" \
+    "cannot be restored to an appliance with an external database configured. Aborting." \
+    "To restore this snapshot, you must restore the appliance configuration (-c)" \
+    "or skip the MySQL restore steps (--skip-mysql) after restoring manually." >&2
+    return 1
+  fi
+
+  return 0
+fi
 }

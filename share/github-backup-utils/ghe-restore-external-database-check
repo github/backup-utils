@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+# Usage: ghe-restore-external-database-check
+# GitHub Enterprise checks for external-database related restores.
+
+# Bring in the backup configuration
+# shellcheck source=share/github-backup-utils/ghe-backup-config
+. "$( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config"
+
+# Check if there are MySQL nodes in the target environment
+if $RESTORE_SETTINGS && internal_database_snapshot_to_external_database; then
+  if ghe-ssh "test -f $GHE_REMOTE_CLUSTER_CONF_FILE"; then
+    mysql_nodes=$(ghe-ssh "ghe-cluster-each -p -r mysql")
+
+    if [ -z "$mysql_nodes" ]; then
+      # Restoring a non external DB snapshot to a internal snapshot
+      # requires that the target environment has a mysql-server
+      # configured.
+      echo "Error: Target environment does not have a node with mysql-server node. Aborting restore."
+    fi
+  fi
+fi
+
+if ! check_external_db_compatibility; then
+  exit 1
+fi

@@ -32,7 +32,7 @@ begin_test "ghe-restore allows restore of external DB snapshot to external DB in
 
   git config -f "$GHE_DATA_DIR/current/settings.json" mysql.external.enabled true
 
-  # Disable external database on remote host
+  # Enable external database on remote host
   git config -f "$GHE_REMOTE_DATA_USER_DIR/common/github.conf" mysql.external.enabled true
 
   export EXTERNAL_DATABASE_RESTORE_SCRIPT="echo 'fake ghe-export-mysql data'"
@@ -68,7 +68,7 @@ begin_test "ghe-restore prevents restore of external DB snapshot to non-external
   # run ghe-restore and write output to file for asserting against
   if ! GHE_DEBUG=1 ghe-restore -v -f > "$TRASHDIR/restore-out" 2>&1; then
     # Verify that the restore failed due to snapshot compatability.
-    grep -q "Snapshot from GitHub Enterprise with a External Database configured cannot be restored 
+    grep -q "Snapshot from GitHub Enterprise with an External Database configured cannot be restored 
     to an appliance without external database configured." "$TRASHDIR/restore-out"
     
     exit 0

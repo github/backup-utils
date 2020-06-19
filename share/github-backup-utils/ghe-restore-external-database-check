@@ -9,13 +9,15 @@
 # Check if there are MySQL nodes in the target environment
 if $RESTORE_SETTINGS && internal_database_snapshot_to_external_database; then
   if ghe-ssh "test -f $GHE_REMOTE_CLUSTER_CONF_FILE"; then
-    mysql_nodes=$(ghe-ssh "ghe-cluster-each -p -r mysql")
+    mysql_nodes=$(ghe-ssh "ghe-cluster-nodes -r mysql")
+    echo $mysql_nodes
 
     if [ -z "$mysql_nodes" ]; then
       # Restoring a non external DB snapshot to a internal snapshot
       # requires that the target environment has a mysql-server
       # configured.
-      echo "Error: Target environment does not have a node with mysql-server node. Aborting restore."
+      echo "Error: Target environment does not have a node with mysql-server role. Aborting restore."
+      exit 1
     fi
   fi
 fi

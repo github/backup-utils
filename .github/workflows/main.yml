@@ -19,7 +19,7 @@ jobs:
         wget "https://storage.googleapis.com/shellcheck/shellcheck-v0.7.0.linux.x86_64.tar.xz"
         tar --xz -xvf "shellcheck-v0.7.0.linux.x86_64.tar.xz"
         sudo cp shellcheck-v0.7.0/shellcheck /usr/bin/shellcheck
-      if: matrix.os != 'macos-latest'
+      if: matrix.os == 'ubuntu-latest'
     - name: Install Dependencies (macOS)
       run: |
         brew install gnu-tar shellcheck jq pigz coreutils gnu-sed gnu-getopt
@@ -35,5 +35,4 @@ jobs:
       shell: bash
     - name: Build (Linux)
       run: DEB_BUILD_OPTIONS=nocheck debuild -us -uc
-      if: matrix.os != 'macos-latest'     
-      
+      if: matrix.os == 'ubuntu-latest'

@@ -457,24 +457,25 @@ is_external_database_target_or_snapshot(){
 
 check_external_db_compatibility() {
   # Check backup is compatible with running appliance.
-if check_external_database_snapshot_compatibility; then
-  # External DB backup with non external DB appliance
-  if external_database_snapshot_to_internal_database; then
-    echo "Error: Snapshot from GitHub Enterprise with an External Database configured" \
-    "cannot be restored to an appliance without external database configured. Aborting." \
-    "To restore this snapshot, you must restore the appliance configuration (-c)" \
-    "or skip the MySQL restore steps (--skip-mysql) after restoring manually." >&2
-    return 1
-  fi
+  if check_external_database_snapshot_compatibility; then
 
-  if internal_database_snapshot_to_external_database; then
-    echo "Error: Snapshot from GitHub Enterprise with internal database" \
-    "cannot be restored to an appliance with an external database configured. Aborting." \
-    "To restore this snapshot, you must restore the appliance configuration (-c)" \
-    "or skip the MySQL restore steps (--skip-mysql) after restoring manually." >&2
-    return 1
-  fi
+    # External DB backup with non external DB appliance
+    if external_database_snapshot_to_internal_database; then
+      echo "Error: Snapshot from GitHub Enterprise with an External Database configured" \
+      "cannot be restored to an appliance without external database configured. Aborting." \
+      "To restore this snapshot, you must restore the appliance configuration (-c)" \
+      "or skip the MySQL restore steps (--skip-mysql) after restoring MySQL data manually." >&2
+      return 1
+    fi
 
-  return 0
-fi
+    if internal_database_snapshot_to_external_database; then
+      echo "Error: Snapshot from GitHub Enterprise with internal database" \
+      "cannot be restored to an appliance with an external database configured. Aborting." \
+      "To restore this snapshot, you must restore the appliance configuration (-c)" \
+      "or skip the MySQL restore steps (--skip-mysql) after restoring MySQL data manually." >&2
+      return 1
+    fi
+
+    return 0
+  fi
 }

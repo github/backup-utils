@@ -416,6 +416,7 @@ is_instance_configured(){
   ghe-ssh "$GHE_HOSTNAME" -- "[ -f '$GHE_REMOTE_ROOT_DIR/etc/github/configured' ]"
 }
 
+# Helper method to validate whether we can restore the snapshot to the target appliance
 check_external_database_snapshot_compatibility(){
   # always restore to an unconfigured instance.
   if ! is_instance_configured; then

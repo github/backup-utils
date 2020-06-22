@@ -267,3 +267,38 @@ begin_test "ghe-restore prevents restore of interal DB snapshot with -c to a clu
   fi
 )
 end_test
+
+begin_test "ghe-restore allow restore of interal DB snapshot with -c to a cluster configured with mysql-server role"
+(
+  set -e 
+  setup
+
+  git config -f "$GHE_DATA_DIR/current/settings.json" mysql.external.enabled false
+
+  # Disable external database on remote host
+  git config -f "$GHE_REMOTE_DATA_USER_DIR/common/github.conf" mysql.external.enabled true
+
+  echo "[cluster \"fake-uuid\"]
+    hostname = fake-uuid
+    git-server = true
+    web-server = true
+    mysql-server = true
+  " > $GHE_REMOTE_CLUSTER_CONF_FILE
+
+  # run ghe-restore and write output to file for asserting against
+  if ! GHE_DEBUG=1 bash -x ghe-restore -v -f -c > "$TRASHDIR/restore-out" 2>&1; then
+    # for debugging
+    cat "$TRASHDIR/restore-out"
+    : ghe-restore should have exited successfully
+    false
+  fi
+
+  # verify connect to right host
+  grep -q "Connect 127.0.0.1:22 OK" "$TRASHDIR/restore-out"
+
+  # verify stale servers were cleared
+  grep -q "ghe-cluster-cleanup-node OK" "$TRASHDIR/restore-out"
+
+  verify_all_restored_data
+)
+end_test

@@ -26,7 +26,7 @@ if $RESTORE_SETTINGS && external_database_snapshot_to_internal_database; then
   if ghe-ssh "$GHE_HOSTNAME" "test -f $GHE_REMOTE_CLUSTER_CONF_FILE"; then
     mysql_nodes=$(ghe-ssh "$GHE_HOSTNAME" "ghe-cluster-each -u -r mysql")
 
-    if [ -z "$mysql_nodes" ]; then
+    if [ -n "$mysql_nodes" ]; then
       echo "Warning: Target environment has mysql-server role. This should be removed post-restore."
       exit 0
     fi

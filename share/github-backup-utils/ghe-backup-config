@@ -392,6 +392,8 @@ is_binary_backup(){
   test -f "$1/mysql-binary-backup-sentinel"
 }
 
+# Check if a given service is managed externally
+# Usage: is_service_external $service [$config_file]
 is_service_external(){
   service=$1
   config_file=$2
@@ -419,7 +421,7 @@ check_external_database_snapshot_compatibility(){
   if ! is_instance_configured; then
     return 1
   fi
-  
+
   # If restoring settings, the target appliance will be converted.
   if $RESTORE_SETTINGS; then
     return 1

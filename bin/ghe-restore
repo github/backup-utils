@@ -149,6 +149,8 @@ if ! $CLUSTER && [ "$GHE_BACKUP_STRATEGY" = "cluster" ]; then
   exit 1
 fi
 
+# Ensure target appliance and restore snapshot are a compatible combination
+# with respect to BYODB
 if ! ghe-restore-external-database-check; then
   exit 1
 fi
@@ -274,7 +276,7 @@ if [ -s "$GHE_RESTORE_SNAPSHOT_PATH/uuid" ] && ! $CLUSTER; then
 if is_external_database_target_or_snapshot; then
    appliance_strategy="external"
    backup_snapshot_strategy="external"
-else 
+else
   if is_binary_backup_feature_on; then
     appliance_strategy="binary"
   else

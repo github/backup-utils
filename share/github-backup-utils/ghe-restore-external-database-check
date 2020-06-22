@@ -15,8 +15,7 @@ if $RESTORE_SETTINGS && internal_database_snapshot_to_external_database; then
 
     if [ -z "$mysql_nodes" ]; then
       # Restoring a non external DB snapshot to a internal snapshot
-      # requires that the target environment has a mysql-server
-      # configured.
+      # requires that the target environment has a mysql-server configured.
       echo "Error: Target environment does not have a node with mysql-server role. Aborting restore."
       exit 1
     fi

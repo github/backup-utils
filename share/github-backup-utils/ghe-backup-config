@@ -436,10 +436,16 @@ check_external_database_snapshot_compatibility(){
   return 0
 }
 
+# Helper method that returns true if:
+# - the target appliance uses the internal MySQL database (aka NOT BYODB), and
+# - the snapshot being restored is from an appliance using an external MySQL database (BYODB)
 external_database_snapshot_to_internal_database(){
   ! is_service_external "mysql" && is_service_external "mysql" "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/settings.json"
 }
 
+# Helper method that returns true if:
+# - the target appliance uses an external MySQL database (BYODB), and
+# - the snapshot being restored is from an appliance using an internal MySQL database (aka NOT BYODB)
 internal_database_snapshot_to_external_database(){
   is_service_external "mysql" && ! is_service_external "mysql" "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/settings.json"
 }

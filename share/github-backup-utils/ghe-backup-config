@@ -451,7 +451,7 @@ internal_database_snapshot_to_external_database(){
 }
 
 is_external_database_target_or_snapshot(){
-  # If restoring settings, only check the snapshot.
+  # If restoring settings, only check if the snapshot being restored was from an appliance with external DB configured.
   if $RESTORE_SETTINGS; then
     is_service_external 'mysql' "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/settings.json"
   else

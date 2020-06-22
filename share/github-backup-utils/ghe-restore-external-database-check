@@ -6,6 +6,8 @@
 # shellcheck source=share/github-backup-utils/ghe-backup-config
 . "$( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config"
 
+set -e
+
 # Check if there are MySQL nodes in the target environment
 if $RESTORE_SETTINGS && internal_database_snapshot_to_external_database; then
   if ghe-ssh "$GHE_HOSTNAME" "test -f $GHE_REMOTE_CLUSTER_CONF_FILE"; then

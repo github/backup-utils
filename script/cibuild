@@ -5,17 +5,9 @@ set -e
 # Enable verbose logging of ssh commands
 export GHE_VERBOSE_SSH=true
 
-res=true
-version=2.21.0
-echo "==> Running test suite with GHE_TEST_REMOTE_VERSION=$version"
-export GHE_TEST_REMOTE_VERSION="$version"
 if ! find test -name "test-*.sh" -print0 | xargs -0 -P 4 -n 1 /bin/bash; then
-  res=false
+  exit 1
 fi
-echo
-
-# If any of the tests above failed, exit non-zero
-$res
 
 # Bail out when --no-package given
 [ "$1" = "--no-package" ] && exit 0

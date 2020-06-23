@@ -11,7 +11,7 @@ set -e
 # Restoring an internal DB snapshot to an appliance currently configured with BYODB ON
 # $RESTORE_SETTINGS means the appliance will be reconfigured with BYODB OFF
 # so we need to ensure that mysql-server roles are present in the cluster config
-if $RESTORE_SETTINGS && internal_database_snapshot_to_external_database; then
+if internal_database_snapshot_to_external_database && $RESTORE_SETTINGS; then
   if ghe-ssh "$GHE_HOSTNAME" "test -f $GHE_REMOTE_CLUSTER_CONF_FILE"; then
 
     # Check if there are MySQL nodes in the target environment
@@ -28,7 +28,7 @@ fi
 # Restoring a BYODB snapshot to an appliance currently configured with BYODB OFF
 # $RESTORE_SETTINGS means the appliance will be reconfigured with BYODB ON
 # so we should warn that mysql-server roles should be removed from the cluster config
-if $RESTORE_SETTINGS && external_database_snapshot_to_internal_database; then
+if external_database_snapshot_to_internal_database && $RESTORE_SETTINGS; then
   if ghe-ssh "$GHE_HOSTNAME" "test -f $GHE_REMOTE_CLUSTER_CONF_FILE"; then
 
     mysql_nodes=$(ghe-ssh "$GHE_HOSTNAME" "ghe-cluster-each -u -r mysql")

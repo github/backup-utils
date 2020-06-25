@@ -7,6 +7,8 @@ jobs:
     strategy:
       matrix:
         os: ['ubuntu-latest', 'macos-latest']
+        # os: ['ubuntu-20.04', 'ubuntu-18.04', 'ubuntu-16.04', 'macos-latest']
+      fail-fast: false
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -20,7 +22,7 @@ jobs:
       if: matrix.os == 'ubuntu-latest'
     - name: Install Dependencies (macOS)
       run: |
-        brew install gnu-tar shellcheck jq pigz coreutils
+        brew install gnu-tar shellcheck jq pigz coreutils gnu-sed gnu-getopt
         brew unlink parallel
         brew install moreutils gawk
       if: matrix.os == 'macos-latest'
@@ -31,7 +33,6 @@ jobs:
         export PATH="$PATH:/snap/bin"
         make test
       shell: bash
-    - name: Build
-      run: debuild -uc -us
-      if: matrix.os == 'ubuntu-latest'     
- 
+    - name: Build (Linux)
+      run: DEB_BUILD_OPTIONS=nocheck debuild -us -uc
+      if: matrix.os == 'ubuntu-latest'

@@ -290,7 +290,7 @@ else
   fi
 fi
 
-if is_external_database_snapshot && $SKIP_MYSQL; then
+if is_external_database_target_or_snapshot && $SKIP_MYSQL; then
   echo "Skipping MySQL restore."
 else
   echo "Restoring MySQL database from ${backup_snapshot_strategy} backup snapshot on an appliance configured for ${appliance_strategy} backups ..."

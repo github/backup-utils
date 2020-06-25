@@ -22,6 +22,12 @@ if internal_database_snapshot_to_external_database && $RESTORE_SETTINGS; then
       echo "Error: Target environment does not have a node with mysql-server role. Aborting restore."
       exit 1
     fi
+
+    mysql_master=$(ghe-ssh "$GHE_HOSTNAME" "git config -f $GHE_REMOTE_CLUSTER_CONF_FILE cluster.mysql-master")
+    if [ -z "$mysql_master" ]; then
+      echo "Error: Target environment does not have mysql-master configured. Aborting restore."
+      exit 1
+    fi
   fi
 fi
 

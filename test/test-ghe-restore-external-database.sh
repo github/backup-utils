@@ -112,8 +112,8 @@ begin_test "ghe-restore allows restore of external DB snapshot with --skip-mysql
 
   git config -f "$GHE_DATA_DIR/current/settings.json" mysql.external.enabled true
 
-  # Disable external database on remote host
-  git config -f "$GHE_REMOTE_DATA_USER_DIR/common/github.conf" mysql.external.enabled false
+  # Enable external database on remote host
+  git config -f "$GHE_REMOTE_DATA_USER_DIR/common/github.conf" mysql.external.enabled true
 
   SKIP_MYSQL=true
   export SKIP_MYSQL
@@ -172,6 +172,29 @@ begin_test "ghe-restore allows restore of non external DB snapshot with --skip-m
   verify_all_restored_data
 )
 end_test
+
+begin_test "ghe-restore prevents restoring with --skip-mysql to a cluster configured without mysql-master"
+(
+  set -e 
+  setup
+
+  # Disable external database on remote host
+  git config -f "$GHE_REMOTE_DATA_USER_DIR/common/github.conf" mysql.external.enabled false
+
+  # run ghe-restore and write output to file for asserting against
+  if ! GHE_DEBUG=1 ghe-restore -v -f --skip-mysql > "$TRASHDIR/restore-out"; then
+    grep -q "Error: --skip-mysql is applicable only to external database configuration. Aborting restore." "$TRASHDIR/restore-out"
+    exit 0
+  else
+    # for debugging
+    cat "$TRASHDIR/restore-out"
+    : ghe-restore should not have exited successfully
+    false
+  fi
+)
+end_test
+
+exit
 
 begin_test "ghe-restore allows restore of non external DB snapshot with -c"
 (

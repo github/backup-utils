@@ -266,7 +266,7 @@ begin_test "ghe-restore prevents restore of interal DB snapshot with -c to a clu
 )
 end_test
 
-begin_test "ghe-restore allow restore of interal DB snapshot with -c to a cluster configured with mysql-server role"
+begin_test "ghe-restore prevents restore of interal DB snapshot with -c to a cluster configured without mysql-master"
 (
   set -e 
   setup
@@ -277,6 +277,39 @@ begin_test "ghe-restore allow restore of interal DB snapshot with -c to a cluste
   git config -f "$GHE_REMOTE_DATA_USER_DIR/common/github.conf" mysql.external.enabled true
 
   echo "[cluster \"fake-uuid\"]
+    hostname = fake-uuid
+    git-server = true
+    web-server = true
+    mysql-server = true
+  " > $GHE_REMOTE_CLUSTER_CONF_FILE
+
+  # run ghe-restore and write output to file for asserting against
+  if ! GHE_DEBUG=1 ghe-restore -v -f -c > "$TRASHDIR/restore-out"; then
+    grep -q "Error: Target environment does not have mysql-master configured. Aborting restore." "$TRASHDIR/restore-out"
+    
+    exit 0
+  else
+    # for debugging
+    cat "$TRASHDIR/restore-out"
+    : ghe-restore should not have exited successfully
+    false
+  fi
+)
+end_test
+
+begin_test "ghe-restore allow restore of interal DB snapshot with -c to a cluster configured with mysql-server role"
+(
+  set -e 
+  setup
+
+  git config -f "$GHE_DATA_DIR/current/settings.json" mysql.external.enabled false
+
+  # Disable external database on remote host
+  git config -f "$GHE_REMOTE_DATA_USER_DIR/common/github.conf" mysql.external.enabled true
+
+  echo "[cluster]
+    mysql-master = fake-uuid
+  [cluster \"fake-uuid\"]
     hostname = fake-uuid
     git-server = true
     web-server = true
@@ -321,7 +354,7 @@ begin_test "ghe-restore restore of external DB snapshot with -c to a cluster con
   export EXTERNAL_DATABASE_RESTORE_SCRIPT="echo 'fake ghe-export-mysql data'"
 
   # run ghe-restore and write output to file for asserting against
-  if ! GHE_DEBUG=1 bash -x ghe-restore -v -f -c > "$TRASHDIR/restore-out" 2>&1; then
+  if ! GHE_DEBUG=1 ghe-restore -v -f -c > "$TRASHDIR/restore-out" 2>&1; then
     # for debugging
     cat "$TRASHDIR/restore-out"
     : ghe-restore should have exited successfully

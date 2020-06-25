@@ -4,7 +4,7 @@
 # to assert that the command was executed.
 set -e
 
-for arg in "$@"; do
+for _ in "$@"; do
   case "$1" in
     -u)
       SHOW_UUID=true

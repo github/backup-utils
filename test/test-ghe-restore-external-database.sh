@@ -328,7 +328,7 @@ begin_test "ghe-restore restore of external DB snapshot with -c to a cluster con
     false
   fi
 
-  grep -q "Target environment has mysql-server role. This should be removed post-restore." "$TRASHDIR/restore-out"
+  grep -q "Target environment has mysql-server role. This should be removed after the restore has completed." "$TRASHDIR/restore-out"
 
   # verify connect to right host
   grep -q "Connect 127.0.0.1:22 OK" "$TRASHDIR/restore-out"

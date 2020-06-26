@@ -254,7 +254,7 @@ begin_test "ghe-restore prevents restore of interal DB snapshot with -c to a clu
 
   # run ghe-restore and write output to file for asserting against
   if ! GHE_DEBUG=1 ghe-restore -v -f -c > "$TRASHDIR/restore-out" 2>&1; then
-    grep -q "Error: Target environment does not have a node with mysql-server role." "$TRASHDIR/restore-out"
+    grep -q "Error: Target environment does not have any nodes with the mysql-server role." "$TRASHDIR/restore-out"
     
     exit 0
   else
@@ -285,7 +285,7 @@ begin_test "ghe-restore prevents restore of interal DB snapshot with -c to a clu
 
   # run ghe-restore and write output to file for asserting against
   if ! GHE_DEBUG=1 ghe-restore -v -f -c > "$TRASHDIR/restore-out"; then
-    grep -q "Error: Target environment does not have mysql-master configured. Aborting restore." "$TRASHDIR/restore-out"
+    grep -q "Error: Target environment does not have mysql-master configured." "$TRASHDIR/restore-out"
     
     exit 0
   else
@@ -334,7 +334,7 @@ begin_test "ghe-restore allow restore of interal DB snapshot with -c to a cluste
 )
 end_test
 
-begin_test "ghe-restore restore of external DB snapshot with -c to a cluster configured with mysql-server role warns to remove mysql"
+begin_test "ghe-restore prevents restore of external DB snapshot with -c to a cluster configured with mysql-server"
 (
   set -e 
   setup
@@ -354,21 +354,14 @@ begin_test "ghe-restore restore of external DB snapshot with -c to a cluster con
   export EXTERNAL_DATABASE_RESTORE_SCRIPT="echo 'fake ghe-export-mysql data'"
 
   # run ghe-restore and write output to file for asserting against
-  if ! GHE_DEBUG=1 ghe-restore -v -f -c > "$TRASHDIR/restore-out" 2>&1; then
+  if ! GHE_DEBUG=1 ghe-restore -v -f -c > "$TRASHDIR/restore-out"; then
+    grep -q "Error: Target environment has nodes with the mysql-server role." "$TRASHDIR/restore-out"
+    exit 0
+  else
     # for debugging
     cat "$TRASHDIR/restore-out"
-    : ghe-restore should have exited successfully
+    : ghe-restore should not have exited successfully
     false
   fi
-
-  grep -q "Target environment has mysql-server role. This should be removed after the restore has completed." "$TRASHDIR/restore-out"
-
-  # verify connect to right host
-  grep -q "Connect 127.0.0.1:22 OK" "$TRASHDIR/restore-out"
-
-  # verify stale servers were cleared
-  grep -q "ghe-cluster-cleanup-node OK" "$TRASHDIR/restore-out"
-
-  verify_all_restored_data
 )
 end_test

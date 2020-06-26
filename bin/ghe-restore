@@ -97,12 +97,6 @@ cleanup () {
 # shellcheck source=share/github-backup-utils/ghe-backup-config
 . "$( dirname "${BASH_SOURCE[0]}" )/../share/github-backup-utils/ghe-backup-config"
 
-# Exit early if --skip-mysql used for non external db target
-if ! is_external_database_target && $SKIP_MYSQL; then
-  echo "Error: --skip-mysql is applicable only to external database configuration. Aborting restore."
-  exit 1
-fi
-
 # Check to make sure moreutils parallel is installed and working properly
 ghe_parallel_check
 

@@ -10,7 +10,7 @@ set -e
 
 # Restoring an internal DB snapshot to an appliance currently configured with BYODB ON
 # $RESTORE_SETTINGS means the appliance will be reconfigured with BYODB OFF
-# so we need to ensure that mysql-server roles are present in the cluster config
+# so we need to ensure that mysql-server/mysql-master roles are present in the cluster config
 if internal_database_snapshot_to_external_database && $RESTORE_SETTINGS; then
   if ghe-ssh "$GHE_HOSTNAME" "test -f $GHE_REMOTE_CLUSTER_CONF_FILE"; then
 
@@ -19,12 +19,16 @@ if internal_database_snapshot_to_external_database && $RESTORE_SETTINGS; then
     if [ -z "$mysql_nodes" ]; then
       # Restoring a non external DB snapshot to an internal DB appliance
       # requires that the target environment has a mysql-server configured.
-      echo "Error: Target environment does not have a node with mysql-server role. Aborting restore."
+      echo "Error: Target environment does not have any nodes with the mysql-server role."
+      echo "mysql-server roles need to be set in the cluster configuration file prior to attempting this type of restore."
+      echo "Aborting restore."
       exit 1
     fi
 
     if ! ghe-ssh "$GHE_HOSTNAME" "git config -f $GHE_REMOTE_CLUSTER_CONF_FILE cluster.mysql-master"; then
-      echo "Error: Target environment does not have mysql-master configured. Aborting restore."
+      echo "Error: Target environment does not have mysql-master configured."
+      echo "mysql-master role needs to be set in the cluster configuration file prior to attempting this type of restore."
+      echo "Aborting restore."
       exit 1
     fi
   fi
@@ -32,14 +36,23 @@ fi
 
 # Restoring a BYODB snapshot to an appliance currently configured with BYODB OFF
 # $RESTORE_SETTINGS means the appliance will be reconfigured with BYODB ON
-# so we should warn that mysql-server roles should be removed from the cluster config
+# so we need to ensure that mysql-server/mysql-master roles are removed from the cluster config
 if external_database_snapshot_to_internal_database && $RESTORE_SETTINGS; then
   if ghe-ssh "$GHE_HOSTNAME" "test -f $GHE_REMOTE_CLUSTER_CONF_FILE"; then
 
     mysql_nodes=$(ghe-ssh "$GHE_HOSTNAME" "ghe-cluster-each -u -r mysql")
     if [ -n "$mysql_nodes" ]; then
-      echo "Warning: Target environment has mysql-server role. This should be removed after the restore has completed."
-      exit 0
+      echo "Error: Target environment has nodes with the mysql-server role."
+      echo "mysql-server roles need to be removed from the cluster configuration file prior to attempting this type of restore."
+      echo "Aborting restore."
+      exit 1
+    fi
+
+    if ghe-ssh "$GHE_HOSTNAME" "git config -f $GHE_REMOTE_CLUSTER_CONF_FILE cluster.mysql-master"; then
+      echo "Error: Target environment has mysql-master configured."
+      echo "mysql-master role needs to be removed from the cluster configuration file prior to attempting this type of restore."
+      echo "Aborting restore."
+      exit 1
     fi
   fi
 fi

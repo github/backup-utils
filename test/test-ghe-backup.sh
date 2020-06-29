@@ -350,6 +350,7 @@ begin_test "ghe-backup takes full backup on first run"
   # It helps create "current" directory as symlink
   # setup_mssql_backup_file uses "current"
   set -e
+  enable_actions
 
   rm -rf $GHE_REMOTE_DATA_USER_DIR/mssql/backups/*
   rm -rf $GHE_DATA_DIR/current/mssql/*
@@ -362,6 +363,7 @@ end_test
 begin_test "ghe-backup takes full backup upon expiration"
 (
   set -e
+  enable_actions
 
   setup_mssql_backup_file "full_mssql" 11 "bak"
 
@@ -374,6 +376,7 @@ end_test
 begin_test "ghe-backup takes diff backup upon expiration"
 (
   set -e
+  enable_actions
 
   setup_mssql_backup_file "full_mssql" 7 "bak"
 
@@ -387,6 +390,7 @@ end_test
 begin_test "ghe-backup takes transaction backup upon expiration"
 (
   set -e
+  enable_actions
 
   setup_mssql_backup_file "full_mssql" 3 "bak"
 

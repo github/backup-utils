@@ -197,9 +197,6 @@ setup_test_data () {
   mkdir -p "$GHE_REMOTE_DATA_USER_DIR/common"
   git config -f "$GHE_REMOTE_DATA_USER_DIR/common/secrets.conf" secrets.manage "fake password hash data"
 
-  # Validate enabled path in tests
-  git config -f "$GHE_REMOTE_DATA_USER_DIR/common/secrets.conf" app.actions.enabled "true"
-
   # Create some fake hooks in the remote data directory
   mkdir -p "$loc/git-hooks/environments/tarballs"
   mkdir -p "$loc/git-hooks/repos"
@@ -345,8 +342,10 @@ verify_common_data() {
   # verify the extracted repositories were transferred
   diff -ru "$GHE_REMOTE_DATA_USER_DIR/git-hooks/repos" "$GHE_DATA_DIR/current/git-hooks/repos"
 
-  # verify mssql backups were transferred
-  diff -ru "$GHE_REMOTE_DATA_USER_DIR/mssql/backups" "$GHE_DATA_DIR/current/mssql"
+  if is_actions_enabled; then
+    # verify mssql backups were transferred
+    diff -ru "$GHE_REMOTE_DATA_USER_DIR/mssql/backups" "$GHE_DATA_DIR/current/mssql"
+  fi
 
   # tests that differ for cluster and single node backups and restores
   if [ "$(cat $GHE_DATA_DIR/current/strategy)" = "rsync" ]; then
@@ -395,10 +394,12 @@ verify_all_backedup_data() {
   # check that ca certificates were backed up
   [ "$(cat "$GHE_DATA_DIR/current/ssl-ca-certificates.tar")" = "fake ghe-export-ssl-ca-certificates data" ]
 
-  # check that mssql databases were backed up
-  [ "$(cat "$GHE_DATA_DIR/current/mssql/mssql.bak")" = "fake mssql full data" ]
-  [ "$(cat "$GHE_DATA_DIR/current/mssql/mssql.diff")" = "fake mssql diff data" ]
-  [ "$(cat "$GHE_DATA_DIR/current/mssql/mssql.log")" = "fake mssql tran data" ]
+  if is_actions_enabled; then
+    # check that mssql databases were backed up
+    [ "$(cat "$GHE_DATA_DIR/current/mssql/mssql.bak")" = "fake mssql full data" ]
+    [ "$(cat "$GHE_DATA_DIR/current/mssql/mssql.diff")" = "fake mssql diff data" ]
+    [ "$(cat "$GHE_DATA_DIR/current/mssql/mssql.log")" = "fake mssql tran data" ]
+  fi
 
   # verify that ghe-backup wrote its version information to the host
   [ -f "$GHE_REMOTE_DATA_USER_DIR/common/backup-utils-version" ]
@@ -479,4 +480,12 @@ setup_mssql_backup_file() {
   if [ $3 = "bak" ] || [ $3 = "diff" ]; then
     touch "$GHE_DATA_DIR/current/mssql/$1@$fake_last_utc.log"
   fi
+}
+
+enable_actions() {
+  ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config app.actions.enabled true'
+}
+
+is_actions_enabled() {
+  ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config --true app.actions.enabled'
 }

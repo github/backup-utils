@@ -197,6 +197,9 @@ setup_test_data () {
   mkdir -p "$GHE_REMOTE_DATA_USER_DIR/common"
   git config -f "$GHE_REMOTE_DATA_USER_DIR/common/secrets.conf" secrets.manage "fake password hash data"
 
+  # Validate enabled path in tests
+  git config -f "$GHE_REMOTE_DATA_USER_DIR/common/secrets.conf" app.actions.enabled "true"
+
   # Create some fake hooks in the remote data directory
   mkdir -p "$loc/git-hooks/environments/tarballs"
   mkdir -p "$loc/git-hooks/repos"

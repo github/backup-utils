@@ -182,8 +182,10 @@ bm_end "ghe-export-ssh-host-keys"
 
 ghe-backup-mysql || failures="$failures mysql"
 
-echo "Backing up MSSQL databases ..."
-ghe-backup-mssql 1>&3 || failures="$failures mssql"
+if ghe-ssh "$GHE_HOSTNAME" ghe-config --true "app.actions.enabled"; then
+  echo "Backing up MSSQL databases ..."
+  ghe-backup-mssql 1>&3 || failures="$failures mssql"
+fi
 
 commands=("
 echo \"Backing up Redis database ...\"

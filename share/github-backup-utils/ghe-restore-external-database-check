@@ -8,24 +8,41 @@
 
 set -e
 
-# Restoring an internal DB snapshot to an appliance currently configured with BYODB ON
-# $RESTORE_SETTINGS means the appliance would be reconfigured with BYODB OFF
-# backup-utils does not support this scenario and they must migrate appliance beforehand
-if internal_database_snapshot_to_external_database && $RESTORE_SETTINGS; then
-  echo "Restoring the settings of a snapshot with bundled MySQL to an appliance with externally-managed MySQL service is not supported."
-  echo "Please migrate the appliance using the official MySQL migration tooling first."
-  exit 1
-fi
+# Always allow restoring to unconfigured appliances.
+# Additional checks are required if the instance is configured.
+if is_instance_configured; then
 
-# Restoring a BYODB snapshot to an appliance currently configured with BYODB OFF
-# $RESTORE_SETTINGS means the appliance will be reconfigured with BYODB ON
-# backup-utils does not support this scenario and they must migrate appliance beforehand
-if external_database_snapshot_to_internal_database && $RESTORE_SETTINGS; then
-  echo "Restoring the settings of a snapshot with externally-managed MySQL service to an appliance with bundled MySQL is not supported."
-  echo "Please migrate the appliance using the official MySQL migration tooling first."
-  exit 1
-fi
+  if internal_database_snapshot_to_external_database; then
 
-if ! check_external_db_compatibility; then
-  exit 1
+    # Restoring settings in this scenario would change BYODB state, which is not supported via backup-utils.
+    if $RESTORE_SETTINGS; then
+      echo "Restoring the settings of a snapshot from an appliance using the bundled MySQL service to an appliance using an externally-managed MySQL service is not supported."
+      echo "Please reconfigure the appliance first, then run ghe-restore again."
+      exit 1
+    fi
+
+    # Restoring interal DB snapshot to BYODB appliance without passing in --skip-mysql is not supported.
+    if ! $SKIP_MYSQL; then
+      echo "Restoring a snapshot from an appliance using the bundled MySQL service to an appliance using an externally-managed MySQL service is not supported."
+      echo "Please migrate the MySQL data beforehand, then run ghe-restore again, passing in the --skip-mysql flag."
+      exit 1
+    fi
+  fi
+
+  if external_database_snapshot_to_internal_database; then
+
+    # Restoring settings in this scenario would change BYODB state, which is not supported via backup-utils.
+    if $RESTORE_SETTINGS; then
+      echo "Restoring the settings of a snapshot from an appliance using an externally-managed MySQL service to an appliance using the bundled MySQL service is not supported."
+      echo "Please reconfigure the appliance first, then run ghe-restore again."
+      exit 1
+    fi
+
+    # Restoring BYODB snapshot to internal DB appliance without passing in --skip-mysql is not supported.
+    if ! $SKIP_MYSQL; then
+      echo "Restoring a snapshot from an appliance using an externally-managed MySQL service to an appliance using the bundled MySQL service is not supported."
+      echo "Please migrate the MySQL data beforehand, then run ghe-restore again, passing in the --skip-mysql flag."
+      exit 1
+    fi
+  fi
 fi

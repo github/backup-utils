@@ -18,8 +18,6 @@ if ! rsync --version 1>/dev/null 2>&1; then
   exit 1
 fi
 
-bm_start "$(basename $0)"
-
 backup_dir="$GHE_SNAPSHOT_DIR/git-hooks"
 # Location of last good backup for rsync --link-dest
 backup_current="$GHE_DATA_DIR/current/git-hooks"

@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+#/ Usage: ghe-backup-mysql <host>
+#/ Backup MySQL from a GitHub instance.
+#/
+#/ Note: This script typically isn't called directly. It's invoked by the
+#/ ghe-backup command.
+set -e
+
+# Bring in the backup configuration
+# shellcheck source=share/github-backup-utils/ghe-backup-config
+. "$( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config"
+
+bm_start "$(basename $0)"
+
+# Perform a host-check and establish the remote version in GHE_REMOTE_VERSION.
+ghe_remote_version_required "$GHE_HOSTNAME"
+
+if is_service_external 'mysql'; then
+  echo "Backing up external MySQL database using customer-provided script..."
+  if [ -n "$EXTERNAL_DATABASE_BACKUP_SCRIPT" ]; then
+    $EXTERNAL_DATABASE_BACKUP_SCRIPT
+  else
+    echo "Error: EXTERNAL_DATABASE_BACKUP_SCRIPT is not configured. Please configure in backup.config."
+    exit 1
+  fi
+  # Finsh the benchmark and exit early. If the script returns a non-zero 
+  # exit code, it will be caught by`set -e`
+  bm_end "$(basename $0)"
+  exit 0
+fi
+
+if is_binary_backup_feature_on; then
+  echo "Backing up MySQL database using binary backup strategy ..."
+else
+  echo "Backing up MySQL database using logical backup strategy ..."
+fi
+
+export_command="ghe-export-mysql"
+if ! is_binary_backup_feature_on; then
+  # binary backup is already compressed
+  export_command+=" | pigz"
+fi
+echo "set -o pipefail; $export_command" |
+ghe-ssh "$GHE_HOSTNAME" -- /bin/bash > "$GHE_SNAPSHOT_DIR/mysql.sql.gz"
+if is_binary_backup_feature_on; then
+  echo "NO_ADDITIONAL_COMPRESSION" > "$GHE_SNAPSHOT_DIR/mysql-binary-backup-sentinel"
+fi
+
+bm_end "$(basename $0)"

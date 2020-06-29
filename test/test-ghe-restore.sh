@@ -202,7 +202,7 @@ begin_test "ghe-restore with host arg and config value"
   export GHE_RESTORE_HOST
 
   # set restore host config var (which we shouldn't see)
-  GHE_BACKUP_CONFIG_TEMP="${GHE_BACKUP_CONFIG}.temp"
+  GHE_BACKUP_CONFIG_TEMP="$TRASHDIR/backup.config.temp"
   cp "$GHE_BACKUP_CONFIG" "$GHE_BACKUP_CONFIG_TEMP"
   echo 'GHE_RESTORE_HOST="broken.config.restore.host"' >> "$GHE_BACKUP_CONFIG_TEMP"
   GHE_BACKUP_CONFIG="$GHE_BACKUP_CONFIG_TEMP"

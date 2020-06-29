@@ -85,6 +85,9 @@ cleanup () {
 # shellcheck source=share/github-backup-utils/ghe-backup-config
 . "$( dirname "${BASH_SOURCE[0]}" )/../share/github-backup-utils/ghe-backup-config"
 
+# Check to make sure moreutils parallel is installed and working properly
+ghe_parallel_check
+
 # Grab the host arg
 GHE_HOSTNAME="${GHE_RESTORE_HOST_OPT:-$GHE_RESTORE_HOST}"
 
@@ -252,7 +255,24 @@ if [ -s "$GHE_RESTORE_SNAPSHOT_PATH/uuid" ] && ! $CLUSTER; then
   ghe-ssh "$GHE_HOSTNAME" -- "sudo rm -rf /data/user/consul/raft"
   fi
 
-echo "Restoring MySQL database ..."
+if is_service_external 'mysql' "$GHE_RESTORE_SNAPSHOT_PATH/settings.json"; then
+   appliance_strategy="external"
+   backup_snapshot_strategy="external"
+else 
+  if is_binary_backup_feature_on; then
+    appliance_strategy="binary"
+  else
+    appliance_strategy="logical"
+  fi
+
+  if is_binary_backup "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT"; then
+    backup_snapshot_strategy="binary"
+  else
+    backup_snapshot_strategy="logical"
+  fi
+fi
+
+echo "Restoring MySQL database from ${backup_snapshot_strategy} backup snapshot on an appliance configured for ${appliance_strategy} backups ..."
 ghe-restore-mysql "$GHE_HOSTNAME" 1>&3
 
 if ghe-ssh "$GHE_HOSTNAME" ghe-config --true "app.actions.enabled"; then
@@ -260,42 +280,38 @@ if ghe-ssh "$GHE_HOSTNAME" ghe-config --true "app.actions.enabled"; then
   ghe-restore-mssql "$GHE_HOSTNAME" 1>&3
 fi
 
-echo "Restoring Redis database ..."
-bm_start "ghe-import-redis"
-ghe-ssh "$GHE_HOSTNAME" -- 'ghe-import-redis' < "$GHE_RESTORE_SNAPSHOT_PATH/redis.rdb" 1>&3
-bm_end "ghe-import-redis"
+commands=("
+echo \"Restoring Redis database ...\"
+ghe-ssh \"$GHE_HOSTNAME\" -- 'ghe-import-redis' < \"$GHE_RESTORE_SNAPSHOT_PATH/redis.rdb\" 1>&3")
 
-# Unified and enhanced restore method to 2.13.0 and newer
-if $CLUSTER || [ "$(version $GHE_REMOTE_VERSION)" -ge "$(version 2.13.0)" ]; then
-  echo "Restoring Git repositories ..."
-  ghe-restore-repositories "$GHE_HOSTNAME"
+commands+=("
+echo \"Restoring Git repositories ...\"
+ghe-restore-repositories \"$GHE_HOSTNAME\"")
 
-  echo "Restoring Gists ..."
-  ghe-restore-repositories-gist "$GHE_HOSTNAME"
+commands+=("
+echo \"Restoring Gists ...\"
+ghe-restore-repositories-gist \"$GHE_HOSTNAME\"")
 
-  echo "Restoring GitHub Pages ..."
-  ghe-restore-pages "$GHE_HOSTNAME" 1>&3
-else
-  echo "Restoring Git repositories and Gists ..."
-  ghe-restore-repositories-rsync "$GHE_HOSTNAME" 1>&3
+commands+=("
+echo \"Restoring GitHub Pages artifacts ...\"
+ghe-restore-pages \"$GHE_HOSTNAME\" 1>&3")
 
-  echo "Restoring GitHub Pages ..."
-  ghe-restore-pages-rsync "$GHE_HOSTNAME" 1>&3
-fi
+commands+=("
+echo \"Restoring SSH authorized keys ...\"
+ghe-ssh \"$GHE_HOSTNAME\" -- 'ghe-import-authorized-keys' < \"$GHE_RESTORE_SNAPSHOT_PATH/authorized-keys.json\" 1>&3")
 
+commands+=("
+echo \"Restoring storage data ...\"
+ghe-restore-storage \"$GHE_HOSTNAME\" 1>&3")
 
-echo "Restoring SSH authorized keys ..."
-ghe-ssh "$GHE_HOSTNAME" -- 'ghe-import-authorized-keys' < "$GHE_RESTORE_SNAPSHOT_PATH/authorized-keys.json" 1>&3
-
-echo "Restoring storage data ..."
-ghe-restore-storage "$GHE_HOSTNAME" 1>&3
-
-echo "Restoring custom Git hooks ..."
-ghe-restore-git-hooks "$GHE_HOSTNAME" 1>&3
+commands+=("
+echo \"Restoring custom Git hooks ...\"
+ghe-restore-git-hooks \"$GHE_HOSTNAME\" 1>&3")
 
 if ! $CLUSTER && [ -d "$GHE_RESTORE_SNAPSHOT_PATH/elasticsearch" ]; then
-  echo "Restoring Elasticsearch indices ..."
-  ghe-restore-es-rsync "$GHE_HOSTNAME" 1>&3
+  commands+=("
+  echo \"Restoring Elasticsearch indices ...\"
+  ghe-restore-es-rsync \"$GHE_HOSTNAME\" 1>&3")
 fi
 
 # Restore the audit log migration sentinel file, if it exists in the snapshot
@@ -306,11 +322,25 @@ fi
 # Restore exported audit and hookshot logs to 2.12.9 and newer single nodes and
 # all releases of cluster
 if $CLUSTER || [ "$(version $GHE_REMOTE_VERSION)" -ge "$(version 2.12.9)" ]; then
-  echo "Restoring Audit logs ..."
-  ghe-restore-audit-log "$GHE_HOSTNAME" 1>&3
+  if [[ "$GHE_RESTORE_SKIP_AUDIT_LOGS" = "yes" ]]; then
+    echo "Skipping restore of audit logs."
+  else
+    commands+=("
+    echo \"Restoring Audit logs ...\"
+    ghe-restore-es-audit-log \"$GHE_HOSTNAME\" 1>&3")
+  fi
 
-  echo "Restoring hookshot logs ..."
-  ghe-restore-es-hookshot "$GHE_HOSTNAME" 1>&3
+  commands+=("
+  echo \"Restoring hookshot logs ...\"
+  ghe-restore-es-hookshot \"$GHE_HOSTNAME\" 1>&3")
+fi
+
+if [ "$GHE_PARALLEL_ENABLED" = "yes" ]; then
+  $GHE_PARALLEL_COMMAND $GHE_PARALLEL_COMMAND_OPTIONS -- "${commands[@]}"
+else
+  for c in "${commands[@]}"; do
+    eval "$c"
+  done
 fi
 
 # Restart an already running memcached to reset the cache after restore

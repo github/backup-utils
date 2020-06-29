@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 # ghe-backup command tests
 
+TESTS_DIR="$PWD/$(dirname "$0")"
 # Bring in testlib
 # shellcheck source=test/testlib.sh
-. "$(dirname "$0")/testlib.sh"
+. "$TESTS_DIR/testlib.sh"
 
 # Create the backup data dir and fake remote repositories dirs
 mkdir -p "$GHE_DATA_DIR" "$GHE_REMOTE_DATA_USER_DIR"
@@ -189,11 +190,7 @@ begin_test "ghe-backup with leaked SSH host key detection for current backup"
 (
   set -e
 
-  # Rename ghe-export-ssh-keys to generate a fake ssh
-  cd "$ROOTDIR/test/bin"
-  mv "ghe-export-ssh-host-keys" "ghe-export-ssh-host-keys.orig"
-  ln -s ghe-gen-fake-ssh-tar ghe-export-ssh-host-keys
-  cd -
+  export GHE_GEN_FAKE_SSH_TAR="yes"
 
   # Inject the fingerprint into the blacklist
   export FINGERPRINT_BLACKLIST="98:d8:99:d3:be:c0:55:05:db:b0:53:2f:1f:ad:b3:60"
@@ -201,8 +198,7 @@ begin_test "ghe-backup with leaked SSH host key detection for current backup"
   # Run it
   output=$(ghe-backup -v)
 
-  # Set the export ssh back
-  mv "$ROOTDIR/test/bin/ghe-export-ssh-host-keys.orig" "$ROOTDIR/test/bin/ghe-export-ssh-host-keys"
+  unset GHE_GEN_FAKE_SSH_TAR
 
   # Test the output for leaked key detection
   echo $output| grep "The current backup contains leaked SSH host keys"
@@ -398,5 +394,70 @@ begin_test "ghe-backup takes transaction backup upon expiration"
   echo $output | grep "Taking transaction backup"
   echo $output | egrep "Creating hard link to full_mssql@[0-9]{8}T[0-9]{6}\.bak"
   echo $output | egrep "Creating hard link to full_mssql@[0-9]{8}T[0-9]{6}\.log"
+)
+end_test
+
+# acceptance criteria is less then 2 seconds for 100,000 lines
+begin_test "ghe-backup fix_paths_for_ghe_version performance tests - gists"
+(
+    set -e
+    timeout 2 bash -c "
+        source '$TESTS_DIR/../share/github-backup-utils/ghe-backup-config'
+        GHE_REMOTE_VERSION=2.16.23
+        seq 1 100000 | sed -e 's/$/ gist/' | fix_paths_for_ghe_version | grep -c gist
+    "
+)
+end_test
+
+# acceptance criteria is less then 2 seconds for 100,000 lines
+begin_test "ghe-backup fix_paths_for_ghe_version performance tests - wikis"
+(
+    set -e
+    timeout 2 bash -c "
+        source '$TESTS_DIR/../share/github-backup-utils/ghe-backup-config'
+        GHE_REMOTE_VERSION=2.16.23
+        seq 1 100000 | sed -e 's/$/ wiki/' | fix_paths_for_ghe_version | grep -c '^\.$'
+    "
+)
+end_test
+
+# check fix_paths_for_ghe_version version thresholds
+begin_test "ghe-backup fix_paths_for_ghe_version newer/older"
+(
+    set -e
+
+    # modern versions keep foo/gist as foo/gist
+    for ver in 2.16.23 v2.16.23 v2.17.14 v2.18.8 v2.19.3 v2.20.0 v3.0.0; do
+        echo "## $ver, not gist"
+        [ "$(bash -c "
+            source '$TESTS_DIR/../share/github-backup-utils/ghe-backup-config'
+            GHE_REMOTE_VERSION=$ver
+            echo foo/bar | fix_paths_for_ghe_version
+        ")" == "foo" ]
+
+        echo "## $ver, gist"
+        [ "$(bash -c "
+            source '$TESTS_DIR/../share/github-backup-utils/ghe-backup-config'
+            GHE_REMOTE_VERSION=$ver
+            echo foo/gist | fix_paths_for_ghe_version
+        ")" == "foo/gist" ]
+    done
+
+    # old versions change foo/gist to foo
+    for ver in 1.0.0 bob a.b.c "" 1.2.16 2.0.0 v2.0.0 v2.15.123 v2.16.22 v2.17.13 v2.18.7 v2.19.2; do
+        echo "## $ver, not gist"
+        [ "$(bash -c "
+            source '$TESTS_DIR/../share/github-backup-utils/ghe-backup-config'
+            GHE_REMOTE_VERSION=$ver
+            echo foo/bar | fix_paths_for_ghe_version
+        ")" == "foo" ]
+
+        echo "## $ver, gist"
+        [ "$(bash -c "
+            source '$TESTS_DIR/../share/github-backup-utils/ghe-backup-config'
+            GHE_REMOTE_VERSION=$ver
+            echo foo/gist | fix_paths_for_ghe_version
+        ")" == "foo" ]
+    done
 )
 end_test

@@ -42,7 +42,7 @@ export GHE_BACKUP_CONFIG GHE_DATA_DIR GHE_REMOTE_DATA_DIR GHE_REMOTE_ROOT_DIR
 
 # The default remote appliance version. This may be set in the environment prior
 # to invoking tests to emulate a different remote vm version.
-: ${GHE_TEST_REMOTE_VERSION:=2.19.0}
+: ${GHE_TEST_REMOTE_VERSION:=2.20.0}
 export GHE_TEST_REMOTE_VERSION
 
 # Source in the backup config and set GHE_REMOTE_XXX variables based on the

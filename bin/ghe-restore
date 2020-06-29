@@ -255,8 +255,10 @@ if [ -s "$GHE_RESTORE_SNAPSHOT_PATH/uuid" ] && ! $CLUSTER; then
 echo "Restoring MySQL database ..."
 ghe-restore-mysql "$GHE_HOSTNAME" 1>&3
 
-echo "Restoring MSSQL database ..."
-ghe-restore-mssql "$GHE_HOSTNAME" 1>&3
+if ghe-ssh "$GHE_HOSTNAME" ghe-config --true "app.actions.enabled"; then
+  echo "Restoring MSSQL database ..."
+  ghe-restore-mssql "$GHE_HOSTNAME" 1>&3
+fi
 
 echo "Restoring Redis database ..."
 bm_start "ghe-import-redis"

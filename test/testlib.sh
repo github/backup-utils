@@ -298,6 +298,9 @@ setup_test_data () {
   # Break a repo to test fsck
   rm -f $repo3/objects/4b/825dc642cb6eb9a060e54bf8d69288fbee4904
 
+  # Validate enabled path in tests
+  ghe-ssh "$GHE_HOSTNAME" -- ghe-config "app.actions.enabled" true
+
   if [ "$loc" != "$GHE_REMOTE_DATA_USER_DIR" ]; then
     # create a fake backups for each datastore
     echo "fake ghe-export-mysql data" | gzip > "$loc/mysql.sql.gz"

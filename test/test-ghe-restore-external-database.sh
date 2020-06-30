@@ -106,7 +106,7 @@ end_test
 
 begin_test "ghe-restore allows restore of external DB snapshot with --skip-mysql"
 (
-  set -e 
+  set -e
   setup
 
   git config -f "$GHE_DATA_DIR/current/settings.json" mysql.external.enabled true
@@ -139,9 +139,7 @@ end_test
 
 begin_test "ghe-restore allows restore of non external DB snapshot with --skip-mysql"
 (
-  set -e 
-
-
+  set -e
   setup
 
   git config -f "$GHE_DATA_DIR/current/settings.json" mysql.external.enabled false
@@ -174,8 +172,7 @@ end_test
 
 begin_test "ghe-restore allows restore of non external DB snapshot with -c"
 (
-  set -e 
-
+  set -e
   setup
 
   git config -f "$GHE_DATA_DIR/current/settings.json" mysql.external.enabled false
@@ -205,7 +202,7 @@ end_test
 
 begin_test "ghe-restore allows restore of external DB snapshot with -c"
 (
-  set -e 
+  set -e
   setup
 
   git config -f "$GHE_DATA_DIR/current/settings.json" mysql.external.enabled true
@@ -237,7 +234,7 @@ end_test
 
 begin_test "ghe-restore prevents restore of interal DB snapshot with -c to a cluster configured without mysql-server role"
 (
-  set -e 
+  set -e
   setup
 
   git config -f "$GHE_DATA_DIR/current/settings.json" mysql.external.enabled false
@@ -254,7 +251,7 @@ begin_test "ghe-restore prevents restore of interal DB snapshot with -c to a clu
   # run ghe-restore and write output to file for asserting against
   if ! GHE_DEBUG=1 ghe-restore -v -f -c > "$TRASHDIR/restore-out" 2>&1; then
     grep -q "Error: Target environment does not have any nodes with the mysql-server role." "$TRASHDIR/restore-out"
-    
+
     exit 0
   else
     # for debugging
@@ -267,7 +264,7 @@ end_test
 
 begin_test "ghe-restore prevents restore of interal DB snapshot with -c to a cluster configured without mysql-master"
 (
-  set -e 
+  set -e
   setup
 
   git config -f "$GHE_DATA_DIR/current/settings.json" mysql.external.enabled false
@@ -285,7 +282,7 @@ begin_test "ghe-restore prevents restore of interal DB snapshot with -c to a clu
   # run ghe-restore and write output to file for asserting against
   if ! GHE_DEBUG=1 ghe-restore -v -f -c > "$TRASHDIR/restore-out"; then
     grep -q "Error: Target environment does not have mysql-master configured." "$TRASHDIR/restore-out"
-    
+
     exit 0
   else
     # for debugging
@@ -298,7 +295,7 @@ end_test
 
 begin_test "ghe-restore allow restore of interal DB snapshot with -c to a cluster configured with mysql-server role"
 (
-  set -e 
+  set -e
   setup
 
   git config -f "$GHE_DATA_DIR/current/settings.json" mysql.external.enabled false
@@ -335,7 +332,7 @@ end_test
 
 begin_test "ghe-restore prevents restore of external DB snapshot with -c to a cluster configured with mysql-server"
 (
-  set -e 
+  set -e
   setup
 
   git config -f "$GHE_DATA_DIR/current/settings.json" mysql.external.enabled true

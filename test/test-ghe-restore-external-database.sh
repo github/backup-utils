@@ -77,7 +77,7 @@ begin_test "ghe-restore -c from external DB snapshot to non-external DB applianc
   set_external_database_enabled_state_of_backup_snapshot true
   set_external_database_enabled_state_of_appliance false
 
-  if ! GHE_DEBUG=1 ghe-restore -v -f -c 2> "$TRASHDIR/restore-out"; then
+  if ! GHE_DEBUG=1 ghe-restore -v -f -c > "$TRASHDIR/restore-out" 2>&1; then
     # Verify that the restore failed due to snapshot incompatibility.
     check_restore_output_for "Restoring the settings of a snapshot from an appliance using an externally-managed MySQL service to an appliance using the bundled MySQL service is not supported."
     check_restore_output_for "Please reconfigure the appliance first, then run ghe-restore again."
@@ -97,7 +97,7 @@ begin_test "ghe-restore -c from non external DB snapshot to external DB applianc
 
   # run ghe-restore and write output to file for asserting against
   if ! GHE_DEBUG=1  ghe-restore -v -f -c > "$TRASHDIR/restore-out" 2>&1; then
-    # Verify that the restore failed due to snapshot compatability.
+    # Verify that the restore failed due to snapshot incompatibility.
     check_restore_output_for "Restoring the settings of a snapshot from an appliance using the bundled MySQL service to an appliance using an externally-managed MySQL service is not supported."
     check_restore_output_for "Please reconfigure the appliance first, then run ghe-restore again."
   else
@@ -115,7 +115,6 @@ begin_test "ghe-restore from external DB snapshot to non external DB appliance w
 
   # run ghe-restore and write output to file for asserting against
   if ! GHE_DEBUG=1  ghe-restore -v -f > "$TRASHDIR/restore-out" 2>&1; then
-    # Verify that the restore failed due to snapshot compatability.
     check_restore_output_for "Restoring a snapshot from an appliance using an externally-managed MySQL service to an appliance using the bundled MySQL service is not supported."
     check_restore_output_for "Please migrate the MySQL data beforehand, then run ghe-restore again, passing in the --skip-mysql flag."
   else
@@ -133,7 +132,6 @@ begin_test "ghe-restore from non external DB snapshot to external DB appliance w
 
   # run ghe-restore and write output to file for asserting against
   if ! GHE_DEBUG=1  ghe-restore -v -f > "$TRASHDIR/restore-out" 2>&1; then
-    # Verify that the restore failed due to snapshot compatability.
     check_restore_output_for "Restoring a snapshot from an appliance using the bundled MySQL service to an appliance using an externally-managed MySQL service is not supported."
     check_restore_output_for "Please migrate the MySQL data beforehand, then run ghe-restore again, passing in the --skip-mysql flag."
   else

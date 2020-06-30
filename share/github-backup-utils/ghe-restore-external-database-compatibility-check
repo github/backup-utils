@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Usage: ghe-restore-external-database-check
+# Usage: ghe-restore-external-database-compatibility-check
 # GitHub Enterprise checks for external-database related restores.
 
 # Bring in the backup configuration

@@ -148,6 +148,9 @@ begin_test "ghe-restore allows restore of external DB snapshot to non-external D
   set_external_database_enabled_state_of_backup_snapshot true
   set_external_database_enabled_state_of_appliance false
 
+  SKIP_MYSQL=true
+  export SKIP_MYSQL
+
   # run ghe-restore and write output to file for asserting against
   if ! GHE_DEBUG=1  ghe-restore -v -f --skip-mysql > "$TRASHDIR/restore-out" 2>&1; then
     output_debug_logs_and_fail_test
@@ -172,6 +175,9 @@ begin_test "ghe-restore allows restore of non external DB snapshot to external D
 
   set_external_database_enabled_state_of_backup_snapshot false
   set_external_database_enabled_state_of_appliance true
+
+  SKIP_MYSQL=true
+  export SKIP_MYSQL
 
   # run ghe-restore and write output to file for asserting against
   if ! GHE_DEBUG=1 ghe-restore -v -f --skip-mysql > "$TRASHDIR/restore-out" 2>&1; then

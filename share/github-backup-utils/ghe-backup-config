@@ -392,8 +392,9 @@ is_binary_backup(){
   test -f "$1/mysql-binary-backup-sentinel"
 }
 
-# Check if a given service is managed externally
+# Check if a given service is managed externally on the appliance or in a snapshot.
 # Usage: is_service_external $service [$config_file]
+# Pass in the config file to check if the service is managed externally in the snapshot.
 is_service_external(){
   service=$1
   config_file=$2
@@ -446,5 +447,5 @@ is_external_database_target(){
 }
 
 is_external_database_snapshot(){
-  is_service_external "mysql" "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/settings.json" 
+  is_service_external "mysql" "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/settings.json"
 }

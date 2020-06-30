@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#/ Usage: ghe-restore [-fchv] [--version] [-s <snapshot-id>] [<host>]
+#/ Usage: ghe-restore [-cfhv] [--version] [--skip-mysql] [-s <snapshot-id>] [<host>]
 #/
 #/ Restores a GitHub instance from local backup snapshots.
 #/
@@ -9,22 +9,24 @@
 #/ <https://enterprise.github.com/help/articles/adding-an-ssh-key-for-shell-access>
 #/
 #/ OPTIONS:
-#/   -f | --force      Don't prompt for confirmation before restoring.
-#/   --skip-mysql      Skip MySQL restore steps. Only applicable to external databases.
-#/   -c | --config     Restore appliance settings and license in addition to
-#/                     datastores. Settings are not restored by default to
-#/                     prevent overwriting different configuration on the
-#/                     restore host.
-#/   -v | --verbose    Enable verbose output.
-#/   -h | --help       Show this message.
-#/        --version    Display version information and exit.
-#/   -s <snapshot-id>  Restore from the snapshot with the given id. Available
-#/                     snapshots may be listed under the data directory.
-#/   <host>            The <host> is the hostname or IP of the GitHub Enterprise
-#/                     instance. The <host> may be omitted when the
-#/                     GHE_RESTORE_HOST config variable is set in backup.config.
-#/                     When a <host> argument is provided, it always overrides
-#/                     the configured restore host.
+#/   -c | --config       Restore appliance settings and license in addition to
+#/                       datastores. Settings are not restored by default to
+#/                       prevent overwriting different configuration on the
+#/                       restore host.
+#/   -f | --force        Don't prompt for confirmation before restoring.
+#/   -h | --help         Show this message.
+#/   -v | --verbose      Enable verbose output.
+#/        --skip-mysql   Skip MySQL restore steps. Only applicable to external databases.
+#/        --version      Display version information and exit.
+#/
+#/   -s <snapshot-id>    Restore from the snapshot with the given id. Available
+#/                       snapshots may be listed under the data directory.
+#/
+#/   <host>              The <host> is the hostname or IP of the GitHub Enterprise
+#/                       instance. The <host> may be omitted when the
+#/                       GHE_RESTORE_HOST config variable is set in backup.config.
+#/                       When a <host> argument is provided, it always overrides
+#/                       the configured restore host.
 #/
 
 set -e

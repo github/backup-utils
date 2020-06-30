@@ -25,15 +25,23 @@ function setup(){
   rm -rf "$GHE_DATA_DIR/current/settings.json"
 }
 
+# Helper function to set BYODB state of backup snapshot
+function set_external_database_enabled_state_of_backup_snapshot(){
+  git config -f "$GHE_DATA_DIR/current/settings.json" mysql.external.enabled "$1"
+}
+
+# Helper function to set BYODB state of remote host
+function set_external_database_enabled_state_of_appliance(){
+  git config -f "$GHE_REMOTE_DATA_USER_DIR/common/github.conf" mysql.external.enabled "$1"
+}
+
 begin_test "ghe-restore allows restore of external DB snapshot to external DB instance."
 (
   set -e
   setup
 
-  git config -f "$GHE_DATA_DIR/current/settings.json" mysql.external.enabled true
-
-  # Enable external database on remote host
-  git config -f "$GHE_REMOTE_DATA_USER_DIR/common/github.conf" mysql.external.enabled true
+  set_external_database_enabled_state_of_backup_snapshot true
+  set_external_database_enabled_state_of_appliance true
 
   export EXTERNAL_DATABASE_RESTORE_SCRIPT="echo 'fake ghe-export-mysql data'"
 
@@ -60,10 +68,8 @@ begin_test "ghe-restore -c from external DB snapshot to non-external DB applianc
   set -e
   setup
 
-  git config -f "$GHE_DATA_DIR/current/settings.json" mysql.external.enabled true
-
-  # Disable external database on remote host
-  git config -f "$GHE_REMOTE_DATA_USER_DIR/common/github.conf" mysql.external.enabled false
+  set_external_database_enabled_state_of_backup_snapshot true
+  set_external_database_enabled_state_of_appliance false
 
   if ! GHE_DEBUG=1 ghe-restore -v -f -c 2> "$TRASHDIR/restore-out"; then
     # Verify that the restore failed due to snapshot compatability.
@@ -85,10 +91,8 @@ begin_test "ghe-restore -c from non external DB snapshot to external DB applianc
   set -e
   setup
 
-  git config -f "$GHE_DATA_DIR/current/settings.json" mysql.external.enabled false
-
-  # Disable external database on remote host
-  git config -f "$GHE_REMOTE_DATA_USER_DIR/common/github.conf" mysql.external.enabled true
+  set_external_database_enabled_state_of_backup_snapshot false
+  set_external_database_enabled_state_of_appliance true
 
   # run ghe-restore and write output to file for asserting against
   if ! GHE_DEBUG=1  ghe-restore -v -f > "$TRASHDIR/restore-out" 2>&1; then
@@ -110,8 +114,8 @@ begin_test "ghe-restore from external DB snapshot to non external DB appliance w
   set -e
   setup
 
-  git config -f "$GHE_DATA_DIR/current/settings.json" mysql.external.enabled true
-  git config -f "$GHE_REMOTE_DATA_USER_DIR/common/github.conf" mysql.external.enabled false
+  set_external_database_enabled_state_of_backup_snapshot true
+  set_external_database_enabled_state_of_appliance false
 
   # run ghe-restore and write output to file for asserting against
   if ! GHE_DEBUG=1  ghe-restore -v -f > "$TRASHDIR/restore-out" 2>&1; then
@@ -133,8 +137,8 @@ begin_test "ghe-restore from non external DB snapshot to external DB appliance w
   set -e
   setup
 
-  git config -f "$GHE_DATA_DIR/current/settings.json" mysql.external.enabled false
-  git config -f "$GHE_REMOTE_DATA_USER_DIR/common/github.conf" mysql.external.enabled true
+  set_external_database_enabled_state_of_backup_snapshot false
+  set_external_database_enabled_state_of_appliance true
 
   # run ghe-restore and write output to file for asserting against
   if ! GHE_DEBUG=1  ghe-restore -v -f > "$TRASHDIR/restore-out" 2>&1; then
@@ -157,10 +161,8 @@ begin_test "ghe-restore allows restore of external DB snapshot to non-external D
   set -e
   setup
 
-  git config -f "$GHE_DATA_DIR/current/settings.json" mysql.external.enabled true
-
-  # Disable external database on remote host
-  git config -f "$GHE_REMOTE_DATA_USER_DIR/common/github.conf" mysql.external.enabled false
+  set_external_database_enabled_state_of_backup_snapshot true
+  set_external_database_enabled_state_of_appliance false
 
   SKIP_MYSQL=true
   export SKIP_MYSQL
@@ -190,10 +192,8 @@ begin_test "ghe-restore allows restore of non external DB snapshot to external D
   set -e
   setup
 
-  git config -f "$GHE_DATA_DIR/current/settings.json" mysql.external.enabled false
-
-  # Disable external database on remote host
-  git config -f "$GHE_REMOTE_DATA_USER_DIR/common/github.conf" mysql.external.enabled true
+  set_external_database_enabled_state_of_backup_snapshot false
+  set_external_database_enabled_state_of_appliance true
 
   SKIP_MYSQL=true
   export SKIP_MYSQL

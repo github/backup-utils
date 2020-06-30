@@ -16,7 +16,7 @@ You can supply your own configuration file or use the example configuration file
 
 An example configuration file with documentation on possible settings can found in [backup.config-example](../backup.config-example).
 
-There are a number of command line options that can also be passed to the `ghe-restore` command. Of particular note, if you use an external MySQL service but are restoring from a snapshot prior to enabling this, you must pass `--skip-mysql` to `ghe-restore`.
+There are a number of command line options that can also be passed to the `ghe-restore` command. Of particular note, if you use an external MySQL service but are restoring from a snapshot prior to enabling this, or vice versa, you must migrate the MySQL data outside of the context of backup-utils first, then pass the `--skip-mysql` flag to `ghe-restore`.
 
 ## Example backup and restore usage
 

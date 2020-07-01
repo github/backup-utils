@@ -300,7 +300,7 @@ setup_test_data () {
 
   if [ "$loc" != "$GHE_REMOTE_DATA_USER_DIR" ]; then
     # create a fake backups for each datastore
-    if ! "$SKIP_MYSQL" ; then
+    if ! $SKIP_MYSQL; then
       echo "fake ghe-export-mysql data" | gzip > "$loc/mysql.sql.gz"
     fi
     echo "fake ghe-export-redis data" > "$loc/redis.rdb"
@@ -365,7 +365,7 @@ verify_all_backedup_data() {
   [ "$(cat "$GHE_DATA_DIR/current/settings.json")" = "fake ghe-export-settings data" ]
 
   # check that mysql data was backed up
-  if ! "$SKIP_MYSQL" ; then
+  if ! $SKIP_MYSQL; then
     [ "$(gzip -dc < "$GHE_DATA_DIR/current/mysql.sql.gz")" = "fake ghe-export-mysql data" ]
   fi
 
@@ -410,7 +410,7 @@ verify_all_restored_data() {
   set -e
 
   # verify all import scripts were run
-  if ! "$SKIP_MYSQL" ; then
+  if ! $SKIP_MYSQL; then
     grep -q "fake ghe-export-mysql data" "$TRASHDIR/restore-out"
   fi
   grep -q "fake ghe-export-redis data" "$TRASHDIR/restore-out"

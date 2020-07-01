@@ -148,9 +148,6 @@ begin_test "ghe-restore allows restore of external DB snapshot to non-external D
   set_external_database_enabled_state_of_backup_snapshot true
   set_external_database_enabled_state_of_appliance false
 
-  SKIP_MYSQL=true
-  export SKIP_MYSQL
-
   # run ghe-restore and write output to file for asserting against
   if ! GHE_DEBUG=1  ghe-restore -v -f --skip-mysql > "$TRASHDIR/restore-out" 2>&1; then
     output_debug_logs_and_fail_test
@@ -164,7 +161,8 @@ begin_test "ghe-restore allows restore of external DB snapshot to non-external D
   # verify stale servers were cleared
   check_restore_output_for "ghe-cluster-cleanup-node OK"
 
-  verify_all_restored_data
+  # ghe-restore sets this when --skip-mysql is passed, but that won't propagate back to this shell and it affects what we validate
+  SKIP_MYSQL=true verify_all_restored_data
 )
 end_test
 
@@ -175,9 +173,6 @@ begin_test "ghe-restore allows restore of non external DB snapshot to external D
 
   set_external_database_enabled_state_of_backup_snapshot false
   set_external_database_enabled_state_of_appliance true
-
-  SKIP_MYSQL=true
-  export SKIP_MYSQL
 
   # run ghe-restore and write output to file for asserting against
   if ! GHE_DEBUG=1 ghe-restore -v -f --skip-mysql > "$TRASHDIR/restore-out" 2>&1; then
@@ -192,6 +187,7 @@ begin_test "ghe-restore allows restore of non external DB snapshot to external D
   # verify stale servers were cleared
   check_restore_output_for "ghe-cluster-cleanup-node OK"
 
-  verify_all_restored_data
+  # ghe-restore sets SKIP_MYSQL=true when --skip-mysql is passed, but that won't propagate back to this shell and it affects what we validate
+  SKIP_MYSQL=true verify_all_restored_data
 )
 end_test

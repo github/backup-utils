@@ -401,6 +401,18 @@ begin_test "ghe-backup takes transaction backup upon expiration"
 )
 end_test
 
+begin_test "ghe-backup takes backup of Actions files"
+(
+  set -e
+  enable_actions
+
+  output=$(ghe-backup -v)
+  echo $output | grep "Transferring Actions files"
+  
+  diff -ru "$GHE_REMOTE_DATA_USER_DIR/actions" "$GHE_DATA_DIR/current/actions"
+)
+end_test
+
 # acceptance criteria is less then 2 seconds for 100,000 lines
 begin_test "ghe-backup fix_paths_for_ghe_version performance tests - gists"
 (

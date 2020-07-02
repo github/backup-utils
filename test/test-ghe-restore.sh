@@ -306,6 +306,23 @@ begin_test "ghe-restore invokes ghe-import-mssql"
 )
 end_test
 
+begin_test "ghe-restore with Actions files"
+(
+  set -e
+  rm -rf "$GHE_REMOTE_ROOT_DIR"
+  setup_remote_metadata
+  enable_actions
+
+  setup_maintenance_mode "configured"
+
+  output=$(ghe-restore -v -f localhost 2>&1)
+
+  echo "$output" | grep -q "Transferring Actions files to"
+
+  diff -ru "$GHE_REMOTE_DATA_USER_DIR/actions" "$GHE_DATA_DIR/current/actions"
+)
+end_test
+
 begin_test "ghe-restore cluster backup to non-cluster appliance"
 (
   set -e

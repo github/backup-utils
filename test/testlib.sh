@@ -321,7 +321,14 @@ setup_test_data () {
     echo "fake mssql diff data" > "$loc/mssql/backups/mssql.diff"
     echo "fake mssql tran data" > "$loc/mssql/backups/mssql.log"
   fi
+
+  # Setup fake actions data
+  mkdir -p "$loc/actions/certificates"
+  mkdir -p "$loc/actions/states"
+  echo "fake actions certificate" > "$loc/actions/certificates/cert.cer"
+  echo "fake actions state file" > "$loc/actions/states/actions_state"
 }
+ 
 
 # A unified method to check everything backed up or restored during testing.
 # Everything tested here should pass regardless of whether we're testing a backup

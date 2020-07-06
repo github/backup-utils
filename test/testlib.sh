@@ -457,10 +457,10 @@ subtract_minute() {
   # Expect date string in the format of yyyymmddTHHMMSS
   # Here parse date differently depending on GNU Linux vs BSD MacOS
   if date -v -1d > /dev/null 2>&1; then
-    echo "$(date -v -$2M -ujf'%Y%m%dT%H%M%S' $1 +%Y%m%dT%H%M%S)"
+    date -v -"$2"M -ujf'%Y%m%dT%H%M%S' "$1" +%Y%m%dT%H%M%S
   else
     dt=$1
-    echo "$(date '+%Y%m%dT%H%M%S' -d "${dt:0:8} ${dt:9:2}:${dt:11:2}:${dt:13:2} $2 minutes ago")"
+    date '+%Y%m%dT%H%M%S' -d "${dt:0:8} ${dt:9:2}:${dt:11:2}:${dt:13:2} $2 minutes ago"
   fi
 }
 
@@ -472,12 +472,12 @@ setup_mssql_backup_file() {
   mkdir -p "$GHE_DATA_DIR/current/mssql"
 
   current_utc=$(date -u +%Y%m%dT%H%M%S)
-  fake_last_utc=$(subtract_minute $current_utc $2)
+  fake_last_utc=$(subtract_minute "$current_utc" "$2")
 
   touch "$GHE_DATA_DIR/current/mssql/$1@$fake_last_utc.$3"
 
   # Simulate ghe-export-mssql behavior
-  if [ $3 = "bak" ] || [ $3 = "diff" ]; then
+  if [ "$3" = "bak" ] || [ "$3" = "diff" ]; then
     touch "$GHE_DATA_DIR/current/mssql/$1@$fake_last_utc.log"
   fi
 }

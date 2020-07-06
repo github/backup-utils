@@ -53,6 +53,43 @@ find_timestamp() {
   echo $datetime_part
 }
 
+ensure_same_dbs() {
+  all_dbs=$(echo 'set -o pipefail; ghe-mssql-console -y -n -q "SET NOCOUNT ON; SELECT name FROM sys.databases"' | ghe-ssh "$GHE_HOSTNAME" /bin/bash)
+
+  remotes=()
+  for db in $all_dbs; do
+    if [[ ! "$db" =~ ^(master|tempdb|model|msdb)$ ]] && [[ "$db" =~ ^[a-zA-Z0-9_-]+$ ]]; then
+      remotes+=("$db")
+    fi
+  done
+
+  locals=()
+  while read -r file; do
+    filename=$(basename "$file")
+    locals+=("$filename")
+  done < <(find "$1" \( -name "*.bak" -o -name "*.diff" -o -name "*.log" \))
+
+  for remote in "${remotes[@]}"; do
+    remaining_locals=()
+    for local in "${locals[@]}"; do
+      if ! [[ "$local" == "$remote"* ]]; then
+        remaining_locals+=("$local")
+      fi
+    done
+    locals=("${remaining_locals[@]}")
+  done
+
+  if [[ "${#locals[@]}" -ne 0 ]]; then
+    ghe_verbose "Warning: Found following ${#locals[@]} backup files that can't be traced back to the specified GHES host."
+    ghe_verbose "Warning: Did you recently reconfigure the GHES host? Consider deleting these backup files if no longer needed."
+    for local in "${locals[@]}"; do
+      ghe_verbose "$local"
+    done
+
+    exit 1
+  fi
+}
+
 last_mssql=$GHE_DATA_DIR/current/mssql
 
 if [ ! -d $last_mssql ] \
@@ -61,6 +98,8 @@ if [ ! -d $last_mssql ] \
   take_full=1
   backup_command='ghe-export-mssql'
 else
+  ensure_same_dbs "$last_mssql"
+
   # Check schedule to determine backup type
   IFS=',' read -ra cadence <<< "$GHE_MSSQL_BACKUP_CADENCE"
 

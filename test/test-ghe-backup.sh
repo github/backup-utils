@@ -352,11 +352,11 @@ begin_test "ghe-backup takes full backup on first run"
   set -e
   enable_actions
 
-  rm -rf $GHE_REMOTE_DATA_USER_DIR/mssql/backups/*
-  rm -rf $GHE_DATA_DIR/current/mssql/*
+  rm -rf "$GHE_REMOTE_DATA_USER_DIR"/mssql/backups/*
+  rm -rf "$GHE_DATA_DIR"/current/mssql/*
   output=$(ghe-backup -v)
-  echo $output | grep "Taking first full backup"
-  echo $output | grep "fake ghe-export-mssql data"
+  echo "$output" | grep "Taking first full backup"
+  echo "$output" | grep "fake ghe-export-mssql data"
 )
 end_test
 
@@ -368,8 +368,8 @@ begin_test "ghe-backup takes full backup upon expiration"
   setup_mssql_backup_file "full_mssql" 11 "bak"
 
   output=$(ghe-backup -v)
-  echo $output | grep "Taking full backup"
-  ! echo $output | grep "Creating hard link to full_mssql@"
+  echo "$output" | grep "Taking full backup"
+  ! echo "$output" | grep "Creating hard link to full_mssql@"
 )
 end_test
 
@@ -381,9 +381,9 @@ begin_test "ghe-backup takes diff backup upon expiration"
   setup_mssql_backup_file "full_mssql" 7 "bak"
 
   output=$(ghe-backup -v)
-  echo $output | grep "Taking diff backup"
-  echo $output | egrep "Creating hard link to full_mssql@[0-9]{8}T[0-9]{6}\.bak"
-  ! echo $output | egrep "Creating hard link to full_mssql@[0-9]{8}T[0-9]{6}\.log"
+  echo "$output" | grep "Taking diff backup"
+  echo "$output" | egrep "Creating hard link to full_mssql@[0-9]{8}T[0-9]{6}\.bak"
+  ! echo "$output" | egrep "Creating hard link to full_mssql@[0-9]{8}T[0-9]{6}\.log"
 )
 end_test
 
@@ -395,9 +395,9 @@ begin_test "ghe-backup takes transaction backup upon expiration"
   setup_mssql_backup_file "full_mssql" 3 "bak"
 
   output=$(ghe-backup -v)
-  echo $output | grep "Taking transaction backup"
-  echo $output | egrep "Creating hard link to full_mssql@[0-9]{8}T[0-9]{6}\.bak"
-  echo $output | egrep "Creating hard link to full_mssql@[0-9]{8}T[0-9]{6}\.log"
+  echo "$output" | grep "Taking transaction backup"
+  echo "$output" | egrep "Creating hard link to full_mssql@[0-9]{8}T[0-9]{6}\.bak"
+  echo "$output" | egrep "Creating hard link to full_mssql@[0-9]{8}T[0-9]{6}\.log"
 )
 end_test
 

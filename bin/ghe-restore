@@ -175,7 +175,7 @@ if $instance_configured && ! $FORCE; then
 
   if is_external_database_snapshot && $RESTORE_SETTINGS; then
     echo
-    echo "         This operation will restore the external MySQL connection configuration,"
+    echo "WARNING: This operation will also restore the external MySQL connection configuration,"
     echo "         which may be dangerous if the GHES appliance the snapshot was taken from is still online."
     echo
   fi

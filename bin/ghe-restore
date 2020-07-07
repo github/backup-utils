@@ -172,9 +172,9 @@ if $instance_configured && ! $FORCE; then
   echo
   echo "WARNING: All data on GitHub Enterprise appliance $hostname ($GHE_REMOTE_VERSION)"
   echo "         will be overwritten with data from snapshot ${GHE_RESTORE_SNAPSHOT}."
+  echo
 
   if is_external_database_snapshot && $RESTORE_SETTINGS; then
-    echo
     echo "WARNING: This operation will also restore the external MySQL connection configuration,"
     echo "         which may be dangerous if the GHES appliance the snapshot was taken from is still online."
     echo

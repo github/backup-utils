@@ -364,6 +364,7 @@ begin_test "ghe-backup takes full backup upon expiration"
 (
   set -e
   enable_actions
+  export REMOTE_DBS="full_mssql"
 
   setup_mssql_backup_file "full_mssql" 11 "bak"
 
@@ -377,13 +378,14 @@ begin_test "ghe-backup takes diff backup upon expiration"
 (
   set -e
   enable_actions
+  export REMOTE_DBS="full_mssql"
 
   setup_mssql_backup_file "full_mssql" 7 "bak"
 
   output=$(ghe-backup -v)
   echo "$output" | grep "Taking diff backup"
-  echo "$output" | egrep "Creating hard link to full_mssql@[0-9]{8}T[0-9]{6}\.bak"
-  ! echo "$output" | egrep "Creating hard link to full_mssql@[0-9]{8}T[0-9]{6}\.log"
+  echo "$output" | grep -E "Creating hard link to full_mssql@[0-9]{8}T[0-9]{6}\.bak"
+  ! echo "$output" | grep -E "Creating hard link to full_mssql@[0-9]{8}T[0-9]{6}\.log"
 )
 end_test
 
@@ -391,13 +393,34 @@ begin_test "ghe-backup takes transaction backup upon expiration"
 (
   set -e
   enable_actions
+  export REMOTE_DBS="full_mssql"
 
   setup_mssql_backup_file "full_mssql" 3 "bak"
 
   output=$(ghe-backup -v)
   echo "$output" | grep "Taking transaction backup"
-  echo "$output" | egrep "Creating hard link to full_mssql@[0-9]{8}T[0-9]{6}\.bak"
-  echo "$output" | egrep "Creating hard link to full_mssql@[0-9]{8}T[0-9]{6}\.log"
+  echo "$output" | grep -E "Creating hard link to full_mssql@[0-9]{8}T[0-9]{6}\.bak"
+  echo "$output" | grep -E "Creating hard link to full_mssql@[0-9]{8}T[0-9]{6}\.log"
+)
+end_test
+
+begin_test "ghe-backup warns if database names mismatched"
+(
+  set -e
+  enable_actions
+
+  rm -rf "$GHE_DATA_DIR/current/mssql"
+  mkdir -p "$GHE_DATA_DIR/current/mssql"
+
+  export REMOTE_DBS="full_mssql_1 full_mssql_2 full_mssql_3"
+
+  add_mssql_backup_file "full_mssql_1" 3 "bak"
+  add_mssql_backup_file "full_mssql_4" 3 "diff"
+  add_mssql_backup_file "full_mssql_5" 3 "log"
+
+  output=$(ghe-backup -v || true)
+  ! echo "$output" | grep -E "Taking .* backup"  
+  echo "$output" | grep "Warning: Found following 2 backup files"
 )
 end_test
 

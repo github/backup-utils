@@ -471,21 +471,25 @@ subtract_minute() {
 }
 
 setup_mssql_backup_file() {
-  # $1 name: <name>@...
-  # $2 minutes ago
-  # $3 extension: bak, diff, log
   rm -rf "$GHE_DATA_DIR/current/mssql"
   mkdir -p "$GHE_DATA_DIR/current/mssql"
 
-  current_utc=$(date -u +%Y%m%dT%H%M%S)
-  fake_last_utc=$(subtract_minute "$current_utc" "$2")
-
-  touch "$GHE_DATA_DIR/current/mssql/$1@$fake_last_utc.$3"
+  add_mssql_backup_file "$@"
 
   # Simulate ghe-export-mssql behavior
   if [ "$3" = "bak" ] || [ "$3" = "diff" ]; then
     touch "$GHE_DATA_DIR/current/mssql/$1@$fake_last_utc.log"
   fi
+}
+
+add_mssql_backup_file() {
+  # $1 name: <name>@...
+  # $2 minutes ago
+  # $3 extension: bak, diff, log
+  current_utc=$(date -u +%Y%m%dT%H%M%S)
+  fake_last_utc=$(subtract_minute "$current_utc" "$2")
+
+  touch "$GHE_DATA_DIR/current/mssql/$1@$fake_last_utc.$3"
 }
 
 enable_actions() {

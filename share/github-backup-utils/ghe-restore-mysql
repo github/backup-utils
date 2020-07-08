@@ -44,10 +44,9 @@ fi
 if is_binary_backup_feature_on; then
   # Feature "mysql.backup.binary" is on, which means new backup scripts are available
   if is_binary_backup "$snapshot_dir"; then
-    ghe-restore-mysql-binary
+    ghe-restore-mysql-binary $GHE_HOSTNAME
   else
-    ghe-restore-mysql-logical
-    GHE_RESTORE_HOST=$GHE_HOSTNAME
+    ghe-restore-mysql-logical $GHE_HOSTNAME
   fi
 else
   # We do not allow to restore binary backup without "mysql.backup.binary" set
@@ -56,8 +55,7 @@ else
     exit 2
   else
     # legacy mode
-    ghe-restore-mysql-logical
-    GHE_RESTORE_HOST=$GHE_HOSTNAME
+    ghe-restore-mysql-logical $GHE_HOSTNAME
   fi
 fi
 

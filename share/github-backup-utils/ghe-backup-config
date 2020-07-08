@@ -449,3 +449,25 @@ is_external_database_target(){
 is_external_database_snapshot(){
   is_service_external "mysql" "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/settings.json"
 }
+
+prompt_for_confirmation(){
+  echo "$1"
+  printf "Type 'yes' to continue: "
+
+  while read -r response; do
+    case $response in
+      yes|Yes|YES)
+        break
+        ;;
+      '')
+        printf "Type 'yes' to continue: "
+        ;;
+      *)
+        echo "Restore aborted." 1>&2
+        exit 1
+        ;;
+    esac
+  done
+
+  echo
+}

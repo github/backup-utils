@@ -333,7 +333,7 @@ begin_test "ghe-restore with Actions settings"
   )
 
   for file in "${required_files[@]}"; do
-    echo "foo" > "$GHE_REMOTE_ROOT_DIR/$file"
+    echo "foo" > "$GHE_DATA_DIR/current/$file"
   done
 
   ghe-restore -v -f localhost

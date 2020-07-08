@@ -20,7 +20,7 @@ if is_external_database_target; then
   if [ -n "$EXTERNAL_DATABASE_BACKUP_SCRIPT" ]; then
     $EXTERNAL_DATABASE_BACKUP_SCRIPT
   else
-    if is_binary_backup_feature_on
+    if is_binary_backup_feature_on; then
       echo "Error: Binary backup is not supported with an external MySQL database. 
       Please provide a custom backup script using EXTERNAL_DATABASE_BACKUP_SCRIPT"
       exit 1

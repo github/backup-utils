@@ -451,7 +451,7 @@ begin_test "ghe-backup takes backup of Actions settings"
   )
 
   for file in "${required_files[@]}"; do
-    [ "$(cat "$file")" = "foo" ]
+    [ "$(cat "$GHE_DATA_DIR/current/$file")" = "foo" ]
   done
 )
 end_test

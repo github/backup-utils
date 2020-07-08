@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-#/ usage: ghe-backup-mysql <host>
-#/ backup mysql from a github instance.
+#/ Usage: ghe-backup-mysql <host>
+#/ Backup MySQL from a GitHub instance.
 #/
-#/ note: this script typically isn't called directly. it's invoked by the
+#/ Note: This script typically isn't called directly. It's invoked by the
 #/ ghe-backup command.
 set -e
 

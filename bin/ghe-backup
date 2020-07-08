@@ -186,7 +186,7 @@ if ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config --true app.actions.enabled'; then
   echo "Backing up MSSQL databases ..."
   ghe-backup-mssql 1>&3 || failures="$failures mssql"
 
-  echo "Backing up Actions files ..."
+  echo "Backing up Actions data ..."
   ghe-backup-actions 1>&3 || failures="$failures actions"
 fi
 

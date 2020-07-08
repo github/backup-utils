@@ -67,7 +67,7 @@ fi
 for hostname in $hostnames; do
   bm_start "$(basename $0) - $hostname"
   echo 1>&3
-  ghe_verbose "* Transferring actions files to $hostname ..."
+  ghe_verbose "* Transferring actions files from $hostname ..."
 
   # Transfer all data from the user data directory using rsync.
   ghe-rsync -avz \

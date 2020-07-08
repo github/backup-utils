@@ -279,7 +279,7 @@ if ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config --true app.actions.enabled'; then
   echo "Restoring MSSQL database ..."
   ghe-restore-mssql "$GHE_HOSTNAME" 1>&3
 
-  echo "Restoring Actions files ..."
+  echo "Restoring Actions data ..."
   ghe-restore-actions "$GHE_HOSTNAME" 1>&3
 fi
 

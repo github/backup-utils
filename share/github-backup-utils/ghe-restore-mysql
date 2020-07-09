@@ -32,6 +32,8 @@ snapshot_dir="$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT"
 if is_external_database_snapshot; then
   if [ -n "$EXTERNAL_DATABASE_RESTORE_SCRIPT" ]; then
     $EXTERNAL_DATABASE_RESTORE_SCRIPT
+    bm_end "$(basename $0)"
+    exit 0
   else
     if is_binary_backup_feature_on || is_binary_backup "$snapshot_dir"; then
       echo "Error: Restore of a binary backup to appliance with an external database configured is not supported.

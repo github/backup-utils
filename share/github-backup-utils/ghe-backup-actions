@@ -33,16 +33,16 @@ mkdir -p "$backup_dir"
 # If we have a previous increment and it is not empty, avoid transferring existing files via rsync's
 # --link-dest support. This also decreases physical space usage considerably.
 if [ -d "$GHE_DATA_DIR/current/actions" ] && [ "$(ls -A $GHE_DATA_DIR/current/actions)" ]; then
-  link_dest="--link-dest=../../current/actions"
+  link_dest="--link-dest=$GHE_DATA_DIR/current/actions"
 fi
 
-# Transfer all data from the user data directory using rsync.
-echo 1>&3
+# Transfer all Actions data from the user data directory using rsync.
 ghe_verbose "* Transferring actions files from $host ..."
 
 ghe-rsync -avz \
   -e "ghe-ssh -p $port" \
   --rsync-path='sudo -u actions rsync' \
+  --exclude "mutexes" --exclude "dumps" \
   $link_dest \
   "$host:$GHE_REMOTE_DATA_USER_DIR/actions/" \
   "$GHE_SNAPSHOT_DIR/actions" 1>&3

@@ -30,7 +30,7 @@ ghe-ssh "$host" -- "sudo cat '$GHE_REMOTE_LICENSE_FILE'" > enterprise.ghl
 backup-secret() {
   echo "* Transferring $1 ..." 1>&3
   ghe-ssh "$host" -- ghe-config "$3" > "$2+" || (
-    echo "Warning: ${1^} not set" >&2
+    echo "Warning: $1 not set" >&2
   )
   if [ -n "$(cat "$2+")" ]; then
     mv "$2+" "$2"

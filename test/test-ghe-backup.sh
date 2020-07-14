@@ -429,6 +429,10 @@ begin_test "ghe-backup takes backup of Actions settings"
   set -e
   enable_actions
 
+  # Prevent previous steps from leaking MSSQL backup files
+  rm -rf "$GHE_DATA_DIR/current/mssql"
+  mkdir -p "$GHE_DATA_DIR/current/mssql"
+
   required_secrets=(
     "secrets.actions.ConfigurationDatabaseSqlLogin"
     "secrets.actions.ConfigurationDatabaseSqlPassword"

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #/ Usage: ghe-backup-mysql-logical <host>
-#/ Backup MySQL from a GitHub instance.
+#/ Backup MySQL from a GitHub instance using logical backup strategy.
 #/
 #/ Note: This script typically isn't called directly. It's invoked by the
 #/ ghe-backup command.

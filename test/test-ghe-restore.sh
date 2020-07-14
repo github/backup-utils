@@ -306,6 +306,80 @@ begin_test "ghe-restore invokes ghe-import-mssql"
 )
 end_test
 
+begin_test "ghe-restore with Actions settings"
+(
+  set -e
+  rm -rf "$GHE_REMOTE_ROOT_DIR"
+  setup_remote_metadata
+  enable_actions
+
+  required_files=(
+    "actions-config-db-login"
+    "actions-config-db-password"
+    "actions-framework-access-token"
+    "actions-url-signing-hmac-key-primary"
+    "actions-url-signing-hmac-key-secondary"
+    "actions-oauth-s2s-signing-cert"
+    "actions-oauth-s2s-signing-key"
+    "actions-oauth-s2s-signing-cert-thumbprint"
+    "actions-primary-encryption-cert-thumbprint"
+    "actions-add-cert-thumbprint"
+    "actions-delegated-auth-cert-thumbprint"
+    "actions-runtime-service-principal-cert"
+    "actions-s2s-encryption-cert"
+    "actions-secondary-encryption-cert-thumbprint"
+    "actions-service-principal-cert"
+    "actions-sps-validation-cert-thumbprint"
+  )
+
+  for file in "${required_files[@]}"; do
+    echo "foo" > "$GHE_DATA_DIR/current/$file"
+  done
+
+  ghe-restore -v -f localhost
+
+  required_secrets=(
+    "secrets.actions.ConfigurationDatabaseSqlLogin"
+    "secrets.actions.ConfigurationDatabaseSqlPassword"
+    "secrets.actions.FrameworkAccessTokenKeySecret"
+    "secrets.actions.UrlSigningHmacKeyPrimary"
+    "secrets.actions.UrlSigningHmacKeySecondary"
+    "secrets.actions.OAuthS2SSigningCert"
+    "secrets.actions.OAuthS2SSigningKey"
+    "secrets.actions.OAuthS2SSigningCertThumbprint"
+    "secrets.actions.PrimaryEncryptionCertificateThumbprint"
+    "secrets.actions.AADCertThumbprint"
+    "secrets.actions.DelegatedAuthCertThumbprint"
+    "secrets.actions.RuntimeServicePrincipalCertificate"
+    "secrets.actions.S2SEncryptionCertificate"
+    "secrets.actions.SecondaryEncryptionCertificateThumbprint"
+    "secrets.actions.ServicePrincipalCertificate"
+    "secrets.actions.SpsValidationCertThumbprint"
+  )
+
+  for secret in "${required_secrets[@]}"; do
+    [ "$(ghe-ssh "$GHE_HOSTNAME" -- ghe-config "$secret")" = "foo" ]
+  done
+)
+end_test
+
+begin_test "ghe-restore with Actions files"
+(
+  set -e
+  rm -rf "$GHE_REMOTE_ROOT_DIR"
+  setup_remote_metadata
+  enable_actions
+
+  setup_maintenance_mode "configured"
+
+  output=$(ghe-restore -v -f localhost 2>&1)
+
+  echo "$output" | grep -q "Transferring actions files to"
+
+  diff -ru "$GHE_REMOTE_DATA_USER_DIR/actions" "$GHE_DATA_DIR/current/actions"
+)
+end_test
+
 begin_test "ghe-restore cluster backup to non-cluster appliance"
 (
   set -e

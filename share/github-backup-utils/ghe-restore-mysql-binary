@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-#/ Usage: ghe-restore-mysql-logical <host>
-#/ Restore MySQL backup to a GitHub instance.
+#/ Usage: ghe-restore-mysql-binary <host>
+#/ Restore binary MySQL backup to a GitHub instance.
 #/
 #/ Note: This script typically isn't called directly. It's invoked by the
 #/ ghe-restore command when the rsync strategy is used.

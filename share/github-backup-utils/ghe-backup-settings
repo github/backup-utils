@@ -57,7 +57,7 @@ if ghe-ssh "$host" -- ghe-config --true app.actions.enabled; then
   backup-secret "Actions OAuth S2S signing key" "actions-oauth-s2s-signing-key" "secrets.actions.OAuthS2SSigningKey"
   backup-secret "Actions OAuth S2S signing cert thumbprint" "actions-oauth-s2s-signing-cert-thumbprint" "secrets.actions.OAuthS2SSigningCertThumbprint"
   backup-secret "Actions primary encryption cert thumbprint" "actions-primary-encryption-cert-thumbprint" "secrets.actions.PrimaryEncryptionCertificateThumbprint"
-  backup-secret "Actions AAD cert thumbprint" "actions-add-cert-thumbprint" "secrets.actions.AADCertThumbprint"
+  backup-secret "Actions AAD cert thumbprint" "actions-aad-cert-thumbprint" "secrets.actions.AADCertThumbprint"
   backup-secret "Actions delegated auth cert thumbprint" "actions-delegated-auth-cert-thumbprint" "secrets.actions.DelegatedAuthCertThumbprint"
   backup-secret "Actions runtime service principal cert" "actions-runtime-service-principal-cert" "secrets.actions.RuntimeServicePrincipalCertificate"
   backup-secret "Actions S2S encryption cert" "actions-s2s-encryption-cert" "secrets.actions.S2SEncryptionCertificate"

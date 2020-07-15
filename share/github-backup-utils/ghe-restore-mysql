@@ -41,12 +41,11 @@ if is_external_database_snapshot; then
         echo "Please provide a custom external database restore script with EXTERNAL_DATABASE_RESTORE_SCRIPT"
         exit 1
       else
-        echo "Error: Binary backups are configured on the target environment."
+        echo "Warning: Binary backups are configured on the target environment."
         echo "Binary backups are not supported with an external database configured."
         echo 
         echo "Please disable binary backups with 'ghe-config mysql.backup.binary false', or"
         echo "provide a custom restore script using EXTERNAL_DATABASE_BACKUP_SCRIPT"
-        exit 1
       fi
     fi
   fi

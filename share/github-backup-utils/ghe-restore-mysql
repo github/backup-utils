@@ -35,10 +35,19 @@ if is_external_database_snapshot; then
     bm_end "$(basename $0)"
     exit 0
   else
-    if is_binary_backup_feature_on || is_binary_backup "$snapshot_dir"; then
-      echo "Error: Restore of a binary backup to appliance with an external database configured is not supported.
-      Please provide a custom external database restore script with EXTERNAL_DATABASE_RESTORE_SCRIPT"
-      exit 1
+    if is_binary_backup_feature_on; then
+      if is_binary_backup "$snapshot_dir"; then
+        echo "Error: Restore of a binary backup to appliance with an external database configured is not supported."
+        echo "Please provide a custom external database restore script with EXTERNAL_DATABASE_RESTORE_SCRIPT"
+        exit 1
+      else
+        echo "Warning: Binary backups are configured on the target environment."
+        echo "Binary backups are not supported with an external database configured."
+        echo 
+        echo "Please disable binary backups with 'ghe-config mysql.backup.binary false', or"
+        echo "provide a custom restore script using EXTERNAL_DATABASE_BACKUP_SCRIPT"
+        exit 1
+      fi
     fi
   fi
 fi
@@ -55,6 +64,8 @@ else
   if is_binary_backup "$snapshot_dir"; then
     echo "To restore from a binary backup, you have to set ghe-config \"mysql.backup.binary\" to true" >&2
     exit 2
+  else if is_external_database_snapshot; then
+    ghe-restore-mysql-logical $GHE_HOSTNAME
   else
     # legacy mode
     ghe-restore-mysql-legacy $GHE_HOSTNAME

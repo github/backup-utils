@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #/ Usage: ghe-backup-mysql-logical <host>
-#/ Backup MySQL from a GitHub instance.
+#/ Backup MySQL from a GitHub instance using logical backup strategy.
 #/
 #/ Note: This script typically isn't called directly. It's invoked by the
 #/ ghe-backup command.
@@ -16,7 +16,6 @@ bm_start "$(basename $0)"
 ghe_remote_version_required "$GHE_HOSTNAME"
 
 echo "Backing up MySQL database using logical backup strategy ..."
-
 
 echo "set -o pipefail; ghe-export-mysql | pigz" |
 ghe-ssh "$GHE_HOSTNAME" -- /bin/bash > "$GHE_SNAPSHOT_DIR/mysql.sql.gz"

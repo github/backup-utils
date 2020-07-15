@@ -23,10 +23,11 @@ if is_external_database_target; then
     exit 0
   else
     if is_binary_backup_feature_on; then
-      echo "Warning: Binary backup is not supported with an external MySQL database. Backing up using Logical backup strategy.
-
-         Please disable binary backups with `ghe-config mysql.backup.binary false`, or
-         provide a custom backup script using EXTERNAL_DATABASE_BACKUP_SCRIPT"
+      echo "Warning: Binary backups are configured on the target environment."
+      echo "Binary backup is not supported with an external MySQL database. Backing up using logical backup strategy."
+      echo 
+      echo "Please disable binary backups with 'ghe-config mysql.backup.binary false', or"
+      echo "provide a custom backup script using EXTERNAL_DATABASE_BACKUP_SCRIPT"
     fi
 
     ghe-backup-mysql-logical

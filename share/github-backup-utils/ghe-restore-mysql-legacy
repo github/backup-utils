@@ -4,6 +4,9 @@
 #/
 #/ Note: This script typically isn't called directly. It's invoked by the
 #/ ghe-restore command when the rsync strategy is used.
+
+# Note: Remove this file after 2.22 releases.
+
 set -e
 
 # Bring in the backup configuration

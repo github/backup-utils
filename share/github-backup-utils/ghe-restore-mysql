@@ -64,11 +64,13 @@ else
   if is_binary_backup "$snapshot_dir"; then
     echo "To restore from a binary backup, you have to set ghe-config \"mysql.backup.binary\" to true" >&2
     exit 2
-  else if is_external_database_snapshot; then
-    ghe-restore-mysql-logical $GHE_HOSTNAME
   else
-    # legacy mode
-    ghe-restore-mysql-legacy $GHE_HOSTNAME
+    if is_external_database_snapshot; then
+      ghe-restore-mysql-logical $GHE_HOSTNAME
+    else
+      # legacy mode
+      ghe-restore-mysql-legacy $GHE_HOSTNAME
+    fi
   fi
 fi
 

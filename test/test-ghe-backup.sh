@@ -343,6 +343,7 @@ end_test
 
 GHE_MSSQL_BACKUP_CADENCE=10,5,1
 export GHE_MSSQL_BACKUP_CADENCE
+setup_actions_test_data $GHE_REMOTE_DATA_USER_DIR
 
 begin_test "ghe-backup takes full backup on first run"
 (

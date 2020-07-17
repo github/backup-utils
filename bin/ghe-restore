@@ -226,6 +226,14 @@ if $instance_configured; then
   fi
 fi
 
+# Make sure the GitHub appliance has Actions enabled if the snapshot contains Actions data.
+if [ -d "$GHE_RESTORE_SNAPSHOT_PATH/mssql" ] || [ -d "$GHE_RESTORE_SNAPSHOT_PATH/actions" ]; then
+  if ! ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config --true app.actions.enabled'; then
+    echo "Error: $GHE_HOSTNAME must have GitHub Actions enabled before restoring since the snapshot contains Actions data. Aborting." 1>&2
+    exit 1
+  fi
+fi
+
 # Create benchmark file
 bm_init > /dev/null
 

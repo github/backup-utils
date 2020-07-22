@@ -303,10 +303,6 @@ setup_test_data () {
     if ! $SKIP_MYSQL; then
       echo "fake ghe-export-mysql data" | gzip > "$loc/mysql.sql.gz"
     fi
-    mkdir -p "$loc/mssql"
-    echo "fake ghe-export-mssql full data" > "$loc/mssql/mssql.bak"
-    echo "fake ghe-export-mssql diff data" > "$loc/mssql/mssql.diff"
-    echo "fake ghe-export-mssql tran data" > "$loc/mssql/mssql.log"
     echo "fake ghe-export-redis data" > "$loc/redis.rdb"
     echo "fake ghe-export-authorized-keys data" > "$loc/authorized-keys.json"
     echo "fake ghe-export-ssh-host-keys data" > "$TRASHDIR/ssh-host-keys"
@@ -317,6 +313,17 @@ setup_test_data () {
     echo "fake password hash data" > "$loc/manage-password"
     echo "rsync" > "$loc/strategy"
     echo "$GHE_REMOTE_VERSION" >  "$loc/version"
+  fi
+}
+
+setup_actions_test_data() {
+  local loc=$1
+
+  if [ "$loc" != "$GHE_REMOTE_DATA_USER_DIR" ]; then
+    mkdir -p "$loc/mssql"
+    echo "fake ghe-export-mssql full data" > "$loc/mssql/mssql.bak"
+    echo "fake ghe-export-mssql diff data" > "$loc/mssql/mssql.diff"
+    echo "fake ghe-export-mssql tran data" > "$loc/mssql/mssql.log"
   else
     mkdir -p "$loc/mssql/backups"
     echo "fake mssql full data" > "$loc/mssql/backups/mssql.bak"
@@ -324,11 +331,18 @@ setup_test_data () {
     echo "fake mssql tran data" > "$loc/mssql/backups/mssql.log"
   fi
 
-  # Setup fake actions data
+  # Setup fake Actions data
   mkdir -p "$loc/actions/certificates"
   mkdir -p "$loc/actions/states"
   echo "fake actions certificate" > "$loc/actions/certificates/cert.cer"
   echo "fake actions state file" > "$loc/actions/states/actions_state"
+}
+
+cleanup_actions_test_data() {
+  local loc=$1
+
+  rm -rf "$loc/mssql"
+  rm -rf "$loc/actions"
 }
 
 # A unified method to check everything backed up or restored during testing.

@@ -280,6 +280,9 @@ begin_test "ghe-restore with no pages backup"
 )
 end_test
 
+# Setup Actions data for the subsequent tests
+setup_actions_test_data "$GHE_DATA_DIR/1"
+
 begin_test "ghe-restore invokes ghe-import-mssql"
 (
   set -e
@@ -363,7 +366,7 @@ begin_test "ghe-restore with Actions settings"
 )
 end_test
 
-begin_test "ghe-restore with Actions files"
+begin_test "ghe-restore with Actions data"
 (
   set -e
   rm -rf "$GHE_REMOTE_ROOT_DIR"
@@ -379,6 +382,21 @@ begin_test "ghe-restore with Actions files"
   diff -ru "$GHE_REMOTE_DATA_USER_DIR/actions" "$GHE_DATA_DIR/current/actions"
 )
 end_test
+
+begin_test "ghe-restore fails if Actions is disabled but the snapshot contains Actions data"
+(
+  set -e
+  rm -rf "$GHE_REMOTE_ROOT_DIR"
+  setup_remote_metadata
+
+  setup_maintenance_mode "configured"
+
+  ! ghe-restore -v -f localhost
+)
+end_test
+
+# Delete Actions test data before subsequent tests
+cleanup_actions_test_data "$GHE_DATA_DIR/1"
 
 begin_test "ghe-restore cluster backup to non-cluster appliance"
 (

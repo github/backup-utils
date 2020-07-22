@@ -395,7 +395,7 @@ begin_test "ghe-restore fails if Actions is disabled but the snapshot contains A
 )
 end_test
 
-# Delete Actions test data from subsequent tests
+# Delete Actions test data before subsequent tests
 cleanup_actions_test_data "$GHE_DATA_DIR/1"
 
 begin_test "ghe-restore cluster backup to non-cluster appliance"

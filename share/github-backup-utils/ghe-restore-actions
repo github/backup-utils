@@ -37,8 +37,8 @@ ghe_remote_version_required "$host"
 # Transfer all Actions data from the snapshot to the user data directory using rsync.
 ghe_verbose "* Transferring actions files to $host ..."
 
-echo "sudo mkdir -p $GHE_REMOTE_DATA_USER_DIR/actions && sudo chown -R actions:actions $GHE_REMOTE_DATA_USER_DIR/actions" |
-ghe-ssh -p $port $host /bin/bash
+ghe-ssh -p $port $host -- sudo mkdir -p $GHE_REMOTE_DATA_USER_DIR/actions
+ghe-ssh -p $port $host -- sudo chown -R actions:actions $GHE_REMOTE_DATA_USER_DIR/actions
 
 ghe-rsync -arvHR --delete \
   -e "ghe-ssh -p $port" \

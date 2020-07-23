@@ -490,7 +490,7 @@ begin_test "ghe-backup takes backup of Actions files"
   enable_actions
 
   output=$(ghe-backup -v)
-  echo $output | grep "Transferring actions files from"
+  echo $output | grep "Transferring Actions files from"
   
   diff -ru "$GHE_REMOTE_DATA_USER_DIR/actions" "$GHE_DATA_DIR/current/actions"
 )

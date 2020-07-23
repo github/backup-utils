@@ -37,7 +37,7 @@ if [ -d "$GHE_DATA_DIR/current/actions" ] && [ "$(ls -A $GHE_DATA_DIR/current/ac
 fi
 
 # Transfer all Actions data from the user data directory using rsync.
-ghe_verbose "* Transferring actions files from $host ..."
+ghe_verbose "* Transferring Actions files from $host ..."
 
 ghe-rsync -avz \
   -e "ghe-ssh -p $port" \

@@ -69,4 +69,11 @@ restore-secret "Actions secondary encryption cert thumbprint" "actions-secondary
 restore-secret "Actions service principal cert" "actions-service-principal-cert" "secrets.actions.ServicePrincipalCertificate"
 restore-secret "Actions SPS validation cert thumbprint" "actions-sps-validation-cert-thumbprint" "secrets.actions.SpsValidationCertThumbprint"
 
+# Setup the database logins.
+ghe_verbose "* Restoring database logins and users to $host ..."
+
+ghe-ssh -p "$port" "$host" -- ghe-actions-console -s mps -c "Repair-DatabaseLogins"
+ghe-ssh -p "$port" "$host" -- ghe-actions-console -s token -c "Repair-DatabaseLogins"
+ghe-ssh -p "$port" "$host" -- ghe-actions-console -s actions -c "Repair-DatabaseLogins"
+
 bm_end "$(basename $0)"

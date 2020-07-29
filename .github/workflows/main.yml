@@ -17,7 +17,7 @@ jobs:
         sudo apt-get update -y
         sudo apt-get purge parallel
         sudo apt-get install -y devscripts debhelper moreutils fakeroot jq pigz
-        wget "https://storage.googleapis.com/shellcheck/shellcheck-v0.7.0.linux.x86_64.tar.xz"
+        wget "https://github.com/koalaman/shellcheck/releases/download/v0.7.0/shellcheck-v0.7.0.linux.x86_64.tar.xz"
         tar --xz -xvf "shellcheck-v0.7.0.linux.x86_64.tar.xz"
         sudo cp shellcheck-v0.7.0/shellcheck /usr/bin/shellcheck
       if: matrix.os == 'ubuntu-latest'

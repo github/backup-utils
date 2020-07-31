@@ -69,6 +69,23 @@ restore-secret "Actions secondary encryption cert thumbprint" "actions-secondary
 restore-secret "Actions service principal cert" "actions-service-principal-cert" "secrets.actions.ServicePrincipalCertificate"
 restore-secret "Actions SPS validation cert thumbprint" "actions-sps-validation-cert-thumbprint" "secrets.actions.SpsValidationCertThumbprint"
 
+restore-secret "Actions Launch secrets encryption/decryption" "actions-launch-secrets-private-key" "secrets.launch.actions-secrets-private-key"
+restore-secret "Actions Launch credz HMAC key" "actions-launch-credz-hmac" "secrets.launch.credz-hmac-secret"
+restore-secret "Actions Launch deployer HMAC key" "actions-launch-deployer-hmac" "secrets.launch.deployer-hmac-secret"
+restore-secret "Actions Launch Client id" "actions-launch-client-id" "secrets.launch.client-id"
+restore-secret "Actions Launch Client secret" "actions-launch-client-secret" "secrets.launch.client-secret"
+restore-secret "Actions Launch receiver webhook secret" "actions-launch-receiver-webhook-secret" "secrets.launch.receiver-webhook-secret"
+restore-secret "Actions Launch app private key" "actions-launch-app-private-key" "secrets.launch.app-private-key"
+restore-secret "Actions Launch app public key" "actions-launch-app-public-key" "secrets.launch.app-public-key"
+restore-secret "Actions Launch app id" "actions-launch-app-id" "secrets.launch.app-id"
+restore-secret "Actions Launch app relay id" "actions-launch-app-relay-id" "secrets.launch.app-relay-id"
+restore-secret "Actions Launch action runner secret" "actions-launch-action-runner-secret" "secrets.launch.action-runner-secret"
+restore-secret "Actions Launch service cert" "actions-launch-azp-app-cert" "secrets.launch.azp-app-cert"
+restore-secret "Actions Launch service private key" "actions-launch-app-app-private-key" "secrets.launch.azp-app-private-key"
+
+restore-secret "Actions Launch token oauth key" "actions-oauth-s2s-signing-key" "secrets.launch.token-oauth-key"
+restore-secret "Actions Launch token oauth cert" "actions-oauth-s2s-signing-cert" "secrets.launch.token-oauth-cert"
+
 # Setup the database logins.
 ghe_verbose "* Restoring database logins and users to $host ..."
 

@@ -333,6 +333,20 @@ begin_test "ghe-restore with Actions settings"
     "actions-secondary-encryption-cert-thumbprint"
     "actions-service-principal-cert"
     "actions-sps-validation-cert-thumbprint"
+
+    "actions-launch-secrets-private-key"
+    "actions-launch-credz-hmac"
+    "actions-launch-deployer-hmac"
+    "actions-launch-client-id"
+    "actions-launch-client-secret"
+    "actions-launch-receiver-webhook-secret"
+    "actions-launch-app-private-key"
+    "actions-launch-app-public-key"
+    "actions-launch-app-id"
+    "actions-launch-app-relay-id"
+    "actions-launch-action-runner-secret"
+    "actions-launch-azp-app-cert"
+    "actions-launch-app-app-private-key"
   )
 
   for file in "${required_files[@]}"; do
@@ -358,6 +372,22 @@ begin_test "ghe-restore with Actions settings"
     "secrets.actions.SecondaryEncryptionCertificateThumbprint"
     "secrets.actions.ServicePrincipalCertificate"
     "secrets.actions.SpsValidationCertThumbprint"
+
+    "secrets.launch.actions-secrets-private-key"
+    "secrets.launch.credz-hmac-secret"
+    "secrets.launch.deployer-hmac-secret"
+    "secrets.launch.client-id"
+    "secrets.launch.client-secret"
+    "secrets.launch.receiver-webhook-secret"
+    "secrets.launch.app-private-key"
+    "secrets.launch.app-public-key"
+    "secrets.launch.app-id"
+    "secrets.launch.app-relay-id"
+    "secrets.launch.action-runner-secret"
+    "secrets.launch.token-oauth-key"
+    "secrets.launch.token-oauth-cert"
+    "secrets.launch.azp-app-cert"
+    "secrets.launch.azp-app-private-key"
   )
 
   for secret in "${required_secrets[@]}"; do

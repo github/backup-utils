@@ -64,6 +64,20 @@ if ghe-ssh "$host" -- ghe-config --true app.actions.enabled; then
   backup-secret "Actions secondary encryption cert thumbprint" "actions-secondary-encryption-cert-thumbprint" "secrets.actions.SecondaryEncryptionCertificateThumbprint"
   backup-secret "Actions service principal cert" "actions-service-principal-cert" "secrets.actions.ServicePrincipalCertificate"
   backup-secret "Actions SPS validation cert thumbprint" "actions-sps-validation-cert-thumbprint" "secrets.actions.SpsValidationCertThumbprint"
+
+  backup-secret "Actions Launch secrets encryption/decryption" "actions-launch-secrets-private-key" "secrets.launch.actions-secrets-private-key"
+  backup-secret "Actions Launch credz HMAC key" "actions-launch-credz-hmac" "secrets.launch.credz-hmac-secret"
+  backup-secret "Actions Launch deployer HMAC key" "actions-launch-deployer-hmac" "secrets.launch.deployer-hmac-secret"
+  backup-secret "Actions Launch Client id" "actions-launch-client-id" "secrets.launch.client-id"
+  backup-secret "Actions Launch Client secret" "actions-launch-client-secret" "secrets.launch.client-secret"
+  backup-secret "Actions Launch receiver webhook secret" "actions-launch-receiver-webhook-secret" "secrets.launch.receiver-webhook-secret"
+  backup-secret "Actions Launch app private key" "actions-launch-app-private-key" "secrets.launch.app-private-key"
+  backup-secret "Actions Launch app public key" "actions-launch-app-public-key" "secrets.launch.app-public-key"
+  backup-secret "Actions Launch app id" "actions-launch-app-id" "secrets.launch.app-id"
+  backup-secret "Actions Launch app relay id" "actions-launch-app-relay-id" "secrets.launch.app-relay-id"
+  backup-secret "Actions Launch action runner secret" "actions-launch-action-runner-secret" "secrets.launch.action-runner-secret"
+  backup-secret "Actions Launch service cert" "actions-launch-azp-app-cert" "secrets.launch.azp-app-cert"
+  backup-secret "Actions Launch service private key" "actions-launch-app-app-private-key" "secrets.launch.azp-app-private-key"
 fi
 
 if ghe-ssh "$host" -- "test -f $GHE_REMOTE_DATA_USER_DIR/common/idp.crt"; then

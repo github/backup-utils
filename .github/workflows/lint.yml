@@ -1,7 +1,7 @@
 name: Lint Code Base
 
 on:
-  pull_reqeust:
+  pull_request:
     branches-ignore:
       - 'master'
 

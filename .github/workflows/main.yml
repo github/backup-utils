@@ -1,8 +1,6 @@
 name: Test and build
 
-on: [push]
-
-# test commit
+on: [push, pull_request]
 
 jobs:
   build:

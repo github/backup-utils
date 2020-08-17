@@ -33,7 +33,7 @@ if is_external_database_snapshot; then
   if [ -n "$EXTERNAL_DATABASE_RESTORE_SCRIPT" ]; then
     $EXTERNAL_DATABASE_RESTORE_SCRIPT
     # ensure that haproxy and mysql are accepting connections before continuining
-    if ! ghe-ssh "$GHE_HOSTNAME" -- /usr/local/share/enterprise/ghe-service-wait-mysql; then
+    if ! ghe-ssh "$GHE_HOSTNAME" -- "/usr/local/share/enterprise/ghe-service-wait-mysql"; then
       error_message "Failed to connect to MySQL service!"
       exit 2
     fi

@@ -15,10 +15,10 @@
 #
 set +o posix
 # Assume this script lives in share/github-backup-utils/ when setting the root
-GHE_BACKUP_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/../.." && pwd )"
+GHE_BACKUP_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
 # Get the version from the version file.
-BACKUP_UTILS_VERSION="$(cat $GHE_BACKUP_ROOT/share/github-backup-utils/version)"
+BACKUP_UTILS_VERSION="$(cat "$GHE_BACKUP_ROOT/share/github-backup-utils/version")"
 
 # If a version check was requested, show the current version and exit
 if [ -n "$GHE_SHOW_VERSION" ]; then
@@ -28,9 +28,9 @@ fi
 
 # Check for "--help|-h" in args or GHE_SHOW_HELP=true and show usage
 # shellcheck disable=SC2120 # the script name is always referenced
-print_usage () {
+print_usage() {
   grep '^#/' <"$0" | cut -c 4-
-  exit ${1:-1}
+  exit "${1:-1}"
 }
 
 if [ -n "$GHE_SHOW_HELP" ]; then
@@ -46,7 +46,7 @@ fi
 # Add the bin and share/github-backup-utils dirs to PATH
 PATH="$GHE_BACKUP_ROOT/bin:$GHE_BACKUP_ROOT/share/github-backup-utils:$PATH"
 # shellcheck source=share/github-backup-utils/bm.sh
-. $GHE_BACKUP_ROOT/share/github-backup-utils/bm.sh
+. "$GHE_BACKUP_ROOT/share/github-backup-utils/bm.sh"
 
 # Save off GHE_HOSTNAME from the environment since we want it to override the
 # backup.config value when set.
@@ -87,7 +87,7 @@ ghe_parallel_check() {
     GHE_PARALLEL_COMMAND_OPTIONS="-j $GHE_PARALLEL_MAX_JOBS"
     # Default to the number of max rsync jobs to the same as GHE_PARALLEL_MAX_JOBS, if not set.
     # This is only applicable to ghe-restore-repositories currently.
-    : ${GHE_PARALLEL_RSYNC_MAX_JOBS:="$GHE_PARALLEL_MAX_JOBS"}
+    : "${GHE_PARALLEL_RSYNC_MAX_JOBS:="$GHE_PARALLEL_MAX_JOBS"}"
   fi
 
   if [ -n "$GHE_PARALLEL_RSYNC_MAX_JOBS" ]; then
@@ -115,14 +115,14 @@ fi
 if [ -n "$GHE_VERBOSE" ]; then
   if [ -n "$GHE_VERBOSE_LOG" ]; then
     if [ "$GHE_PARALLEL_ENABLED" != "yes" ]; then
-      exec 3>> "$GHE_VERBOSE_LOG"
+      exec 3>>"$GHE_VERBOSE_LOG"
     else
       if ! echo | awk '{ print strftime("%b %d %H:%M:%S"); fflush(); }' &>/dev/null; then
         echo "Error: awk command failed. Please install https://www.gnu.org/software/gawk" 1>&2
         exit 1
       fi
       calling_script_name="$(caller | sed 's:.*/::')"
-      exec 3> >(awk -v c=$calling_script_name '{ print strftime("%b %d %H:%M:%S"), c":", $0; fflush(); }' >> "$GHE_VERBOSE_LOG")
+      exec 3> >(awk -v c="$calling_script_name" '{ print strftime("%b %d %H:%M:%S"), c":", $0; fflush(); }' >>"$GHE_VERBOSE_LOG")
     fi
   else
     exec 3>&1
@@ -149,12 +149,12 @@ fi
 # Convert the data directory path to an absolute path, basing any relative
 # paths on the backup-utils root, and using readlink, if available, to
 # canonicalize the path.
-if [ ${GHE_DATA_DIR:0:1} != "/" ]; then
-  GHE_DATA_DIR="$( cd "$GHE_BACKUP_ROOT" && readlink -m "$GHE_DATA_DIR" 2> /dev/null || echo "$GHE_BACKUP_ROOT/$GHE_DATA_DIR" )"
+if [ "${GHE_DATA_DIR:0:1}" != "/" ]; then
+  GHE_DATA_DIR="$(cd "$GHE_BACKUP_ROOT" && readlink -m "$GHE_DATA_DIR" 2>/dev/null || echo "$GHE_BACKUP_ROOT/$GHE_DATA_DIR")"
 fi
 
 # Assign the Release File path if it hasn't been provided (eg: by test suite)
-: ${GHE_RELEASE_FILE:="/etc/github/enterprise-release"}
+: "${GHE_RELEASE_FILE:="/etc/github/enterprise-release"}"
 
 # Check that utils are not being run directly on GHE appliance.
 if [ -f "$GHE_RELEASE_FILE" ]; then
@@ -238,7 +238,7 @@ export GHE_SNAPSHOT_DIR
 # Adjusts remote paths based on the version of the remote appliance. This is
 # called immediately after the remote version is obtained by
 # ghe_remote_version_required(). Child processes inherit the values set here.
-ghe_remote_version_config () {
+ghe_remote_version_config() {
   GHE_REMOTE_DATA_USER_DIR="$GHE_REMOTE_DATA_DIR/user"
   export GHE_REMOTE_DATA_DIR GHE_REMOTE_DATA_USER_DIR
   export GHE_REMOTE_LICENSE_FILE
@@ -249,7 +249,7 @@ ghe_remote_version_config () {
 
 # If we don't have a readlink command, parse ls -l output.
 if ! type readlink 1>/dev/null 2>&1; then
-  readlink () {
+  readlink() {
     if [ -x "$1" ]; then
       ls -ld "$1" | sed 's/.*-> //'
     else
@@ -264,7 +264,7 @@ fi
 # that need the remote version should use this function instead of calling
 # ghe-host-check directly to reduce ssh roundtrips. The top-level ghe-backup and
 # ghe-restore commands establish the version for all subcommands.
-ghe_remote_version_required () {
+ghe_remote_version_required() {
   if [ -z "$GHE_REMOTE_VERSION" ]; then
     _out=$(ghe-host-check "$@")
     echo "$_out"
@@ -287,8 +287,8 @@ ghe_remote_version_required () {
 ghe_parse_version() {
   local version_major version_minor version_patch
   version_major=$(echo "${1#v}" | cut -f 1 -d .)
-  version_minor=$(echo "$1"     | cut -f 2 -d .)
-  version_patch=$(echo "$1"     | cut -f 3 -d .)
+  version_minor=$(echo "$1" | cut -f 2 -d .)
+  version_patch=$(echo "$1" | cut -f 3 -d .)
   version_patch=${version_patch%%[a-zA-Z]*}
 
   echo "$version_major $version_minor $version_patch"
@@ -300,7 +300,7 @@ ghe_parse_version() {
 #
 # Scripts use these variables to alter behavior based on what's supported on the
 # appliance version.
-ghe_parse_remote_version () {
+ghe_parse_remote_version() {
   # shellcheck disable=SC2046 # Word splitting is required to populate the variables
   read -r GHE_VERSION_MAJOR GHE_VERSION_MINOR GHE_VERSION_PATCH <<<$(ghe_parse_version $1)
   export GHE_VERSION_MAJOR GHE_VERSION_MINOR GHE_VERSION_PATCH
@@ -309,23 +309,23 @@ ghe_parse_remote_version () {
 # Parses the <host> part out of a "<host>:<port>" or just "<host>" string.
 # This is used primarily to break hostspecs with non-standard ports down for
 # rsync commands.
-ssh_host_part () {
+ssh_host_part() {
   [ "${1##*:}" = "$1" ] && echo "$1" || echo "${1%:*}"
 }
 
 # Parses the <port> part out of a "<host>:<port>" or just "<host>" string.
 # This is used primarily to break hostspecs with non-standard ports down for
 # rsync commands.
-ssh_port_part () {
+ssh_port_part() {
   [ "${1##*:}" = "$1" ] && echo 22 || echo "${1##*:}"
 }
 
 # Usage: ghe_remote_logger <message>...
 # Log a message to /var/log/syslog on the remote instance.
 # Note: Use sparingly. Remote logging requires an ssh connection per invocation.
-ghe_remote_logger () {
+ghe_remote_logger() {
   echo "$@" |
-  ghe-ssh "$GHE_HOSTNAME" -- logger -t backup-utils || true
+    ghe-ssh "$GHE_HOSTNAME" -- logger -t backup-utils || true
 }
 
 # Usage: ghe_verbose <message>
@@ -345,15 +345,14 @@ ghe_debug() {
     echo -e "Debug: $*" 1>&3
   elif [ -p /dev/stdin ]; then
     echo "\n" 1>&3
-    while read line
-    do
+    while read line; do
       echo -e "Debug: $line" 1>&3
-    done < /dev/stdin
+    done </dev/stdin
   fi
 }
 
 version() {
-  echo "${@#v}" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }';
+  echo "${@#v}" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }'
 }
 
 # The list of gists returned by the source changed in 2.16.23, 2.17.14,
@@ -362,10 +361,10 @@ version() {
 # In newer versions, gist paths are unmodified, and only other repo types
 # are truncated with `dirname`.
 fix_paths_for_ghe_version() {
-  if [[ "$GHE_REMOTE_VERSION" =~ 2.16. && "$(version $GHE_REMOTE_VERSION)" -ge "$(version 2.16.23)" ]] || \
-     [[ "$GHE_REMOTE_VERSION" =~ 2.17. && "$(version $GHE_REMOTE_VERSION)" -ge "$(version 2.17.14)" ]] || \
-     [[ "$GHE_REMOTE_VERSION" =~ 2.18. && "$(version $GHE_REMOTE_VERSION)" -ge "$(version 2.18.8)" ]] || \
-     [[ "$(version $GHE_REMOTE_VERSION)" -ge "$(version 2.19.3)" ]]; then
+  if [[ "$GHE_REMOTE_VERSION" =~ 2.16. && "$(version $GHE_REMOTE_VERSION)" -ge "$(version 2.16.23)" ]] ||
+    [[ "$GHE_REMOTE_VERSION" =~ 2.17. && "$(version $GHE_REMOTE_VERSION)" -ge "$(version 2.17.14)" ]] ||
+    [[ "$GHE_REMOTE_VERSION" =~ 2.18. && "$(version $GHE_REMOTE_VERSION)" -ge "$(version 2.18.8)" ]] ||
+    [[ "$(version $GHE_REMOTE_VERSION)" -ge "$(version 2.19.3)" ]]; then
     GIST_FILTER="-e /gist/b"
   else
     unset GIST_FILTER
@@ -382,11 +381,11 @@ fix_paths_for_ghe_version() {
   sed $GIST_FILTER -e 's/\/$//; s/^[^\/]*$/./; s/\/[^\/]*$//'
 }
 
-is_binary_backup_feature_on(){
+is_binary_backup_feature_on() {
   ghe-ssh "$GHE_HOSTNAME" ghe-config --true "mysql.backup.binary"
 }
 
 # Check if the backup is binary by looking up the sentinel file
-is_binary_backup(){
+is_binary_backup() {
   test -f "$1/mysql-binary-backup-sentinel"
 }

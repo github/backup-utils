@@ -13,7 +13,7 @@
 #
 #     . $( dirname "${BASH_SOURCE[0]}" )/../share/github-backup-utils/ghe-backup-config
 #
-
+set +o posix
 # Assume this script lives in share/github-backup-utils/ when setting the root
 GHE_BACKUP_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 

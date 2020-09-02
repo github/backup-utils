@@ -124,12 +124,12 @@ fi
 #
 bm_start "$(basename $0) - Generating routes"
 echo "github-env ./bin/dgit-cluster-backup-routes > $remote_routes_list" | ghe-ssh "$GHE_HOSTNAME" -- /bin/bash
-ghe_debug "\n$(ghe-ssh "$GHE_HOSTNAME" -- cat $remote_routes_list)"
+ghe-ssh "$GHE_HOSTNAME" -- cat $remote_routes_list | ghe_debug
 bm_end "$(basename $0) - Generating routes"
 
 bm_start "$(basename $0) - Fetching routes"
-ghe-ssh "$GHE_HOSTNAME" -- cat $remote_routes_list > $routes_list
-ghe_debug "\n$(cat $routes_list)"
+ghe-ssh "$GHE_HOSTNAME" -- gzip -c $remote_routes_list | gzip -d > $routes_list
+cat $routes_list | ghe_debug
 bm_end "$(basename $0) - Fetching routes"
 
 bm_start "$(basename $0) - Processing routes"
@@ -137,10 +137,10 @@ if [ "$GHE_BACKUP_STRATEGY" != "cluster" ]; then
   server=$host
 fi
 cat $routes_list | awk -v tempdir="$tempdir" -v server="$server" '{ for(i=2;i<=NF;i++){ server != "" ? host=server : host=$i; print $1 > (tempdir"/"host".rsync") }}'
-ghe_debug "\n$(ls -l $tempdir/*.rsync)"
+ghe_debug "\n$(find "$tempdir" -maxdepth 1 -name '*.rsync')"
 bm_end "$(basename $0) - Processing routes"
 
-if ! ls $tempdir/*.rsync >/dev/null 2>&1; then
+if [ -z "$(find "$tempdir" -maxdepth 1 -name '*.rsync')" ]; then
   echo "Warning: no routes found, skipping repositories backup ..."
   exit 0
 fi
@@ -366,9 +366,8 @@ bm_end "$(basename $0) - Special Data Directories Sync"
 
 if [ -z "$GHE_SKIP_ROUTE_VERIFICATION" ]; then
   bm_start "$(basename $0) - Verifying Routes"
-
-  cat $tempdir/*.rsync | sort | uniq > $tempdir/source_routes
-  (cd $backup_dir/ && find * -mindepth 5 -maxdepth 6 -type d -name \*.git -exec dirname {} \; | sort | uniq) > $tempdir/destination_routes
+  cat $tempdir/*.rsync | uniq | sort | uniq > $tempdir/source_routes
+  (cd $backup_dir/ && find * -mindepth 5 -maxdepth 6 -type d -name \*.git | fix_paths_for_ghe_version | uniq | sort | uniq) > $tempdir/destination_routes
 
   git --no-pager diff --unified=0 --no-prefix -- $tempdir/source_routes $tempdir/destination_routes || echo "Warning: One or more repository networks and/or gists were not found on the source appliance. Please contact GitHub Enterprise Support for assistance."
 

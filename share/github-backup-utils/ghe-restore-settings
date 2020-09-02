@@ -55,4 +55,4 @@ if [ -f "$GHE_RESTORE_SNAPSHOT_PATH/ssl-ca-certificates.tar" ]; then
   ghe-ssh "$GHE_HOSTNAME" -- "ghe-import-ssl-ca-certificates"
 fi
 
-bm_start "$(basename $0)"
+bm_end "$(basename $0)"

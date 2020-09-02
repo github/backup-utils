@@ -139,4 +139,48 @@ begin_test "ghe-backup-config verbose log redirects to file"
   unset GHE_VERBOSE
   unset GHE_VERBOSE_LOG
 )
+
+begin_test "ghe-backup-config verbose log redirects to file under parallel"
+(
+  set -e
+
+  export GHE_PARALLEL_ENABLED=yes
+  export GHE_VERBOSE=1
+  export GHE_VERBOSE_LOG="$TRASHDIR/verbose.log"
+  . "share/github-backup-utils/ghe-backup-config"
+  ghe_verbose "Hello world"
+  for i in {1..5}
+  do
+    if [ "$(wc -l <"$GHE_VERBOSE_LOG")" -gt 0 ]; then
+      unset GHE_VERBOSE
+      unset GHE_VERBOSE_LOG
+      exit 0
+    fi
+    echo "Waiting for log file to be written $i"
+    sleep 1
+  done
+
+  exit 1
+)
+end_test
+
+begin_test "ghe-backup-config ghe_debug accepts stdin as well as argument"
+(
+  set -e
+
+  export GHE_DEBUG=1
+  export GHE_VERBOSE=1
+  export GHE_VERBOSE_LOG="$TRASHDIR/verbose.log"
+  . "share/github-backup-utils/ghe-backup-config"
+
+  ghe_debug "debug arg"
+  grep -q "debug arg" ${GHE_VERBOSE_LOG}
+
+  echo "debug stdin" | ghe_debug
+  grep -q "debug stdin" ${GHE_VERBOSE_LOG}
+
+  unset GHE_DEBUG
+  unset GHE_VERBOSE
+  unset GHE_VERBOSE_LOG
+)
 end_test

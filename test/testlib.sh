@@ -42,7 +42,7 @@ export GHE_BACKUP_CONFIG GHE_DATA_DIR GHE_REMOTE_DATA_DIR GHE_REMOTE_ROOT_DIR
 
 # The default remote appliance version. This may be set in the environment prior
 # to invoking tests to emulate a different remote vm version.
-: ${GHE_TEST_REMOTE_VERSION:=2.16.0}
+: ${GHE_TEST_REMOTE_VERSION:=2.21.0}
 export GHE_TEST_REMOTE_VERSION
 
 # Source in the backup config and set GHE_REMOTE_XXX variables based on the
@@ -253,7 +253,9 @@ setup_test_data () {
   mkdir -p "$loc/audit-log/"
   cd "$loc/audit-log/"
   echo "fake audit log last yr last mth" | gzip > audit_log-1-$last_yr-$last_mth-1.gz
+  echo "1" > audit_log-1-$last_yr-$last_mth-1.size
   echo "fake audit log this yr this mth" | gzip > audit_log-1-$this_yr-$this_mth-1.gz
+  echo "1" > audit_log-1-$this_yr-$this_mth-1.size
 
   # Create hookshot logs
   mkdir -p "$loc/hookshot/"

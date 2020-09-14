@@ -26,7 +26,7 @@ ghe_remote_version_required "$GHE_HOSTNAME"
 : ${GHE_RESTORE_SNAPSHOT:=current}
 
 # The directory holding the snapshot to restore
-snapshot_dir="$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT"
+snapshot_dir="$GHE_RESTORE_DATA_DIR/$GHE_RESTORE_SNAPSHOT"
 
 ssh_config_file_opt=
 if is_binary_backup_feature_on; then

@@ -22,7 +22,7 @@ ghe_remote_version_required "$GHE_HOSTNAME"
 
 last_index=$(ghe-ssh "$GHE_HOSTNAME" 'curl -s "localhost:9201/_cat/indices/hookshot-logs-*"' | cut -d ' ' -f 3 | sort | tail -2 | head -1)
 
-indices=$(find $GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/hookshot/*.gz -print0 2>/dev/null | xargs -0 -I{} -n1 basename {} .gz)
+indices=$(find $GHE_RESTORE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/hookshot/*.gz -print0 2>/dev/null | xargs -0 -I{} -n1 basename {} .gz)
 tmp_list="$(mktemp -t backup-utils-restore-XXXXXX)"
 if ghe-ssh "$GHE_HOSTNAME" -- "[ -f '$GHE_REMOTE_ROOT_DIR/etc/github/configured' ]"; then
   configured=true
@@ -42,7 +42,7 @@ if [ -s "$tmp_list" ]; then
     -e "ghe-ssh -p $(ssh_port_part "$GHE_HOSTNAME")" \
     --rsync-path="sudo -u elasticsearch rsync" \
     --files-from=$tmp_list \
-    "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/hookshot/" \
+    "$GHE_RESTORE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/hookshot/" \
     "$(ssh_host_part "$GHE_HOSTNAME"):$GHE_REMOTE_DATA_USER_DIR/elasticsearch-restore/hookshot/" 1>&3
 
   if $CLUSTER || [ -n "$configured" ]; then

@@ -23,6 +23,14 @@ GHE_NUM_SNAPSHOTS=10
 #
 #GHE_RESTORE_HOST="github-standby.example.com"
 
+# Path from where backup data is retrieved (for 'ghe-restore'). By default this  
+# is the "data" directory next to this file but can be set to an absolute path
+# elsewhere for retrieving restore data from a separate partition / mount point.
+# If not set, the 'ghe-restore' utility will use the GHE_DATA_DIR location as  
+# the source location of the restore data.
+#
+GHE_RESTORE_DATA_DIR="<path-to-github-restore-data>"
+
 # If set to 'yes', ghe-restore will omit the restore of audit logs.
 #
 #GHE_RESTORE_SKIP_AUDIT_LOGS=no

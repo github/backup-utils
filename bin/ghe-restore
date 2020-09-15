@@ -176,7 +176,7 @@ fi
 # Log restore start message locally and in /var/log/syslog on remote instance
 START_TIME=$(date +%s)
 echo 'Start time:' $START_TIME
-echo "Starting restore of $GHE_HOSTNAME with backup-utils v$BACKUP_UTILS_VERSION from snapshot $GHE_RESTORE_SNAPSHOT"
+echo "Starting restore of $GHE_HOSTNAME with backup-utils v$BACKUP_UTILS_VERSION from snapshot $GHE_RESTORE_SNAPSHOT ($GHE_RESTORE_SNAPSHOT_PATH) "
 ghe_remote_logger "Starting restore from $(hostname) with backup-utils v$BACKUP_UTILS_VERSION / snapshot $GHE_RESTORE_SNAPSHOT ..."
 
 # Keep other processes on the VM or cluster in the loop about the restore status.
@@ -263,7 +263,7 @@ else
   appliance_strategy="logical"
 fi
 
-if is_binary_backup "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT"; then
+if is_binary_backup "$GHE_RESTORE_DATA_DIR/$GHE_RESTORE_SNAPSHOT"; then
   backup_snapshot_strategy="binary"
 else
   backup_snapshot_strategy="logical"

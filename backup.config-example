@@ -29,7 +29,7 @@ GHE_NUM_SNAPSHOTS=10
 # If not set, the 'ghe-restore' utility will use the GHE_DATA_DIR location as  
 # the source location of the restore data.
 #
-GHE_RESTORE_DATA_DIR="<path-to-github-restore-data>"
+#GHE_RESTORE_DATA_DIR="<path-to-github-restore-data>"
 
 # If set to 'yes', ghe-restore will omit the restore of audit logs.
 #

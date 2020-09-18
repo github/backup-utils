@@ -22,21 +22,21 @@ ghe-ssh "$GHE_HOSTNAME" /bin/bash <<EOF
   set -e
 
   redis_host=\$(ghe-config cluster.redis-master 2>/dev/null || echo "localhost")
-  timestamp=\$(redis-cli -h \$redis_host LASTSAVE)
+  timestamp=\$(ghe-redis-cli -h \$redis_host LASTSAVE)
 
   for i in \$(seq 10); do
-    if ! redis-cli -h \$redis_host BGSAVE | grep -q ERR; then
+    if ! ghe-redis-cli -h \$redis_host BGSAVE | grep -q ERR; then
       break
     fi
     sleep 15
   done
   for n in \$(seq 3600); do
-    if [ "\$(redis-cli -h \$redis_host LASTSAVE)" != "\$timestamp" ]; then
+    if [ "\$(ghe-redis-cli -h \$redis_host LASTSAVE)" != "\$timestamp" ]; then
       break
     fi
     sleep 1
   done
-  [ "\$(redis-cli -h \$redis_host LASTSAVE)" != "\$timestamp" ] # exits 1 if bgsave didn't work
+  [ "\$(ghe-redis-cli -h \$redis_host LASTSAVE)" != "\$timestamp" ] # exits 1 if bgsave didn't work
 
   if [ "\$redis_host" != "localhost" ]; then
     ssh \$redis_host sudo cat '$GHE_REMOTE_DATA_USER_DIR/redis/dump.rdb'

@@ -72,10 +72,20 @@ ghe_parallel_check() {
   fi
 
   # Some machines may have both moreutils parallel and GNU parallel installed.
+  # Check some variants to find it
   GHE_PARALLEL_COMMAND="parallel"
-  if [ -x "/usr/bin/parallel.moreutils" ]; then
-    GHE_PARALLEL_COMMAND="/usr/bin/parallel.moreutils"
-  fi
+  local x
+  for x in \
+      /usr/bin/parallel.moreutils \
+      /usr/bin/parallel_moreutils \
+      /usr/bin/moreutils.parallel \
+      /usr/bin/moreutils_parallel \
+      ; do
+        if [ -x "${x}" ]; then
+            GHE_PARALLEL_COMMAND="${x}"
+            break
+        fi
+  done
 
   # Check that the GHE_PARALLEL_COMMAND is pointing to moreutils parallel
   if ! $GHE_PARALLEL_COMMAND -h | grep -q "parallel \[OPTIONS\] command -- arguments"; then

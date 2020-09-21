@@ -431,3 +431,26 @@ verify_all_restored_data() {
   # verify common data
   verify_common_data
 }
+
+setup_moreutils_parallel() {
+  # CI servers may have moreutils parallel and GNU parallel installed.
+  # We need moreutils parallel
+  local x
+  for x in \
+      /usr/bin/parallel.moreutils \
+      /usr/bin/parallel_moreutils \
+      /usr/bin/moreutils.parallel \
+      /usr/bin/moreutils_parallel \
+      ; do
+        if [ -x "${x}" ]; then
+            ln -sf "${x}" "$ROOTDIR/test/bin/parallel"
+            break
+        fi
+  done
+}
+
+cleanup_moreutils_parallel() {
+  if [ -h "$ROOTDIR/test/bin/parallel" ]; then
+    unlink "$ROOTDIR/test/bin/parallel"
+  fi
+}

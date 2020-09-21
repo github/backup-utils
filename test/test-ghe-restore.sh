@@ -391,6 +391,7 @@ begin_test "ghe-restore cluster"
 (
   set -e
   rm -rf "$GHE_REMOTE_ROOT_DIR"
+  setup_moreutils_parallel
   setup_remote_metadata
   setup_remote_cluster
   echo "cluster" > "$GHE_DATA_DIR/current/strategy"
@@ -402,11 +403,6 @@ begin_test "ghe-restore cluster"
   GHE_RESTORE_HOST=127.0.0.1
   export GHE_RESTORE_HOST
 
-  # CI servers may have moreutils parallel and GNU parallel installed. We need moreutils parallel.
-  if [ -x "/usr/bin/parallel.moreutils" ]; then
-    ln -sf /usr/bin/parallel.moreutils "$ROOTDIR/test/bin/parallel"
-  fi
-
   # run ghe-restore and write output to file for asserting against
   if ! ghe-restore -v -f > "$TRASHDIR/restore-out" 2>&1; then
       cat "$TRASHDIR/restore-out"
@@ -414,9 +410,7 @@ begin_test "ghe-restore cluster"
       false
   fi
 
-  if [ -h "$ROOTDIR/test/bin/parallel" ]; then
-    unlink "$ROOTDIR/test/bin/parallel"
-  fi
+  cleanup_moreutils_parallel
 
   # for debugging
   cat "$TRASHDIR/restore-out"
@@ -461,6 +455,7 @@ begin_test "ghe-restore missing directories or files from source snapshot displa
     # Tests the scenario where something exists in the database, but not on disk.
     set -e
     rm -rf "$GHE_REMOTE_ROOT_DIR"
+    setup_moreutils_parallel
     setup_remote_metadata
     setup_remote_cluster
     echo "cluster" > "$GHE_DATA_DIR/current/strategy"
@@ -471,11 +466,6 @@ begin_test "ghe-restore missing directories or files from source snapshot displa
     # set restore host environ var
     GHE_RESTORE_HOST=127.0.0.1
     export GHE_RESTORE_HOST
-
-    # CI servers may have moreutils parallel and GNU parallel installed. We need moreutils parallel.
-    if [ -x "/usr/bin/parallel.moreutils" ]; then
-      ln -sf /usr/bin/parallel.moreutils "$ROOTDIR/test/bin/parallel"
-    fi
 
     # Tell dgit-cluster-restore-finalize and gist-cluster-restore-finalize to return warnings
     export GHE_DGIT_CLUSTER_RESTORE_FINALIZE_WARNING=1
@@ -488,9 +478,7 @@ begin_test "ghe-restore missing directories or files from source snapshot displa
         false
     fi
 
-    if [ -h "$ROOTDIR/test/bin/parallel" ]; then
-      unlink "$ROOTDIR/test/bin/parallel"
-    fi
+    cleanup_moreutils_parallel
 
     # for debugging
     cat "$TRASHDIR/restore-out"

@@ -11,6 +11,9 @@ set -e
 # shellcheck source=share/github-backup-utils/ghe-backup-config
 . "$( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config"
 
+# Check to make sure moreutils parallel is installed and working properly
+ghe_parallel_check
+
 # Show usage and bail with no arguments
 [ -z "$*" ] && print_usage
 
@@ -128,17 +131,32 @@ for file_list in $tempdir/*.rsync; do
   else
     server=$host
   fi
+
   storage_user=$(ghe-ssh $ssh_config_file_opt $server:$port -- stat -c %U /data/user/storage || echo git)
 
-  ghe_verbose "* Transferring data to $server ..."
+  rsync_commands+=("
+  if [ -n \"$GHE_VERBOSE\" ]; then
+    echo \"* Transferring data to $server ...\" 1>&3
+  fi
+
   ghe-rsync -arvHR --delete \
-    -e "ssh -q $opts -p $port $ssh_config_file_opt -l $user" \
-    --rsync-path="sudo -u $storage_user rsync" \
+    -e \"ssh -q $opts -p $port $ssh_config_file_opt -l $user\" \
+    --rsync-path=\"sudo -u $storage_user rsync\" \
     --files-from=$file_list \
     --size-only \
-    "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/storage/./" \
-    "$server:$GHE_REMOTE_DATA_USER_DIR/storage/" 1>&3
+    \"$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/storage/./\" \
+    \"$server:$GHE_REMOTE_DATA_USER_DIR/storage/\" 1>&3
+    ")
 done
+
+if [ "$GHE_PARALLEL_ENABLED" = "yes" ]; then
+  $GHE_PARALLEL_COMMAND $GHE_PARALLEL_RSYNC_COMMAND_OPTIONS -- "${rsync_commands[@]}"
+else
+  for c in "${rsync_commands[@]}"; do
+    eval "$c"
+  done
+fi
+
 bm_end "$(basename $0) - Restoring objects"
 
 if $CLUSTER; then

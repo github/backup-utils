@@ -1,3 +1,13 @@
+github-backup-utils (2.22.0) UNRELEASED; urgency=medium
+
+  * Added basic timing around the ghe-restore process #625
+  * Improve python3 & finding moreutils parallel  #627
+  * Turn off POSIX for ghe-backup-config #632
+  * Add parallelized restore capability to ghe-restore-storage #635
+  * Update backup-utils for new features in 2.22 #641
+
+ -- jianghao0718@github.com  Wed, 23 Sep 2020 15:32:14 +0000
+
 github-backup-utils (2.21.0) UNRELEASED; urgency=medium
 
   * Introduce option to skip restoring of audit logs #596

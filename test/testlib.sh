@@ -300,7 +300,9 @@ setup_test_data () {
 
   if [ "$loc" != "$GHE_REMOTE_DATA_USER_DIR" ]; then
     # create a fake backups for each datastore
-    echo "fake ghe-export-mysql data" | gzip > "$loc/mysql.sql.gz"
+    if ! $SKIP_MYSQL; then
+      echo "fake ghe-export-mysql data" | gzip > "$loc/mysql.sql.gz"
+    fi
     echo "fake ghe-export-redis data" > "$loc/redis.rdb"
     echo "fake ghe-export-authorized-keys data" > "$loc/authorized-keys.json"
     echo "fake ghe-export-ssh-host-keys data" > "$TRASHDIR/ssh-host-keys"
@@ -312,6 +314,35 @@ setup_test_data () {
     echo "rsync" > "$loc/strategy"
     echo "$GHE_REMOTE_VERSION" >  "$loc/version"
   fi
+}
+
+setup_actions_test_data() {
+  local loc=$1
+
+  if [ "$loc" != "$GHE_REMOTE_DATA_USER_DIR" ]; then
+    mkdir -p "$loc/mssql"
+    echo "fake ghe-export-mssql full data" > "$loc/mssql/mssql.bak"
+    echo "fake ghe-export-mssql diff data" > "$loc/mssql/mssql.diff"
+    echo "fake ghe-export-mssql tran data" > "$loc/mssql/mssql.log"
+  else
+    mkdir -p "$loc/mssql/backups"
+    echo "fake mssql full data" > "$loc/mssql/backups/mssql.bak"
+    echo "fake mssql diff data" > "$loc/mssql/backups/mssql.diff"
+    echo "fake mssql tran data" > "$loc/mssql/backups/mssql.log"
+  fi
+
+  # Setup fake Actions data
+  mkdir -p "$loc/actions/certificates"
+  mkdir -p "$loc/actions/states"
+  echo "fake actions certificate" > "$loc/actions/certificates/cert.cer"
+  echo "fake actions state file" > "$loc/actions/states/actions_state"
+}
+
+cleanup_actions_test_data() {
+  local loc=$1
+
+  rm -rf "$loc/mssql"
+  rm -rf "$loc/actions"
 }
 
 # A unified method to check everything backed up or restored during testing.
@@ -332,6 +363,11 @@ verify_common_data() {
 
   # verify the extracted repositories were transferred
   diff -ru "$GHE_REMOTE_DATA_USER_DIR/git-hooks/repos" "$GHE_DATA_DIR/current/git-hooks/repos"
+
+  if is_actions_enabled; then
+    # verify mssql backups were transferred
+    diff -ru "$GHE_REMOTE_DATA_USER_DIR/mssql/backups" "$GHE_DATA_DIR/current/mssql"
+  fi
 
   # tests that differ for cluster and single node backups and restores
   if [ "$(cat $GHE_DATA_DIR/current/strategy)" = "rsync" ]; then
@@ -363,7 +399,9 @@ verify_all_backedup_data() {
   [ "$(cat "$GHE_DATA_DIR/current/settings.json")" = "fake ghe-export-settings data" ]
 
   # check that mysql data was backed up
-  [ "$(gzip -dc < "$GHE_DATA_DIR/current/mysql.sql.gz")" = "fake ghe-export-mysql data" ]
+  if ! $SKIP_MYSQL; then
+    [ "$(gzip -dc < "$GHE_DATA_DIR/current/mysql.sql.gz")" = "fake ghe-export-mysql data" ]
+  fi
 
   # check that redis data was backed up
   [ "$(cat "$GHE_DATA_DIR/current/redis.rdb")" = "fake redis data" ]
@@ -379,6 +417,13 @@ verify_all_backedup_data() {
 
   # check that ca certificates were backed up
   [ "$(cat "$GHE_DATA_DIR/current/ssl-ca-certificates.tar")" = "fake ghe-export-ssl-ca-certificates data" ]
+
+  if is_actions_enabled; then
+    # check that mssql databases were backed up
+    [ "$(cat "$GHE_DATA_DIR/current/mssql/mssql.bak")" = "fake mssql full data" ]
+    [ "$(cat "$GHE_DATA_DIR/current/mssql/mssql.diff")" = "fake mssql diff data" ]
+    [ "$(cat "$GHE_DATA_DIR/current/mssql/mssql.log")" = "fake mssql tran data" ]
+  fi
 
   # verify that ghe-backup wrote its version information to the host
   [ -f "$GHE_REMOTE_DATA_USER_DIR/common/backup-utils-version" ]
@@ -406,7 +451,9 @@ verify_all_restored_data() {
   set -e
 
   # verify all import scripts were run
-  grep -q "fake ghe-export-mysql data" "$TRASHDIR/restore-out"
+  if ! $SKIP_MYSQL; then
+    grep -q "fake ghe-export-mysql data" "$TRASHDIR/restore-out"
+  fi
   grep -q "fake ghe-export-redis data" "$TRASHDIR/restore-out"
   grep -q "fake ghe-export-authorized-keys data" "$TRASHDIR/restore-out"
 
@@ -430,6 +477,47 @@ verify_all_restored_data() {
 
   # verify common data
   verify_common_data
+}
+
+subtract_minute() {
+  # Expect date string in the format of yyyymmddTHHMMSS
+  # Here parse date differently depending on GNU Linux vs BSD MacOS
+  if date -v -1d > /dev/null 2>&1; then
+    date -v -"$2"M -ujf'%Y%m%dT%H%M%S' "$1" +%Y%m%dT%H%M%S
+  else
+    dt=$1
+    date '+%Y%m%dT%H%M%S' -d "${dt:0:8} ${dt:9:2}:${dt:11:2}:${dt:13:2} $2 minutes ago"
+  fi
+}
+
+setup_mssql_backup_file() {
+  rm -rf "$GHE_DATA_DIR/current/mssql"
+  mkdir -p "$GHE_DATA_DIR/current/mssql"
+
+  add_mssql_backup_file "$@"
+
+  # Simulate ghe-export-mssql behavior
+  if [ "$3" = "bak" ] || [ "$3" = "diff" ]; then
+    touch "$GHE_DATA_DIR/current/mssql/$1@$fake_last_utc.log"
+  fi
+}
+
+add_mssql_backup_file() {
+  # $1 name: <name>@...
+  # $2 minutes ago
+  # $3 extension: bak, diff, log
+  current_utc=$(date -u +%Y%m%dT%H%M%S)
+  fake_last_utc=$(subtract_minute "$current_utc" "$2")
+
+  touch "$GHE_DATA_DIR/current/mssql/$1@$fake_last_utc.$3"
+}
+
+enable_actions() {
+  ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config app.actions.enabled true'
+}
+
+is_actions_enabled() {
+  ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config --true app.actions.enabled'
 }
 
 setup_moreutils_parallel() {

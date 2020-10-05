@@ -32,7 +32,7 @@ echo "Restoring settings ..."
 # work around issue importing settings with bad storage mode values
 ( cat "$GHE_RESTORE_SNAPSHOT_PATH/settings.json" && echo ) |
   sed 's/"storage_mode": "device"/"storage_mode": "rootfs"/' |
-  ghe-ssh "$GHE_HOSTNAME" -- '/usr/bin/env GHEBUVER=2 ghe-import-settings' 1>&3
+  ghe-ssh "$GHE_HOSTNAME" -- '/usr/bin/env GHEBUVER=2 ghe-import-settings --skip-config-apply' 1>&3
 
 # Restore management console password hash if present.
 if [ -f "$GHE_RESTORE_SNAPSHOT_PATH/manage-password" ]; then

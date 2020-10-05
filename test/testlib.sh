@@ -252,15 +252,15 @@ setup_test_data () {
 
   mkdir -p "$loc/audit-log/"
   cd "$loc/audit-log/"
-  echo "fake audit log last yr last mth" | gzip > audit_log-1-$last_yr-$last_mth-1.gz
+  echo "fake audit log last yr last mth" | zstd > audit_log-1-$last_yr-$last_mth-1.zst
   echo "1" > audit_log-1-$last_yr-$last_mth-1.size
-  echo "fake audit log this yr this mth" | gzip > audit_log-1-$this_yr-$this_mth-1.gz
+  echo "fake audit log this yr this mth" | zstd > audit_log-1-$this_yr-$this_mth-1.zst
   echo "1" > audit_log-1-$this_yr-$this_mth-1.size
 
   # Create hookshot logs
   mkdir -p "$loc/hookshot/"
   cd "$loc/hookshot/"
-  echo "fake hookshot log" | gzip > hookshot-logs-2018-03-05.gz
+  echo "fake hookshot log" | zstd > hookshot-logs-2018-03-05.zst
 
   # Create some test repositories in the remote repositories dir
   mkdir -p "$loc/repositories/info"
@@ -301,7 +301,7 @@ setup_test_data () {
   if [ "$loc" != "$GHE_REMOTE_DATA_USER_DIR" ]; then
     # create a fake backups for each datastore
     if ! $SKIP_MYSQL; then
-      echo "fake ghe-export-mysql data" | gzip > "$loc/mysql.sql.gz"
+      echo "fake ghe-export-mysql data" | zstd > "$loc/mysql.sql.zst"
     fi
     echo "fake ghe-export-redis data" > "$loc/redis.rdb"
     echo "fake ghe-export-authorized-keys data" > "$loc/authorized-keys.json"
@@ -400,7 +400,7 @@ verify_all_backedup_data() {
 
   # check that mysql data was backed up
   if ! $SKIP_MYSQL; then
-    [ "$(gzip -dc < "$GHE_DATA_DIR/current/mysql.sql.gz")" = "fake ghe-export-mysql data" ]
+    [ "$(zstd -dc < "$GHE_DATA_DIR/current/mysql.sql.zst")" = "fake ghe-export-mysql data" ]
   fi
 
   # check that redis data was backed up

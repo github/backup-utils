@@ -41,7 +41,7 @@ for index in $indices; do
     ln $GHE_DATA_DIR/current/hookshot/$index_name.gz $GHE_SNAPSHOT_DIR/hookshot/$index_name.gz
     ln $GHE_DATA_DIR/current/hookshot/$index_name.gz.size $GHE_SNAPSHOT_DIR/hookshot/$index_name.gz.size
   else
-    echo "/usr/local/share/enterprise/ghe-es-dump-json \"http://localhost:9201/$index_name\" | gzip" | ghe-ssh "$host" -- /bin/bash > $GHE_SNAPSHOT_DIR/hookshot/$index_name.gz
+    echo "/usr/local/share/enterprise/ghe-es-dump-json \"http://localhost:9201/$index_name\" | zstd" | ghe-ssh "$host" -- /bin/bash > $GHE_SNAPSHOT_DIR/hookshot/$index_name.zst
     echo $index_size > $GHE_SNAPSHOT_DIR/hookshot/$index_name.gz.size
   fi
 done

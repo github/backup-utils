@@ -341,6 +341,191 @@ begin_test "ghe-backup missing directories or files on source appliance"
 )
 end_test
 
+GHE_MSSQL_BACKUP_CADENCE=10,5,1
+export GHE_MSSQL_BACKUP_CADENCE
+setup_actions_test_data $GHE_REMOTE_DATA_USER_DIR
+
+begin_test "ghe-backup takes full backup on first run"
+(
+  # This test is required to run following tests
+  # It helps create "current" directory as symlink
+  # setup_mssql_backup_file uses "current"
+  set -e
+  enable_actions
+
+  rm -rf "$GHE_REMOTE_DATA_USER_DIR"/mssql/backups/*
+  rm -rf "$GHE_DATA_DIR"/current/mssql/*
+  output=$(ghe-backup -v)
+  echo "$output" | grep "Taking first full backup"
+  echo "$output" | grep "fake ghe-export-mssql data"
+)
+end_test
+
+begin_test "ghe-backup takes full backup upon expiration"
+(
+  set -e
+  enable_actions
+  export REMOTE_DBS="full_mssql"
+
+  setup_mssql_backup_file "full_mssql" 11 "bak"
+
+  output=$(ghe-backup -v)
+  echo "$output" | grep "Taking full backup"
+  ! echo "$output" | grep "Creating hard link to full_mssql@"
+)
+end_test
+
+begin_test "ghe-backup takes diff backup upon expiration"
+(
+  set -e
+  enable_actions
+  export REMOTE_DBS="full_mssql"
+
+  setup_mssql_backup_file "full_mssql" 7 "bak"
+
+  output=$(ghe-backup -v)
+  echo "$output" | grep "Taking diff backup"
+  echo "$output" | grep -E "Creating hard link to full_mssql@[0-9]{8}T[0-9]{6}\.bak"
+  ! echo "$output" | grep -E "Creating hard link to full_mssql@[0-9]{8}T[0-9]{6}\.log"
+)
+end_test
+
+begin_test "ghe-backup takes transaction backup upon expiration"
+(
+  set -e
+  enable_actions
+  export REMOTE_DBS="full_mssql"
+
+  setup_mssql_backup_file "full_mssql" 3 "bak"
+
+  output=$(ghe-backup -v)
+  echo "$output" | grep "Taking transaction backup"
+  echo "$output" | grep -E "Creating hard link to full_mssql@[0-9]{8}T[0-9]{6}\.bak"
+  echo "$output" | grep -E "Creating hard link to full_mssql@[0-9]{8}T[0-9]{6}\.log"
+)
+end_test
+
+begin_test "ghe-backup warns if database names mismatched"
+(
+  set -e
+  enable_actions
+
+  rm -rf "$GHE_DATA_DIR/current/mssql"
+  mkdir -p "$GHE_DATA_DIR/current/mssql"
+
+  export REMOTE_DBS="full_mssql_1 full_mssql_2 full_mssql_3"
+
+  add_mssql_backup_file "full_mssql_1" 3 "bak"
+  add_mssql_backup_file "full_mssql_4" 3 "diff"
+  add_mssql_backup_file "full_mssql_5" 3 "log"
+
+  output=$(ghe-backup -v || true)
+  ! echo "$output" | grep -E "Taking .* backup"
+  echo "$output" | grep "Warning: Found following 2 backup files"
+)
+end_test
+
+begin_test "ghe-backup takes backup of Actions settings"
+(
+  set -e
+  enable_actions
+
+  # Prevent previous steps from leaking MSSQL backup files
+  rm -rf "$GHE_DATA_DIR/current/mssql"
+  mkdir -p "$GHE_DATA_DIR/current/mssql"
+
+  required_secrets=(
+    "secrets.actions.ConfigurationDatabaseSqlLogin"
+    "secrets.actions.ConfigurationDatabaseSqlPassword"
+    "secrets.actions.FrameworkAccessTokenKeySecret"
+    "secrets.actions.UrlSigningHmacKeyPrimary"
+    "secrets.actions.UrlSigningHmacKeySecondary"
+    "secrets.actions.OAuthS2SSigningCert"
+    "secrets.actions.OAuthS2SSigningKey"
+    "secrets.actions.OAuthS2SSigningCertThumbprint"
+    "secrets.actions.PrimaryEncryptionCertificateThumbprint"
+    "secrets.actions.AADCertThumbprint"
+    "secrets.actions.DelegatedAuthCertThumbprint"
+    "secrets.actions.RuntimeServicePrincipalCertificate"
+    "secrets.actions.S2SEncryptionCertificate"
+    "secrets.actions.SecondaryEncryptionCertificateThumbprint"
+    "secrets.actions.ServicePrincipalCertificate"
+    "secrets.actions.SpsValidationCertThumbprint"
+
+    "secrets.launch.actions-secrets-private-key"
+    "secrets.launch.credz-hmac-secret"
+    "secrets.launch.deployer-hmac-secret"
+    "secrets.launch.client-id"
+    "secrets.launch.client-secret"
+    "secrets.launch.receiver-webhook-secret"
+    "secrets.launch.app-private-key"
+    "secrets.launch.app-public-key"
+    "secrets.launch.app-id"
+    "secrets.launch.app-relay-id"
+    "secrets.launch.action-runner-secret"
+    "secrets.launch.token-oauth-key"
+    "secrets.launch.token-oauth-cert"
+    "secrets.launch.azp-app-cert"
+    "secrets.launch.azp-app-private-key"
+  )
+
+  for secret in "${required_secrets[@]}"; do
+    ghe-ssh "$GHE_HOSTNAME" -- ghe-config "$secret" "foo"
+  done
+
+  ghe-backup
+
+  required_files=(
+    "actions-config-db-login"
+    "actions-config-db-password"
+    "actions-framework-access-token"
+    "actions-url-signing-hmac-key-primary"
+    "actions-url-signing-hmac-key-secondary"
+    "actions-oauth-s2s-signing-cert"
+    "actions-oauth-s2s-signing-key"
+    "actions-oauth-s2s-signing-cert-thumbprint"
+    "actions-primary-encryption-cert-thumbprint"
+    "actions-aad-cert-thumbprint"
+    "actions-delegated-auth-cert-thumbprint"
+    "actions-runtime-service-principal-cert"
+    "actions-s2s-encryption-cert"
+    "actions-secondary-encryption-cert-thumbprint"
+    "actions-service-principal-cert"
+    "actions-sps-validation-cert-thumbprint"
+
+    "actions-launch-secrets-private-key"
+    "actions-launch-credz-hmac"
+    "actions-launch-deployer-hmac"
+    "actions-launch-client-id"
+    "actions-launch-client-secret"
+    "actions-launch-receiver-webhook-secret"
+    "actions-launch-app-private-key"
+    "actions-launch-app-public-key"
+    "actions-launch-app-id"
+    "actions-launch-app-relay-id"
+    "actions-launch-action-runner-secret"
+    "actions-launch-azp-app-cert"
+    "actions-launch-app-app-private-key"
+  )
+
+  for file in "${required_files[@]}"; do
+    [ "$(cat "$GHE_DATA_DIR/current/$file")" = "foo" ]
+  done
+)
+end_test
+
+begin_test "ghe-backup takes backup of Actions files"
+(
+  set -e
+  enable_actions
+
+  output=$(ghe-backup -v)
+  echo $output | grep "Transferring Actions files from"
+
+  diff -ru "$GHE_REMOTE_DATA_USER_DIR/actions" "$GHE_DATA_DIR/current/actions"
+)
+end_test
+
 # acceptance criteria is less then 2 seconds for 100,000 lines
 begin_test "ghe-backup fix_paths_for_ghe_version performance tests - gists"
 (

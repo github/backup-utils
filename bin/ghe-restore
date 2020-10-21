@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#/ Usage: ghe-restore [-fchv] [--version] [-s <snapshot-id>] [<host>]
+#/ Usage: ghe-restore [-cfhv] [--version] [--skip-mysql] [-s <snapshot-id>] [<host>]
 #/
 #/ Restores a GitHub instance from local backup snapshots.
 #/
@@ -9,32 +9,46 @@
 #/ <https://enterprise.github.com/help/articles/adding-an-ssh-key-for-shell-access>
 #/
 #/ OPTIONS:
-#/   -f | --force      Don't prompt for confirmation before restoring.
-#/   -c | --config     Restore appliance settings and license in addition to
-#/                     datastores. Settings are not restored by default to
-#/                     prevent overwriting different configuration on the
-#/                     restore host.
-#/   -v | --verbose    Enable verbose output.
-#/   -h | --help       Show this message.
-#/        --version    Display version information and exit.
-#/   -s <snapshot-id>  Restore from the snapshot with the given id. Available
-#/                     snapshots may be listed under the data directory.
-#/   <host>            The <host> is the hostname or IP of the GitHub Enterprise
-#/                     instance. The <host> may be omitted when the
-#/                     GHE_RESTORE_HOST config variable is set in backup.config.
-#/                     When a <host> argument is provided, it always overrides
-#/                     the configured restore host.
+#/   -c | --config       Restore appliance settings and license in addition to
+#/                       datastores. Settings are not restored by default to
+#/                       prevent overwriting different configuration on the
+#/                       restore host.
+#/   -f | --force        Don't prompt for confirmation before restoring.
+#/   -h | --help         Show this message.
+#/   -v | --verbose      Enable verbose output.
+#/        --skip-mysql   Skip MySQL restore steps. Only applicable to external databases.
+#/        --version      Display version information and exit.
+#/
+#/   -s <snapshot-id>    Restore from the snapshot with the given id. Available
+#/                       snapshots may be listed under the data directory.
+#/
+#/   <host>              The <host> is the hostname or IP of the GitHub Enterprise
+#/                       instance. The <host> may be omitted when the
+#/                       GHE_RESTORE_HOST config variable is set in backup.config.
+#/                       When a <host> argument is provided, it always overrides
+#/                       the configured restore host.
 #/
 
 set -e
 
 # Parse arguments
-restore_settings=false
-force=false
+: ${RESTORE_SETTINGS:=false}
+export RESTORE_SETTINGS
+
+: ${FORCE:=false}
+export FORCE
+
+: ${SKIP_MYSQL:=false}
+export SKIP_MYSQL
+
 while true; do
   case "$1" in
+    --skip-mysql)
+      SKIP_MYSQL=true
+      shift
+      ;;
     -f|--force)
-      force=true
+      FORCE=true
       shift
       ;;
     -s)
@@ -42,7 +56,7 @@ while true; do
       shift 2
       ;;
     -c|--config)
-      restore_settings=true
+      RESTORE_SETTINGS=true
       shift
       ;;
     -h|--help)
@@ -116,10 +130,10 @@ ghe_remote_version_required "$GHE_HOSTNAME"
 
 # Figure out if this instance has been configured or is entirely new.
 instance_configured=false
-if ghe-ssh "$GHE_HOSTNAME" -- "[ -f '$GHE_REMOTE_ROOT_DIR/etc/github/configured' ]"; then
+if is_instance_configured; then
   instance_configured=true
 else
-  restore_settings=true
+  RESTORE_SETTINGS=true
 fi
 
 # Figure out if we're restoring into cluster
@@ -137,6 +151,11 @@ if ! $CLUSTER && [ "$GHE_BACKUP_STRATEGY" = "cluster" ]; then
   exit 1
 fi
 
+# Ensure target appliance and restore snapshot are a compatible combination with respect to BYODB
+if ! ghe-restore-external-database-compatibility-check; then
+  exit 1
+fi
+
 # Figure out if this appliance is in a replication pair
 if ghe-ssh "$GHE_HOSTNAME" -- \
   "[ -f '$GHE_REMOTE_ROOT_DIR/etc/github/repl-state' ]"; then
@@ -149,31 +168,35 @@ fi
 # important data on the destination appliance that cannot be recovered. This is
 # mostly to prevent accidents where the backup host is given to restore instead
 # of a separate restore host since they're used in such close proximity.
-if $instance_configured && ! $force; then
+if $instance_configured && ! $FORCE; then
   echo
   echo "WARNING: All data on GitHub Enterprise appliance $hostname ($GHE_REMOTE_VERSION)"
   echo "         will be overwritten with data from snapshot ${GHE_RESTORE_SNAPSHOT}."
-  echo "Please verify that this is the correct restore host before continuing."
-  printf "Type 'yes' to continue: "
-
-  while read -r response; do
-    case $response in
-      yes|Yes|YES)
-        break
-        ;;
-      '')
-        printf "Type 'yes' to continue: "
-        ;;
-      *)
-        echo "Restore aborted." 1>&2
-        exit 1
-        ;;
-    esac
-  done
   echo
+
+  if is_external_database_snapshot && $RESTORE_SETTINGS; then
+    echo "WARNING: This operation will also restore the external MySQL connection configuration,"
+    echo "         which may be dangerous if the GHES appliance the snapshot was taken from is still online."
+    echo
+  fi
+
+  prompt_for_confirmation "Please verify that this is the correct restore host before continuing."
+fi
+
+# Prompt to verify that restoring BYODB snapshot to unconfigured instance
+# will result in BYODB connection information being restored as well.
+if is_external_database_snapshot && ! $instance_configured && ! $FORCE; then
+  echo
+  echo "WARNING: This operation will also restore the external MySQL connection configuration,"
+  echo "         which may be dangerous if the GHES appliance the snapshot was taken from is still online."
+  echo
+
+  prompt_for_confirmation "Please confirm this before continuing."
 fi
 
 # Log restore start message locally and in /var/log/syslog on remote instance
+START_TIME=$(date +%s)
+echo 'Start time:' $START_TIME
 echo "Starting restore of $GHE_HOSTNAME with backup-utils v$BACKUP_UTILS_VERSION from snapshot $GHE_RESTORE_SNAPSHOT"
 ghe_remote_logger "Starting restore from $(hostname) with backup-utils v$BACKUP_UTILS_VERSION / snapshot $GHE_RESTORE_SNAPSHOT ..."
 
@@ -201,6 +224,14 @@ update_restore_status "restoring"
 if $instance_configured; then
   if ! ghe-maintenance-mode-status "$GHE_HOSTNAME"; then
     echo "Error: $GHE_HOSTNAME must be put in maintenance mode before restoring. Aborting." 1>&2
+    exit 1
+  fi
+fi
+
+# Make sure the GitHub appliance has Actions enabled if the snapshot contains Actions data.
+if [ -d "$GHE_RESTORE_SNAPSHOT_PATH/mssql" ] || [ -d "$GHE_RESTORE_SNAPSHOT_PATH/actions" ]; then
+  if ! ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config --true app.actions.enabled'; then
+    echo "Error: $GHE_HOSTNAME must have GitHub Actions enabled before restoring since the snapshot contains Actions data. Aborting." 1>&2
     exit 1
   fi
 fi
@@ -234,7 +265,7 @@ fi
 
 # Restore settings and license if restoring to an unconfigured appliance or when
 # specified manually.
-if $restore_settings; then
+if $RESTORE_SETTINGS; then
   ghe-restore-settings "$GHE_HOSTNAME"
 fi
 
@@ -255,10 +286,10 @@ if [ -s "$GHE_RESTORE_SNAPSHOT_PATH/uuid" ] && ! $CLUSTER; then
   ghe-ssh "$GHE_HOSTNAME" -- "sudo rm -rf /data/user/consul/raft"
   fi
 
-if is_service_external 'mysql' "$GHE_RESTORE_SNAPSHOT_PATH/settings.json"; then
+if is_external_database_snapshot; then
    appliance_strategy="external"
    backup_snapshot_strategy="external"
-else 
+else
   if is_binary_backup_feature_on; then
     appliance_strategy="binary"
   else
@@ -272,8 +303,22 @@ else
   fi
 fi
 
-echo "Restoring MySQL database from ${backup_snapshot_strategy} backup snapshot on an appliance configured for ${appliance_strategy} backups ..."
-ghe-restore-mysql "$GHE_HOSTNAME" 1>&3
+if is_external_database_target_or_snapshot && $SKIP_MYSQL; then
+  echo "Skipping MySQL restore."
+else
+  echo "Restoring MySQL database from ${backup_snapshot_strategy} backup snapshot on an appliance configured for ${appliance_strategy} backups ..."
+  ghe-restore-mysql "$GHE_HOSTNAME" 1>&3
+fi
+
+if ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config --true app.actions.enabled'; then
+  echo "Restoring MSSQL databases ..."
+  ghe-restore-mssql "$GHE_HOSTNAME" 1>&3
+
+  echo "Restoring Actions data ..."
+  ghe-restore-actions "$GHE_HOSTNAME" 1>&3
+  echo "* WARNING: Every self-hosted Actions runner that communicates with the restored GHES server must be restarted or reconfigured in order to continue functioning."
+  echo "           See https://docs.github.com/en/actions/hosting-your-own-runners/adding-self-hosted-runners for more details on how to reconfigure self-hosted Actions runners."
+fi
 
 commands=("
 echo \"Restoring Redis database ...\"
@@ -405,8 +450,13 @@ else
   ghe-ssh "$GHE_HOSTNAME" -- /bin/sh 1>&3
 fi
 
+END_TIME=$(date +%s)
+echo 'End time:' $END_TIME
+echo 'Runtime:' $(($END_TIME - $START_TIME)) 'seconds'
+
 echo "Restore of $GHE_HOSTNAME from snapshot $GHE_RESTORE_SNAPSHOT finished."
 
 if ! $instance_configured; then
   echo "To complete the restore process, please visit https://$hostname/setup/settings to review and save the appliance configuration."
 fi
+

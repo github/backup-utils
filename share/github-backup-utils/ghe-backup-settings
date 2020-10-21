@@ -25,27 +25,59 @@ ghe-ssh "$host" -- 'ghe-export-settings' > settings.json
 echo "* Transferring license data ..." 1>&3
 ghe-ssh "$host" -- "sudo cat '$GHE_REMOTE_LICENSE_FILE'" > enterprise.ghl
 
-echo "* Transferring management console password ..." 1>&3
-ghe-ssh "$host" -- ghe-config secrets.manage > manage-password+ || (
-  echo "Warning: Management Console password not set" >&2
-)
-if [ -n "$(cat manage-password+)" ]; then
-  mv manage-password+ manage-password
-else
-  unlink manage-password+
-fi
+# Function to backup a secret setting to a file.
+#   backup-secret <description> <file-name> <setting-name>
+backup-secret() {
+  echo "* Transferring $1 ..." 1>&3
+  ghe-ssh "$host" -- ghe-config "$3" > "$2+" || (
+    echo "Warning: $1 not set" >&2
+  )
+  if [ -n "$(cat "$2+")" ]; then
+    mv "$2+" "$2"
+  else
+    unlink "$2+"
+  fi
+}
+
+backup-secret "management console password" "manage-password" "secrets.manage"
 
 # Backup external MySQL password if running external MySQL DB.
 if is_service_external 'mysql'; then
-  echo "Transferring external MySQL password..." 1>&3
-  ghe-ssh "$host" -- ghe-config secrets.external.mysql > external-mysql-password+ || (
-    echo "Warning: External MySQL password not set" >&2
-  )
-  if [ -n "$(cat external-mysql-password+)" ]; then
-    mv external-mysql-password+ external-mysql-password
-  else
-    unlink external-mysql-password+
-  fi
+  backup-secret "external MySQL password" "external-mysql-password" "secrets.external.mysql"
+fi
+
+# Backup Actions settings.
+if ghe-ssh "$host" -- ghe-config --true app.actions.enabled; then
+  backup-secret "Actions configuration database login" "actions-config-db-login" "secrets.actions.ConfigurationDatabaseSqlLogin"
+  backup-secret "Actions configuration database password" "actions-config-db-password" "secrets.actions.ConfigurationDatabaseSqlPassword"
+  backup-secret "Actions framework access token key secret" "actions-framework-access-token" "secrets.actions.FrameworkAccessTokenKeySecret"
+  backup-secret "Actions Url signing HMAC key primary" "actions-url-signing-hmac-key-primary" "secrets.actions.UrlSigningHmacKeyPrimary"
+  backup-secret "Actions Url signing HMAC key secondary" "actions-url-signing-hmac-key-secondary" "secrets.actions.UrlSigningHmacKeySecondary"
+  backup-secret "Actions OAuth S2S signing cert" "actions-oauth-s2s-signing-cert" "secrets.actions.OAuthS2SSigningCert"
+  backup-secret "Actions OAuth S2S signing key" "actions-oauth-s2s-signing-key" "secrets.actions.OAuthS2SSigningKey"
+  backup-secret "Actions OAuth S2S signing cert thumbprint" "actions-oauth-s2s-signing-cert-thumbprint" "secrets.actions.OAuthS2SSigningCertThumbprint"
+  backup-secret "Actions primary encryption cert thumbprint" "actions-primary-encryption-cert-thumbprint" "secrets.actions.PrimaryEncryptionCertificateThumbprint"
+  backup-secret "Actions AAD cert thumbprint" "actions-aad-cert-thumbprint" "secrets.actions.AADCertThumbprint"
+  backup-secret "Actions delegated auth cert thumbprint" "actions-delegated-auth-cert-thumbprint" "secrets.actions.DelegatedAuthCertThumbprint"
+  backup-secret "Actions runtime service principal cert" "actions-runtime-service-principal-cert" "secrets.actions.RuntimeServicePrincipalCertificate"
+  backup-secret "Actions S2S encryption cert" "actions-s2s-encryption-cert" "secrets.actions.S2SEncryptionCertificate"
+  backup-secret "Actions secondary encryption cert thumbprint" "actions-secondary-encryption-cert-thumbprint" "secrets.actions.SecondaryEncryptionCertificateThumbprint"
+  backup-secret "Actions service principal cert" "actions-service-principal-cert" "secrets.actions.ServicePrincipalCertificate"
+  backup-secret "Actions SPS validation cert thumbprint" "actions-sps-validation-cert-thumbprint" "secrets.actions.SpsValidationCertThumbprint"
+
+  backup-secret "Actions Launch secrets encryption/decryption" "actions-launch-secrets-private-key" "secrets.launch.actions-secrets-private-key"
+  backup-secret "Actions Launch credz HMAC key" "actions-launch-credz-hmac" "secrets.launch.credz-hmac-secret"
+  backup-secret "Actions Launch deployer HMAC key" "actions-launch-deployer-hmac" "secrets.launch.deployer-hmac-secret"
+  backup-secret "Actions Launch Client id" "actions-launch-client-id" "secrets.launch.client-id"
+  backup-secret "Actions Launch Client secret" "actions-launch-client-secret" "secrets.launch.client-secret"
+  backup-secret "Actions Launch receiver webhook secret" "actions-launch-receiver-webhook-secret" "secrets.launch.receiver-webhook-secret"
+  backup-secret "Actions Launch app private key" "actions-launch-app-private-key" "secrets.launch.app-private-key"
+  backup-secret "Actions Launch app public key" "actions-launch-app-public-key" "secrets.launch.app-public-key"
+  backup-secret "Actions Launch app id" "actions-launch-app-id" "secrets.launch.app-id"
+  backup-secret "Actions Launch app relay id" "actions-launch-app-relay-id" "secrets.launch.app-relay-id"
+  backup-secret "Actions Launch action runner secret" "actions-launch-action-runner-secret" "secrets.launch.action-runner-secret"
+  backup-secret "Actions Launch service cert" "actions-launch-azp-app-cert" "secrets.launch.azp-app-cert"
+  backup-secret "Actions Launch service private key" "actions-launch-app-app-private-key" "secrets.launch.azp-app-private-key"
 fi
 
 if ghe-ssh "$host" -- "test -f $GHE_REMOTE_DATA_USER_DIR/common/idp.crt"; then

@@ -18,12 +18,12 @@ while true; do
         echo "fake redis data" > "$GHE_REMOTE_DATA_USER_DIR/redis/dump.rdb"
         break
         ;;
-    -h)
-        # Fake accepting hostname argument
-        shift 2
+    --remote)
+        # Fake accepting remote flag argument
+        shift 3
         ;;
     *)
-        echo "unexpected redis-cli command: $1" 1>&2
+        echo "unexpected ghe-redis-cli command: $1" 1>&2
         exit 1
         ;;
   esac

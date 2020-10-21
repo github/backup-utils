@@ -260,6 +260,9 @@ bm_start "ghe-import-redis"
 ghe-ssh "$GHE_HOSTNAME" -- 'ghe-import-redis' < "$GHE_RESTORE_SNAPSHOT_PATH/redis.rdb" 1>&3
 bm_end "ghe-import-redis"
 
+echo "Restoring SSH authorized keys ..."
+ghe-ssh "$GHE_HOSTNAME" -- 'ghe-import-authorized-keys' < "$GHE_RESTORE_SNAPSHOT_PATH/authorized-keys.json" 1>&3
+
 # Unified and enhanced restore method to 2.13.0 and newer
 if $CLUSTER || [ "$(version $GHE_REMOTE_VERSION)" -ge "$(version 2.13.0)" ]; then
   echo "Restoring Git repositories ..."
@@ -278,9 +281,6 @@ else
   ghe-restore-pages-rsync "$GHE_HOSTNAME" 1>&3
 fi
 
-
-echo "Restoring SSH authorized keys ..."
-ghe-ssh "$GHE_HOSTNAME" -- 'ghe-import-authorized-keys' < "$GHE_RESTORE_SNAPSHOT_PATH/authorized-keys.json" 1>&3
 
 echo "Restoring storage data ..."
 ghe-restore-storage "$GHE_HOSTNAME" 1>&3

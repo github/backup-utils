@@ -273,7 +273,7 @@ fi
 # These services will not have been started on appliances that have not been
 # configured yet.
 if ! $CLUSTER; then
-  echo "sudo ghe-service-ensure-mysql && sudo ghe-service-ensure-elasticsearch" |
+  echo "sudo ghe-service-ensure-elasticsearch" |
   ghe-ssh "$GHE_HOSTNAME" -- /bin/sh 1>&3
 fi
 

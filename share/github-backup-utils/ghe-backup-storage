@@ -91,7 +91,7 @@ fi
 # more performant than performing over an SSH pipe.
 #
 bm_start "$(basename $0) - Generating routes"
-echo "github-env ./bin/storage-cluster-backup-routes > $remote_routes_list" | ghe-ssh "$GHE_HOSTNAME" -- /bin/bash
+echo "$GITHUB_ENV_SHELL ./bin/storage-cluster-backup-routes > $remote_routes_list" | ghe-ssh "$GHE_HOSTNAME" -- /bin/bash
 ghe-ssh "$GHE_HOSTNAME" -- cat $remote_routes_list | ghe_debug
 bm_end "$(basename $0) - Generating routes"
 

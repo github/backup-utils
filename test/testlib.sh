@@ -197,6 +197,10 @@ setup_test_data () {
   mkdir -p "$GHE_REMOTE_DATA_USER_DIR/common"
   git config -f "$GHE_REMOTE_DATA_USER_DIR/common/secrets.conf" secrets.manage "fake password hash data"
 
+  # Create a fake password pepper file
+  mkdir -p "$GHE_REMOTE_DATA_USER_DIR/common"
+  git config -f "$GHE_REMOTE_DATA_USER_DIR/common/secrets.conf" secrets.github.user-password-secrets "fake password pepper data"
+
   # Create some fake hooks in the remote data directory
   mkdir -p "$loc/git-hooks/environments/tarballs"
   mkdir -p "$loc/git-hooks/repos"
@@ -311,6 +315,7 @@ setup_test_data () {
     echo "fake ghe-export-ssl-ca-certificates data" > "$loc/ssl-ca-certificates.tar"
     echo "fake license data" > "$loc/enterprise.ghl"
     echo "fake password hash data" > "$loc/manage-password"
+    echo "fake password pepper data" > "$loc/password-pepper"
     echo "rsync" > "$loc/strategy"
     echo "$GHE_REMOTE_VERSION" >  "$loc/version"
   fi
@@ -414,6 +419,9 @@ verify_all_backedup_data() {
 
   # verify manage-password file was backed up
   [ "$(cat "$GHE_DATA_DIR/current/manage-password")" = "fake password hash data" ]
+
+  # verify password pepper file was backed up
+  [ "$(cat "$GHE_DATA_DIR/current/password-pepper")" = "fake password pepper data" ]
 
   # check that ca certificates were backed up
   [ "$(cat "$GHE_DATA_DIR/current/ssl-ca-certificates.tar")" = "fake ghe-export-ssl-ca-certificates data" ]

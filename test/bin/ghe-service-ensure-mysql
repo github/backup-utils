@@ -3,4 +3,4 @@
 # Emulates the remote GitHub ghe-service-ensure-mysql command. Tests use this
 # to assert that the command was executed.
 set -e
-echo "ghe-service-ensure-elasticsearch OK"
+echo "ghe-service-ensure-mysql OK"

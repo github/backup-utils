@@ -110,6 +110,7 @@ bm_end "$(basename $0) - Transferring pages list"
 bm_start "$(basename $0) - Generating routes"
 
 if [ "$GITHUB_ENV_SHELL" = "github-env-dispatch" ]; then
+  #shellcheck disable=SC2140 disable=SC2154
   echo "$GITHUB_ENV_SHELL -c \$(cat $remote_tmp_list) 'echo  "\$\{NOMAD_META_cmd_meta\}" | base64 -d | ./bin/dpages-cluster-restore-routes' > $remote_routes_list" | ghe-ssh "$GHE_HOSTNAME" -- /bin/bash
 else
   echo "cat $remote_tmp_list | $GITHUB_ENV_SHELL ./bin/dpages-cluster-restore-routes > $remote_routes_list" | ghe-ssh "$GHE_HOSTNAME" /bin/bash
@@ -157,6 +158,7 @@ if $CLUSTER; then
     split -l 1000 $remote_routes_list $remote_tempdir/chunk
     chunks=\$(find $remote_tempdir/ -name chunk\*)
     if [ "$GITHUB_ENV_SHELL" = "github-env-dispatch" ]; then
+      #shellcheck disable=SC2154
       parallel -i /bin/sh -c "github-env-dispatch -c $(cat {})  'echo "${NOMAD_META_cmd_meta}" | base64 -d | ./bin/dpages-cluster-restore-finalize" -- \$chunks
     else
       parallel -i /bin/sh -c "cat {} | $GITHUB_ENV_SHELL ./bin/dpages-cluster-restore-finalize" -- \$chunks

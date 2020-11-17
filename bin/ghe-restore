@@ -259,16 +259,28 @@ if $CLUSTER; then
     ghe_verbose "* Warning: Failed to stop cron on one or more nodes"
   fi
 
-  if ! ghe-ssh "$GHE_HOSTNAME" -- "ghe-cluster-each -- sudo service github-timerd stop"; then
-    ghe_verbose "* Warning: Failed to stop github-timerd on one or more nodes"
+  if [ "$GHE_VERSION_MAJOR" -eq "3" ]; then
+    if ! ghe-ssh "$GHE_HOSTNAME" -- "sudo nomad stop github-timerd"; then
+      ghe_verbose "* Warning: Failed to stop github-timerd on one or more nodes"
+    fi
+  else
+    if ! ghe-ssh "$GHE_HOSTNAME" -- "ghe-cluster-each -- sudo service github-timerd stop"; then
+      ghe_verbose "* Warning: Failed to stop github-timerd on one or more nodes"
+    fi
   fi
 else
   if ! ghe-ssh "$GHE_HOSTNAME" -- "sudo service cron stop"; then
     ghe_verbose "* Warning: Failed to stop cron"
   fi
 
-  if ! ghe-ssh "$GHE_HOSTNAME" -- "sudo service github-timerd stop"; then
-    ghe_verbose "* Warning: Failed to stop github-timerd"
+  if [ "$GHE_VERSION_MAJOR" -eq "3" ]; then
+    if ! ghe-ssh "$GHE_HOSTNAME" -- "sudo nomad stop github-timerd"; then
+      ghe_verbose "* Warning: Failed to stop github-timerd"
+    fi
+  else
+    if ! ghe-ssh "$GHE_HOSTNAME" -- "sudo service github-timerd stop"; then
+      ghe_verbose "* Warning: Failed to stop github-timerd"
+    fi
   fi
 fi
 

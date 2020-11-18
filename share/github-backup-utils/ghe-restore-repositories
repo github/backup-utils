@@ -125,7 +125,7 @@ ghe-ssh "$GHE_HOSTNAME" -- cat $remote_routes_list | ghe_debug
 bm_end "$(basename $0) - Generating routes"
 
 bm_start "$(basename $0) - Fetching routes"
-ghe-ssh "$GHE_HOSTNAME" -- gzip -c $remote_routes_list | gzip -d > $routes_list
+ghe-ssh "$GHE_HOSTNAME" -- zstd -c $remote_routes_list | zstd -d > $routes_list
 cat $routes_list | ghe_debug
 bm_end "$(basename $0) - Fetching routes"
 

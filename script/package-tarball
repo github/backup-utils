@@ -23,7 +23,7 @@ git archive \
   HEAD
 
 # List archive contents for review
-gzip -dc < "dist/${PKG_NAME}.tar.gz" | tar tf -
+zstd -dc < "dist/${PKG_NAME}.tar.zst" | tar tf -
 
 # Output location
 echo "Package dist/${PKG_NAME}.tar.gz OK"

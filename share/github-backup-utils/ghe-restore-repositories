@@ -120,7 +120,7 @@ cat $tmp_list | ghe_debug
 bm_end "$(basename $0) - Transferring network list"
 
 bm_start "$(basename $0) - Generating routes"
-echo "cat $remote_tmp_list | github-env-dispatch ./bin/dgit-cluster-restore-routes > $remote_routes_list" | ghe-ssh "$GHE_HOSTNAME" -- /bin/bash
+echo "cat $remote_tmp_list | github-env ./bin/dgit-cluster-restore-routes > $remote_routes_list" | ghe-ssh "$GHE_HOSTNAME" -- /bin/bash
 ghe-ssh "$GHE_HOSTNAME" -- cat $remote_routes_list | ghe_debug
 bm_end "$(basename $0) - Generating routes"
 
@@ -183,7 +183,7 @@ if $CLUSTER; then
   ghe-ssh "$GHE_HOSTNAME" -- /bin/bash >&3 <<EOF
     split -l 1000 $remote_to_restore $remote_tempdir/chunk
     chunks=\$(find $remote_tempdir/ -name chunk\*)
-    parallel -i /bin/sh -c "cat {} | github-env-dispatch ./bin/dgit-cluster-restore-finalize 2>>$remote_warnings" -- \$chunks
+    parallel -i /bin/sh -c "cat {} | github-env ./bin/dgit-cluster-restore-finalize 2>>$remote_warnings" -- \$chunks
 EOF
   bm_end "$(basename $0) - Finalizing routes"
 fi

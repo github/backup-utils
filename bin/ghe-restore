@@ -144,16 +144,6 @@ if ghe-ssh "$GHE_HOSTNAME" -- \
 fi
 export CLUSTER
 
-# Figure out which github-env we should use during restore
-GITHUB_ENV_SHELL=
-if ghe-ssh "$GHE_HOSTNAME" -- \
-  '[ -x "$(command -v github-env-dispatch)" ]'; then
-  GITHUB_ENV_SHELL=github-env-dispatch
-else
-  GITHUB_ENV_SHELL=github-env
-fi
-export GITHUB_ENV_SHELL
-
 # Restoring a cluster backup to a standalone appliance is not supported
 if ! $CLUSTER && [ "$GHE_BACKUP_STRATEGY" = "cluster" ]; then
   echo "Error: Snapshot from a GitHub Enterprise cluster cannot be restored" \

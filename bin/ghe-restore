@@ -251,7 +251,7 @@ if $CLUSTER; then
 
   if [ "$GHE_VERSION_MAJOR" -eq "3" ]; then
     if ghe-ssh "$GHE_HOSTNAME" -- "nomad job status --short github-timerd >/dev/null"; then
-      if ! ghe-ssh "$GHE_HOSTNAME" -- "sudo nomad stop github-timerd"; then
+      if ! ghe-ssh "$GHE_HOSTNAME" -- "sudo nomad stop github-timerd 1>/dev/null"; then
         ghe_verbose "* Warning: Failed to stop github-timerd on one or more nodes"
       fi
     fi
@@ -267,7 +267,7 @@ else
 
   if [ "$GHE_VERSION_MAJOR" -eq "3" ]; then
     if ghe-ssh "$GHE_HOSTNAME" -- "nomad job status --short github-timerd >/dev/null"; then
-      if ! ghe-ssh "$GHE_HOSTNAME" -- "sudo nomad stop github-timerd"; then
+      if ! ghe-ssh "$GHE_HOSTNAME" -- "sudo nomad stop github-timerd 1>/dev/null"; then
         ghe_verbose "* Warning: Failed to stop github-timerd"
       fi
     fi

@@ -27,6 +27,15 @@ Backup Utilities use [hard links][5] to store data efficiently, and the
 repositories on GitHub Enterprise Server use [symbolic links][6] so the backup snapshots
 must be written to a filesystem with support for symbolic and hard links.
 
+To check if your filesystem supports creating hardlinks of symbolic links, you can run the following within your backup destination directory:
+
+```bash
+touch file
+ln -s file symlink
+ln symlink hardlink
+ls -la
+```
+
 Using a [case sensitive][7] file system is also required to avoid conflicts.
 
 ## GitHub Enterprise Server version requirements

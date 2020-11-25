@@ -6,6 +6,7 @@
 #/ OPTIONS:
 #/   -h | --help       Show this message.
 #/        --version    Display version information.
+#/   -F <configfile>   Alternative backup configuration file.
 #/   <host>            The GitHub Enterprise Server host to check. When no
 #/                     <host> is provided, the $GHE_HOSTNAME configured in
 #/                     backup.config is assumed.
@@ -15,6 +16,10 @@ set -e
 
 while true; do
   case "$1" in
+    -F)
+      export GHE_BACKUP_CONFIG="$2"
+      shift 2
+      ;;
     -h|--help)
       export GHE_SHOW_HELP=true
       shift

@@ -46,6 +46,7 @@ first_node_version=""
 (
   IFS=$'\n'
   for node_version in $node_version_list; do
+    echo "$node_version"
     if [ -z "$first_node_version" ]; then
       first_node_version=$(echo "$node_version" | cut -f2 -d":")
     fi

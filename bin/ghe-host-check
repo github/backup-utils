@@ -49,7 +49,7 @@ fi
 
 if "$CLUSTER"; then
   node_version_list=$(ghe-ssh "$host" ghe-cluster-each -- ghe-version)
-  echo "$node_version_list"
+  echo "$node_version_list" 1>&2
   first_node_version=""
   (
     IFS=$'\n'

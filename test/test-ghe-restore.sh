@@ -624,7 +624,6 @@ begin_test "ghe-restore cluster with different node versions should fail at ghe-
 )
 end_test
 
-
 begin_test "ghe-restore missing directories or files from source snapshot displays warning"
 (
     # Tests the scenario where something exists in the database, but not on disk.

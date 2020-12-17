@@ -26,10 +26,10 @@ if $SHOW_UUID; then
 
   if [ -z "$hosts" ]; then
     # Mimic `ghe-cluster-each $role -u`
-    echo "fake-uuid: GitHub Enterprise Server 3.1.0 lxc 2020-12-16 5e97c07602
-fake-uuid1: GitHub Enterprise Server 3.1.0 lxc 2020-12-16 5e97c07602
-fake-uuid2: GitHub Enterprise Server 3.1.0 lxc 2020-12-16 5e97c07602
-"
+    echo "fake-uuid
+  fake-uuid1
+  fake-uuid2
+  "
   else
     for hostname in $hosts; do
       [ -n "$ROLE" ] && [ "$(git config -f $CONFIG cluster.$hostname.$ROLE-server)" != "true" ] && continue

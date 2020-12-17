@@ -20,7 +20,7 @@ for _ in "$@"; do
 done
 
 if [ "$2" == "ghe-version" ]; then
-  if [ -n "$MATCHING_VERSIONS" ]; then
+  if [ -z "$DIFFERENT_VERSIONS" ]; then
     echo "fake-uuid: GitHub Enterprise Server 3.1.0 lxc 2020-12-16 5e97c07602"
     echo "fake-uuid1: GitHub Enterprise Server 3.1.0 lxc 2020-12-16 5e97c07602"
     echo "fake-uuid2: GitHub Enterprise Server 3.1.0 lxc 2020-12-16 5e97c07602"

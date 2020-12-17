@@ -544,10 +544,6 @@ begin_test "ghe-restore cluster with matching node versions"
   setup_remote_cluster
   echo "cluster" > "$GHE_DATA_DIR/current/strategy"
 
-  # set that versions should match for this test
-  MATCHING_VERSIONS=1
-  export MATCHING_VERSIONS
-
   # set as configured, enable maintenance mode and create required directories
   setup_maintenance_mode "configured"
 
@@ -610,6 +606,10 @@ begin_test "ghe-restore cluster with different node versions should fail at ghe-
   setup_remote_metadata
   setup_remote_cluster
   echo "cluster" > "$GHE_DATA_DIR/current/strategy"
+
+  # set that versions should not match for this test
+  DIFFERENT_VERSIONS=1
+  export DIFFERENT_VERSIONS
 
   # set as configured, enable maintenance mode and create required directories
   setup_maintenance_mode "configured"

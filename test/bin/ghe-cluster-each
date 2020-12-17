@@ -29,7 +29,6 @@ if [ "$2" == "ghe-version" ]; then
     echo "fake-uuid1: GitHub Enterprise Server 3.1.0 lxc 2020-12-16 5e97c07602"
     echo "fake-uuid2: GitHub Enterprise Server 2.19 lxc 2020-12-13 5e97c07622"
   fi
-  
   exit 0
 fi
 

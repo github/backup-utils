@@ -42,13 +42,13 @@ done
 host="${1:-$GHE_HOSTNAME}"
 
 CLUSTER=false
-if ghe-ssh "$host" -- \
+if "ghe-ssh -p 122 $host" -- \
   "[ -f '$GHE_REMOTE_ROOT_DIR/etc/github/cluster' ]"; then
   CLUSTER=true
 fi
 
 if "$CLUSTER"; then
-  node_version_list=$(ghe-ssh "$host" ghe-cluster-each -- ghe-version)
+  node_version_list=$(ghe-ssh -p 122 "$host" ghe-cluster-each -- ghe-version)
   echo "$node_version_list" 1>&2
   distinct_versions=$(echo "$node_version_list" | awk '{split($0, a, ":"); print a[2]}' | uniq | wc -l)
   if [ "$distinct_versions" -ne 1 ]; then

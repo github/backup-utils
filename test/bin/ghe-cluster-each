@@ -4,6 +4,8 @@
 # to assert that the command was executed.
 set -e
 
+SHOW_UUID=false
+
 for _ in "$@"; do
   case "$1" in
     -u)
@@ -16,6 +18,13 @@ for _ in "$@"; do
         shift
         shift
         ;;
+    --)
+      if [ "$1" = "--" ]; then
+        shift
+        COMMAND="$*"
+      fi
+      break
+      ;;
   esac
 done
 
@@ -32,21 +41,23 @@ if [ "$2" == "ghe-version" ]; then
   exit 0
 fi
 
-if $SHOW_UUID; then
-  CONFIG="$GHE_REMOTE_DATA_USER_DIR/common/cluster.conf"
+CONFIG="$GHE_REMOTE_DATA_USER_DIR/common/cluster.conf"
 
-  hosts=$(git config -f $CONFIG --get-regexp cluster.*.hostname | cut -d ' ' -f2)
+hosts=$(git config -f $CONFIG --get-regexp cluster.*.hostname | cut -d ' ' -f2)
 
-  if [ -z "$hosts" ]; then
-    # Mimic `ghe-cluster-each $role -u`
+if [ -z "$hosts" ]; then
+  # Mimic `ghe-cluster-each $role -u`
+  if $SHOW_UUID; then
     echo "fake-uuid
-  fake-uuid1
-  fake-uuid2
-  "
-  else
-    for hostname in $hosts; do
-      [ -n "$ROLE" ] && [ "$(git config -f $CONFIG cluster.$hostname.$ROLE-server)" != "true" ] && continue
-      echo $hostname
-    done
+fake-uuid1
+fake-uuid2
+"
+[ -n "$COMMAND" ] && echo "$COMMAND"
   fi
+else
+  for hostname in $hosts; do
+    [ -n "$ROLE" ] && [ "$(git config -f $CONFIG cluster.$hostname.$ROLE-server)" != "true" ] && continue
+    $SHOW_UUID && echo $hostname
+    [ -n "$COMMAND" ] && echo "$COMMAND"
+  done
 fi

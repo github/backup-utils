@@ -28,7 +28,7 @@ for _ in "$@"; do
   esac
 done
 
-if [ "$2" == "ghe-version" ]; then
+if [ "$COMMAND" == "ghe-version" ]; then
   if [ -z "$DIFFERENT_VERSIONS" ]; then
     echo "fake-uuid: GitHub Enterprise Server 3.1.0 lxc 2020-12-16 5e97c07602"
     echo "fake-uuid1: GitHub Enterprise Server 3.1.0 lxc 2020-12-16 5e97c07602"
@@ -43,7 +43,7 @@ fi
 
 CONFIG="$GHE_REMOTE_DATA_USER_DIR/common/cluster.conf"
 
-hosts=$(git config -f $CONFIG --get-regexp cluster.*.hostname | cut -d ' ' -f2)
+hosts=$(git config -f $CONFIG --get-regexp cluster.*.hostname | cut -d ' ' -f2) || true
 
 if [ -z "$hosts" ]; then
   # Mimic `ghe-cluster-each $role -u`

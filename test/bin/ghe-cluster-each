@@ -16,10 +16,17 @@ for _ in "$@"; do
         shift
         shift
         ;;
+    --)
+      if [ "$1" = "--" ]; then
+        shift
+        COMMAND="$*"
+      fi
+      break
+      ;;
   esac
 done
 
-if [ "$2" == "ghe-version" ]; then
+if [ "$COMMAND" == "ghe-version" ]; then
   if [ -z "$DIFFERENT_VERSIONS" ]; then
     echo "fake-uuid: GitHub Enterprise Server 3.1.0 lxc 2020-12-16 5e97c07602"
     echo "fake-uuid1: GitHub Enterprise Server 3.1.0 lxc 2020-12-16 5e97c07602"
@@ -32,7 +39,7 @@ if [ "$2" == "ghe-version" ]; then
   exit 0
 fi
 
-if [ "$2" == "/usr/local/share/enterprise/ghe-nomad-cleanup" ]; then
+if [ "$COMMAND" == "/usr/local/share/enterprise/ghe-nomad-cleanup" ]; then
   echo "nomad cleanup"
   exit 0
 fi

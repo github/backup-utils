@@ -42,7 +42,7 @@ done
 host="${1:-$GHE_HOSTNAME}"
 
 CLUSTER=false
-if "ghe-ssh -p 122 $host" -- \
+if "ghe-ssh -p $(122 "$host")" -- \
   "[ -f '$GHE_REMOTE_ROOT_DIR/etc/github/cluster' ]"; then
   CLUSTER=true
 fi

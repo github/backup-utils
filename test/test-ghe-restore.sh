@@ -535,7 +535,7 @@ setup_test_data "$GHE_DATA_DIR/1"
 # Make the current symlink
 ln -s 1 "$GHE_DATA_DIR/current"
 
-begin_test "ghe-restore cluster with matching node versions"
+begin_test "ghe-restore cluster"
 (
   set -e
   rm -rf "$GHE_REMOTE_ROOT_DIR"
@@ -595,32 +595,6 @@ begin_test "ghe-restore cluster with matching node versions"
 
   # Verify all the data we've restored is as expected
   verify_all_restored_data
-)
-end_test
-
-begin_test "ghe-restore cluster with different node versions should fail at ghe-host-check"
-(
-  set -e
-  rm -rf "$GHE_REMOTE_ROOT_DIR"
-  setup_moreutils_parallel
-  setup_remote_metadata
-  setup_remote_cluster
-  echo "cluster" > "$GHE_DATA_DIR/current/strategy"
-
-  # set that versions should not match for this test
-  DIFFERENT_VERSIONS=1
-  export DIFFERENT_VERSIONS
-
-  # set as configured, enable maintenance mode and create required directories
-  setup_maintenance_mode "configured"
-
-  # set restore host environ var
-  GHE_RESTORE_HOST=127.0.0.1
-  export GHE_RESTORE_HOST
-
-  ! output=$(ghe-restore -v -f 2>&1)
-
-  echo "$output" | grep -q "Error: Not all nodes are running the same version! Please ensure all nodes are running the same version before using backup-utils."
 )
 end_test
 

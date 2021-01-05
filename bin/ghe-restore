@@ -312,20 +312,16 @@ else
     appliance_strategy="logical"
   fi
 
-  if is_binary_backup "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT"; then
+  if is_binary_backup "$GHE_RESTORE_DATA_DIR/$GHE_RESTORE_SNAPSHOT"; then
     backup_snapshot_strategy="binary"
   else
     backup_snapshot_strategy="logical"
   fi
 fi
 
-<<<<<<< HEAD
-if is_binary_backup "$GHE_RESTORE_DATA_DIR/$GHE_RESTORE_SNAPSHOT"; then
-  backup_snapshot_strategy="binary"
-=======
 if is_external_database_target_or_snapshot && $SKIP_MYSQL; then
   echo "Skipping MySQL restore."
->>>>>>> master
+
 else
   echo "Restoring MySQL database from ${backup_snapshot_strategy} backup snapshot on an appliance configured for ${appliance_strategy} backups ..."
   ghe-restore-mysql "$GHE_HOSTNAME" 1>&3

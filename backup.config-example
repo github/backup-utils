@@ -61,6 +61,15 @@ GHE_NUM_SNAPSHOTS=10
 # WARNING: do not enable this, only useful for debugging/development
 #GHE_BACKUP_FSCK=no
 
+# Cadence of MSSQL backups
+# <full>,<differential>,<transactionlog> all in minutes
+# e.g.
+#   - Full backup every week (10080 minutes)
+#   - Differential backup every day (1440 minutes)
+#   - Transactionlog backup every 15 minutes
+#
+GHE_MSSQL_BACKUP_CADENCE=10080,1440,15
+
 # If set to 'yes', ghe-backup jobs will run in parallel. Defaults to 'no'.
 #
 # WARNING: this feature is in beta.
@@ -85,3 +94,11 @@ GHE_NUM_SNAPSHOTS=10
 #
 # WARNING: this feature is in beta.
 #GHE_PARALLEL_MAX_LOAD=50
+
+# When running an external mysql database, run this script to trigger a MySQL backup
+# rather than attempting to backup via backup-utils directly.
+#EXTERNAL_DATABASE_BACKUP_SCRIPT="/bin/false"
+
+# When running an external mysql database, run this script to trigger a MySQL restore
+# rather than attempting to backup via backup-utils directly.
+#EXTERNAL_DATABASE_RESTORE_SCRIPT="/bin/false"

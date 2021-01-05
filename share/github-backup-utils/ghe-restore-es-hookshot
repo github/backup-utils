@@ -24,7 +24,7 @@ last_index=$(ghe-ssh "$GHE_HOSTNAME" 'curl -s "localhost:9201/_cat/indices/hooks
 
 indices=$(find $GHE_RESTORE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/hookshot/*.gz -print0 2>/dev/null | xargs -0 -I{} -n1 basename {} .gz)
 tmp_list="$(mktemp -t backup-utils-restore-XXXXXX)"
-if ghe-ssh "$GHE_HOSTNAME" -- "[ -f '$GHE_REMOTE_ROOT_DIR/etc/github/configured' ]"; then
+if is_instance_configured; then
   configured=true
 fi
 

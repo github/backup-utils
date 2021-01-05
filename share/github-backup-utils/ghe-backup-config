@@ -162,6 +162,7 @@ fi
 if [ "${GHE_DATA_DIR:0:1}" != "/" ]; then
   GHE_DATA_DIR="$(cd "$GHE_BACKUP_ROOT" && readlink -m "$GHE_DATA_DIR" 2>/dev/null || echo "$GHE_BACKUP_ROOT/$GHE_DATA_DIR")"
 fi
+export GHE_DATA_DIR
 
 # Assign the Release File path if it hasn't been provided (eg: by test suite)
 : "${GHE_RELEASE_FILE:="/etc/github/enterprise-release"}"
@@ -402,4 +403,100 @@ is_binary_backup_feature_on() {
 # Check if the backup is binary by looking up the sentinel file
 is_binary_backup() {
   test -f "$1/mysql-binary-backup-sentinel"
+}
+
+# Check if a given service is managed externally on the appliance or in a snapshot.
+# Usage: is_service_external $service [$config_file]
+# Pass in the config file to check if the service is managed externally in the snapshot.
+is_service_external(){
+  service=$1
+  config_file=$2
+  case $service in
+    "mysql")
+      if [ -n "$config_file" ]; then
+        enabled=$(GIT_CONFIG="$config_file" git config mysql.external.enabled)
+        [ "$enabled" == "true" ];
+      else
+        ghe-ssh "$GHE_HOSTNAME" -- ghe-config --true "mysql.external.enabled"
+      fi
+      ;;
+    *)
+      return 1
+      ;;
+    esac
+}
+
+is_instance_configured(){
+  ghe-ssh "$GHE_HOSTNAME" -- "[ -f '$GHE_REMOTE_ROOT_DIR/etc/github/configured' ]"
+}
+
+# Helper method that returns true if:
+# - the target appliance uses the internal MySQL database (aka NOT BYODB), and
+# - the snapshot being restored is from an appliance using an external MySQL database (BYODB)
+external_database_snapshot_to_internal_database(){
+  ! is_external_database_target && is_external_database_snapshot
+}
+
+# Helper method that returns true if:
+# - the target appliance uses an external MySQL database (BYODB), and
+# - the snapshot being restored is from an appliance using an internal MySQL database (aka NOT BYODB)
+internal_database_snapshot_to_external_database(){
+  is_external_database_target && ! is_external_database_snapshot
+}
+
+is_external_database_target_or_snapshot(){
+  # If restoring settings, only check if the snapshot being restored was from an appliance with external DB configured.
+  if $RESTORE_SETTINGS; then
+    is_external_database_snapshot
+  else
+    # Check if restoring a snapshot with an external database configured, or restoring
+    # to an appliance with an external database configured.
+    is_external_database_snapshot || is_external_database_target
+  fi
+}
+
+is_external_database_target(){
+  is_service_external "mysql"
+}
+
+is_external_database_snapshot(){
+  is_service_external "mysql" "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/settings.json"
+}
+
+# This file exists if this is a backup for an external database AND the backup was
+# taken via our logical backup strategy.
+is_default_external_database_snapshot(){
+  is_external_database_snapshot && test -f "$1/logical-external-database-backup-sentinel"
+}
+
+prompt_for_confirmation(){
+  echo "$1"
+  printf "Type 'yes' to continue: "
+
+  while read -r response; do
+    case $response in
+      yes|Yes|YES)
+        break
+        ;;
+      '')
+        printf "Type 'yes' to continue: "
+        ;;
+      *)
+        echo "Restore aborted." 1>&2
+        exit 1
+        ;;
+    esac
+  done
+
+  echo
+}
+
+# Function to restore a secret setting stored in a file.
+#   restore-secret <description> <file-name> <setting-name>
+restore-secret() {
+  if [ -f "$GHE_RESTORE_SNAPSHOT_PATH/$2" ]; then
+    echo "Restoring $1 ..."
+    echo "ghe-config '$3' '$(cat "$GHE_RESTORE_SNAPSHOT_PATH/$2")'" |
+    ghe-ssh "$GHE_HOSTNAME" -- /bin/bash
+  fi
 }

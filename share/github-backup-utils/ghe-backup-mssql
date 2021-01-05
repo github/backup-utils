@@ -1,0 +1,192 @@
+#!/usr/bin/env bash
+#/ Usage: ghe-backup-mssql
+#/ 
+#/
+#/ Note: This command typically isn't called directly. It's invoked by
+#/ ghe-backup.
+set -e
+
+# Bring in the backup configuration
+# shellcheck source=share/github-backup-utils/ghe-backup-config
+. "$( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config"
+
+# Set up remote host and root backup snapshot directory based on config
+backup_dir="$GHE_SNAPSHOT_DIR/mssql"
+last_mssql=
+backup_command=
+take_full=
+take_diff=
+full_expire=
+diff_expire=
+tran_expire=
+
+# Check if the export tool is available in this version
+export_tool_available() {
+  if [ -z "$GHE_TEST_REMOTE_VERSION" ]; then
+    ghe-ssh "$GHE_HOSTNAME" "test -e /usr/local/bin/ghe-export-mssql"
+  else
+    # Always return available for test
+    return 0
+  fi
+}
+
+if ! export_tool_available; then
+  ghe_verbose "ghe-export-mssql is not available"
+  exit
+fi
+
+add_minute() {
+  # Expect date string in the format of yyyymmddTHHMMSS
+  # Here parse date differently depending on GNU Linux vs BSD MacOS
+  if date -v -1d > /dev/null 2>&1; then
+    echo "$(date -v +$2M -ujf'%Y%m%dT%H%M%S' $1 +%Y%m%dT%H%M%S)"
+  else
+    dt=$1
+    echo "$(date '+%Y%m%dT%H%M%S' -d "${dt:0:8} ${dt:9:2}:${dt:11:2}:${dt:13:2} $2 minutes")"
+  fi
+}
+
+find_timestamp() {
+  filename="${1##*/}"
+  IFS='@' read -ra parts <<< "$filename"
+  datetime_part=${parts[1]:0:15}
+  echo $datetime_part
+}
+
+ensure_same_dbs() {
+  all_dbs=$(echo 'set -o pipefail; ghe-mssql-console -y -n -q "SET NOCOUNT ON; SELECT name FROM sys.databases"' | ghe-ssh "$GHE_HOSTNAME" /bin/bash)
+
+  remotes=()
+  for db in $all_dbs; do
+    if [[ ! "$db" =~ ^(master|tempdb|model|msdb)$ ]] && [[ "$db" =~ ^[a-zA-Z0-9_-]+$ ]]; then
+      remotes+=("$db")
+    fi
+  done
+
+  locals=()
+  while read -r file; do
+    filename=$(basename "$file")
+    locals+=("$filename")
+  done < <(find "$1" \( -name "*.bak" -o -name "*.diff" -o -name "*.log" \))
+
+  for remote in "${remotes[@]}"; do
+    remaining_locals=()
+    for local in "${locals[@]}"; do
+      if ! [[ "$local" == "$remote"* ]]; then
+        remaining_locals+=("$local")
+      fi
+    done
+    locals=("${remaining_locals[@]}")
+  done
+
+  if [[ "${#locals[@]}" -ne 0 ]]; then
+    ghe_verbose "Warning: Found following ${#locals[@]} backup files that can't be traced back to the specified GHES host."
+    ghe_verbose "Warning: Did you recently reconfigure the GHES host? Consider deleting these backup files if no longer needed."
+    for local in "${locals[@]}"; do
+      ghe_verbose "$local"
+    done
+
+    exit 1
+  fi
+}
+
+last_mssql=$GHE_DATA_DIR/current/mssql
+
+if [ ! -d $last_mssql ] \
+  || [ -z "$(find $last_mssql -type f -name '*.bak' | head -n 1)" ]; then
+  ghe_verbose "Taking first full backup"
+  take_full=1
+  backup_command='ghe-export-mssql'
+else
+  ensure_same_dbs "$last_mssql"
+
+  # Check schedule to determine backup type
+  IFS=',' read -ra cadence <<< "$GHE_MSSQL_BACKUP_CADENCE"
+
+  current=$(date -u +%Y%m%d%H%M%S)
+
+  full=$(find "$last_mssql" -type f -name "*.bak" | head -n 1)
+  full=$(find_timestamp $full)
+  full_expire=$(add_minute $full ${cadence[0]})
+  full_expire="${full_expire//T}"
+
+  diff=$(find "$last_mssql" -type f -name "*.diff" | head -n 1)
+  if [ -f "$diff" ]; then
+    diff=$(find_timestamp $diff)
+    diff_expire=$(add_minute $diff ${cadence[1]})
+    diff_expire="${diff_expire//T}"
+  else
+    diff_expire=$(add_minute $full ${cadence[1]})
+    diff_expire="${diff_expire//T}"
+  fi
+
+  tran=$(find "$last_mssql" -type f -name "*.log" | egrep '[0-9]{8}T[0-9]{6}' | sort | tail -1)
+  tran=$(find_timestamp $tran)
+  tran_expire=$(add_minute $tran ${cadence[2]})
+  tran_expire="${tran_expire//T}"
+
+  ghe_verbose "current $current, full expire $full_expire, \
+diff expire $diff_expire, tran expire $tran_expire"
+
+  # Determine the type of backup to take
+  if [ $current -gt $full_expire ]; then
+    ghe_verbose "Taking full backup"
+    take_full=1
+    backup_command='ghe-export-mssql'
+  elif [ $current -gt $diff_expire ]; then
+    ghe_verbose "Taking diff backup"
+    take_diff=1
+    backup_command='ghe-export-mssql -d'
+  elif [ $current -gt $tran_expire ]; then
+    ghe_verbose "Taking transaction backup"
+    backup_command='ghe-export-mssql -t'
+  fi
+fi
+
+# Make sure root backup dir exists if this is the first run
+mkdir -p "$backup_dir"
+
+# Create hard links to save disk space and time
+if [ -d $last_mssql ]; then
+  for p in $last_mssql/*
+  do
+    [[ -e "$p" ]] || break
+
+    filename="${p##*/}"
+    extension="${filename##*.}"
+    transfer=
+
+    if [ $extension = "bak" ] && [ -z $take_full ]; then
+      transfer=1
+    fi
+
+    if [ $extension = "diff" ] && [ -z $take_full ] && [ -z $take_diff ]; then
+      transfer=1
+    fi
+
+    if [ $extension = "log" ] && [ -z $take_full ] && [ -z $take_diff ]; then
+      transfer=1
+    fi
+
+    if [ -n "$transfer" ]; then
+      ghe_verbose "Creating hard link to $filename"
+      ln $last_mssql/$filename $backup_dir/$filename
+    fi
+  done
+fi
+
+if [ -n "$backup_command" ]; then
+  bm_start "$(basename $0)"
+  ghe-ssh "$GHE_HOSTNAME" -- "$backup_command" || failures="$failures mssql"
+  bm_end "$(basename $0)"
+
+  # Transfer backup files from appliance to backup host
+  appliance_dir="$GHE_REMOTE_DATA_DIR/user/mssql/backups"
+  backups=$(echo "set -o pipefail; if sudo test -d \"$appliance_dir\"; then \
+    sudo ls \"$appliance_dir\"; fi" | ghe-ssh "$GHE_HOSTNAME" /bin/bash)
+  for b in $backups
+  do
+    ghe_verbose "Transferring to backup host $b"
+    ghe-ssh "$GHE_HOSTNAME" "sudo cat $appliance_dir/$b" > $backup_dir/$b
+  done
+fi

@@ -15,15 +15,29 @@ bm_start "$(basename $0)"
 # Perform a host-check and establish the remote version in GHE_REMOTE_VERSION.
 ghe_remote_version_required "$GHE_HOSTNAME"
 
-export_command="ghe-export-mysql"
-if ! is_binary_backup_feature_on; then
-  # binary backup is already compressed
-  export_command+=" | pigz"
-fi
-echo "set -o pipefail; $export_command" |
-ghe-ssh "$GHE_HOSTNAME" -- /bin/bash > "$GHE_SNAPSHOT_DIR/mysql.sql.gz"
-if is_binary_backup_feature_on; then
-  echo "NO_ADDITIONAL_COMPRESSION" > "$GHE_SNAPSHOT_DIR/mysql-binary-backup-sentinel"
+if is_external_database_target; then
+  if [ -n "$EXTERNAL_DATABASE_BACKUP_SCRIPT" ]; then
+    echo "Backing up external MySQL database using customer-provided script..."
+    $EXTERNAL_DATABASE_BACKUP_SCRIPT
+    bm_end "$(basename $0)"
+    exit 0
+  else
+    if is_binary_backup_feature_on; then
+      echo "Warning: Binary backups are configured on the target environment."
+      echo "Binary backup is not supported with an external MySQL database. Backing up using logical backup strategy."
+      echo 
+      echo "Please disable binary backups with 'ghe-config mysql.backup.binary false', or"
+      echo "provide a custom backup script using EXTERNAL_DATABASE_BACKUP_SCRIPT"
+    fi
+
+    ghe-backup-mysql-logical
+  fi
+else
+  if is_binary_backup_feature_on; then
+    ghe-backup-mysql-binary
+  else
+    ghe-backup-mysql-logical
+  fi
 fi
 
 bm_end "$(basename $0)"

@@ -1,3 +1,8 @@
+github-backup-utils (3.0.0.rc) UNRELEASED; urgency=medium
+
+
+ -- Michael Dang <dangmh@github.com>  Wed, 13 Jan 2021 23:18:12 +0000
+
 github-backup-utils (2.22.0) UNRELEASED; urgency=medium
 
   * Added basic timing around the ghe-restore process #625

@@ -121,6 +121,17 @@ begin_test "ghe-backup without management console password"
 )
 end_test
 
+begin_test "ghe-backup without password pepper"
+(
+  set -e
+
+  git config -f "$GHE_REMOTE_DATA_USER_DIR/common/secrets.conf" secrets.github.user-password-secrets ""
+  ghe-backup
+
+  [ ! -f "$GHE_DATA_DIR/current/password-pepper" ]
+)
+end_test
+
 begin_test "ghe-backup empty hookshot directory"
 (
   set -e

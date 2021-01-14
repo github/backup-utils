@@ -1,6 +1,16 @@
 github-backup-utils (3.0.0.rc1) UNRELEASED; urgency=medium
 
- -- Michael Dang <dangmh@github.com>  Wed, 13 Jan 2021 23:23:59 +0000
+  * Cleanup nomad container when restore for 2.22 #670
+  * Use ghe-cluster-nomad-cleanup for cluster mode #663
+  * Only run ghe-nomad-cleanup in 3.0 #662
+  * Revert backup-utils gitHub env and a few more fixes #661
+  * Note how to test filesystem symlink / hardlink support #660
+  * stop github-timerd based on its running environment #659
+  * Backup and restore password pepper #656
+  * github-env -> github-env-dispatch #654
+  * Rename redis-cli to ghe-redis-cli #639
+
+ -- Michael Dang <dangmh@github.com>  Thu, 14 Jan 2021 21:17:53 +0000
 
 github-backup-utils (2.22.0) UNRELEASED; urgency=medium
 

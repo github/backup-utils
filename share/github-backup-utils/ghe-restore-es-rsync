@@ -26,7 +26,7 @@ ghe_remote_version_required "$GHE_HOSTNAME"
 : ${GHE_RESTORE_SNAPSHOT:=current}
 
 # The directory holding the snapshot to restore
-snapshot_dir="$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT"
+snapshot_dir="$GHE_RESTORE_DATA_DIR/$GHE_RESTORE_SNAPSHOT"
 
 # Transfer all ES data from the latest snapshot to the GitHub instance.
 if [ ! -d "$snapshot_dir/elasticsearch" ]; then

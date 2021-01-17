@@ -27,7 +27,7 @@ ghe_remote_version_required "$GHE_HOSTNAME"
 export GHE_RESTORE_SNAPSHOT
 
 # The directory holding the snapshot to restore
-snapshot_dir="$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT"
+snapshot_dir="$GHE_RESTORE_DATA_DIR/$GHE_RESTORE_SNAPSHOT"
 
 if is_external_database_snapshot; then
   if [ -n "$EXTERNAL_DATABASE_RESTORE_SCRIPT" ]; then

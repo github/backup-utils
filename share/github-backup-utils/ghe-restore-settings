@@ -23,7 +23,7 @@ ghe_remote_version_required "$GHE_HOSTNAME"
 : ${GHE_RESTORE_SNAPSHOT:=current}
 
 # Path to snapshot dir we're restoring from
-GHE_RESTORE_SNAPSHOT_PATH="$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT"
+GHE_RESTORE_SNAPSHOT_PATH="$GHE_RESTORE_DATA_DIR/$GHE_RESTORE_SNAPSHOT"
 
 echo "Restoring license ..."
 ghe-ssh "$GHE_HOSTNAME" -- 'ghe-import-license' < "$GHE_RESTORE_SNAPSHOT_PATH/enterprise.ghl" 1>&3

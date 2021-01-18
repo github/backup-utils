@@ -40,8 +40,6 @@ restore-secret "external MySQL password" "external-mysql-password" "secrets.exte
 
 # Restore management console password hash if present.
 restore-secret "management console password" "manage-password" "secrets.manage"
-# Restore password pepper if present
-restore-secret "password pepper" "password-pepper" "secrets.github.user-password-secrets"
 
 # Restore SAML keys if present.
 if [ -f "$GHE_RESTORE_SNAPSHOT_PATH/saml-keys.tar" ]; then

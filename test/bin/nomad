@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Usage: nomad
+# Fake nomad command stub for tests.
+set -e

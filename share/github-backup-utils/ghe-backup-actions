@@ -43,6 +43,7 @@ ghe-rsync -avz \
   -e "ghe-ssh -p $port" \
   --rsync-path='sudo -u actions rsync' \
   --exclude "mutexes" --exclude "dumps" \
+  --blocking-io \
   $link_dest \
   "$host:$GHE_REMOTE_DATA_USER_DIR/actions/" \
   "$GHE_SNAPSHOT_DIR/actions" 1>&3

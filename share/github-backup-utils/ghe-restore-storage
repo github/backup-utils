@@ -144,6 +144,7 @@ for file_list in $tempdir/*.rsync; do
     --rsync-path=\"sudo -u $storage_user rsync\" \
     --files-from=$file_list \
     --size-only \
+    --blocking-io \
     \"$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/storage/./\" \
     \"$server:$GHE_REMOTE_DATA_USER_DIR/storage/\" 1>&3
     ")

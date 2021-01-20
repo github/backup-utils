@@ -46,6 +46,7 @@ ghe-ssh -p "$port" "$host" -- sudo chown -R actions:actions "$GHE_REMOTE_DATA_US
 ghe-rsync -arvHR --delete \
   -e "ghe-ssh -p $port" \
   --rsync-path='sudo -u actions rsync' \
+  --blocking-io \
   "$GHE_RESTORE_SNAPSHOT_PATH/actions/./" \
   "$host:$GHE_REMOTE_DATA_USER_DIR/actions/" 1>&3
 

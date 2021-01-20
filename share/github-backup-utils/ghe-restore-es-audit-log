@@ -55,6 +55,7 @@ if [ -s "$tmp_list" ]; then
     -e "ghe-ssh -p $(ssh_port_part "$GHE_HOSTNAME")" \
     --rsync-path="sudo -u elasticsearch rsync" \
     --files-from=$tmp_list \
+    --blocking-io \
     "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/audit-log/" \
     "$(ssh_host_part "$GHE_HOSTNAME"):$GHE_REMOTE_DATA_USER_DIR/elasticsearch-restore/audit-log/" 1>&3
 

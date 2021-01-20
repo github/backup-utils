@@ -57,6 +57,7 @@ mkdir -p "$GHE_SNAPSHOT_DIR/$dirname"
 ghe-rsync -avz \
   -e "ghe-ssh -p $(ssh_port_part "$host")" \
   --rsync-path='sudo -u git rsync' \
+  --blocking-io \
   $link_dest \
   "$(ssh_host_part "$host"):$GHE_REMOTE_DATA_USER_DIR/$dirname/" \
   "$GHE_SNAPSHOT_DIR/$dirname" 1>&3

@@ -41,6 +41,7 @@ else
     -e "ghe-ssh -p $(ssh_port_part "$GHE_HOSTNAME")" \
     --rsync-path="sudo -u elasticsearch rsync" \
     --copy-dest="$GHE_REMOTE_DATA_USER_DIR/elasticsearch" \
+    --blocking-io \
     "$snapshot_dir/elasticsearch/" \
     "$(ssh_host_part "$GHE_HOSTNAME"):$GHE_REMOTE_DATA_USER_DIR/elasticsearch-restore" 1>&3
 

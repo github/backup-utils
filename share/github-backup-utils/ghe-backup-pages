@@ -77,6 +77,7 @@ for hostname in $hostnames; do
   ghe-rsync -avz \
     -e "ssh -q $opts -p $port $ssh_config_file_opt -l $user" \
     --rsync-path='sudo -u git rsync' \
+    --blocking-io \
     $link_dest \
     "$hostname:$GHE_REMOTE_DATA_USER_DIR/pages/" \
     "$GHE_SNAPSHOT_DIR/pages" 1>&3

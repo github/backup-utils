@@ -93,6 +93,7 @@ rsync_git_hooks_data () {
   ghe-rsync -av \
     -e "ssh -q $opts -p $port $ssh_config_file_opt -l $user" $link_dest \
     --rsync-path='sudo -u git rsync' \
+    --blocking-io \
     "$host:$GHE_REMOTE_DATA_USER_DIR/git-hooks/$subpath/" \
     "$backup_dir/$subpath" 1>&3
 }

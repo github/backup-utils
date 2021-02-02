@@ -6,6 +6,7 @@
 #/
 #/ OPTIONS:
 #/   -v | --verbose    Enable verbose output.
+#/   -p | --priority   Set higher priority.
 #/   -h | --help       Show this message.
 #/        --version    Display version information.
 #/
@@ -25,6 +26,10 @@ while true; do
       ;;
     -v|--verbose)
       export GHE_VERBOSE=true
+      shift
+      ;;
+    -p|--priority)
+      export GHE_PRIORITY=true
       shift
       ;;
     -*)
@@ -49,8 +54,14 @@ failures=
 failures_file="$(mktemp -t backup-utils-backup-failures-XXXXXX)"
 
 # CPU and IO throttling to keep backups from thrashing around.
-export GHE_NICE=${GHE_NICE:-"nice -n 19"}
-export GHE_IONICE=${GHE_IONICE:-"ionice -c 3"}
+if [ -n $GHE_PRIORITY ]
+then
+  export GHE_NICE=${GHE_NICE:-"nice -n -20"}
+  export GHE_IONICE=${GHE_IONICE:-"ionice -c 2 -n 0"}
+else
+  export GHE_NICE=${GHE_NICE:-"nice -n 19"}
+  export GHE_IONICE=${GHE_IONICE:-"ionice -c 3"}
+fi
 
 # Create the timestamped snapshot directory where files for this run will live,
 # change into it, and mark the snapshot as incomplete by touching the

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 #/ Usage: ghe-ssh [<option>...] <host> [<simple-command>...]
 #/        echo 'set -o pipefail; <complex-command>...' | ghe-ssh [<option>...] <host> /bin/bash
 #/ Helper to ssh into a GitHub instance with the right user and port. The first
@@ -7,26 +7,34 @@
 set -e
 
 # Bring in the backup configuration
-cd $(dirname "$0")/../..
-. share/github-backup-utils/ghe-backup-config
+# shellcheck source=share/github-backup-utils/ghe-backup-config
+. "$( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config"
 
 opts="$GHE_EXTRA_SSH_OPTS"
 while true; do
-    case "$1" in
-        -p|-l|-o)
-            opts="$opts $1 $2"
-            shift 2
-            ;;
-        --)
-            echo "Error: illegal '--' in ssh invocation"
-            exit 1
-            ;;
-        *)
-            host="$1"
-            shift
-            break
-            ;;
-    esac
+  case "$1" in
+    -p)
+      port="$2"
+      shift 2
+      ;;
+    -l|-o|-F)
+      opts="$opts $1 $2"
+      shift 2
+      ;;
+    -c|--clean)
+      cleanup_mux=1
+      shift
+      ;;
+    --)
+      echo "Error: illegal '--' in ssh invocation"
+      exit 1
+      ;;
+    *)
+      host="$1"
+      shift
+      break
+      ;;
+  esac
 done
 
 # Show usage with no host
@@ -34,11 +42,11 @@ done
 
 # Shift off '--' if given immediately after host.
 if [ "$1" = "--" ]; then
-    shift
+  shift
 fi
 
-# Split host:port into parts
-port=$(ssh_port_part "$host")
+# Split host:port into parts. The port is only used if not specified earlier.
+port=${port:-$(ssh_port_part "$host")}
 host=$(ssh_host_part "$host")
 
 # Add user / -l option
@@ -48,14 +56,33 @@ opts="-l $user $opts"
 
 # Bail out with error if the simple command form is used with complex commands.
 # Complex
-if echo "$*" | grep "[|;]" >/dev/null || [ $(echo "$*" | wc -l) -gt 1 ]; then
-    echo "fatal: ghe-ssh: Attempt to invoke complex command with simple command form." 1>&2
-    echo "See ghe-ssh --help for more on correcting." 1>&2
-    exit 1
+if echo "$*" | grep "[|;]" >/dev/null || [ "$(echo "$*" | wc -l)" -gt 1 ]; then
+  echo "fatal: ghe-ssh: Attempt to invoke complex command with simple command form." 1>&2
+  echo "See ghe-ssh --help for more on correcting." 1>&2
+  exit 1
+fi
+
+if [ -z "$GHE_DISABLE_SSH_MUX" ]; then
+  controlpath="$TMPDIR/.ghe-sshmux-$(echo -n "$user@$host:$port" | git hash-object --stdin | cut -c 1-8)"
+  # shellcheck disable=SC2089 # We don't use bash arrays
+  opts="-o ControlMaster=auto -o ControlPath=\"$controlpath\" -o ControlPersist=10m -o ServerAliveInterval=10 $opts"
+  # Workaround for https://bugzilla.mindrot.org/show_bug.cgi?id=1988
+  if ! [ -S $controlpath ]; then
+    # shellcheck disable=SC2090 # We don't need the quote/backslashes respected
+    ( cd "$TMPDIR" && ssh -f -p $port $opts -o BatchMode=yes "$host" -- /bin/true 1>/dev/null 2>&1 || true )
+  fi
 fi
 
 # Turn on verbose SSH logging if needed
 $GHE_VERBOSE_SSH && set -x
 
 # Exec ssh command with modified host / port args and add nice to command.
-exec ssh -p $port $opts -o BatchMode=yes "$host" -- $GHE_NICE $GHE_IONICE "$@"
+if [ -z "$cleanup_mux" ]; then
+  # Exec ssh command with modified host / port args and add nice to command.
+  # shellcheck disable=SC2090 # We don't need the quote/backslashes respected
+  exec ssh -p $port $opts -o BatchMode=yes "$host" -- $GHE_NICE $GHE_IONICE "$@"
+elif [ -z "$GHE_DISABLE_SSH_MUX" ]; then
+  while ssh -O check -o ControlPath="$controlpath" "$GHE_HOSTNAME" > /dev/null 2>&1; do
+    ssh -O stop -o ControlPath="$controlpath" "$GHE_HOSTNAME" > /dev/null 2>&1
+  done
+fi

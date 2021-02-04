@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 # Usage: script/cibuild [--no-package]
 set -e
 
@@ -7,8 +7,8 @@ set -e
 # conditional logic based on the remote version. Running the suite against
 # different major versions ensures we're covering these conditional paths.
 REMOTE_VERSIONS="
-  11.10.344
-  2.0.0
+  2.11.0
+  2.13.0
 "
 
 # Enable verbose logging of ssh commands
@@ -18,12 +18,12 @@ export GHE_VERBOSE_SSH=true
 res=true
 for version in $REMOTE_VERSIONS
 do
-    echo "==> Running testsuite with GHE_TEST_REMOTE_VERSION=$version"
-    export GHE_TEST_REMOTE_VERSION="$version"
-    if ! ls -1 test/test-*.sh | xargs -P 4 -n 1 /bin/sh; then
-        res=false
-    fi
-    echo
+  echo "==> Running testsuite with GHE_TEST_REMOTE_VERSION=$version"
+  export GHE_TEST_REMOTE_VERSION="$version"
+  if ! find test -name "test-*.sh" -print0 | xargs -0 -P 4 -n 1 /bin/bash; then
+    res=false
+  fi
+  echo
 done
 
 # If any of the version tests failed, exit non-zero
@@ -36,36 +36,35 @@ $res
 pkg_files=
 
 # Build the tarball
+ROOTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
+TMPDIR="$ROOTDIR/test/tmp"
+
 echo "Building tar.gz package ..."
-if script/package-tarball 1>package-tarball.txt 2>&1; then
-    pkg_files=$(grep '^Package ' < package-tarball.txt | cut -f 2 -d ' ')
+if script/package-tarball 1>$TMPDIR/package-tarball.txt 2>&1; then
+  pkg_files=$(grep '^Package ' < $TMPDIR/package-tarball.txt | cut -f 2 -d ' ')
 else
-    echo "Packaging tar.gz failed:"
-    cat package-tarball.txt | sed 's/^/    /' 1>&2
-    exit 1
+  echo "Packaging tar.gz failed:"
+  cat $TMPDIR/package-tarball.txt | sed 's/^/    /' 1>&2
+  exit 1
 fi
 
 # Skip deb packaging if debuild not installed
 if ! type debuild 1>/dev/null 2>&1; then
-    echo "debuild not installed, skipping deb packaging ..."
-    exit 0
+  echo "debuild not installed, skipping deb packaging ..."
+  exit 0
 fi
 
 # Build the deb related packages
 echo "Building deb package ..."
-if script/package-deb 1>package-deb-out.txt 2>package-deb-err.txt; then
-    pkg_files="$pkg_files $(cat package-deb-out.txt)"
+if DEB_BUILD_OPTIONS=nocheck script/package-deb 1>$TMPDIR/package-deb-out.txt 2>$TMPDIR/package-deb-err.txt; then
+  pkg_files="$pkg_files $(cat $TMPDIR/package-deb-out.txt)"
 else
-    echo "Package build failed:"
-    cat package-tarball.txt | sed 's/^/    /' 1>&2
-    exit 1
+  echo "Package build failed:"
+  cat $TMPDIR/package-deb-out.txt $TMPDIR/package-deb-err.txt >&2
+  echo >&2
+  cat dist/debuild/github-backup-utils*.build >&2
+  exit 1
 fi
-
-# Publish package files on wcat.io
-echo "Uploading packages ..."
-for f in $pkg_files; do
-    printf "%-32s %-s\n" "$(curl -sT- https://wcat.io <"$f" || true)" "$f"
-done
 
 # Generate md5sums
 md5sum $pkg_files

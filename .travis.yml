@@ -1,6 +1,24 @@
 ---
-script:
-  - debuild -uc -us
-before_install: 
-  - sudo apt-get update -qq
-  - sudo apt-get install -y devscripts
+matrix:
+  include:
+    - os: osx
+      before_install:
+        - brew update
+        - brew install gnu-tar
+        - brew install moreutils
+        - brew install shellcheck
+      script: make test
+    - os: linux
+      dist: trusty
+      sudo: required
+      install:
+        - wget "https://storage.googleapis.com/shellcheck/shellcheck-v0.4.7.linux.x86_64.tar.xz"
+        - tar --xz -xvf "shellcheck-v0.4.7.linux.x86_64.tar.xz"
+      addons:
+        apt:
+          packages:
+            - devscripts
+            - debhelper
+            - moreutils
+            - fakeroot
+      script: debuild -uc -us

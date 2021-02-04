@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 #/ Usage: ghe-restore-es-rsync <host>
 #/ Restore an rsync snapshot of all Elasticsearch data to a GitHub instance.
 #/
@@ -7,11 +7,13 @@
 set -e
 
 # Bring in the backup configuration
-cd $(dirname "$0")/../..
-. share/github-backup-utils/ghe-backup-config
+# shellcheck source=share/github-backup-utils/ghe-backup-config
+. "$( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config"
 
 # Show usage and bail with no arguments
 [ -z "$*" ] && print_usage
+
+bm_start "$(basename $0)"
 
 # Grab host arg
 GHE_HOSTNAME="$1"
@@ -28,39 +30,24 @@ snapshot_dir="$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT"
 
 # Transfer all ES data from the latest snapshot to the GitHub instance.
 if [ ! -d "$snapshot_dir/elasticsearch" ]; then
-    echo "Warning: Elasticsearch backup missing. Skipping ..."
-    exit 0
+  echo "Warning: Elasticsearch backup missing. Skipping ..."
+  exit 0
 
-# restoring v11.10.x ES snapshot into a v2.0 appliance
-elif [ "$GHE_VERSION_MAJOR" -gt 1 -a -f "$snapshot_dir/elasticsearch/elasticsearch.yml" ]; then
-    ghe-ssh "$GHE_HOSTNAME" -- "sudo mkdir -p '$GHE_REMOTE_DATA_USER_DIR/elasticsearch-legacy'" 1>&3
-    ghe-ssh "$GHE_HOSTNAME" -- "sudo chown elasticsearch:elasticsearch '$GHE_REMOTE_DATA_USER_DIR/elasticsearch-legacy'" 1>&3
-
-    ghe-rsync -avz --delete \
-        -e "ghe-ssh -p $(ssh_port_part "$GHE_HOSTNAME")" \
-        --rsync-path="sudo -u elasticsearch rsync" \
-        "$snapshot_dir/elasticsearch/" \
-        "$(ssh_host_part "$GHE_HOSTNAME"):$GHE_REMOTE_DATA_USER_DIR/elasticsearch-legacy" 1>&3
-
-# restoring v2.0 ES snapshot into a v2.0 appliance
-elif [ "$GHE_VERSION_MAJOR" -gt 1 ]; then
-    ghe-ssh "$GHE_HOSTNAME" -- "sudo mkdir -p '$GHE_REMOTE_DATA_USER_DIR/elasticsearch-restore'" 1>&3
-    ghe-ssh "$GHE_HOSTNAME" -- "sudo chown elasticsearch:elasticsearch '$GHE_REMOTE_DATA_USER_DIR/elasticsearch-restore'" 1>&3
-
-    ghe-rsync -avz --delete \
-        -e "ghe-ssh -p $(ssh_port_part "$GHE_HOSTNAME")" \
-        --rsync-path="sudo -u elasticsearch rsync" \
-        "$snapshot_dir/elasticsearch/" \
-        "$(ssh_host_part "$GHE_HOSTNAME"):$GHE_REMOTE_DATA_USER_DIR/elasticsearch-restore" 1>&3
-
-# restoring v11.10.x ES snapshot into a v11.10.x appliance
 else
-    # Use GNU tar on BSDs.
-    TAR=tar
-    if ! tar --version | grep GNU >/dev/null; then
-            TAR=gtar
-    fi
-    cd "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT"
-    $TAR -cf - --owner=root --group=root elasticsearch |
-    ghe-ssh "$GHE_HOSTNAME" -- 'ghe-import-es-indices' 1>&3
+  ghe-ssh "$GHE_HOSTNAME" -- "sudo mkdir -p '$GHE_REMOTE_DATA_USER_DIR/elasticsearch-restore'" 1>&3
+  ghe-ssh "$GHE_HOSTNAME" -- "sudo chown elasticsearch:elasticsearch '$GHE_REMOTE_DATA_USER_DIR/elasticsearch-restore'" 1>&3
+
+  ghe-rsync -avz --delete \
+    -e "ghe-ssh -p $(ssh_port_part "$GHE_HOSTNAME")" \
+    --rsync-path="sudo -u elasticsearch rsync" \
+    --copy-dest="$GHE_REMOTE_DATA_USER_DIR/elasticsearch" \
+    "$snapshot_dir/elasticsearch/" \
+    "$(ssh_host_part "$GHE_HOSTNAME"):$GHE_REMOTE_DATA_USER_DIR/elasticsearch-restore" 1>&3
+
+  # restoring in >=2.14 will remove incompatible indices created with 1.x.
+  if [ "$GHE_VERSION_MAJOR" -eq 2 ] && [ "$GHE_VERSION_MINOR" -ge 14 ]; then
+    ghe-ssh "$GHE_HOSTNAME" -- "sudo /usr/local/share/enterprise/ghe-es-remove-1x-indices"
+  fi
 fi
+
+bm_end "$(basename $0)"

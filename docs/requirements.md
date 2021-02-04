@@ -1,4 +1,5 @@
-# Requirements
+# G
+Requirements
 
 Backup Utilities should be run on a host dedicated to long-term permanent
 storage and must have network connectivity with the GitHub Enterprise Server appliance.
@@ -7,6 +8,8 @@ storage and must have network connectivity with the GitHub Enterprise Server app
 
 Backup host software requirements are modest: Linux or other modern Unix operating
 system with [bash][1], [git][2], [OpenSSH][3] 5.6 or newer, and [rsync][4] v2.6.4 or newer.
+
+The new parallel backup and restore beta feature will require [GNU awk][10] and [moreutils][9] to be installed.
 
 We encourage the use of [Docker](docker.md) if your backup host doesn't meet these
 requirements, or if Docker is your preferred platform.
@@ -24,6 +27,15 @@ and growth over time.
 Backup Utilities use [hard links][5] to store data efficiently, and the
 repositories on GitHub Enterprise Server use [symbolic links][6] so the backup snapshots
 must be written to a filesystem with support for symbolic and hard links.
+
+To check if your filesystem supports creating hardlinks of symbolic links, you can run the following within your backup destination directory:
+
+```bash
+touch file
+ln -s file symlink
+ln symlink hardlink
+ls -la
+```
 
 Using a [case sensitive][7] file system is also required to avoid conflicts.
 
@@ -58,3 +70,5 @@ be running GitHub Enterprise Server 2.12.x or 2.13.x. You can't restore a snapsh
 [6]: https://en.wikipedia.org/wiki/Symbolic_link
 [7]: https://en.wikipedia.org/wiki/Case_sensitivity
 [8]: https://help.github.com/enterprise/admin/guides/installation/upgrade-requirements/
+[9]: https://joeyh.name/code/moreutils
+[10]: https://www.gnu.org/software/gawk

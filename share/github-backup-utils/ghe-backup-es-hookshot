@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+#/ Usage: ghe-backup-es-hookshot
+#/ Take a backup of hookshot logs in Elasticsearch.
+#/
+#/ Note: This command typically isn't called directly. It's invoked by
+#/ ghe-backup.
+set -e
+
+# Bring in the backup configuration
+# shellcheck source=share/github-backup-utils/ghe-backup-config
+. "$( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config"
+
+bm_start "$(basename $0)"
+
+# Set up remote host and root elastic backup directory based on config
+host="$GHE_HOSTNAME"
+
+# Perform a host-check and establish GHE_REMOTE_XXX variables.
+ghe_remote_version_required "$host"
+
+# Make sure root backup dir exists if this is the first run
+mkdir -p "$GHE_SNAPSHOT_DIR/hookshot"
+
+if ! indices=$(ghe-ssh "$host" "curl -s \"localhost:9201/_cat/indices/hookshot-logs-*?h=index,pri.store.size&bytes=b\""); then
+  echo "Error: failed to retrieve hookshot log indices." 1>&2
+  exit 1
+fi
+
+# Hookshot indices may not exist if no recent webhook deliveries have occured.
+[ -z "$indices" ] && exit
+
+IFS=$'\n'
+for index in $indices; do
+  IFS=' '
+  set $index
+  index_name=$1
+  index_size=$2
+
+  if [[ -f $GHE_DATA_DIR/current/hookshot/$index_name.gz && $(cat $GHE_DATA_DIR/current/hookshot/$index_name.gz.size 2>/dev/null || true) -eq $index_size ]]; then
+    # Hard link any indices that have not changed since the last backup
+    ln $GHE_DATA_DIR/current/hookshot/$index_name.gz $GHE_SNAPSHOT_DIR/hookshot/$index_name.gz
+    ln $GHE_DATA_DIR/current/hookshot/$index_name.gz.size $GHE_SNAPSHOT_DIR/hookshot/$index_name.gz.size
+  else
+    echo "/usr/local/share/enterprise/ghe-es-dump-json \"http://localhost:9201/$index_name\" | gzip" | ghe-ssh "$host" -- /bin/bash > $GHE_SNAPSHOT_DIR/hookshot/$index_name.gz
+    echo $index_size > $GHE_SNAPSHOT_DIR/hookshot/$index_name.gz.size
+  fi
+done
+
+bm_end "$(basename $0)"

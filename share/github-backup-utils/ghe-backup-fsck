@@ -1,0 +1,91 @@
+#!/usr/bin/env bash
+#/ Usage: ghe-backup-fsck <snapshot-dir> [--print-nwo]
+#/
+#/ Run git fsck on backed up repositories.
+set -e
+
+# Bring in the backup configuration
+# shellcheck source=share/github-backup-utils/ghe-backup-config
+. "$( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config"
+
+bm_start "$(basename $0)"
+
+echo "Running git fsck on repos..."
+
+# Verify git is available.
+if ! git --version 1>/dev/null 2>&1; then
+  echo "Error: git not found." 1>&2
+  exit 1
+fi
+
+sdir=$1
+repos=0
+errors=0
+log=$(mktemp -t ghe-backup-fsck-XXXXXX)
+t_start=$(date +%s)
+if git fsck -h | grep -q '\-\-dangling'; then
+  git_cmd='git fsck --no-dangling'
+else
+  echo "Warning: old git version, --no-dangling not available"
+  git_cmd='git fsck'
+fi
+
+if [ -z "$sdir" ] || [ ! -d "$sdir" ]; then
+  print_usage
+fi
+
+if [ ! -d "$sdir/repositories" ]; then
+  echo "Error: $sdir is not a valid snapshot." >&2
+  exit 1
+fi
+
+# shellcheck disable=SC2044 # Snapshot and repository directory names are safe for find iteration.
+for repo in $(find $sdir/repositories/ -type d -name \*.git); do
+  repos=$(($repos+1))
+  before_time=$(date +%s)
+
+  status=$(
+    set -e
+
+    cd $repo
+
+    nwo="-"
+    if [ "$2" = "--print-nwo" ] && [ -f info/nwo ]; then
+      nwo="$(cat info/nwo)"
+    fi
+
+    if [ ! -f objects/info/alternates ] || grep -q '^\.\.' objects/info/alternates; then
+      $git_cmd >$log 2>&1 && {
+        echo "OK $repo $nwo"; exit
+      }
+    else
+      GIT_ALTERNATE_OBJECT_DIRECTORIES=../network.git/objects $git_cmd >$log 2>&1 && {
+        echo "WARN $repo $nwo (alternates absolute path)"; exit
+      }
+    fi
+
+    echo "ERROR $repo $nwo"
+  )
+
+  elapsed_time=$(($(date +%s) - before_time))
+
+  if [[ ! "$status" =~ ^OK ]] || [ $elapsed_time -gt 5 ]; then
+    echo "$status ${elapsed_time}s" 1>&3
+    [ -n "$GHE_VERBOSE" ] && cat $log
+  fi
+
+  case "$status" in
+    OK*)
+      ;;
+    ERROR*)
+      errors=$(($errors+1))
+      ;;
+   esac
+
+done
+
+echo "* Repos verified: $repos, Errors: $errors, Took: $(($(date +%s) - $t_start))s"
+
+rm -f $log
+
+bm_end "$(basename $0)"

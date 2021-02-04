@@ -1,0 +1,115 @@
+#!/usr/bin/env bash
+#/ Usage: ghe-backup-git-hooks
+#/ Take an online, incremental snapshot of custom Git hooks configuration.
+#/
+#/ Note: This command typically isn't called directly. It's invoked by
+#/ ghe-backup.
+set -e
+
+# Bring in the backup configuration
+# shellcheck source=share/github-backup-utils/ghe-backup-config
+. "$( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config"
+
+bm_start "$(basename $0)"
+
+# Verify rsync is available.
+if ! rsync --version 1>/dev/null 2>&1; then
+  echo "Error: rsync not found." 1>&2
+  exit 1
+fi
+
+bm_start "$(basename $0)"
+
+backup_dir="$GHE_SNAPSHOT_DIR/git-hooks"
+# Location of last good backup for rsync --link-dest
+backup_current="$GHE_DATA_DIR/current/git-hooks"
+
+# Perform a host-check and establish GHE_REMOTE_XXX variables.
+ghe_remote_version_required "$host"
+
+# Split host:port into parts
+port=$(ssh_port_part "$GHE_HOSTNAME")
+host=$(ssh_host_part "$GHE_HOSTNAME")
+
+# Add user / -l option
+user="${host%@*}"
+[ "$user" = "$host" ] && user="admin"
+
+hostnames=$host
+ssh_config_file_opt=
+tempdir=$(mktemp -d -t backup-utils-restore-XXXXXX)
+opts="$GHE_EXTRA_SSH_OPTS"
+
+# git server hostnames under cluster
+if [ "$GHE_BACKUP_STRATEGY" = "cluster" ]; then
+  ssh_config_file="$tempdir/ssh_config"
+  ssh_config_file_opt="-F $ssh_config_file"
+  opts="$opts -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no"
+  hostnames=$(ghe-cluster-nodes "$GHE_HOSTNAME" "git-server")
+  ghe-ssh-config "$GHE_HOSTNAME" "$hostnames" > "$ssh_config_file"
+fi
+
+# Removes the remote sync-in-progress file on exit, re-enabling GC operations
+# on the remote instance.
+cleanup() {
+  rm -rf $tempdir
+}
+trap 'cleanup' EXIT
+trap 'exit $?' INT # ^C always terminate
+
+# Transfer Git hooks data from a GitHub instance to the current snapshot
+# directory, using a previous snapshot to avoid transferring files that have
+# already been transferred. A set of rsync filter rules are provided on stdin
+# for each invocation.
+rsync_git_hooks_data () {
+  port=$(ssh_port_part "$1")
+  host=$(ssh_host_part "$1")
+
+  subpath=$2
+  shift 2
+
+  # If we have a previous increment and it is not empty, avoid transferring existing files via rsync's
+  # --link-dest support. This also decreases physical space usage considerably.
+  if [ -d "$backup_current/$subpath" ] && [ "$(ls -A $backup_current/$subpath)" ]; then
+    subdir="git-hooks/$subpath"
+    link_path=".."
+    while true; do
+      if [ "$(dirname $subdir)" = "." ]; then
+        break
+      fi
+
+      if [ "$(dirname $subdir)" = "/" ]; then
+        break
+      fi
+
+      link_path="../$link_path"
+      subdir=$(dirname $subdir)
+    done
+
+    local link_dest="--link-dest=../${link_path}/current/git-hooks/$subpath"
+  fi
+
+  # Ensure target directory exists, is needed with subdirectories
+  mkdir -p "$backup_dir/$subpath"
+
+  ghe-rsync -av \
+    -e "ssh -q $opts -p $port $ssh_config_file_opt -l $user" $link_dest \
+    --rsync-path='sudo -u git rsync' \
+    "$host:$GHE_REMOTE_DATA_USER_DIR/git-hooks/$subpath/" \
+    "$backup_dir/$subpath" 1>&3
+}
+
+hostname=$(echo $hostnames | awk '{ print $1; }')
+if ghe-ssh $ssh_config_file_opt "$hostname:122" -- "sudo -u git [ -d '$GHE_REMOTE_DATA_USER_DIR/git-hooks/environments/tarballs' ]"; then
+  rsync_git_hooks_data $hostname:122 environments/tarballs
+else
+  ghe_verbose "git-hooks environment tarballs not found. Skipping ..."
+fi
+
+if ghe-ssh $ssh_config_file_opt "$hostname:122" -- "sudo -u git [ -d '$GHE_REMOTE_DATA_USER_DIR/git-hooks/repos' ]"; then
+  rsync_git_hooks_data $hostname:122 repos
+else
+  ghe_verbose "git-hooks repositories not found. Skipping ..."
+fi
+
+bm_end "$(basename $0)"

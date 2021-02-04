@@ -7,18 +7,22 @@
 
 set -o pipefail
 
+# Bring in the backup configuration
+# shellcheck source=share/github-backup-utils/ghe-backup-config
+. "$( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config"
+
 # Filter vanished file warnings from both stdout (rsync versions < 3.x) and
 # stderr (rsync versions >= 3.x). The complex redirections are necessary to
 # filter stderr while also keeping stdout and stderr separated.
 IGNOREOUT='^(file has vanished: |rsync warning: some files vanished before they could be transferred)'
-(rsync "${@}" 3>&1 1>&2 2>&3 3>&- |
+(rsync "${@}" $GHE_EXTRA_RSYNC_OPTS 3>&1 1>&2 2>&3 3>&- |
   (egrep -v "$IGNOREOUT" || true)) 3>&1 1>&2 2>&3 3>&- |
   (egrep -v "$IGNOREOUT" || true)
 res=$?
 
 # rsync exits with 24 when vanished files are detected.
 if [ $res = 24 ]; then
-    res=0
+  res=0
 fi
 
 exit $res

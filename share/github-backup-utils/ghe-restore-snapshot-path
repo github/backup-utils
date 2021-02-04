@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 #/ Usage: ghe-restore-snapshot-path [snapshot]
 #/
 #/ Print the path to the given snapshot. Defaults to current if no argument given.
@@ -6,10 +6,9 @@
 
 set -e
 
-# Bring in the backup configuration.
-cd $(dirname "$0")/../..
-. share/github-backup-utils/ghe-backup-config
-
+# Bring in the backup configuration
+# shellcheck source=share/github-backup-utils/ghe-backup-config
+. "$( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config"
 
 if [ -n "$1" ]; then
   GHE_RESTORE_SNAPSHOT="$(basename "$1")"
@@ -20,13 +19,13 @@ fi
 # Resolve the snapshot id if we're restoring from current. This is mostly
 # just for logging.
 if [ "$GHE_RESTORE_SNAPSHOT" = "current" ]; then
-    GHE_RESTORE_SNAPSHOT=$(readlink "$GHE_DATA_DIR"/current || true)
+  GHE_RESTORE_SNAPSHOT=$(readlink "$GHE_DATA_DIR"/current || true)
 fi
 
 # Bail out if we don't have a good snapshot.
 if [ ! -d "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT" ]; then
-    echo "Error: Snapshot '$GHE_RESTORE_SNAPSHOT' doesn't exist." 1>&2
-    exit 1
+  echo "Error: Snapshot '$GHE_RESTORE_SNAPSHOT' doesn't exist." 1>&2
+  exit 1
 fi
 
 echo "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT"

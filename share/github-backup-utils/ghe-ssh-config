@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+#/ Usage: ghe-ssh-config <proxy_host> [<host>...]
+#/
+#/ Returns a SSH configuration file.
+#/
+#/ Note: This script typically isn't called directly. It's invoked by the
+#/ ghe-[backup|restore]-* commands.
+set -e
+
+# Bring in the backup configuration
+# shellcheck source=share/github-backup-utils/ghe-backup-config
+. "$( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config"
+
+# Show usage and bail with no arguments
+[ -z "$*" ] && print_usage
+
+GHE_HOSTNAME="$1"
+shift
+
+hosts="$*"
+
+proxy_host=$(ssh_host_part "$GHE_HOSTNAME")
+proxy_port=$(ssh_port_part "$GHE_HOSTNAME")
+proxy_user="${proxy_host%@*}"
+[ "$proxy_user" = "$proxy_host" ] && proxy_user="admin"
+
+opts="$GHE_EXTRA_SSH_OPTS"
+
+[ -z "$GHE_DISABLE_SSH_MUX" ] && opts="-o ControlMaster=auto -o ControlPath=\"$TMPDIR/.ghe-sshmux-$(echo -n "$proxy_user@$proxy_host:$proxy_port" | git hash-object --stdin | cut -c 1-8)\" -o ControlPersist=10m -o ServerAliveInterval=10 $opts"
+
+for host in $hosts; do
+  cat <<EOF
+Host $host
+  ProxyCommand ssh -q $opts -p $proxy_port $proxy_user@$proxy_host nc.openbsd %h %p
+  StrictHostKeyChecking=no
+EOF
+done

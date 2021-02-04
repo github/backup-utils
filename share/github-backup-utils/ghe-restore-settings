@@ -1,14 +1,16 @@
-#!/bin/sh
+#!/usr/bin/env bash
 #/ Usage: ghe-restore-settings <host>
 #/ Restore settings from a snapshot to the given <host>.
 set -e
 
 # Bring in the backup configuration
-cd $(dirname "$0")/../..
-. share/github-backup-utils/ghe-backup-config
+# shellcheck source=share/github-backup-utils/ghe-backup-config
+. "$( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config"
 
 # Show usage and bail with no arguments
 [ -z "$*" ] && print_usage
+
+bm_start "$(basename $0)"
 
 # Grab host arg
 GHE_HOSTNAME="$1"
@@ -24,28 +26,33 @@ ghe_remote_version_required "$GHE_HOSTNAME"
 GHE_RESTORE_SNAPSHOT_PATH="$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT"
 
 echo "Restoring settings ..."
-if [ "$GHE_VERSION_MAJOR" -ge 2 ]; then
-  # work around issue importing settings with bad storage mode values
-  ( cat "$GHE_RESTORE_SNAPSHOT_PATH/settings.json" && echo ) |
-    sed 's/"storage_mode": "device"/"storage_mode": "rootfs"/' |
-    ghe-ssh "$GHE_HOSTNAME" -- '/usr/bin/env GHEBUVER=2 ghe-import-settings' 1>&3
-else
-    ( cat "$GHE_RESTORE_SNAPSHOT_PATH/settings.json" && echo ) |
-    ghe-ssh "$GHE_HOSTNAME" -- '/usr/bin/env GHEBUVER=2 ghe-import-settings' 1>&3
-fi
-
-# Bail out if we're restoring against a pre-2.x appliance. Everything below is
-# supported by v2.0 appliances only.
-if [ "$GHE_VERSION_MAJOR" -lt 2 ]; then
-    exit 0
-fi
+# work around issue importing settings with bad storage mode values
+( cat "$GHE_RESTORE_SNAPSHOT_PATH/settings.json" && echo ) |
+  sed 's/"storage_mode": "device"/"storage_mode": "rootfs"/' |
+  ghe-ssh "$GHE_HOSTNAME" -- '/usr/bin/env GHEBUVER=2 ghe-import-settings' 1>&3
 
 echo "Restoring license ..."
 ghe-ssh "$GHE_HOSTNAME" -- 'ghe-import-license' < "$GHE_RESTORE_SNAPSHOT_PATH/enterprise.ghl" 1>&3
 
 # Restore management console password hash if present.
 if [ -f "$GHE_RESTORE_SNAPSHOT_PATH/manage-password" ]; then
-    echo "Restoring management console password ..."
-    cat "$GHE_RESTORE_SNAPSHOT_PATH/manage-password" |
-    ghe-ssh "$GHE_HOSTNAME" -- "ghe-import-passwords"
+  echo "Restoring management console password ..."
+  echo "ghe-config secrets.manage '$(cat "$GHE_RESTORE_SNAPSHOT_PATH/manage-password")'" |
+  ghe-ssh "$GHE_HOSTNAME" -- /bin/bash
 fi
+
+# Restore SAML keys if present.
+if [ -f "$GHE_RESTORE_SNAPSHOT_PATH/saml-keys.tar" ]; then
+  echo "Restoring SAML keys ..."
+  cat "$GHE_RESTORE_SNAPSHOT_PATH/saml-keys.tar" |
+  ghe-ssh "$GHE_HOSTNAME" -- "sudo tar -C $GHE_REMOTE_DATA_USER_DIR/common/ -xf -"
+fi
+
+# Restore CA certificates if present.
+if [ -f "$GHE_RESTORE_SNAPSHOT_PATH/ssl-ca-certificates.tar" ]; then
+  echo "Restoring CA certificates ..."
+  cat "$GHE_RESTORE_SNAPSHOT_PATH/ssl-ca-certificates.tar" |
+  ghe-ssh "$GHE_HOSTNAME" -- "ghe-import-ssl-ca-certificates"
+fi
+
+bm_start "$(basename $0)"

@@ -1,12 +1,41 @@
-#!/bin/sh
-#/ Usage: ghe-host-check [<host>]
-#/ Verify connectivity with the GitHub Enterprise host. When no <host> is
-#/ provided, the $GHE_HOSTNAME configured in backup.config is assumed.
+#!/usr/bin/env bash
+#/ Usage: ghe-host-check [-h] [--version] [<host>]
+#/
+#/ Verify connectivity with the GitHub Enterprise host.
+#/
+#/ OPTIONS:
+#/   -h | --help       Show this message.
+#/        --version    Display version information.
+#/   <host>            The GitHub Enterprise host to check. When no <host> is
+#/                     provided, the $GHE_HOSTNAME configured in backup.config
+#/                     is assumed.
+#/
+
 set -e
 
-# Bring in the backup configuration.
-cd $(dirname "$0")/..
-. share/github-backup-utils/ghe-backup-config
+while true; do
+  case "$1" in
+    -h|--help)
+      export GHE_SHOW_HELP=true
+      shift
+      ;;
+    --version)
+      export GHE_SHOW_VERSION=true
+      shift
+      ;;
+    -*)
+      echo "Error: invalid argument: '$1'" 1>&2
+      exit 1
+      ;;
+    *)
+      break
+      ;;
+  esac
+done
+
+# Bring in the backup configuration
+# shellcheck source=share/github-backup-utils/ghe-backup-config
+. "$( dirname "${BASH_SOURCE[0]}" )/../share/github-backup-utils/ghe-backup-config"
 
 # Use the host provided on the command line if provided, or fallback on the
 # $GHE_HOSTNAME configured in backup.config when not present.
@@ -14,9 +43,9 @@ host="${1:-$GHE_HOSTNAME}"
 
 # Options to pass to SSH during connection check
 options="
-    -o PasswordAuthentication=no
-    -o ConnectTimeout=5
-    -o ConnectionAttempts=1
+  -o PasswordAuthentication=no
+  -o ConnectTimeout=5
+  -o ConnectionAttempts=1
 "
 
 # Split host:port into parts
@@ -26,50 +55,55 @@ hostname=$(ssh_host_part "$host")
 set +e
 output=$(echo "ghe-negotiate-version backup-utils $BACKUP_UTILS_VERSION" | ghe-ssh -o BatchMode=no $options $host -- /bin/sh 2>&1)
 rc=$?
-if [ $rc = 127 ]; then
-  # ghe-negotiate-version not found, fallback to reading version file
-  legacy_version_output="1"
-  output=$(echo "cat \"$GHE_REMOTE_METADATA_FILE\" 2>/dev/null || exit 101" | ghe-ssh -o BatchMode=no $options $host -- /bin/sh 2>&1)
-  rc=$?
-fi
 set -e
 
 if [ $rc -ne 0 ]; then
-    case $rc in
-        255)
-            if echo "$output" | grep -i "port 22: connection refused" >/dev/null; then
-                exec "bin/$(basename $0)" "$hostname:122"
-            fi
+  case $rc in
+    255)
+      if echo "$output" | grep -i "port 22: Network is unreachable\|port 22: connection refused\|port 22: no route to host\|ssh_exchange_identification: Connection closed by remote host\|Connection timed out during banner exchange\|port 22: Connection timed out" >/dev/null; then
+        exec "$(basename $0)" "$hostname:122"
+      fi
 
-            echo "$output" 1>&2
-            echo "Error: ssh connection with '$host' failed" 1>&2
-            echo "Note that your SSH key needs to be setup on $host as described in:" 1>&2
-            echo "* https://enterprise.github.com/help/articles/adding-an-ssh-key-for-shell-access" 1>&2
-            ;;
-        101)
-            echo "Error: couldn't read GitHub Enterprise fingerprint on '$host' or this isn't a GitHub appliance." 1>&2
-            ;;
-        1)
-            if [ "${port:-22}" -eq 22 ] && echo "$output" | grep "use port 122" >/dev/null; then
-                exec "bin/$(basename $0)" "$hostname:122"
-            else
-                echo "$output" 1>&2
-            fi
-            ;;
+      echo "$output" 1>&2
+      echo "Error: ssh connection with '$host' failed" 1>&2
+      echo "Note that your SSH key needs to be setup on $host as described in:" 1>&2
+      echo "* https://enterprise.github.com/help/articles/adding-an-ssh-key-for-shell-access" 1>&2
+      ;;
+    101)
+      echo "Error: couldn't read GitHub Enterprise fingerprint on '$host' or this isn't a GitHub appliance." 1>&2
+      ;;
+    1)
+      if [ "${port:-22}" -eq 22 ] && echo "$output" | grep "use port 122" >/dev/null; then
+        exec "$(basename $0)" "$hostname:122"
+      else
+        echo "$output" 1>&2
+      fi
+      ;;
 
-    esac
-    exit $rc
+  esac
+  exit $rc
 fi
 
-if [ -z "$legacy_version_output" ]; then
-  version=$(echo "$output" | sed -n 's/GitHub Enterprise version \(.*\)/\1/p')
-else
-  version=$(echo "$output" | grep version | cut -d'"' -f4)
-fi
+version=$(echo "$output" | sed -n 's/GitHub Enterprise version \(.*\)/\1/p')
 
 if [ -z "$version" ]; then
-    echo "Error: failed to parse version on '$host' or this isn't a GitHub appliance." 1>&2
-    exit 2
+  echo "Error: failed to parse version on '$host' or this isn't a GitHub appliance." 1>&2
+  exit 2
+fi
+
+# backup-utils 2.13 onwards limits support to the current and previous two releases
+# of GitHub Enterprise.
+supported_minimum_version="2.11.0"
+
+if [ "$(version $version)" -ge "$(version $supported_minimum_version)" ]; then
+  supported=1
+fi
+
+if [ -z "$supported" ]; then
+  echo "Error: unsupported release of GitHub Enterprise detected." 1>&2
+  echo "Backup Utilities v$BACKUP_UTILS_VERSION requires GitHub Enterprise v$supported_minimum_version or newer." 1>&2
+  echo "Please update your GitHub Enterprise appliance or use an older version of Backup Utilities." 1>&2
+  exit 1
 fi
 
 echo "Connect $hostname:$port OK (v$version)"

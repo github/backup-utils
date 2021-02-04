@@ -1,24 +1,32 @@
-#!/bin/sh
+#!/usr/bin/env bash
 # Usage: redis-cli ...
-# Fake redis-cli command stub for tests. The redis-cli utlity is run on the
+# Fake redis-cli command stub for tests. The redis-cli utility is run on the
 # remote side by libexec/ghe-backup-redis to force a background save of redis
 # data and then wait until the dump file has been written. It uses the LASTSAVE
 # and BGSAVE commands.
 set -e
 
-case "$1" in
+while true; do
+  case "$1" in
     LASTSAVE)
         # fake change last save timestamp every 1s
         date +%s
+        break
         ;;
     BGSAVE)
         mkdir -p "$GHE_REMOTE_DATA_USER_DIR/redis"
         echo "fake redis data" > "$GHE_REMOTE_DATA_USER_DIR/redis/dump.rdb"
+        break
+        ;;
+    -h)
+        # Fake accepting hostname argument
+        shift 2
         ;;
     *)
         echo "unexpected redis-cli command: $1" 1>&2
         exit 1
         ;;
-esac
+  esac
+done
 
 true

@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# Emulates a remote GitHub restore finalize command. Each of the *-finalize utilities
+# that are run on the remote side have corresponding commands in this directory
+# that symlink to this file. The command just writes a simple success message.
+binname="$(basename "$0")"
+echo "$binname OK"
+
+# The RESTORE_FINALIZE_WARNING environment variables can be used to simulate a
+# warning from each finalize step on the remote side.
+if [ "$binname" == "dgit-cluster-restore-finalize" ] && [ -n "$GHE_DGIT_CLUSTER_RESTORE_FINALIZE_WARNING" ]; then
+    echo "1: /data/repositories/c/nw/c4/ca/42/1" >&2
+fi
+
+if [ "$binname" == "gist-cluster-restore-finalize" ] && [ -n "$GHE_GIST_CLUSTER_RESTORE_FINALIZE_WARNING" ]; then
+    echo "aabbccdd: /data/repositories/c/nw/c4/ca/42/1/gist/aabbccdd.git" >&2
+fi

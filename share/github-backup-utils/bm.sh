@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # bm.sh: benchmarking Bash code blocks
 #
 # Example:
@@ -11,17 +11,19 @@
 #   wget request took 2s
 
 bm_desc_to_varname(){
- echo "__bm$(echo $@ | tr -cd '[[:alnum:]]')"
+ echo "__bm$(echo "$@" | tr -cd '[[:alnum:]]')"
 }
 
 bm_start()
 {
-  eval "$(bm_desc_to_varname $@)_start=$(date +%s)"
-
-  bm_file_path > /dev/null
+  eval "$(bm_desc_to_varname "$@")_start=$(date +%s)"
+  if [ -n "$GHE_DEBUG" ]; then
+    echo "Debug: $1 (bm_start)"
+  fi
+  bm_init > /dev/null
 }
 
-bm_file_path() {
+bm_init() {
   if [ -n "$BM_FILE_PATH" ]; then
     echo $BM_FILE_PATH
     return
@@ -34,7 +36,7 @@ bm_file_path() {
     export BM_FILE_PATH=$GHE_SNAPSHOT_DIR/benchmarks/$logfile
   fi
 
-  mkdir -p $(dirname $BM_FILE_PATH)
+  mkdir -p "$(dirname $BM_FILE_PATH)"
   echo $BM_FILE_PATH
 }
 
@@ -44,8 +46,13 @@ bm_end() {
     exit 1
   fi
 
-  local tend=$(date +%s)
-  local tstart=$(eval "echo \$$(bm_desc_to_varname $@)_start")
+  local tend tstart total
+  tend=$(date +%s)
+  tstart=$(eval "echo \$$(bm_desc_to_varname "$@")_start")
+  total=$(($tend - $tstart))
 
-  echo "$1 took $(($tend - $tstart))s" >> $BM_FILE_PATH
+  echo "$1 took ${total}s" >> $BM_FILE_PATH
+  if [ -n "$GHE_DEBUG" ]; then
+    echo "Debug: $1 took ${total}s (bm_end)"
+  fi
 }

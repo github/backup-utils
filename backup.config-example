@@ -1,6 +1,6 @@
-# GitHub Enterprise backup configuration file
+# GitHub Enterprise Server backup configuration file
 
-# The hostname of the GitHub Enterprise appliance to back up. The host
+# The hostname of the GitHub Enterprise Server appliance to back up. The host
 # must be reachable via SSH from the backup host.
 GHE_HOSTNAME="github.example.com"
 
@@ -23,6 +23,15 @@ GHE_NUM_SNAPSHOTS=10
 #
 #GHE_RESTORE_HOST="github-standby.example.com"
 
+# If set to 'yes', ghe-restore will omit the restore of audit logs.
+#
+#GHE_RESTORE_SKIP_AUDIT_LOGS=no
+
+# When verbose output is enabled with `-v`, it's written to stdout by default. If
+# you'd prefer it to be written to a separate file, set this option.
+#
+#GHE_VERBOSE_LOG="/var/log/backup-verbose.log"
+
 # Any extra options passed to the SSH command.
 # In a single instance environment, nothing is required by default.
 # In a clustering environment, "-i abs-path-to-ssh-private-key" is required.
@@ -43,3 +52,45 @@ GHE_NUM_SNAPSHOTS=10
 #
 # WARNING: do not enable this, only useful for debugging/development
 #GHE_BACKUP_FSCK=no
+
+# Cadence of MSSQL backups
+# <full>,<differential>,<transactionlog> all in minutes
+# e.g.
+#   - Full backup every week (10080 minutes)
+#   - Differential backup every day (1440 minutes)
+#   - Transactionlog backup every 15 minutes
+#
+GHE_MSSQL_BACKUP_CADENCE=10080,1440,15
+
+# If set to 'yes', ghe-backup jobs will run in parallel. Defaults to 'no'.
+#
+# WARNING: this feature is in beta.
+#GHE_PARALLEL_ENABLED=yes
+
+# Sets the maximum number of jobs to run in parallel. Defaults to the number
+# of available processing units on the machine.
+#
+# WARNING: this feature is in beta.
+#GHE_PARALLEL_MAX_JOBS=2
+
+# Sets the maximum number of rsync jobs to run in parallel. Defaults to the
+# configured GHE_PARALLEL_MAX_JOBS, or the number of available processing 
+# units on the machine.
+#
+# WARNING: this feature is in beta.
+# GHE_PARALLEL_RSYNC_MAX_JOBS=3
+
+# When jobs are running in parallel wait as needed to avoid starting new jobs
+# when the system's load average is not below the specified percentage. Defaults to
+# unrestricted.
+#
+# WARNING: this feature is in beta.
+#GHE_PARALLEL_MAX_LOAD=50
+
+# When running an external mysql database, run this script to trigger a MySQL backup
+# rather than attempting to backup via backup-utils directly.
+#EXTERNAL_DATABASE_BACKUP_SCRIPT="/bin/false"
+
+# When running an external mysql database, run this script to trigger a MySQL restore
+# rather than attempting to backup via backup-utils directly.
+#EXTERNAL_DATABASE_RESTORE_SCRIPT="/bin/false"

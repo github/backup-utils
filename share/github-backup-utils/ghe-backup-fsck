@@ -5,7 +5,10 @@
 set -e
 
 # Bring in the backup configuration
-. $( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config
+# shellcheck source=share/github-backup-utils/ghe-backup-config
+. "$( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config"
+
+bm_start "$(basename $0)"
 
 echo "Running git fsck on repos..."
 
@@ -36,6 +39,7 @@ if [ ! -d "$sdir/repositories" ]; then
   exit 1
 fi
 
+# shellcheck disable=SC2044 # Snapshot and repository directory names are safe for find iteration.
 for repo in $(find $sdir/repositories/ -type d -name \*.git); do
   repos=$(($repos+1))
   before_time=$(date +%s)
@@ -83,3 +87,5 @@ done
 echo "* Repos verified: $repos, Errors: $errors, Took: $(($(date +%s) - $t_start))s"
 
 rm -f $log
+
+bm_end "$(basename $0)"

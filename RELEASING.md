@@ -8,15 +8,18 @@ There is no need to align Backup Utilities patch releases with GitHub Enterprise
 
 When making a `.0` release, you will need to specify the minimum supported version of GitHub Enterprise Server that that release supports.
 
+Only repo administrator is allowed to run the release script, otherwise it will fail.
+
 ## Pre-release Actions
 
 Prior to making a release,
 
+1. Sync any changes that have been merged to backup-utils-private into this repository.
 1. Go through the list of open pull requests and merge any that are ready for merging.
-2. Go through the list of closed pull requests since the last release and ensure those that should be included in the release notes:
+1. Go through the list of closed pull requests since the last release and ensure those that should be included in the release notes:
   - have a "bug", "enhancement" or "feature" label,
   - have a title that clearly describes the changes in that pull request. Reword if necessary.
-3. Perform a dry run (add `--dry-run` to one of the commands below) and verify the version strings are going to be changed and verify the release notes.
+1. Perform a dry run (add `--dry-run` to one of the commands below) and verify the version strings are going to be changed and verify the release notes.
 
 ## Automatic Process from chatops (internal to GitHub only)
 
@@ -60,3 +63,4 @@ Immediately after making a release using one of the methods above, verify the re
 - release has the notes you expect to see,
 - asset download links for the latest release at https://github.com/github/backup-utils/releases all download the correct version of Backup Utilities,
 - the stable branch is inline with master - https://github.com/github/backup-utils/compare/stable...master.
+- sync this repository to backup-utils-private

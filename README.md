@@ -3,6 +3,8 @@
 This repository includes backup and recovery utilities for
 [GitHub Enterprise Server][1].
 
+**UPDATE**: The new parallel backup and restore beta feature will require [GNU awk](https://www.gnu.org/software/gawk) and [moreutils](https://joeyh.name/code/moreutils) to be installed.
+
 **Note**: the [GitHub Enterprise Server version requirements][2] have
 changed starting with Backup Utilities v2.13.0, released on 27 March 2018.
 

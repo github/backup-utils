@@ -24,7 +24,7 @@ github/backup-utils ghe-backup
 
 It is also possible to specify a `-e GHE_BACKUP_CONFIG` flag and volume mount in
 a local `backup.config` file rather than specify the variables individually at
-run time:
+run time, as long as `GHE_HOSTNAME` and `GHE_EXTRA_SSH_OPTS` variables are configured :
 
 ```
 $ docker run -it  -e "GHE_BACKUP_CONFIG=/mnt/backup.config" \

@@ -28,18 +28,18 @@ GHE_RESTORE_SNAPSHOT_PATH="$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT"
 echo "Restoring license ..."
 ghe-ssh "$GHE_HOSTNAME" -- 'ghe-import-license' < "$GHE_RESTORE_SNAPSHOT_PATH/enterprise.ghl" 1>&3
 
-echo "Restoring settings ..."
+echo "Restoring settings and applying configuration ..."
+
+# Restore external MySQL password if running external MySQL DB.
+restore-secret "external MySQL password" "external-mysql-password" "secrets.external.mysql"
+
 # work around issue importing settings with bad storage mode values
 ( cat "$GHE_RESTORE_SNAPSHOT_PATH/settings.json" && echo ) |
   sed 's/"storage_mode": "device"/"storage_mode": "rootfs"/' |
   ghe-ssh "$GHE_HOSTNAME" -- '/usr/bin/env GHEBUVER=2 ghe-import-settings' 1>&3
 
 # Restore management console password hash if present.
-if [ -f "$GHE_RESTORE_SNAPSHOT_PATH/manage-password" ]; then
-  echo "Restoring management console password ..."
-  echo "ghe-config secrets.manage '$(cat "$GHE_RESTORE_SNAPSHOT_PATH/manage-password")'" |
-  ghe-ssh "$GHE_HOSTNAME" -- /bin/bash
-fi
+restore-secret "management console password" "manage-password" "secrets.manage"
 
 # Restore SAML keys if present.
 if [ -f "$GHE_RESTORE_SNAPSHOT_PATH/saml-keys.tar" ]; then
@@ -55,4 +55,4 @@ if [ -f "$GHE_RESTORE_SNAPSHOT_PATH/ssl-ca-certificates.tar" ]; then
   ghe-ssh "$GHE_HOSTNAME" -- "ghe-import-ssl-ca-certificates"
 fi
 
-bm_start "$(basename $0)"
+bm_end "$(basename $0)"

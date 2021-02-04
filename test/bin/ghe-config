@@ -9,4 +9,10 @@ if [ "$1" = "--true" ]; then
   [[ $($0 "$@") = true ]] && exit 0 || exit 1
 fi
 
-git config -f "$GHE_REMOTE_DATA_USER_DIR/common/secrets.conf" "$@"
+if [[ "$1" =~ secrets\..+ ]]; then
+  CONFIG="$GHE_REMOTE_DATA_USER_DIR/common/secrets.conf"
+else
+  CONFIG="$GHE_REMOTE_DATA_USER_DIR/common/github.conf"
+fi
+
+git config -f $CONFIG "$@"

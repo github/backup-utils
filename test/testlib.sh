@@ -525,7 +525,12 @@ enable_actions() {
 }
 
 is_actions_enabled() {
-  ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config --true app.actions.enabled'
+  # ghe-ssh will always return exit code 0.  Evaluate property value instead.
+  if $( ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config app.actions.enabled' ) = "true"; then
+    return 0
+  else
+    return 1
+  fi
 }
 
 setup_moreutils_parallel() {

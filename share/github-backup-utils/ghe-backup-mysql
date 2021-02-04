@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+#/ Usage: ghe-backup-mysql <host>
+#/ Backup MySQL from a GitHub instance.
+#/
+#/ Note: This script typically isn't called directly. It's invoked by the
+#/ ghe-backup command.
+set -e
+
+# Bring in the backup configuration
+# shellcheck source=share/github-backup-utils/ghe-backup-config
+. "$( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config"
+
+bm_start "$(basename $0)"
+
+# Perform a host-check and establish the remote version in GHE_REMOTE_VERSION.
+ghe_remote_version_required "$GHE_HOSTNAME"
+
+if is_external_database_target; then
+  if [ -n "$EXTERNAL_DATABASE_BACKUP_SCRIPT" ]; then
+    echo "Backing up external MySQL database using customer-provided script..."
+    $EXTERNAL_DATABASE_BACKUP_SCRIPT
+    bm_end "$(basename $0)"
+    exit 0
+  else
+    if is_binary_backup_feature_on; then
+      echo "Warning: Binary backups are configured on the target environment."
+      echo "Binary backup is not supported with an external MySQL database. Backing up using logical backup strategy."
+      echo 
+      echo "Please disable binary backups with 'ghe-config mysql.backup.binary false', or"
+      echo "provide a custom backup script using EXTERNAL_DATABASE_BACKUP_SCRIPT"
+    fi
+
+    ghe-backup-mysql-logical
+  fi
+else
+  if is_binary_backup_feature_on; then
+    ghe-backup-mysql-binary
+  else
+    ghe-backup-mysql-logical
+  fi
+fi
+
+bm_end "$(basename $0)"

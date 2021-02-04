@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+#/ Usage: ghe-export-repo [-v]
+#/ Search for repositories by name and create a working copy on the backup
+#/ to be able to work with and easily find.
+#/
+#/ With -v, enable verbose output and show more information about what's being
+#/ transferred.
+set -e
+
+# Bring in the backup configuration
+. $( dirname "${BASH_SOURCE[0]}" )/../share/github-backup-utils/ghe-backup-config
+
+# Switch into the appropriate directory where all of the repositories are
+# stored.
+cd "$GHE_DATA_DIR"
+
+# Make sure we exit zero after the conditional
+true

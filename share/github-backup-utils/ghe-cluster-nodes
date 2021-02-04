@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+#/ Usage: ghe-cluster-nodes <host> <prefix>
+#/
+#/ Finds all nodes of the cluster using the config on <host>.
+#/ If it is a 2.8 and later cluster version the results are returned as
+#/ prefix-uuid, otherwise the configured hostnames are returned.
+#/ Also filters nodes based on the prefix role.
+#/
+#/ Note: This script typically isn't called directly. It's invoked by the
+#/ ghe-backup-* and ghe-restore-* commands in cluster environments.
+set -e
+
+# Bring in the backup configuration
+# shellcheck source=share/github-backup-utils/ghe-backup-config
+. "$( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config"
+
+# Check if the REMOTE DATA USER directory is set
+if [ -z $GHE_REMOTE_DATA_USER_DIR ]; then
+  echo "Env variable GHE_REMOTE_DATA_USER_DIR is not set. Exiting"
+  exit 1
+fi
+
+# Show usage and bail with no arguments
+[ -z "$*" ] && print_usage
+
+GHE_HOSTNAME="$1"
+prefix="$2"
+role=$(echo "$prefix" | cut -d '-' -f1)
+
+if ghe-ssh "$GHE_HOSTNAME" test -f $GHE_REMOTE_ROOT_DIR/etc/github/cluster; then
+  node_uuids=$(ghe-ssh "$GHE_HOSTNAME" ghe-cluster-each -r "$role" -u)
+  hostnames=''
+  for uuid in $node_uuids; do
+    hostnames+="$prefix-$uuid "
+  done
+else
+  uuid=$(ghe-ssh "$GHE_HOSTNAME" cat $GHE_REMOTE_DATA_USER_DIR/common/uuid)
+  hostnames="$prefix-$uuid"
+fi
+
+echo "$hostnames"

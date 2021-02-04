@@ -1,0 +1,273 @@
+#!/usr/bin/env bash
+#/ Usage: ghe-backup [-hv] [--version]
+#/
+#/ Take snapshots of all GitHub Enterprise data, including Git repository data,
+#/ the MySQL database, instance settings, GitHub Pages data, etc.
+#/
+#/ OPTIONS:
+#/   -v | --verbose    Enable verbose output.
+#/   -h | --help       Show this message.
+#/        --version    Display version information.
+#/
+
+set -e
+
+# Parse arguments
+while true; do
+  case "$1" in
+    -h|--help)
+      export GHE_SHOW_HELP=true
+      shift
+      ;;
+    --version)
+      export GHE_SHOW_VERSION=true
+      shift
+      ;;
+    -v|--verbose)
+      export GHE_VERBOSE=true
+      shift
+      ;;
+    -*)
+      echo "Error: invalid argument: '$1'" 1>&2
+      exit 1
+      ;;
+    *)
+      break
+      ;;
+  esac
+done
+
+# Bring in the backup configuration
+# shellcheck source=share/github-backup-utils/ghe-backup-config
+. "$( dirname "${BASH_SOURCE[0]}" )/../share/github-backup-utils/ghe-backup-config"
+
+# Check to make sure moreutils parallel is installed and working properly
+ghe_parallel_check
+
+# Used to record failed backup steps
+failures=
+failures_file="$(mktemp -t backup-utils-backup-failures-XXXXXX)"
+
+# CPU and IO throttling to keep backups from thrashing around.
+export GHE_NICE=${GHE_NICE:-"nice -n 19"}
+export GHE_IONICE=${GHE_IONICE:-"ionice -c 3"}
+
+# Create the timestamped snapshot directory where files for this run will live,
+# change into it, and mark the snapshot as incomplete by touching the
+# 'incomplete' file. If the backup succeeds, this file will be removed
+# signifying that the snapshot is complete.
+mkdir -p "$GHE_SNAPSHOT_DIR"
+cd "$GHE_SNAPSHOT_DIR"
+touch "incomplete"
+
+# Exit early if the snapshot filesystem doesn't support hard links, symlinks and
+# if rsync doesn't support hardlinking of dangling symlinks
+trap 'rm -rf src dest1 dest2' EXIT
+mkdir src
+touch src/testfile
+if ! ln -s /data/does/not/exist/hooks/ src/ >/dev/null 2>&1; then
+  echo "Error: the filesystem containing $GHE_DATA_DIR does not support symbolic links." 1>&2
+  echo "Git repositories contain symbolic links that need to be preserved during a backup." 1>&2
+  exit 1
+fi
+
+if ! output=$(rsync -a src/ dest1 2>&1 && rsync -av src/ --link-dest=../dest1 dest2 2>&1); then
+  echo "Error: rsync encountered an error that could indicate a problem with permissions," 1>&2
+  echo "hard links, symbolic links, or another issue that may affect backups." 1>&2
+  echo "$output"
+  exit 1
+fi
+
+if [ "$(ls -il dest1/testfile | awk '{ print $1 }')" != "$(ls -il dest2/testfile | awk '{ print $1 }')" ]; then
+  echo "Error: the filesystem containing $GHE_DATA_DIR does not support hard links." 1>&2
+  echo "Backup Utilities use hard links to store backup data efficiently." 1>&2
+  exit 1
+fi
+rm -rf src dest1 dest2
+
+# To prevent multiple backup runs happening at the same time, we create a
+# in-progress file with the timestamp and pid of the backup process,
+# giving us a form of locking.
+#
+# Set up a trap to remove the in-progress file if we exit for any reason but
+# verify that we are the same process before doing so.
+#
+# The cleanup trap also handles disabling maintenance mode on the appliance if
+# it was automatically enabled.
+cleanup () {
+  if [ -f ../in-progress ]; then
+    progress=$(cat ../in-progress)
+    snapshot=$(echo "$progress" | cut -d ' ' -f 1)
+    pid=$(echo "$progress" | cut -d ' ' -f 2)
+    if [ "$snapshot" = "$GHE_SNAPSHOT_TIMESTAMP" ] && [ "$$" = $pid ]; then
+      unlink ../in-progress
+    fi
+  fi
+
+  rm -rf "$failures_file"
+
+  # Cleanup SSH multiplexing
+  ghe-ssh --clean
+}
+
+# Setup exit traps
+trap 'cleanup' EXIT
+trap 'exit $?' INT # ^C always terminate
+
+if [ -h ../in-progress ]; then
+  echo "Error: detected a backup already in progress from a previous version of ghe-backup." 1>&2
+  echo "If there is no backup in progress anymore, please remove" 1>&2
+  echo "the $GHE_DATA_DIR/in-progress file." 1>&2
+  exit 1
+fi
+
+if [ -f ../in-progress ]; then
+  progress=$(cat ../in-progress)
+  snapshot=$(echo "$progress" | cut -d ' ' -f 1)
+  pid=$(echo "$progress" | cut -d ' ' -f 2)
+  if ! ps -p "$pid" >/dev/null 2>&1; then
+    # We can safely remove in-progress, ghe-prune-snapshots
+    # will clean up the failed backup.
+    unlink ../in-progress
+  else
+    echo "Error: A backup of $GHE_HOSTNAME may still be running on PID $pid." 1>&2
+    echo "If PID $pid is not a process related to the backup utilities, please remove" 1>&2
+    echo "the $GHE_DATA_DIR/in-progress file and try again." 1>&2
+    exit 1
+  fi
+fi
+
+echo "$GHE_SNAPSHOT_TIMESTAMP $$" > ../in-progress
+
+echo "Starting backup of $GHE_HOSTNAME with backup-utils v$BACKUP_UTILS_VERSION in snapshot $GHE_SNAPSHOT_TIMESTAMP"
+
+# Perform a host connection check and establish the remote appliance version.
+# The version is available in the GHE_REMOTE_VERSION variable and also written
+# to a version file in the snapshot directory itself.
+ghe_remote_version_required
+echo "$GHE_REMOTE_VERSION" > version
+
+if [ -n "$GHE_ALLOW_REPLICA_BACKUP" ]; then
+  echo "Warning: backing up a high availability replica may result in inconsistent or unreliable backups."
+fi
+
+# Log backup start message in /var/log/syslog on remote instance
+ghe_remote_logger "Starting backup from $(hostname) with backup-utils v$BACKUP_UTILS_VERSION in snapshot $GHE_SNAPSHOT_TIMESTAMP ..."
+
+export GHE_BACKUP_STRATEGY=${GHE_BACKUP_STRATEGY:-$(ghe-backup-strategy)}
+
+# Record the strategy with the snapshot so we will know how to restore.
+echo "$GHE_BACKUP_STRATEGY" > strategy
+
+# Create benchmark file
+bm_init > /dev/null
+
+ghe-backup-store-version  ||
+echo "Warning: storing backup-utils version remotely failed."
+
+echo "Backing up GitHub settings ..."
+ghe-backup-settings || failures="$failures settings"
+
+echo "Backing up SSH authorized keys ..."
+bm_start "ghe-export-authorized-keys"
+ghe-ssh "$GHE_HOSTNAME" -- 'ghe-export-authorized-keys' > authorized-keys.json ||
+failures="$failures authorized-keys"
+bm_end "ghe-export-authorized-keys"
+
+echo "Backing up SSH host keys ..."
+bm_start "ghe-export-ssh-host-keys"
+ghe-ssh "$GHE_HOSTNAME" -- 'ghe-export-ssh-host-keys' > ssh-host-keys.tar ||
+failures="$failures ssh-host-keys"
+bm_end "ghe-export-ssh-host-keys"
+
+ghe-backup-mysql || failures="$failures mysql"
+
+if ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config --true app.actions.enabled'; then
+  echo "Backing up MSSQL databases ..."
+  ghe-backup-mssql 1>&3 || failures="$failures mssql"
+
+  echo "Backing up Actions data ..."
+  ghe-backup-actions 1>&3 || failures="$failures actions"
+fi
+
+commands=("
+echo \"Backing up Redis database ...\"
+ghe-backup-redis > redis.rdb || printf %s \"redis \" >> \"$failures_file\"")
+
+commands+=("
+echo \"Backing up audit log ...\"
+ghe-backup-es-audit-log || printf %s \"audit-log \" >> \"$failures_file\"")
+
+commands+=("
+echo \"Backing up hookshot logs ...\"
+ghe-backup-es-hookshot || printf %s \"hookshot \" >> \"$failures_file\"")
+
+commands+=("
+echo \"Backing up Git repositories ...\"
+ghe-backup-repositories || printf %s \"repositories \" >> \"$failures_file\"")
+
+commands+=("
+echo \"Backing up GitHub Pages artifacts ...\"
+ghe-backup-pages || printf %s \"pages \" >> \"$failures_file\"")
+
+commands+=("
+echo \"Backing up storage data ...\"
+ghe-backup-storage || printf %s \"storage \" >> \"$failures_file\"")
+
+commands+=("
+echo \"Backing up custom Git hooks ...\"
+ghe-backup-git-hooks || printf %s \"git-hooks \" >> \"$failures_file\"")
+
+if [ "$GHE_BACKUP_STRATEGY" = "rsync" ]; then
+  commands+=("
+  echo \"Backing up Elasticsearch indices ...\"
+  ghe-backup-es-rsync || printf %s \"elasticsearch \" >> \"$failures_file\"")
+fi
+
+if [ "$GHE_PARALLEL_ENABLED" = "yes" ]; then
+  $GHE_PARALLEL_COMMAND $GHE_PARALLEL_COMMAND_OPTIONS -- "${commands[@]}"
+else
+  for c in "${commands[@]}"; do
+    eval "$c"
+  done
+fi
+
+if [ -s "$failures_file" ]; then
+  failures="$failures $(cat "$failures_file")"
+fi
+
+# git fsck repositories after the backup
+if [ "$GHE_BACKUP_FSCK" = "yes" ]; then
+  ghe-backup-fsck $GHE_SNAPSHOT_DIR || failures="$failures fsck"
+fi
+
+# If everything was successful, mark the snapshot as complete, update the
+# current symlink to point to the new snapshot and prune expired and failed
+# snapshots.
+if [ -z "$failures" ]; then
+  rm "incomplete"
+
+  rm -f "../current"
+  ln -s "$GHE_SNAPSHOT_TIMESTAMP" "../current"
+
+  ghe-prune-snapshots
+fi
+
+echo "Completed backup of $GHE_HOSTNAME in snapshot $GHE_SNAPSHOT_TIMESTAMP at $(date +"%H:%M:%S")"
+
+# Exit non-zero and list the steps that failed.
+if [ -z "$failures" ]; then
+  ghe_remote_logger "Completed backup from $(hostname) / snapshot $GHE_SNAPSHOT_TIMESTAMP successfully."
+else
+  steps="$(echo $failures | sed 's/ /, /g')"
+  ghe_remote_logger "Completed backup from $(hostname) / snapshot $GHE_SNAPSHOT_TIMESTAMP with failures: ${steps}."
+  echo "Error: Snapshot incomplete. Some steps failed: ${steps}. "
+  exit 1
+fi
+
+# Detect if the created backup contains any leaked ssh keys
+echo "Checking for leaked ssh keys ..."
+ghe-detect-leaked-ssh-keys -s "$GHE_SNAPSHOT_DIR" || true
+
+# Make sure we exit zero after the conditional
+true

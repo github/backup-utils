@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# Usage: ghe-service-ensure-mysql
+# Emulates the remote GitHub ghe-service-ensure-mysql command. Tests use this
+# to assert that the command was executed.
+set -e
+echo "ghe-service-ensure-mysql OK"

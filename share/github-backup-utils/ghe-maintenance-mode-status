@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+#/ Usage: ghe-maintenance-mode-status <host>
+#/ Checks the status of maintenance mode on GitHub appliance at <host>.
+set -e
+
+# Bring in the backup configuration
+# shellcheck source=share/github-backup-utils/ghe-backup-config
+. "$( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config"
+
+# Parse args
+while true; do
+  case "$1" in
+    -*)
+      echo "ghe-maintenance-mode-enable: illegal argument: $1" 1>&2
+      exit 1
+      ;;
+    *)
+      break
+      ;;
+  esac
+done
+
+# Show usage and bail with no arguments
+[ -z "$*" ] && print_usage
+
+# Grab host arg
+host="$1"
+
+# Check if the maintenance page is present
+ghe-ssh "$host" -- test -e "$GHE_REMOTE_DATA_DIR/github/current/public/system/maintenance.html"

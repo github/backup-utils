@@ -1,0 +1,146 @@
+#!/usr/bin/env bash
+#/ Usage: ghe-host-check [-h] [--version] [<host>]
+#/
+#/ Verify connectivity with the GitHub Enterprise Server host.
+#/
+#/ OPTIONS:
+#/   -h | --help       Show this message.
+#/        --version    Display version information.
+#/   <host>            The GitHub Enterprise Server host to check. When no
+#/                     <host> is provided, the $GHE_HOSTNAME configured in
+#/                     backup.config is assumed.
+#/
+
+set -e
+
+while true; do
+  case "$1" in
+  -h | --help)
+    export GHE_SHOW_HELP=true
+    shift
+    ;;
+  --version)
+    export GHE_SHOW_VERSION=true
+    shift
+    ;;
+  -*)
+    echo "Error: invalid argument: '$1'" 1>&2
+    exit 1
+    ;;
+  *)
+    break
+    ;;
+  esac
+done
+
+# Bring in the backup configuration
+# shellcheck source=share/github-backup-utils/ghe-backup-config
+. "$(dirname "${BASH_SOURCE[0]}")/../share/github-backup-utils/ghe-backup-config"
+
+# Use the host provided on the command line if provided, or fallback on the
+# $GHE_HOSTNAME configured in backup.config when not present.
+host="${1:-$GHE_HOSTNAME}"
+
+# Options to pass to SSH during connection check
+options="
+  -o PasswordAuthentication=no
+  -o ConnectTimeout=5
+  -o ConnectionAttempts=1
+"
+
+# Split host:port into parts
+port=$(ssh_port_part "$host")
+hostname=$(ssh_host_part "$host")
+
+set +e
+output=$(echo "ghe-negotiate-version backup-utils $BACKUP_UTILS_VERSION" | ghe-ssh -o BatchMode=no $options $host -- /bin/sh 2>&1)
+rc=$?
+set -e
+
+if [ $rc -ne 0 ]; then
+  case $rc in
+  255)
+    if echo "$output" | grep -i "port 22: Network is unreachable\|port 22: connection refused\|port 22: no route to host\|ssh_exchange_identification: Connection closed by remote host\|Connection timed out during banner exchange\|port 22: Connection timed out" >/dev/null; then
+      exec "$(basename $0)" "$hostname:122"
+    fi
+
+    echo "$output" 1>&2
+    echo "Error: ssh connection with '$host' failed" 1>&2
+    echo "Note that your SSH key needs to be setup on $host as described in:" 1>&2
+    echo "* https://enterprise.github.com/help/articles/adding-an-ssh-key-for-shell-access" 1>&2
+    ;;
+  101)
+    echo "Error: couldn't read GitHub Enterprise Server fingerprint on '$host' or this isn't a GitHub appliance." 1>&2
+    ;;
+  1)
+    if [ "${port:-22}" -eq 22 ] && echo "$output" | grep "use port 122" >/dev/null; then
+      exec "$(basename $0)" "$hostname:122"
+    else
+      echo "$output" 1>&2
+    fi
+    ;;
+
+  esac
+  exit $rc
+fi
+
+CLUSTER=false
+if ghe-ssh "$host" -- \
+  "[ -f '$GHE_REMOTE_ROOT_DIR/etc/github/cluster' ]"; then
+  CLUSTER=true
+fi
+
+# ensure all nodes in the cluster are running the same version
+if "$CLUSTER"; then
+  node_version_list=$(ghe-ssh "$host" ghe-cluster-each -- ghe-version)
+  distinct_versions=$(echo "$node_version_list" | awk '{split($0, a, ":"); print a[2]}' | awk '{print $4}' | uniq | wc -l)
+  if [ "$distinct_versions" -ne 1 ]; then
+    echo "$node_version_list" 1>&2
+    echo "Error: Not all nodes are running the same version! Please ensure all nodes are running the same version before using backup-utils." 1>&2
+    exit 1
+  fi
+fi
+
+version=$(echo "$output" | grep "GitHub Enterprise" | awk '{print $NF}')
+
+if [ -z "$version" ]; then
+  echo "Error: failed to parse version on '$host' or this isn't a GitHub appliance." 1>&2
+  exit 2
+fi
+
+# Block restoring snapshots to older releases of GitHub Enterprise Server
+if [ -n "$GHE_RESTORE_SNAPSHOT_PATH" ]; then
+  snapshot_version=$(cat $GHE_RESTORE_SNAPSHOT_PATH/version)
+  # shellcheck disable=SC2046 # Word splitting is required to populate the variables
+  read -r snapshot_version_major snapshot_version_minor _ <<<$(ghe_parse_version $snapshot_version)
+  if [ "$(version $GHE_REMOTE_VERSION)" -lt "$(version $snapshot_version_major.$snapshot_version_minor.0)" ]; then
+    echo "Error: Snapshot can not be restored to an older release of GitHub Enterprise Server." >&2
+    exit 1
+  fi
+fi
+
+if [ -z "$GHE_ALLOW_REPLICA_BACKUP" ]; then
+  if [ "$(ghe-ssh $host -- cat $GHE_REMOTE_ROOT_DIR/etc/github/repl-state 2>/dev/null || true)" = "replica" ]; then
+    echo "Error: high availability replica detected." 1>&2
+    echo "Backup Utilities should be used to backup from the primary node in" 1>&2
+    echo "high availability environments to ensure consistent and reliable backups." 1>&2
+    exit 1
+  fi
+fi
+
+# backup-utils 2.13 onwards limits support to the current and previous two releases
+# of GitHub Enterprise Server.
+supported_minimum_version="2.21.0"
+
+if [ "$(version $version)" -ge "$(version $supported_minimum_version)" ]; then
+  supported=1
+fi
+
+if [ -z "$supported" ]; then
+  echo "Error: unsupported release of GitHub Enterprise Server detected." 1>&2
+  echo "Backup Utilities v$BACKUP_UTILS_VERSION requires GitHub Enterprise Server v$supported_minimum_version or newer." 1>&2
+  echo "Please update your GitHub Enterprise Server appliance or use an older version of Backup Utilities." 1>&2
+  exit 1
+fi
+
+echo "Connect $hostname:$port OK (v$version)"

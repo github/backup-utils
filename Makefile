@@ -1,8 +1,7 @@
 SHELL = /bin/sh
 
 test: info
-	@echo "Running tests ..."
-	@ls -1 test/test-*.sh | xargs -P 4 -n 1 $(SHELL)
+	@script/cibuild --no-package
 
 info:
 	@echo This is github/backup-utils
@@ -10,4 +9,18 @@ info:
 	@rsync --version | head -1
 	@echo
 
-.PHONY: test info
+dist:
+	@script/package-tarball
+
+deb:
+	@script/package-deb
+
+clean:
+	rm -rf dist
+
+# List pull requests that need to be merged into stable
+# (helpful for the release notes)
+pending-prs:
+	@git log stable...master | grep "Merge pull request"
+
+.PHONY: test info dist clean pending-prs

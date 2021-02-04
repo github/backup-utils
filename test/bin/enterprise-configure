@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# Usage: enterprise-configure
+# Emulates the remote GitHub enterprise-configure command. Tests use this
+# to assert that the command was executed.
+set -e
+echo "enterprise-configure OK"

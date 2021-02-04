@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+#/ Usage: ghe-rsync
+#/ Run rsync with silenced vanished file warnings (non-critical).
+#
+# Based on the rsync-no-vanished support script included with rsync:
+# https://bugzilla.samba.org/show_bug.cgi?id=10356
+
+set -o pipefail
+
+# Bring in the backup configuration
+# shellcheck source=share/github-backup-utils/ghe-backup-config
+. "$( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config"
+
+# Filter vanished file warnings from both stdout (rsync versions < 3.x) and
+# stderr (rsync versions >= 3.x). The complex redirections are necessary to
+# filter stderr while also keeping stdout and stderr separated.
+ignoreout='^(file has vanished: |rsync warning: some files vanished before they could be transferred)'
+
+# Check for --ignore-missing-args parameter support and remove if unavailable.
+if rsync -h | grep '\-\-ignore-missing-args' >/dev/null 2>&1; then
+  parameters=("$@")
+else
+  for parameter in "$@"; do
+    [[ ! $parameter == "--ignore-missing-args" ]] && parameters+=("$parameter") || ignore23=1
+  done
+fi
+
+(rsync "${parameters[@]}" $GHE_EXTRA_RSYNC_OPTS 3>&1 1>&2 2>&3 3>&- |
+  (egrep -v "$ignoreout" || true)) 3>&1 1>&2 2>&3 3>&- |
+  (egrep -v "$ignoreout" || true)
+res=$?
+
+# Suppress exits with 24.
+if [ $res = 24 ]; then
+  res=0
+fi
+
+# Suppress exits with 23 if --ignore-missing-args was unavailable.
+if [ $res = 23 ] && [ -n "$ignore23" ]; then
+  res=0
+fi
+
+exit $res

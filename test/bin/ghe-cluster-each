@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+# Usage: ghe-config
+# Emulates the remote GitHub ghe-config command. Tests use this
+# to assert that the command was executed.
+set -e
+
+for _ in "$@"; do
+  case "$1" in
+    -u)
+      SHOW_UUID=true
+      shift
+      ;;
+    -r|--role)
+        # fake change last save timestamp every 1s
+        ROLE=$2
+        shift
+        shift
+        ;;
+    --)
+      if [ "$1" = "--" ]; then
+        shift
+        COMMAND="$*"
+      fi
+      break
+      ;;
+  esac
+done
+
+if [ "$COMMAND" == "ghe-version" ]; then
+  if [ -z "$DIFFERENT_VERSIONS" ]; then
+    echo "fake-uuid: GitHub Enterprise Server 3.1.0 lxc 2020-12-16 5e97c07602"
+    echo "fake-uuid1: GitHub Enterprise Server 3.1.0 lxc 2020-12-16 5e97c07602"
+    echo "fake-uuid2: GitHub Enterprise Server 3.1.0 lxc 2020-12-16 5e97c07602"
+  else
+    echo "fake-uuid: GitHub Enterprise Server 3.1.0 lxc 2020-12-16 5e97c07602"
+    echo "fake-uuid1: GitHub Enterprise Server 3.1.0 lxc 2020-12-16 5e97c07602"
+    echo "fake-uuid2: GitHub Enterprise Server 2.19 lxc 2020-12-13 5e97c07622"
+  fi
+  exit 0
+fi
+
+if [ "$COMMAND" == "/usr/local/share/enterprise/ghe-nomad-cleanup" ]; then
+  echo "nomad cleanup"
+  exit 0
+fi
+
+if $SHOW_UUID; then
+  CONFIG="$GHE_REMOTE_DATA_USER_DIR/common/cluster.conf"
+
+  hosts=$(git config -f $CONFIG --get-regexp cluster.*.hostname | cut -d ' ' -f2)
+
+  if [ -z "$hosts" ]; then
+    # Mimic `ghe-cluster-each $role -u`
+    echo "fake-uuid
+  fake-uuid1
+  fake-uuid2
+  "
+  else
+    for hostname in $hosts; do
+      [ -n "$ROLE" ] && [ "$(git config -f $CONFIG cluster.$hostname.$ROLE-server)" != "true" ] && continue
+      echo $hostname
+    done
+  fi
+fi

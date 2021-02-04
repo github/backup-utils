@@ -1,69 +1,55 @@
-GitHub Enterprise Backup Utilities
-==================================
+# GitHub Enterprise Server Backup Utilities
 
-This repository includes utilities for and documentation on running a
-[GitHub Enterprise](https://enterprise.github.com) backup / DR site.
+This repository includes backup and recovery utilities for
+[GitHub Enterprise Server][1].
 
-### Setup for server based backups
+**UPDATE**: The new parallel backup and restore beta feature will require [GNU awk](https://www.gnu.org/software/gawk) and [moreutils](https://joeyh.name/code/moreutils) to be installed.
 
-Follow these instructions to configure a new backup site:
+**Note**: the [GitHub Enterprise Server version requirements][2] have
+changed starting with Backup Utilities v2.13.0, released on 27 March 2018.
 
- 1. `git clone https://github.com/github/enterprise-backup-site.git ghe-backup`
- 2. Copy the `backup.config-example` file to `backup.config` and modify as needed.
- 3. Add the local user's SSH key to the GitHub Enterprise instance's `authorized keys` file.
-    See [Adding an SSH key for shell access](https://enterprise.github.com/help/articles/adding-an-ssh-key-for-shell-access)
-    for instructions.
- 4. Run `scripts/ghe-host-check` to verify connectivity with the GitHub Enterprise instance.
+### Features
 
-### Setup for S3 based backups
+Backup Utilities implement a number of advanced capabilities for backup
+hosts, built on top of the backup and restore features already included in
+GitHub Enterprise Server.
 
-Follow these instructions to configure S3 backups:
+ - Complete GitHub Enterprise Server backup and recovery system via two simple
+   utilities:<br>`ghe-backup` and `ghe-restore`.
+ - Online backups. The GitHub appliance need not be put in maintenance mode for
+   the duration of the backup run.
+ - Incremental backup of Git repository data. Only changes since the last
+   snapshot are transferred, leading to faster backup runs and lower network
+   bandwidth and machine utilization.
+ - Efficient snapshot storage. Only data added since the previous snapshot
+   consumes new space on the backup host.
+ - Multiple backup snapshots with configurable retention periods.
+ - Backup commands run under the lowest CPU/IO priority on the GitHub appliance,
+   reducing performance impact while backups are in progress.
+ - Runs under most Linux/Unix environments.
+ - MIT licensed, open source software maintained by GitHub, Inc.
 
- 1. Perform the above steps to setup a backup site.
- 2. Install s3cmd
-   * OSX: `brew install s3cmd`
-   * Ubuntu: `apt-get install s3cmd`
- 4. Run `scripts/ghe-s3-backup-all`
+### Documentation
 
-### Requirements
-
-Backup site requirements are modest: a bash interperter and rsync v2.6.4 or greater. Any modern Linux with rsync should be fine.
-
-In order to be able to start performing online backups via `ghe-rsync-backup` the GitHub Enterprise appliance needs to be running 11.10.342 or above. Offline backups via `ghe-backup` and `ghe-s3-backup` may work with older versions of GitHub Enterprise, though this is neither recommended nor supported.
-
-GitHub Enterprise's running version can be seen on http(s)://[hostname]/setup/upgrade. If you're not running on the latest release we recommend to upgrade the appliance. Please download the most recent GHP from the [GitHub Enterprise website](https://enterprise.github.com/download) and see [our guide](https://enterprise.github.com/help/articles/upgrading-to-a-newer-release) for more information on how to perform upgrades.
-
-### Backup file structure
-
-Backups are stored in rotating increment directories named after the time the snapshot was taken. Each increment directory contains a full backup snapshot of all relevant datastores.
-
-    ./data
-       |- 20140724T010000
-       |- 20140725T010000
-       |- 20140726T010000
-       |- 20140727T010000
-       |- 20140728T010000
-          |- pages.tar
-          |- mysql.sql.gz
-          |- redis.rdb
-          |- authorized-keys.json
-          |- ssh-host-keys.tar
-          |- es-indices.tar
-          |- repositories/
-       |- current -> 20140727T010000
-
-In the example above, five snapshot directories exist with the most recent successful snapshot being pointed to by the `current` symlink.
-
-Note: the `GHE_DATA_DIR` variable set in `backup.config` can be used to change the location where snapshot directories are written.
-
-### See Also
-
-The scripts in this repository are based on the documentation provided by the
-GitHub Enterprise knowledge base. See the following articles for more information:
-
- - [Backing up GitHub Enterprise data](https://enterprise.github.com/help/articles/backing-up-enterprise-data)
- - [Restoring GitHub Enterprise data](https://enterprise.github.com/help/articles/restoring-enterprise-data)
+- **[Requirements](docs/requirements.md)**
+  - **[Backup host requirements](docs/requirements.md#backup-host-requirements)**
+  - **[Storage requirements](docs/requirements.md#storage-requirements)**
+  - **[GitHub Enterprise Server version requirements](docs/requirements.md#github-enterprise-version-requirements)**
+- **[Getting started](docs/getting-started.md)**
+- **[Using the backup and restore commands](docs/usage.md)**
+- **[Scheduling backups](docs/scheduling-backups.md)**
+- **[Backup snapshot file structure](docs/backup-snapshot-file-structure.md)**
+- **[How does Backup Utilities differ from a High Availability replica?](docs/faq.md)**
+- **[Docker](docs/docker.md)**
 
 ### Support
 
-If you have any questions about how to backup your data from the GitHub Enterprise appliance please get in touch with [GitHub Enterprise Support](https://enterprise.github.com/support/)!
+If you find a bug or would like to request a feature in Backup Utilities, please
+open an issue or pull request on this repository. If you have a question related
+to your specific GitHub Enterprise Server setup or would like assistance with
+backup site setup or recovery, please contact our [Enterprise support team][3]
+instead.
+
+[1]: https://enterprise.github.com
+[2]: docs/requirements.md#github-enterprise-version-requirements
+[3]: https://enterprise.github.com/support/

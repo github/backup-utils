@@ -10,6 +10,9 @@ set -e
 # shellcheck source=share/github-backup-utils/ghe-backup-config
 . "$( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config"
 
+# Check to make sure moreutils parallel is installed and working properly
+ghe_parallel_check
+
 # Show usage and bail with no arguments
 [ -z "$*" ] && print_usage
 
@@ -113,17 +116,17 @@ bm_end "$(basename $0) - Building network list"
 #
 bm_start "$(basename $0) - Transferring network list"
 cat $tmp_list | ghe-ssh "$GHE_HOSTNAME" -- sponge $remote_tmp_list
-ghe_debug "\n$(cat $tmp_list)"
+cat $tmp_list | ghe_debug
 bm_end "$(basename $0) - Transferring network list"
 
 bm_start "$(basename $0) - Generating routes"
 echo "cat $remote_tmp_list | github-env ./bin/dgit-cluster-restore-routes > $remote_routes_list" | ghe-ssh "$GHE_HOSTNAME" -- /bin/bash
-ghe_debug "\n$(ghe-ssh "$GHE_HOSTNAME" -- cat $remote_routes_list)"
+ghe-ssh "$GHE_HOSTNAME" -- cat $remote_routes_list | ghe_debug
 bm_end "$(basename $0) - Generating routes"
 
 bm_start "$(basename $0) - Fetching routes"
-ghe-ssh "$GHE_HOSTNAME" -- cat $remote_routes_list > $routes_list
-ghe_debug "\n$(cat $routes_list)"
+ghe-ssh "$GHE_HOSTNAME" -- gzip -c $remote_routes_list | gzip -d > $routes_list
+cat $routes_list | ghe_debug
 bm_end "$(basename $0) - Fetching routes"
 
 bm_start "$(basename $0) - Processing routes"
@@ -140,20 +143,36 @@ fi
 # rsync all the repository networks to the git server where they belong.
 # One rsync invocation per server available.
 bm_start "$(basename $0) - Restoring repository networks"
+rsync_commands=()
 for file_list in $tempdir/*.rsync; do
   if $CLUSTER; then
     server=$(basename $file_list .rsync)
   else
     server=$host
   fi
-  ghe_verbose "* Transferring repository networks to $server ..."
-  ghe-rsync -avrR --delete \
-    -e "ssh -q $opts -p $port $ssh_config_file_opt -l $user" \
-    --rsync-path="sudo -u git rsync" \
-    --files-from=$file_list \
-    "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/repositories/./" \
-    "$server:$GHE_REMOTE_DATA_USER_DIR/repositories/" 1>&3
+
+  rsync_commands+=("
+    if [ -n \"$GHE_VERBOSE\" ]; then
+      echo \"* Transferring repository networks to $server ($file_list) ...\" 1>&3
+    fi
+
+    ghe-rsync -avrR --delete \
+      -e \"ssh -q $opts -p $port $ssh_config_file_opt -l $user\" \
+      --rsync-path=\"sudo -u git rsync\" \
+      --files-from=$file_list \
+      \"$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/repositories/./\" \
+      \"$server:$GHE_REMOTE_DATA_USER_DIR/repositories/\" 1>&3
+    ")
 done
+
+if [ "$GHE_PARALLEL_ENABLED" = "yes" ]; then
+  $GHE_PARALLEL_COMMAND $GHE_PARALLEL_RSYNC_COMMAND_OPTIONS -- "${rsync_commands[@]}"
+else
+  for c in "${rsync_commands[@]}"; do
+    eval "$c"
+  done
+fi
+
 bm_end "$(basename $0) - Restoring repository networks"
 
 # Tell dgit about the repositories restored

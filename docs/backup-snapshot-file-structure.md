@@ -32,6 +32,7 @@ most recent successful snapshot:
           |- enterprise.ghl
           |- es-scan-complete
           |- manage-password
+          |- mssql
           |- mysql.sql.gz
           |- redis.rdb
           |- settings.json
@@ -44,3 +45,20 @@ most recent successful snapshot:
 
 Note: the `GHE_DATA_DIR` variable set in `backup.config` can be used to change
 the disk location where snapshots are written.
+
+## MS SQL Server backup structure
+Actions service uses MS SQL Server as backend data store. Each snapshot includes a suite of backup files for MS SQL Server database(s).
+
+To save time in backup, a three-level backup strategy is implemented. Based on the `GHE_MSSQL_BACKUP_CADENCE` setting, at each snapshot, either a (**F**)ull backup, a (**D**)ifferential or a (**T**)ransaction log backup is taken.
+
+As a result, a suite always contains following for each database: a full backup, possibly a differential backup and at least one transaction log backup. Their relationship with timeline is demonstrated below:
+```
+M---8:00--16:00---T---8:00--16:00---W... (timeline)
+
+F-----------------F-----------------F... (full backup)
+#-----D-----D-----#-----D-----D-----#... (differential backup)
+T--T--T--T--T--T--T--T--T--T--T--T--T... (transaction log backup)
+```
+To save disk space, at each snapshot, hard links are created to point to previous backup files. Only newly-created backup files are transferred from appliance to backup host. When a new full/differential backup is created, they become the new source for hard links and new base line for transaction log backups, for subsequent snapshots.
+
+During restore, a suite of backup files are restored in the sequence of full -> differential -> chronological transaction log.

@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-#/ Usage: release [--dry-run] <version> [min_version]
+#/ Usage: release [--dry-run] [--skip-version-bump-check] <version> [min_version]
 #/
 #/ Publish a backup-utils release:
 #/ * Updates the package changelog
@@ -31,6 +31,7 @@ GH_REPO = ENV['GH_REPO'] || 'backup-utils'
 GH_OWNER = ENV['GH_OWNER'] || 'github'
 GH_AUTHOR = ENV['GH_AUTHOR']
 DEB_PKG_NAME = 'github-backup-utils'
+GH_BASE_BRANCH = ENV['GH_BASE_BRANCH'] || 'master'
 
 CHANGELOG_TMPL = '''<%= package_name %> (<%= package_version %>) UNRELEASED; urgency=medium
 
@@ -136,7 +137,7 @@ def beautify_changes(changes)
 end
 
 def changelog
-  changes = `git log --pretty=oneline origin/stable...origin/master --reverse --grep "Merge pull request" | sort -t\# -k2`.lines.map(&:strip)
+  changes = `git log --pretty=oneline origin/stable...origin/#{GH_BASE_BRANCH} --reverse --grep "Merge pull request" | sort -t\# -k2`.lines.map(&:strip)
   raise 'Building the changelog failed' if $CHILD_STATUS != 0
 
   changes
@@ -195,7 +196,7 @@ end
 
 def bump_version(new_version, min_version = nil, path = 'share/github-backup-utils/version')
   current_version = Gem::Version.new(File.read(path).strip.chomp)
-  if Gem::Version.new(new_version) < current_version
+  if !@skip_version_bump_check && (Gem::Version.new(new_version) < current_version)
     raise "New version should be newer than #{current_version}"
   end
   File.open("#{path}.new", 'w') { |f| f.puts new_version }
@@ -209,10 +210,6 @@ def bump_version(new_version, min_version = nil, path = 'share/github-backup-uti
     content = File.read('test/testlib.sh')
     new_content = content.gsub(/GHE_TEST_REMOTE_VERSION:=[0-9]\.[0-9]+\.0/,"GHE_TEST_REMOTE_VERSION:=#{new_version}")
     File.open('test/testlib.sh', 'w') {|file| file.puts new_content }
-
-    content = File.read('script/cibuild')
-    new_content = content.gsub(/^REMOTE_VERSIONS=.*$/, "REMOTE_VERSIONS=\"#{min_version} #{new_version}\"")
-    File.open('script/cibuild', 'w') {|file| file.puts new_content }
   end
 end
 
@@ -232,8 +229,8 @@ end
 
 def update_stable_branch
   `git checkout --quiet stable`
-  unless (out = `git merge --quiet --ff-only origin/master`)
-    warn "Merging master into stable failed:\n\n#{out}"
+  unless (out = `git merge --quiet --ff-only origin/#{GH_BASE_BRANCH}`)
+    warn "Merging #{GH_BASE_BRANCH} into stable failed:\n\n#{out}"
   end
   unless (out = `git push --quiet origin stable`)
     warn "Failed pushing the stable branch:\n\n#{out}"
@@ -245,7 +242,7 @@ def create_release_pr(version, release_body)
     'title': "Bump version: #{version}",
     'body': release_body,
     'head': "release-#{version}",
-    'base': 'master'
+    'base': GH_BASE_BRANCH
   }.to_json
   res = post("/repos/#{GH_OWNER}/#{GH_REPO}/pulls", body)
   raise "Creating release PR failed (#{res.code})" unless res.is_a? Net::HTTPSuccess
@@ -328,9 +325,9 @@ def attach_assets_to_release(upload_url, release_id, files)
 end
 
 def clean_up(version)
-  `git checkout --quiet master`
+  `git checkout --quiet #{GH_BASE_BRANCH}`
   `git fetch --quiet origin --prune`
-  `git pull --quiet origin master --prune`
+  `git pull --quiet origin #{GH_BASE_BRANCH} --prune`
   `git branch --quiet -D release-#{version} >/dev/null 2>&1`
   `git push --quiet origin :release-#{version} >/dev/null 2>&1`
   `git branch --quiet -D tmp-packging >/dev/null 2>&1`
@@ -341,6 +338,7 @@ if $PROGRAM_NAME == __FILE__
   begin
     args = ARGV.dup
     dry_run = false
+    skip_version_bump_check = false
     if args.include?('--dry-run')
       dry_run = true
       args.delete '--dry-run'
@@ -351,7 +349,12 @@ if $PROGRAM_NAME == __FILE__
       args.delete '--no-warn'
     end
 
-    raise 'Usage: release [--dry-run] <version> [min_version]' if args.empty?
+    if args.include?('--skip-version-bump-check')
+      @skip_version_bump_check = true
+      args.delete '--skip-version-bump-check'
+    end
+
+    raise 'Usage: release [--dry-run] [--skip-version-bump-check] <version> [min_version]' if args.empty?
 
     begin
       version = Gem::Version.new(args[0])
@@ -382,6 +385,7 @@ if $PROGRAM_NAME == __FILE__
       puts "Repo: #{GH_REPO}"
       puts "Author: #{GH_AUTHOR}"
       puts "Token: #{ENV['GH_RELEASE_TOKEN'] && 'set' || 'unset'}"
+      puts "Base branch: #{GH_BASE_BRANCH}"
       puts 'Changelog:'
       if release_changes.empty?
         puts ' => No new bug fixes, enhancements or features.'
@@ -429,7 +433,7 @@ if $PROGRAM_NAME == __FILE__
 
     puts 'Creating release...'
     release_title = "GitHub Enterprise Server Backup Utilities v#{version}"
-    res = create_release "v#{version}", 'master', release_title, release_body, true
+    res = create_release "v#{version}", GH_BASE_BRANCH, release_title, release_body, true
 
     # Tidy up before building tarball and deb pkg
     clean_up version

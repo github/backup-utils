@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Returns environment variable REMOTE_DBS, the variable should be set as space-delimited string
+# Tests use this to emulate ghe-mssql-console from a remote GitHub Enterprise Server
+echo $REMOTE_DBS

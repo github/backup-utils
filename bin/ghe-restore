@@ -285,13 +285,13 @@ if $RESTORE_SETTINGS; then
   ghe-restore-settings "$GHE_HOSTNAME"
 fi
 
-# Make sure mysql and elasticsearch are prep'd and running before restoring.
-# These services will not have been started on appliances that have not been
-# configured yet.
-if ! $CLUSTER; then
-  echo "sudo ghe-service-ensure-mysql && sudo ghe-service-ensure-elasticsearch" |
-  ghe-ssh "$GHE_HOSTNAME" -- /bin/sh 1>&3
-fi
+## Make sure mysql and elasticsearch are prep'd and running before restoring.
+## These services will not have been started on appliances that have not been
+## configured yet.
+#if ! $CLUSTER; then
+#  echo "sudo ghe-service-ensure-mysql && sudo ghe-service-ensure-elasticsearch" |
+#  ghe-ssh "$GHE_HOSTNAME" -- /bin/sh 1>&3
+#fi
 
 # Restore UUID if present and not restoring to cluster.
 if [ -s "$GHE_RESTORE_SNAPSHOT_PATH/uuid" ] && ! $CLUSTER; then

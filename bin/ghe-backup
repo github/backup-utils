@@ -253,7 +253,7 @@ if [ -z "$failures" ]; then
   ghe-prune-snapshots
 fi
 
-echo "Completed backup of $GHE_HOSTNAME in snapshot $GHE_SNAPSHOT_TIMESTAMP at $(date +"%H:%M:%S")"
+echo "Completed backup of $GHE_HOSTNAME in snapshot $GHE_SNAPSHOT_TIMESTAMP at $(date -Is)"
 
 # Exit non-zero and list the steps that failed.
 if [ -z "$failures" ]; then

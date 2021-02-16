@@ -1,3 +1,9 @@
+github-backup-utils (3.0.0) UNRELEASED; urgency=medium
+
+  * Fix restoring the password pepper for already configured instances #683
+
+ -- Michael Dang <dangmh@github.com>  Tue, 16 Feb 2021 22:32:25 +0000
+
 github-backup-utils (3.0.0.rc1) UNRELEASED; urgency=medium
 
   * Cleanup nomad container when restore for 2.22 #670

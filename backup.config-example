@@ -94,3 +94,7 @@ GHE_MSSQL_BACKUP_CADENCE=10080,1440,15
 # When running an external mysql database, run this script to trigger a MySQL restore
 # rather than attempting to backup via backup-utils directly.
 #EXTERNAL_DATABASE_RESTORE_SCRIPT="/bin/false"
+
+# When there are large repositories that might be running git gc, we want to
+# disable those operations from running while creating backups
+# GHE_DISABLE_GIT_GARBAGE_COLLECTION=true

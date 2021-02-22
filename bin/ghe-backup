@@ -139,6 +139,11 @@ fi
 
 echo "$GHE_SNAPSHOT_TIMESTAMP $$" > ../in-progress
 
+if $GHE_DISABLE_GIT_GARBAGE_COLLECTION; then
+  echo "Automatic disabling of git garbage collection is active for this backup"
+  ../share/github-backup-utils/ghe-gc-disable
+fi
+
 echo "Starting backup of $GHE_HOSTNAME with backup-utils v$BACKUP_UTILS_VERSION in snapshot $GHE_SNAPSHOT_TIMESTAMP"
 
 # Perform a host connection check and establish the remote appliance version.
@@ -263,6 +268,11 @@ else
   ghe_remote_logger "Completed backup from $(hostname) / snapshot $GHE_SNAPSHOT_TIMESTAMP with failures: ${steps}."
   echo "Error: Snapshot incomplete. Some steps failed: ${steps}. "
   exit 1
+fi
+
+if $GHE_DISABLE_GIT_GARBAGE_COLLECTION; then
+  echo "Re-enabling git garbage collection"
+  ../share/github-backup-utils/ghe-gc-enable
 fi
 
 # Detect if the created backup contains any leaked ssh keys

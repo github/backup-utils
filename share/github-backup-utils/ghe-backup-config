@@ -240,6 +240,9 @@ export GHE_SNAPSHOT_DIR
 # The location of the file used to disable GC operations on the remote side.
 : ${SYNC_IN_PROGRESS_FILE:="$GHE_REMOTE_DATA_USER_DIR/repositories/.sync_in_progress"}
 
+# Allows user to default disabling git GC operations on Backup
+: ${GHE_DISABLE_GIT_GARBAGE_COLLECTION:=false}
+
 # Base path for temporary directories and files.
 : ${TMPDIR:="/tmp"}
 

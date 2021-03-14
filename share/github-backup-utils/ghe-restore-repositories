@@ -144,7 +144,7 @@ fi
 # One rsync invocation per server available.
 bm_start "$(basename $0) - Restoring repository networks"
 rsync_commands=()
-for file_list in $tempdir/*.rsync; do
+for file_list in $tempdir/git-server-*.rsync; do
   if $CLUSTER; then
     server=$(basename $file_list .rsync)
   else

@@ -8,7 +8,8 @@ RUN apk --update --no-cache add \
     git \
     bash \
     gawk \
-    procps
+    procps \
+    coreutils
 
 COPY ./ /backup-utils/
 WORKDIR /backup-utils

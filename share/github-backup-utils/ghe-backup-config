@@ -249,9 +249,6 @@ export GHE_SNAPSHOT_DIR
 # 15 minutes.
 : ${GHE_MSSQL_BACKUP_CADENCE:=10080,1440,15}
 
-=
-
-
 ###############################################################################
 ### Dynamic remote version config
 

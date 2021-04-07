@@ -346,7 +346,7 @@ begin_test "ghe-backup has default cadence configured"
   set -e
   enable_actions
   
-  [ -n "$GHE_MSSQL_BACKUP_CADENCE ]
+  [ -n "$GHE_MSSQL_BACKUP_CADENCE" ]
 )
 end_test
 

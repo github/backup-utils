@@ -243,6 +243,15 @@ export GHE_SNAPSHOT_DIR
 # Base path for temporary directories and files.
 : ${TMPDIR:="/tmp"}
 
+# Backup cadence for MS SQL. Determines the kind of backup taken, either full, differential,
+# or transaction log, based on when the last backup of that kind was taken. This defaults to
+# taking a full backup once a week, a differential backup once a day, and transaction logs every
+# 15 minutes.
+: ${GHE_MSSQL_BACKUP_CADENCE:=10080,1440,15}
+
+=
+
+
 ###############################################################################
 ### Dynamic remote version config
 

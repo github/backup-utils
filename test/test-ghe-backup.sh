@@ -352,6 +352,15 @@ begin_test "ghe-backup missing directories or files on source appliance"
 )
 end_test
 
+begin_test "ghe-backup has default cadence configured"
+(
+  set -e
+  enable_actions
+  
+  [ -n "$GHE_MSSQL_BACKUP_CADENCE ]
+)
+end_test
+
 GHE_MSSQL_BACKUP_CADENCE=10,5,1
 export GHE_MSSQL_BACKUP_CADENCE
 setup_actions_test_data $GHE_REMOTE_DATA_USER_DIR

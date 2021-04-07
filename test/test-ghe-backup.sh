@@ -361,6 +361,7 @@ begin_test "ghe-backup has default cadence configured"
 )
 end_test
 
+# Override backup cadence for testing purposes
 GHE_MSSQL_BACKUP_CADENCE=10,5,1
 export GHE_MSSQL_BACKUP_CADENCE
 setup_actions_test_data $GHE_REMOTE_DATA_USER_DIR

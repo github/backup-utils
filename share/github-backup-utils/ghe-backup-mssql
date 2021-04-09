@@ -180,6 +180,9 @@ if [ -n "$backup_command" ]; then
   ghe-ssh "$GHE_HOSTNAME" -- "$backup_command" || failures="$failures mssql"
   bm_end "$(basename $0)"
 
+  # Configure the backup cadence on the appliance, which is used for diagnostics
+  ghe-ssh "$GHE_HOSTNAME" -- "ghe-config mssql.backup.cadence $cadence"
+
   # Transfer backup files from appliance to backup host
   appliance_dir="$GHE_REMOTE_DATA_DIR/user/mssql/backups"
   backups=$(echo "set -o pipefail; if sudo test -d \"$appliance_dir\"; then \

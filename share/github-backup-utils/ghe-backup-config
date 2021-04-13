@@ -462,7 +462,7 @@ is_external_database_snapshot(){
 # This file exists if this is a backup for an external database AND the backup was
 # taken via our logical backup strategy.
 is_default_external_database_snapshot(){
-  is_external_database_snapshot && test -f "$1/logical-external-database-backup-sentinel"
+  is_external_database_snapshot && test -f "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/logical-external-database-backup-sentinel"
 }
 
 prompt_for_confirmation(){

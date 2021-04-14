@@ -42,7 +42,7 @@ ghe_verbose "* Transferring Actions files from $host ..."
 ghe-rsync -avz \
   -e "ghe-ssh -p $port" \
   --rsync-path='sudo -u actions rsync' \
-  --exclude "mutexes" --exclude "dumps" \
+  --exclude "mutexes" --exclude "dumps" --exclude "tmp" \
   $link_dest \
   "$host:$GHE_REMOTE_DATA_USER_DIR/actions/" \
   "$GHE_SNAPSHOT_DIR/actions" 1>&3

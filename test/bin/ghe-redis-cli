@@ -19,11 +19,11 @@ while true; do
         break
         ;;
     --remote)
-        # Fake accepting remote flag argument
+        # Fake accepting hostname argument
         shift 3
         ;;
     *)
-        echo "unexpected ghe-redis-cli command: $1" 1>&2
+        echo "unexpected redis-cli command: $1" 1>&2
         exit 1
         ;;
   esac

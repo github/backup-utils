@@ -56,13 +56,14 @@ begin_test "ghe-host-check detects unsupported GitHub Enterprise Server versions
   read -r bu_version_major bu_version_minor _ <<<$(ghe_parse_version $BACKUP_UTILS_VERSION)
 
   ! GHE_TEST_REMOTE_VERSION=11.340.36 ghe-host-check
-  ! GHE_TEST_REMOTE_VERSION=2.$((bu_version_minor-3)).0 ghe-host-check
-  GHE_TEST_REMOTE_VERSION=2.$((bu_version_minor-2)).0 ghe-host-check
+  # hardcode until https://github.com/github/backup-utils/issues/675 is resolved
+  ! GHE_TEST_REMOTE_VERSION=2.20.0 ghe-host-check
+  GHE_TEST_REMOTE_VERSION=2.21.0 ghe-host-check
   GHE_TEST_REMOTE_VERSION=$BACKUP_UTILS_VERSION ghe-host-check
   GHE_TEST_REMOTE_VERSION=$BACKUP_UTILS_VERSION ghe-host-check
   GHE_TEST_REMOTE_VERSION=$bu_version_major.$bu_version_minor.999 ghe-host-check
   GHE_TEST_REMOTE_VERSION=$bu_version_major.$bu_version_minor.999gm1 ghe-host-check
-  ! GHE_TEST_REMOTE_VERSION=2.9999.1521793591.performancetest ghe-host-check
+  ! GHE_TEST_REMOTE_VERSION=3.9999.1521793591.performancetest ghe-host-check
   GHE_TEST_REMOTE_VERSION=$((bu_version_major+1)).0.0 ghe-host-check
 )
 end_test

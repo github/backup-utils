@@ -249,16 +249,32 @@ if $CLUSTER; then
     ghe_verbose "* Warning: Failed to stop cron on one or more nodes"
   fi
 
-  if ! ghe-ssh "$GHE_HOSTNAME" -- "ghe-cluster-each -- sudo service github-timerd stop"; then
-    ghe_verbose "* Warning: Failed to stop github-timerd on one or more nodes"
+  if [ "$GHE_VERSION_MAJOR" -eq "3" ]; then
+    if ghe-ssh "$GHE_HOSTNAME" -- "systemctl -q is-active nomad && nomad job status --short github-timerd &>/dev/null"; then
+      if ! ghe-ssh "$GHE_HOSTNAME" -- "sudo nomad stop github-timerd 1>/dev/null"; then
+        ghe_verbose "* Warning: Failed to stop github-timerd on one or more nodes"
+      fi
+    fi
+  else
+    if ! ghe-ssh "$GHE_HOSTNAME" -- "ghe-cluster-each -- sudo service github-timerd stop"; then
+      ghe_verbose "* Warning: Failed to stop github-timerd on one or more nodes"
+    fi
   fi
 else
   if ! ghe-ssh "$GHE_HOSTNAME" -- "sudo service cron stop"; then
     ghe_verbose "* Warning: Failed to stop cron"
   fi
 
-  if ! ghe-ssh "$GHE_HOSTNAME" -- "sudo service github-timerd stop"; then
-    ghe_verbose "* Warning: Failed to stop github-timerd"
+  if [ "$GHE_VERSION_MAJOR" -eq "3" ]; then
+    if ghe-ssh "$GHE_HOSTNAME" -- "systemctl -q is-active nomad && nomad job status --short github-timerd &>/dev/null"; then
+      if ! ghe-ssh "$GHE_HOSTNAME" -- "sudo nomad stop github-timerd 1>/dev/null"; then
+        ghe_verbose "* Warning: Failed to stop github-timerd"
+      fi
+    fi
+  else
+    if ! ghe-ssh "$GHE_HOSTNAME" -- "sudo service github-timerd stop"; then
+      ghe_verbose "* Warning: Failed to stop github-timerd"
+    fi
   fi
 fi
 
@@ -392,9 +408,19 @@ echo "sudo restart -q memcached 2>/dev/null || true" |
 # config run to perform data migrations.
 if $CLUSTER; then
   echo "Configuring cluster ..."
+  if [ "$GHE_VERSION_MAJOR" -eq "3" ]; then
+    ghe-ssh "$GHE_HOSTNAME" -- "ghe-cluster-nomad-cleanup" 1>&3 2>&3
+  elif [ "$GHE_VERSION_MAJOR" -eq "2" ] && [ "$GHE_VERSION_MINOR" -eq "22" ]; then
+    ghe-ssh "$GHE_HOSTNAME" -- "ghe-cluster-each -- /usr/local/share/enterprise/ghe-nomad-cleanup" 1>&3 2>&3
+  fi
   ghe-ssh "$GHE_HOSTNAME" -- "ghe-cluster-config-apply" 1>&3 2>&3
 elif $instance_configured; then
   echo "Configuring appliance ..."
+  if [ "$GHE_VERSION_MAJOR" -eq "3" ]; then
+    ghe-ssh "$GHE_HOSTNAME" -- "ghe-nomad-cleanup" 1>&3 2>&3
+  elif [ "$GHE_VERSION_MAJOR" -eq "2" ] && [ "$GHE_VERSION_MINOR" -eq "22" ]; then
+    ghe-ssh "$GHE_HOSTNAME" -- "/usr/local/share/enterprise/ghe-nomad-cleanup" 1>&3 2>&3
+  fi
   ghe-ssh "$GHE_HOSTNAME" -- "ghe-config-apply" 1>&3 2>&3
 fi
 

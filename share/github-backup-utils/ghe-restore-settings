@@ -28,7 +28,7 @@ GHE_RESTORE_SNAPSHOT_PATH="$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT"
 echo "Restoring license ..."
 ghe-ssh "$GHE_HOSTNAME" -- 'ghe-import-license' < "$GHE_RESTORE_SNAPSHOT_PATH/enterprise.ghl" 1>&3
 
-echo "Restoring settings ..."
+echo "Restoring settings and applying configuration ..."
 
 # Restore external MySQL password if running external MySQL DB.
 restore-secret "external MySQL password" "external-mysql-password" "secrets.external.mysql"
@@ -40,8 +40,6 @@ restore-secret "external MySQL password" "external-mysql-password" "secrets.exte
 
 # Restore management console password hash if present.
 restore-secret "management console password" "manage-password" "secrets.manage"
-# Restore password pepper if present
-restore-secret "password pepper" "password-pepper" "secrets.github.user-password-secrets"
 
 # Restore SAML keys if present.
 if [ -f "$GHE_RESTORE_SNAPSHOT_PATH/saml-keys.tar" ]; then

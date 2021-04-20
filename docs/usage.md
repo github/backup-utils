@@ -90,4 +90,15 @@ are *not* restored to prevent overwriting manual configuration on the restore
 host. This behavior can be overridden by passing the `-c` argument to `ghe-restore`,
 forcing settings, certificate, and license data to be overwritten with the backup copy's data.
 
+## Backup and restore with GitHub Actions enabled
+
+GitHub Actions data on your external storage provider is not included in regular GitHub Enterprise Server
+backups, and must be backed up separately.  When restoring a GitHub Enterprise Server backup with 
+GitHub Actions enabled, the following steps are required:
+
+1. Enable GitHub Actions on the replacement appliance and configure it to use the same GitHub Actions
+   external storage configuration as the original appliance.
+2. Use `ghe-restore` to restore the backup.
+3. Re-register your self-hosted runners on the replacement appliance.
+
 [1]: https://github.com/github/backup-utils/blob/master/docs/getting-started.md

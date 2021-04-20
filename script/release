@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-#/ Usage: release [--dry-run] <version> [min_version]
+#/ Usage: release [--dry-run] [--skip-version-bump-check] <version> [min_version]
 #/
 #/ Publish a backup-utils release:
 #/ * Updates the package changelog
@@ -196,7 +196,7 @@ end
 
 def bump_version(new_version, min_version = nil, path = 'share/github-backup-utils/version')
   current_version = Gem::Version.new(File.read(path).strip.chomp)
-  if Gem::Version.new(new_version) < current_version
+  if !@skip_version_bump_check && (Gem::Version.new(new_version) < current_version)
     raise "New version should be newer than #{current_version}"
   end
   File.open("#{path}.new", 'w') { |f| f.puts new_version }
@@ -338,6 +338,7 @@ if $PROGRAM_NAME == __FILE__
   begin
     args = ARGV.dup
     dry_run = false
+    skip_version_bump_check = false
     if args.include?('--dry-run')
       dry_run = true
       args.delete '--dry-run'
@@ -348,7 +349,12 @@ if $PROGRAM_NAME == __FILE__
       args.delete '--no-warn'
     end
 
-    raise 'Usage: release [--dry-run] <version> [min_version]' if args.empty?
+    if args.include?('--skip-version-bump-check')
+      @skip_version_bump_check = true
+      args.delete '--skip-version-bump-check'
+    end
+
+    raise 'Usage: release [--dry-run] [--skip-version-bump-check] <version> [min_version]' if args.empty?
 
     begin
       version = Gem::Version.new(args[0])

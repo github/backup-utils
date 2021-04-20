@@ -60,7 +60,7 @@ GHE_NUM_SNAPSHOTS=10
 #   - Differential backup every day (1440 minutes)
 #   - Transactionlog backup every 15 minutes
 #
-GHE_MSSQL_BACKUP_CADENCE=10080,1440,15
+#GHE_MSSQL_BACKUP_CADENCE=10080,1440,15
 
 # If set to 'yes', ghe-backup jobs will run in parallel. Defaults to 'no'.
 #

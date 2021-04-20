@@ -137,16 +137,6 @@ if [ -f ../in-progress ]; then
   fi
 fi
 
-# Figure out which github-env we should use during backup
-GITHUB_ENV_SHELL=
-if ghe-ssh "$GHE_HOSTNAME" -- \
-  '[ -x "$(command -v github-env-dispatch)" ]'; then
-  GITHUB_ENV_SHELL=github-env-dispatch
-else
-  GITHUB_ENV_SHELL=github-env
-fi
-export GITHUB_ENV_SHELL
-
 echo "$GHE_SNAPSHOT_TIMESTAMP $$" > ../in-progress
 
 echo "Starting backup of $GHE_HOSTNAME with backup-utils v$BACKUP_UTILS_VERSION in snapshot $GHE_SNAPSHOT_TIMESTAMP"

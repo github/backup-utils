@@ -314,6 +314,8 @@ setup_test_data () {
     echo "rsync" > "$loc/strategy"
     echo "$GHE_REMOTE_VERSION" >  "$loc/version"
   fi
+
+  setup_minio_test_data "$GHE_DATA_DIR"
 }
 
 setup_actions_test_data() {

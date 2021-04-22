@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 # this is an unbelievably narrowly constrained used case:
 # there's a single use of `stat` in this codebase:

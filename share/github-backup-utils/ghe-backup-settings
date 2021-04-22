@@ -81,6 +81,11 @@ if ghe-ssh "$host" -- ghe-config --true app.actions.enabled; then
   backup-secret "Actions Launch service private key" "actions-launch-app-app-private-key" "secrets.launch.azp-app-private-key"
 fi
 
+# Backup Packages settings.
+if ghe-ssh "$host" -- ghe-config --true app.packages.enabled; then
+  backup-secret "Packages hmac key" "hmac-key"
+fi
+
 if ghe-ssh "$host" -- "test -f $GHE_REMOTE_DATA_USER_DIR/common/idp.crt"; then
   echo "* Transferring SAML keys ..." 1>&3
   ghe-ssh $host -- sudo tar -C $GHE_REMOTE_DATA_USER_DIR/common/ -cf - "idp.crt saml-sp.p12" > saml-keys.tar

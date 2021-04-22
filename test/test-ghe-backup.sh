@@ -356,7 +356,7 @@ begin_test "ghe-backup has default cadence configured"
 (
   set -e
   enable_actions
-  
+
   [ -n "$GHE_MSSQL_BACKUP_CADENCE" ]
 )
 end_test
@@ -364,7 +364,8 @@ end_test
 # Override backup cadence for testing purposes
 GHE_MSSQL_BACKUP_CADENCE=10,5,1
 export GHE_MSSQL_BACKUP_CADENCE
-setup_actions_test_data $GHE_REMOTE_DATA_USER_DIR
+setup_actions_test_data "$GHE_REMOTE_DATA_USER_DIR"
+setup_minio_test_data "$GHE_REMOTE_DATA_USER_DIR"
 
 begin_test "ghe-backup takes full backup on first run"
 (
@@ -373,6 +374,7 @@ begin_test "ghe-backup takes full backup on first run"
   # setup_mssql_backup_file uses "current"
   set -e
   enable_actions
+  enable_minio
 
   rm -rf "$GHE_REMOTE_DATA_USER_DIR"/mssql/backups/*
   rm -rf "$GHE_DATA_DIR"/current/mssql/*
@@ -386,6 +388,7 @@ begin_test "ghe-backup takes full backup upon expiration"
 (
   set -e
   enable_actions
+  enable_minio
   export REMOTE_DBS="full_mssql"
 
   setup_mssql_backup_file "full_mssql" 11 "bak"
@@ -400,6 +403,7 @@ begin_test "ghe-backup takes diff backup upon expiration"
 (
   set -e
   enable_actions
+  enable_minio
   export REMOTE_DBS="full_mssql"
 
   setup_mssql_backup_file "full_mssql" 7 "bak"

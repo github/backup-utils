@@ -336,6 +336,11 @@ if ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config --true app.actions.enabled'; then
   echo "           See https://docs.github.com/en/actions/hosting-your-own-runners/adding-self-hosted-runners for more details on how to reconfigure self-hosted Actions runners."
 fi
 
+if ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config --true app.minio.enabled'; then
+  echo "Restoring MinIO data ..."
+  ghe-restore-minio "$GHE_HOSTNAME" 1>&3
+fi
+
 commands=("
 echo \"Restoring Redis database ...\"
 ghe-ssh \"$GHE_HOSTNAME\" -- 'ghe-import-redis' < \"$GHE_RESTORE_SNAPSHOT_PATH/redis.rdb\" 1>&3")

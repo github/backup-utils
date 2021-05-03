@@ -319,6 +319,8 @@ setup_test_data () {
     echo "rsync" > "$loc/strategy"
     echo "$GHE_REMOTE_VERSION" >  "$loc/version"
   fi
+
+  setup_minio_test_data "$GHE_DATA_DIR"
 }
 
 setup_actions_test_data() {
@@ -350,6 +352,23 @@ cleanup_actions_test_data() {
   rm -rf "$loc/actions"
 }
 
+setup_minio_test_data() {
+  local loc=$1
+
+  mkdir -p "$loc/minio/"
+  cd "$loc/minio/"
+  bucket="packages"
+
+  mkdir -p "$bucket"
+  echo "an example blob" "$bucket/91dfa09f-1801-4e00-95ee-6b763d7da3e2"
+}
+
+cleanup_minio_test_data() {
+  local loc=$1
+
+  rm -rf "$loc/minio"
+}
+
 # A unified method to check everything backed up or restored during testing.
 # Everything tested here should pass regardless of whether we're testing a backup
 # or a restore.
@@ -372,6 +391,11 @@ verify_common_data() {
   if is_actions_enabled; then
     # verify mssql backups were transferred
     diff -ru "$GHE_REMOTE_DATA_USER_DIR/mssql/backups" "$GHE_DATA_DIR/current/mssql"
+  fi
+
+  if is_minio_enabled; then
+    # verify minio object storge backups were transferred
+    diff -ru "$GHE_REMOTE_DATA_USER_DIR/minio" "$GHE_DATA_DIR/minio"
   fi
 
   # tests that differ for cluster and single node backups and restores
@@ -526,6 +550,14 @@ enable_actions() {
 
 is_actions_enabled() {
   ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config --true app.actions.enabled'
+}
+
+enable_minio() {
+  ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config app.minio.enabled true'
+}
+
+is_minio_enabled() {
+  ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config --true app.minio.enabled'
 }
 
 setup_moreutils_parallel() {

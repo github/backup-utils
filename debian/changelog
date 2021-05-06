@@ -37,7 +37,7 @@ github-backup-utils (2.22.0) UNRELEASED; urgency=medium
   * Add parallelized restore capability to ghe-restore-storage #635
   * Update backup-utils for new features in 2.22 #641
 
- -- jianghao0718@github.com  Wed, 23 Sep 2020 15:48:54 +0000
+ -- Hao Jiang <jianghao0718@github.com>  Wed, 23 Sep 2020 15:48:54 +0000
 
 github-backup-utils (2.21.0) UNRELEASED; urgency=medium
 
@@ -135,6 +135,7 @@ github-backup-utils (2.16.1) UNRELEASED; urgency=medium
 
 github-backup-utils (2.16.0) UNRELEASED; urgency=medium
 
+  * (There was no descriptions)
 
  -- Colin Seymour <colin@github.com>  Tue, 22 Jan 2019 20:25:34 +0000
 
@@ -146,11 +147,13 @@ github-backup-utils (2.15.1) UNRELEASED; urgency=medium
 
 github-backup-utils (2.15.0) UNRELEASED; urgency=medium
 
+  * (There was no descriptions)
 
  -- Colin Seymour <colin@github.com>  Tue, 16 Oct 2018 16:40:03 +0000
 
 github-backup-utils (2.15.0) UNRELEASED; urgency=medium
 
+  * (There was no descriptions)
 
  -- Colin Seymour <colin@github.com>  Tue, 16 Oct 2018 16:07:36 +0000
 

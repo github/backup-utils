@@ -1,5 +1,4 @@
 #!/usr/bin/make -f
-build-indep:
 
 override_dh_auto_build:
 

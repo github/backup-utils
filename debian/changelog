@@ -1,4 +1,4 @@
-github-backup-utils (3.1.0.rc1) UNRELEASED; urgency=medium
+github-backup-utils (3.1.0~rc1) UNRELEASED; urgency=medium
 
   * Update repository backups to use ghe-gc-* for lock file management #188
   * A faster way to restore storage blobs (clusters) #212

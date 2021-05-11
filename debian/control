@@ -2,7 +2,7 @@ Source: github-backup-utils
 Maintainer: Twan Wolthof <xeago@spotify.com>
 Section: misc
 Priority: optional
-Standards-Version: 3.9.2
+Standards-Version: 4.5.1
 Build-Depends: debhelper (>= 10), git, moreutils, jq, rsync (>= 2.6.4)
 Homepage: https://github.com/github/backup-utils
 Vcs-Git: https://github.com/github/backup-utils.git

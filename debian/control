@@ -3,7 +3,7 @@ Maintainer: Zachary Mark <zachary-mark@github.com>
 Section: misc
 Priority: optional
 Standards-Version: 4.5.1
-Build-Depends: debhelper (>= 10), git, moreutils, jq, rsync (>= 2.6.4)
+Build-Depends: debhelper (>= 10), git, moreutils, jq, rsync (>= 2.6.4), help2man,
 Homepage: https://github.com/github/backup-utils
 Vcs-Git: https://github.com/github/backup-utils.git
 Vcs-Browser: https://github.com/github/backup-utils

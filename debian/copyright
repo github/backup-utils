@@ -5,6 +5,14 @@ Source: https://github.com/github/backup-utils
 Files: *
 Copyright: 2014-2021, GitHub Inc.
 License: MIT
+
+Files: debian/*
+Copyright: 2014-2021, GitHub Inc.
+           2014 Twan Wolthof <xeago@spotify.com>
+           2021 Hideki Yamane <h-yamane@sios.com>
+License: MIT
+
+License: MIT
  Permission is hereby granted, free of charge, to any person obtaining
  a copy of this software and associated documentation files (the
  "Software"), to deal in the Software without restriction, including

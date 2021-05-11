@@ -261,11 +261,6 @@ setup_test_data () {
   echo "fake audit log this yr this mth" | gzip > audit_log-1-$this_yr-$this_mth-1.gz
   echo "1" > audit_log-1-$this_yr-$this_mth-1.size
 
-  # Create hookshot logs
-  mkdir -p "$loc/hookshot/"
-  cd "$loc/hookshot/"
-  echo "fake hookshot log" | gzip > hookshot-logs-2018-03-05.gz
-
   # Create some test repositories in the remote repositories dir
   mkdir -p "$loc/repositories/info"
   mkdir -p "$TRASHDIR/hooks"
@@ -497,7 +492,6 @@ verify_all_restored_data() {
   else
     grep -q "fake audit log last yr last mth" "$TRASHDIR/restore-out"
     grep -q "fake audit log this yr this mth" "$TRASHDIR/restore-out"
-    grep -q "fake hookshot log" "$TRASHDIR/restore-out"
   fi
 
   # verify settings import was *not* run due to instance already being

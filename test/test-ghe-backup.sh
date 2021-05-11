@@ -132,19 +132,6 @@ begin_test "ghe-backup without password pepper"
 )
 end_test
 
-begin_test "ghe-backup empty hookshot directory"
-(
-  set -e
-
-  rm -rf $GHE_REMOTE_DATA_USER_DIR/hookshot/repository-*
-  rm -rf $GHE_DATA_DIR/current/hookshot/repository-*
-  ghe-backup
-
-  # Check that the "--link-dest arg does not exist" message hasn't occurred.
-  [ ! "$(grep "[l]ink-dest arg does not exist" $TRASHDIR/out)" ]
-)
-end_test
-
 begin_test "ghe-backup empty git-hooks directory"
 (
   set -e

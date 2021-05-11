@@ -204,10 +204,6 @@ echo \"Backing up audit log ...\"
 ghe-backup-es-audit-log || printf %s \"audit-log \" >> \"$failures_file\"")
 
 commands+=("
-echo \"Backing up hookshot logs ...\"
-ghe-backup-es-hookshot || printf %s \"hookshot \" >> \"$failures_file\"")
-
-commands+=("
 echo \"Backing up Git repositories ...\"
 ghe-backup-repositories || printf %s \"repositories \" >> \"$failures_file\"")
 

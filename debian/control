@@ -5,6 +5,8 @@ Priority: optional
 Standards-Version: 3.9.2
 Build-Depends: debhelper (>= 9), git, devscripts, moreutils, jq, rsync (>= 2.6.4)
 Homepage: https://github.com/github/backup-utils
+Vcs-Git: https://github.com/github/backup-utils.git
+Vcs-Browser: https://github.com/github/backup-utils
 
 Package: github-backup-utils
 Architecture: all

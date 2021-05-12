@@ -1,11 +1,39 @@
 github-backup-utils (3.1.0~rc1) UNRELEASED; urgency=medium
 
+  [ Zachary Mark ]
   * Update repository backups to use ghe-gc-* for lock file management #188
   * A faster way to restore storage blobs (clusters) #212
   * Bug fix: Be more specific in restore routes globbing #715
   * fix(docker): add coreutils to get flags for date #717
   * Add backup cadence variable to the appliance #719
   * Fix is_default_external_database_snapshot function #720
+
+  [ Hideki Yamane ]
+  * debian/rules
+    - Drop unnecessary build-indep:
+    - Add manpages generation.
+  * debian/changelog
+    - Fix some lintian warnings for old entries.
+  * debian/source/format
+    - Upgrade to newer source format 3.0 (native).
+  * debian/copyright
+    - Format it as Machine-readable debian/copyright format 1.0
+    - Add entries Twan Wolthof <xeago@spotify.com> and me for debian/* since
+      enough code was written by non-github.com employees, at least.
+  * debian/control
+    - Update descriptions in debian/control
+    - Fix "Architecture: all", instead of "any".
+    - Declare its Homepage as https://github.com/github/backup-utils
+    - Add Vcs-* metadata field.
+    - Specify "Rules-Requires-Root: no"
+    - Drop unnecessary "Build-Depends: devscripts"
+    - Bump debhelper 10 from 9 to reduce lintian warning.
+    - Set Standards-Version: 4.5.1
+    - Update Maintainer as Zachary Mark <zachary-mark@github.com>
+  * debian/compat
+    - Set 10 as above debhelper changes.
+  * debian/{clean,manpages}
+    - Add files to support manpages handles.
 
  -- Zachary Mark <zachary-mark@github.com>  Thu, 06 May 2021 17:11:18 +0000
 

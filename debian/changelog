@@ -27,11 +27,8 @@ github-backup-utils (3.1.0~rc1) UNRELEASED; urgency=medium
     - Add Vcs-* metadata field.
     - Specify "Rules-Requires-Root: no"
     - Drop unnecessary "Build-Depends: devscripts"
-    - Bump debhelper 10 from 9 to reduce lintian warning.
     - Set Standards-Version: 4.5.1
     - Update Maintainer as Zachary Mark <zachary-mark@github.com>
-  * debian/compat
-    - Set 10 as above debhelper changes.
   * debian/{clean,manpages}
     - Add files to support manpages handles.
 

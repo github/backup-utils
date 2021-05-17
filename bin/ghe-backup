@@ -201,6 +201,11 @@ if ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config --true app.actions.enabled'; then
   ghe-backup-actions 1>&3 || failures="$failures actions"
 fi
 
+if ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config --true app.minio.enabled'; then
+  echo "Backing up Minio data ..."
+  ghe-backup-minio 1>&3 || failures="$failures minio"
+fi
+
 commands=("
 echo \"Backing up Redis database ...\"
 ghe-backup-redis > redis.rdb || printf %s \"redis \" >> \"$failures_file\"")
@@ -208,10 +213,6 @@ ghe-backup-redis > redis.rdb || printf %s \"redis \" >> \"$failures_file\"")
 commands+=("
 echo \"Backing up audit log ...\"
 ghe-backup-es-audit-log || printf %s \"audit-log \" >> \"$failures_file\"")
-
-commands+=("
-echo \"Backing up hookshot logs ...\"
-ghe-backup-es-hookshot || printf %s \"hookshot \" >> \"$failures_file\"")
 
 commands+=("
 echo \"Backing up Git repositories ...\"

@@ -81,9 +81,9 @@ ensure_same_dbs() {
 
   if [[ "${#locals[@]}" -ne 0 ]]; then
     ghe_verbose "Warning: Found following ${#locals[@]} backup files that can't be traced back to the specified GHES host."
-    ghe_verbose "Warning: Did you recently reconfigure the GHES host? Consider deleting these backup files if no longer needed."
+    ghe_verbose "Warning: Did you recently reconfigure the GHES host? Move or delete these backup files if no longer needed."
     for local in "${locals[@]}"; do
-      ghe_verbose "$local"
+      ghe_verbose "$1/$local"
     done
 
     exit 1
@@ -179,6 +179,9 @@ if [ -n "$backup_command" ]; then
   bm_start "$(basename $0)"
   ghe-ssh "$GHE_HOSTNAME" -- "$backup_command" || failures="$failures mssql"
   bm_end "$(basename $0)"
+
+  # Configure the backup cadence on the appliance, which is used for diagnostics
+  ghe-ssh "$GHE_HOSTNAME" "ghe-config mssql.backup.cadence $GHE_MSSQL_BACKUP_CADENCE"
 
   # Transfer backup files from appliance to backup host
   appliance_dir="$GHE_REMOTE_DATA_DIR/user/mssql/backups"

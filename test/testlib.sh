@@ -42,7 +42,7 @@ export GHE_BACKUP_CONFIG GHE_DATA_DIR GHE_REMOTE_DATA_DIR GHE_REMOTE_ROOT_DIR
 
 # The default remote appliance version. This may be set in the environment prior
 # to invoking tests to emulate a different remote vm version.
-: ${GHE_TEST_REMOTE_VERSION:=3.0.0.rc1}
+: ${GHE_TEST_REMOTE_VERSION:=3.1.0.rc1}
 export GHE_TEST_REMOTE_VERSION
 
 # Source in the backup config and set GHE_REMOTE_XXX variables based on the
@@ -146,7 +146,7 @@ report_failure () {
   printf "test: %-73s $msg\\n" "$desc ..."
   (
     sed 's/^/    /' <"$TRASHDIR/out" |
-    grep -a -v -e '^\+ end_test' -e '^+ set +x' <"$TRASHDIR/out" |
+    grep -a -v -e '^\+ end_test' -e '^+ set +x' - "$TRASHDIR/out" |
     sed 's/[+] test_status=/test failed. last command exited with /' |
     sed 's/^/    /'
   ) 1>&2
@@ -260,11 +260,6 @@ setup_test_data () {
   echo "1" > audit_log-1-$last_yr-$last_mth-1.size
   echo "fake audit log this yr this mth" | gzip > audit_log-1-$this_yr-$this_mth-1.gz
   echo "1" > audit_log-1-$this_yr-$this_mth-1.size
-
-  # Create hookshot logs
-  mkdir -p "$loc/hookshot/"
-  cd "$loc/hookshot/"
-  echo "fake hookshot log" | gzip > hookshot-logs-2018-03-05.gz
 
   # Create some test repositories in the remote repositories dir
   mkdir -p "$loc/repositories/info"
@@ -497,7 +492,6 @@ verify_all_restored_data() {
   else
     grep -q "fake audit log last yr last mth" "$TRASHDIR/restore-out"
     grep -q "fake audit log this yr this mth" "$TRASHDIR/restore-out"
-    grep -q "fake hookshot log" "$TRASHDIR/restore-out"
   fi
 
   # verify settings import was *not* run due to instance already being

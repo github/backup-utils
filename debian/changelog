@@ -1,3 +1,14 @@
+github-backup-utils (3.1.0~rc1) UNRELEASED; urgency=medium
+
+  * Update repository backups to use ghe-gc-* for lock file management #188
+  * A faster way to restore storage blobs (clusters) #212
+  * Bug fix: Be more specific in restore routes globbing #715
+  * fix(docker): add coreutils to get flags for date #717
+  * Add backup cadence variable to the appliance #719
+  * Fix is_default_external_database_snapshot function #720
+
+ -- Zachary Mark <zachary-mark@github.com>  Thu, 06 May 2021 17:11:18 +0000
+
 github-backup-utils (3.0.0) UNRELEASED; urgency=medium
 
   * Fix restoring the password pepper for already configured instances #683

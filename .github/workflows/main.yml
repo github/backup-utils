@@ -14,9 +14,9 @@ jobs:
       run: |
         sudo apt-get update -y
         sudo apt-get install -y devscripts debhelper moreutils fakeroot jq pigz help2man
-        wget "https://github.com/koalaman/shellcheck/releases/download/v0.7.0/shellcheck-v0.7.0.linux.x86_64.tar.xz"
-        tar --xz -xvf "shellcheck-v0.7.0.linux.x86_64.tar.xz"
-        sudo cp shellcheck-v0.7.0/shellcheck /usr/bin/shellcheck
+        wget "https://github.com/koalaman/shellcheck/releases/download/latest/shellcheck-latest.linux.x86_64.tar.xz"
+        tar --xz -xvf "shellcheck-latest.linux.x86_64.tar.xz"
+        sudo cp shellcheck-latest/shellcheck /usr/bin/shellcheck
       if: matrix.os != 'macos-latest'
     - name: Install Dependencies (macOS)
       run: |

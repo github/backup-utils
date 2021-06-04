@@ -42,7 +42,7 @@ export GHE_BACKUP_CONFIG GHE_DATA_DIR GHE_REMOTE_DATA_DIR GHE_REMOTE_ROOT_DIR
 
 # The default remote appliance version. This may be set in the environment prior
 # to invoking tests to emulate a different remote vm version.
-: ${GHE_TEST_REMOTE_VERSION:=3.1.0.rc1.rc1}
+: ${GHE_TEST_REMOTE_VERSION:=3.1.0.rc1}
 export GHE_TEST_REMOTE_VERSION
 
 # Source in the backup config and set GHE_REMOTE_XXX variables based on the
@@ -146,7 +146,7 @@ report_failure () {
   printf "test: %-73s $msg\\n" "$desc ..."
   (
     sed 's/^/    /' <"$TRASHDIR/out" |
-    grep -a -v -e '^\+ end_test' -e '^+ set +x' <"$TRASHDIR/out" |
+    grep -a -v -e '^\+ end_test' -e '^+ set +x' - "$TRASHDIR/out" |
     sed 's/[+] test_status=/test failed. last command exited with /' |
     sed 's/^/    /'
   ) 1>&2

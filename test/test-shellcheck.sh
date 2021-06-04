@@ -9,10 +9,10 @@ BASE_PATH=$(cd "$(dirname "$0")/../" && pwd)
 begin_test "shellcheck: reports no errors or warnings"
 (
   set -e
-  # We manually install Shellcheck 0.7.0 on Linux builds as other options
+  # We manually install the latest Shellcheck on Linux builds as other options
   # are too old.
-  if [ -x "$BASE_PATH/shellcheck-v0.7.0/shellcheck" ]; then
-    shellcheck() { "$BASE_PATH/shellcheck-v0.7.0/shellcheck" "$@"; }
+  if [ -x "$BASE_PATH/shellcheck-latest/shellcheck" ]; then
+    shellcheck() { "$BASE_PATH/shellcheck-latest/shellcheck" "$@"; }
   fi
 
   if ! type shellcheck 1>/dev/null 2>&1; then

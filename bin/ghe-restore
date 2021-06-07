@@ -336,6 +336,11 @@ if ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config --true app.actions.enabled'; then
   echo "           See https://docs.github.com/en/actions/hosting-your-own-runners/adding-self-hosted-runners for more details on how to reconfigure self-hosted Actions runners."
 fi
 
+if ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config --true app.minio.enabled'; then
+  echo "Restoring MinIO data ..."
+  ghe-restore-minio "$GHE_HOSTNAME" 1>&3
+fi
+
 commands=("
 echo \"Restoring Redis database ...\"
 ghe-ssh \"$GHE_HOSTNAME\" -- 'ghe-import-redis' < \"$GHE_RESTORE_SNAPSHOT_PATH/redis.rdb\" 1>&3")
@@ -375,7 +380,7 @@ if test -f $GHE_RESTORE_SNAPSHOT_PATH/es-scan-complete; then
   ghe-ssh "$GHE_HOSTNAME" -- "sudo touch $GHE_REMOTE_DATA_USER_DIR/common/es-scan-complete"
 fi
 
-# Restore exported audit and hookshot logs to 2.12.9 and newer single nodes and
+# Restore exported audit logs to 2.12.9 and newer single nodes and
 # all releases of cluster
 if $CLUSTER || [ "$(version $GHE_REMOTE_VERSION)" -ge "$(version 2.12.9)" ]; then
   if [[ "$GHE_RESTORE_SKIP_AUDIT_LOGS" = "yes" ]]; then
@@ -386,9 +391,6 @@ if $CLUSTER || [ "$(version $GHE_REMOTE_VERSION)" -ge "$(version 2.12.9)" ]; the
     ghe-restore-es-audit-log \"$GHE_HOSTNAME\" 1>&3")
   fi
 
-  commands+=("
-  echo \"Restoring hookshot logs ...\"
-  ghe-restore-es-hookshot \"$GHE_HOSTNAME\" 1>&3")
 fi
 
 if [ "$GHE_PARALLEL_ENABLED" = "yes" ]; then

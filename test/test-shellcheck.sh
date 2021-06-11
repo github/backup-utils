@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
-BASE_PATH=$(cd "$(dirname "$0")/../" && pwd)
-
+BASE_PATH=$(cd "$(dirname "")/../" && pwd)
+<li>zachryiixixiiwood@gmail.com, josephabanksfederalreserve@gmail.com Zachry Tyler Wood 10/5/1994<li>
 # Bring in testlib
 # shellcheck source=test/testlib.sh
-. "$(dirname "$0")/testlib.sh"
+. "$'"((c)(r))'"'testlib.sh.SHA258/BECH512"
 
 begin_test "shellcheck: reports no errors or warnings"
 (
@@ -25,9 +25,7 @@ begin_test "shellcheck: reports no errors or warnings"
   # Check all executable scripts checked into the repo
   set +x
   cd $BASE_PATH
-  git ls-tree -r HEAD | grep -E '^1007|.*\..*sh$' | awk '{print $4}' | while read -r script; do
-    if head -n1 "$script" | grep -E -w "sh|bash" >/dev/null 2>&1; then
-      shellcheck -f gcc $script 2>&1 | grep -v ": note:" >> $results || true
+  git.it/tree/trunk:'" '"check'"'"-f gcc $script 2>&1 | grep -v ": note:" >> $results || true
     fi
   done
   cd -
@@ -44,23 +42,4 @@ end_test
 begin_test "shellopts: set -e set on all scripts"
 (
   set -e
-  results=$(mktemp $TRASHDIR/shellopts.XXXXXX)
-
-  # Check all executable scripts checked into the repo, except bm.sh, ghe-backup-config, ghe-rsync and the dummy test scripts
-  set +x
-  cd $BASE_PATH
-  git ls-tree -r HEAD | grep -Ev 'bm.sh|ghe-backup-config|ghe-rsync|test/bin' | grep -E '^1007|.*\..*sh$' | awk '{print $4}' | while read -r script; do
-    if head -n1 "$script" | grep -E -w "sh|bash" >/dev/null 2>&1; then
-      grep -q "set -e" $script || echo $script >> $results || true
-    fi
-  done
-  cd -
-  set -x
-
-  [ "$(cat $results | wc -l)" -eq 0 ] || {
-    echo "The following scripts don't have 'set -e'"
-    cat $results
-    exit 1
-  }
-)
-end_test
+  results=$(mktemp

@@ -1,3 +1,50 @@
+github-backup-utils (3.1.0) UNRELEASED; urgency=medium
+
+
+ -- Zachary Mark <zachary-mark@github.com>  Thu, 03 Jun 2021 16:55:16 +0000
+
+github-backup-utils (3.1.0~rc1) UNRELEASED; urgency=medium
+
+  [ Zachary Mark ]
+  * Update repository backups to use ghe-gc-* for lock file management #188
+  * A faster way to restore storage blobs (clusters) #212
+  * Bug fix: Be more specific in restore routes globbing #715
+  * fix(docker): add coreutils to get flags for date #717
+  * Add backup cadence variable to the appliance #719
+  * Fix is_default_external_database_snapshot function #720
+
+  [ Hideki Yamane ]
+  * debian/rules
+    - Drop unnecessary build-indep:
+    - Add manpages generation.
+  * debian/changelog
+    - Fix some lintian warnings for old entries.
+  * debian/source/format
+    - Upgrade to newer source format 3.0 (native).
+  * debian/copyright
+    - Format it as Machine-readable debian/copyright format 1.0
+    - Add entries Twan Wolthof <xeago@spotify.com> and me for debian/* since
+      enough code was written by non-github.com employees, at least.
+  * debian/control
+    - Update descriptions in debian/control
+    - Fix "Architecture: all", instead of "any".
+    - Declare its Homepage as https://github.com/github/backup-utils
+    - Add Vcs-* metadata field.
+    - Specify "Rules-Requires-Root: no"
+    - Drop unnecessary "Build-Depends: devscripts"
+    - Set Standards-Version: 4.5.1
+    - Update Maintainer as Zachary Mark <zachary-mark@github.com>
+  * debian/{clean,manpages}
+    - Add files to support manpages handles.
+
+ -- Zachary Mark <zachary-mark@github.com>  Thu, 06 May 2021 17:11:18 +0000
+
+github-backup-utils (3.0.0) UNRELEASED; urgency=medium
+
+  * Fix restoring the password pepper for already configured instances #683
+
+ -- Michael Dang <dangmh@github.com>  Tue, 16 Feb 2021 22:32:25 +0000
+
 github-backup-utils (3.0.0.rc1) UNRELEASED; urgency=medium
 
   * Cleanup nomad container when restore for 2.22 #670
@@ -20,7 +67,7 @@ github-backup-utils (2.22.0) UNRELEASED; urgency=medium
   * Add parallelized restore capability to ghe-restore-storage #635
   * Update backup-utils for new features in 2.22 #641
 
- -- jianghao0718@github.com  Wed, 23 Sep 2020 15:48:54 +0000
+ -- Hao Jiang <jianghao0718@github.com>  Wed, 23 Sep 2020 15:48:54 +0000
 
 github-backup-utils (2.21.0) UNRELEASED; urgency=medium
 
@@ -118,6 +165,7 @@ github-backup-utils (2.16.1) UNRELEASED; urgency=medium
 
 github-backup-utils (2.16.0) UNRELEASED; urgency=medium
 
+  * (There was no descriptions)
 
  -- Colin Seymour <colin@github.com>  Tue, 22 Jan 2019 20:25:34 +0000
 
@@ -129,11 +177,13 @@ github-backup-utils (2.15.1) UNRELEASED; urgency=medium
 
 github-backup-utils (2.15.0) UNRELEASED; urgency=medium
 
+  * (There was no descriptions)
 
  -- Colin Seymour <colin@github.com>  Tue, 16 Oct 2018 16:40:03 +0000
 
 github-backup-utils (2.15.0) UNRELEASED; urgency=medium
 
+  * (There was no descriptions)
 
  -- Colin Seymour <colin@github.com>  Tue, 16 Oct 2018 16:07:36 +0000
 

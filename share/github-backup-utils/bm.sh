@@ -50,9 +50,11 @@ bm_end() {
   tend=$(date +%s)
   tstart=$(eval "echo \$$(bm_desc_to_varname "$@")_start")
   total=$(($tend - $tstart))
+  total_formatted=$(printf '%02dh:%02dm:%02ds' $((total/3600)) $((total%3600/60)) $((total%60)))
+  timestamp=$(date -Is)
 
-  echo "$1 took ${total}s" >> $BM_FILE_PATH
+  echo "Completed at ${timestamp} in ${total_formatted}: $1" >> $BM_FILE_PATH
   if [ -n "$GHE_DEBUG" ]; then
-    echo "Debug: $1 took ${total}s (bm_end)"
+    echo "Debug (Completed at ${timestamp} in ${total_formatted}): $1 (bm_end)"
   fi
 }

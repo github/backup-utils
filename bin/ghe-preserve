@@ -1,0 +1,150 @@
+#!/usr/bin/env bash
+#/ Usage: ghe-preserve [-hv] [--version]
+#/
+#/ Preserve GitHub snapshots utilizing a general practice approach to
+#/ maintaining snapshots long term (5 years). 
+#/
+#/          +----------+----------------+-------------+
+#/          | INTERVAL | PRESERVE       | STRATEGY    |
+#/          +----------+----------------+-------------+
+#/          | hourly   | last 48 hours  | YYYYMMDDTHH |
+#/          +----------+----------------+-------------+
+#/          | daily    | last 14 days   | YYYYMMDD    |
+#/          +----------+----------------+-------------+
+#/          | weekly   | last 8 weeks   | Sunday      |
+#/          +----------+----------------+-------------+
+#/          | monthly  | last 24 months | YYYYMM01    |
+#/          +----------+----------------+-------------+
+#/          | yearly   | last 5 years   | 20**0101    |
+#/          +----------+----------------+-------------+
+#/
+#/ OPTIONS:
+#/   -v | --verbose    Enable verbose output.
+#/   -h | --help       Show this message.
+#/        --version    Display version information and exit.
+#/
+
+set -e
+
+# Parse arguments
+HOURS=48
+DAYS=14
+WEEKDAY="sunday"
+WEEKS=8
+MONTHS=24
+YEARS=5
+TODAY=$(date +%Y%m%d -d "today")
+YESTERDAY=$(date +%Y%m%d -d "yesterday")
+TWODAYSAGO=$(date +%Y%m%d -d "-2 day")
+while true; do
+  case "$1" in
+  -h|--help)
+    export GHE_SHOW_HELP=true
+    shift
+    ;;
+  --version)
+    export GHE_SHOW_VERSION=true
+    shift
+    ;;
+  -v | --verbose)
+    export GHE_VERBOSE=true
+    shift
+    ;;
+  -*)
+    echo "Error: invalid argument: '$1'" 1>&2
+    exit 1
+    ;;
+  *)
+    break
+    ;;
+  esac
+done
+
+# Bring in the backup configuration
+# shellcheck source=share/github-backup-utils/ghe-backup-config
+. "$( dirname "${BASH_SOURCE[0]}" )/../share/github-backup-utils/ghe-backup-config"
+
+# Create a directory for retaining snapshots
+GHE_DATA_PRESERVE_DIR="${GHE_DATA_DIR}/preserve"
+[[ -d "${GHE_DATA_PRESERVE_DIR}" ]] || mkdir "${GHE_DATA_PRESERVE_DIR}"
+
+# Create a list of rolling date ranges based on current date. This list is used
+# to determine what snapshots to copy and remove from the retention directories. 
+
+# last 48 hours
+for hh in $(seq 0 $[HOURS - 1]); do
+  mapfile -O "${#hours[@]}" -t h < \
+    <(date +%Y%m%dT%H -d "-$hh hour")  
+done
+
+printf '%s\n' "${hours[@]}"
+
+# last 14 days starting on the 3rd day  
+for dd in $(seq 0 $[DAYS - 1]); do
+  mapfile -O "${#dates[@]}" -t dates < \
+    <(date +%Y%m%d -d "-$dd day");
+done
+
+printf '%s\n' "${dates[@]}"
+
+# last 8 weeks starting on the 2nd week 
+for week in $(seq 1 $[WEEKS - 1]); do
+  mapfile -O "${#dates[@]}" -t dates < \
+    <(date +%Y%m%d -d "$WEEKDAY-$((week + 1)) week");
+done
+
+# last 24 months
+for mm in $(seq 1 $[$MONTHS - 1]); do
+  mapfile -O "${#dates[@]}" -t dates < \
+    <(date +%Y%m%d -d "-$mm month -$[$(date +%-d) - 1] days");
+done
+
+# last 5 years
+for yyyy in $(seq 0 $[YEARS - 1]); do
+  mapfile -O "${#dates[@]}" -t dates < \
+    <(date +%Y%m%d -d "$(date +'%Y-01-01') - $yyyy year");
+done
+
+# create a list of date ranges for the last 48 hours 
+readarray -t HOURRANGE < <(printf '%s\n' "${hours[@]}" | sort -u)
+# create a unique list of date ranges  
+readarray -t DATERANGE < <(printf '%s\n' "${dates[@]}" | sort -u)
+# create a list of snapshots being maintained by ghe-backup (millennium)
+readarray -t SNAPSHOTS < <(find "${GHE_DATA_DIR}" -name "2*" -type d -printf "%P\n")
+# create a list of all backups
+readarray -t PRESERVED < <(find "${GHE_DATA_PRESERVE_DIR}" -name "2*" -type d -printf "%P\n")
+
+# Copy snapshots matching DATERANGE to GHE_DATA_BACKUP_DIR
+for range in "${DATERANGE[@]}"; do
+  for snapshotdir in "${SNAPSHOTS[@]}"; do
+    if [[ "$snapshotdir" =~ "$range" ]] && snapshot=$(basename "${snapshotdir}") &&
+       [[ ! -d "${GHE_DATA_PRESERVE_DIR}/${snapshot}" ]]; then
+      cp -r "${snapshotdir}" "${GHE_DATA_PRESERVE_DIR}"
+      echo "snapshot: ${snapshot} copied to: → ${GHE_DATA_PRESERVE_DIR}/${snapshot}"
+    fi 
+  done
+done
+
+# Delete snapshots that do not match DATERANGE: YYYYMMDD
+for daterange in "${PRESERVED[@]}"; do
+  daily_snapshot=$(basename "${daterange}")
+  if ! [[ "${DATERANGE[@]}" =~ "${daily_snapshot:0:8}" ]]; then
+    rm -r "${GHE_DATA_PRESERVE_DIR}/${daily_snapshot:?}"
+    echo "daily_snapshot snapshot: ${daily_snapshot} deleted"
+  fi 
+done
+
+# Delete snapshots that do not match HOURRANGE: YYYYMMDDTHH
+for hourrange in "${PRESERVED[@]}"; do
+  hourly_snapshot=$(basename "${hourrange}")
+  # do not delete snapshots when only a single snapshot for the given date exists.
+  if ! [[ "${HOURRANGE[@]}" =~ "${hourly_snapshot:0:11}" ]] &&
+       [[ "${hourly_snapshot:0:8}" =~ "$TODAY"|"$YESTERDAY"|"$TWODAYSAGO" ]]; then
+    if [[ $(grep -o "${hourly_snapshot:0:8}" <<< "$(ls "${GHE_DATA_PRESERVE_DIR}")" | wc -l) -le 1 ]]; then
+      echo "hourly snapshot: single snapshot for ${hourly_snapshot} exists, skipping!"
+    else  
+      rm -r "${GHE_DATA_PRESERVE_DIR}/${hourly_snapshot:?}"
+      echo "hourly snapshot: ${hourly_snapshot} deleted"
+    fi
+  fi
+done

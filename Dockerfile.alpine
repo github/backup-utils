@@ -11,11 +11,8 @@ RUN apk --update --no-cache add \
     procps \
     coreutils
 
+COPY ./ /backup-utils/
 WORKDIR /backup-utils
-ADD https://github.com/github/backup-utils/archive/stable.tar.gz /
-RUN tar xzvf /stable.tar.gz --strip-components=1 -C /backup-utils && \
-    mv /usr/bin/gawk /usr/bin/awk && \
-    rm -r /stable.tar.gz
 
 RUN chmod +x /backup-utils/share/github-backup-utils/ghe-docker-init
 

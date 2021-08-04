@@ -1,0 +1,18 @@
+---
+version: 1
+ownership:
+- name: backup-utils-private
+  long_name: backup-utils-private
+  description: backup-utils-private is the private fork of backup-utils
+  kind: code
+  repo: https://github.com/github/backup-utils-private
+  qos: critical
+  component_of: ghes-infra
+- name: backup-utils
+  long_name: backup-utils
+  description: backup-utils is backup and restore tooling for Github enterprise server
+    (GHES)
+  kind: code
+  repo: https://github.com/github/backup-utils
+  qos: critical
+  component_of: ghes-infra

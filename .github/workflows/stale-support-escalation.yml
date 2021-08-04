@@ -7,6 +7,9 @@ on:
   schedule:
     - cron: '30 1 * * *' # Run each day at 1:30 UTC
 
+permissions:
+  issues: write
+  
 jobs:
   stale:
     if: github.repository == 'github/ghes' || github.repository == 'github/enterprise2' || github.repository == 'github/backup-utils-private'

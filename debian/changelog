@@ -1,3 +1,10 @@
+github-backup-utils (3.4.1~reddit1) bionic; urgency=medium
+
+  * Build for bionic
+  * redo build for bionic after rebase with tag v3.4.1 from upstream
+
+ -- Nathan Heaps <nate@reddit.com>  Fri, 11 Oct 2022 20:26:50 +0000
+
 github-backup-utils (3.4.1) UNRELEASED; urgency=medium
 
   * Simplify complex redirects for ghe-rsync #881

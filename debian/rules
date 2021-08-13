@@ -14,5 +14,7 @@ override_dh_auto_build:
           -n "Verify connectivity with the GitHub Enterprise Server host" \
           --version-string="ghe-restore $(VERSION)"
 
+override_dh_auto_test:
+
 %:
 	dh $@

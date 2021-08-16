@@ -19,9 +19,9 @@ jobs:
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           stale-issue-message: 'This support escalation issue is stale because it has been open 30 days with no activity. To make it never stale, add a label never-stale.'
-          close-issue-message: 'This support escalation issue is closed because it has been open 60 days with no activity. To make it never stale, add a label never-stale.'
+          close-issue-message: 'This support escalation issue is closed because it has been open 45 days with no activity. To make it never stale, add a label never-stale.'
           days-before-stale: 30
-          days-before-close: 60
+          days-before-close: 45
           only-labels: 'support-escalation'
           stale-issue-label: 'stale'
           exempt-issue-labels: 'never-stale,P1,P2,P3'

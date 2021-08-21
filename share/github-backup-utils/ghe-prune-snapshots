@@ -7,6 +7,8 @@ set -e
 # shellcheck source=share/github-backup-utils/ghe-backup-config
 . "$( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config"
 
+bm_start "$(basename $0)"
+
 # Once we start pruning, this backup will no longer be valid.
 # So create or preserve its `incomplete` file and remove the
 # `incomplete` file last.
@@ -38,3 +40,5 @@ if [ "$snapshot_count" -gt "$GHE_NUM_SNAPSHOTS" ]; then
   echo Pruning $prune_num "expired snapshot(s) ..."
   echo "$prune_dirs" | prune_snapshot
 fi
+
+bm_end "$(basename $0)"

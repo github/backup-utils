@@ -155,9 +155,6 @@ begin_test "ghe-restore allows restore of external DB snapshot to non-external D
   # verify connect to right host
   check_restore_output_for "Connect 127.0.0.1:22 OK"
 
-  # verify stale servers were cleared
-  check_restore_output_for "ghe-cluster-cleanup-node OK"
-
   # ghe-restore sets this when --skip-mysql is passed, but that won't propagate back to this shell and it affects what we validate
   SKIP_MYSQL=true verify_all_restored_data
 )
@@ -180,9 +177,6 @@ begin_test "ghe-restore allows restore of non external DB snapshot to external D
 
   # verify connect to right host
   check_restore_output_for "Connect 127.0.0.1:22 OK"
-
-  # verify stale servers were cleared
-  check_restore_output_for "ghe-cluster-cleanup-node OK"
 
   # ghe-restore sets SKIP_MYSQL=true when --skip-mysql is passed, but that won't propagate back to this shell and it affects what we validate
   SKIP_MYSQL=true verify_all_restored_data

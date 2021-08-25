@@ -519,7 +519,7 @@ begin_test "ghe-backup takes backup of Actions settings"
     "actions-launch-app-app-private-key"
   )
 
-  # Add the one options file we included tests for
+  # Add the one optional file we included tests for
   required_files+=("actions-framework-access-token")
 
   for file in "${required_files[@]}"; do

@@ -62,9 +62,6 @@ begin_test "ghe-restore allows restore of external DB snapshot to external DB in
   # verify connect to right host
   check_restore_output_for "Connect 127.0.0.1:22 OK"
 
-  # verify stale servers were cleared
-  check_restore_output_for "ghe-cluster-cleanup-node OK"
-
   verify_all_restored_data
 )
 end_test

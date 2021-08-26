@@ -469,7 +469,7 @@ if ! $CLUSTER && $instance_configured; then
   if [ -n "$other_nodes" ]; then
     echo "Cleaning up stale nodes ..."
     for uuid in $other_nodes; do
-      1>&3 ghe-ssh "$GHE_HOSTNAME" -- "$(typeset -f cleanup_cluster_nodes); cleanup_cluster_nodes $uuid"
+      echo "set -o pipefail; $(typeset -f cleanup_cluster_nodes); cleanup_cluster_nodes $uuid" | ghe-ssh "$GHE_HOSTNAME" 1>&3
     done
   fi
 fi

@@ -98,6 +98,7 @@ cleanup () {
 # This function's type definition is being passed to a remote host via `ghe-ssh` but is not used locally.
 # shellcheck disable=SC2034
 cleanup_cluster_nodes() {
+  uuid="$1"
   if [ -z "$uuid" ]; then
     echo "Node UUID required."
     exit 2

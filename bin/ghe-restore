@@ -95,6 +95,24 @@ cleanup () {
   ghe-ssh --clean
 }
 
+cleanup_cluster_nodes() {
+  if [ -z "$uuid" ]; then
+    echo "Node UUID required."
+    exit 2
+  fi
+
+  ghe-spokes server evacuate git-server-$uuid 'Removing replica'
+  ghe-spokes server destroy git-server-$uuid
+
+  ghe-storage destroy-host storage-server-$uuid --force
+
+  ghe-dpages offline pages-server-$uuid
+  ghe-dpages remove pages-server-$uuid
+
+  ghe-redis-cli del resque:queue:maint_git-server-$uuid
+  ghe-redis-cli srem resque:queues maint_git-server-$uuid
+}
+
 # Bring in the backup configuration
 # shellcheck source=share/github-backup-utils/ghe-backup-config
 . "$( dirname "${BASH_SOURCE[0]}" )/../share/github-backup-utils/ghe-backup-config"
@@ -451,19 +469,7 @@ if ! $CLUSTER && $instance_configured; then
   if [ -n "$other_nodes" ]; then
     echo "Cleaning up stale nodes ..."
     for uuid in $other_nodes; do
-      1>&3 ghe-ssh "$GHE_HOSTNAME" <<EOF
-if [ -z "$uuid" ]; then
-  echo "Node UUID required."
-  exit 2
-fi
-ghe-spokes server evacuate git-server-$uuid 'Removing replica'
-ghe-spokes server destroy git-server-$uuid
-ghe-storage destroy-host storage-server-$uuid --force
-ghe-dpages offline pages-server-$uuid
-ghe-dpages remove pages-server-$uuid
-ghe-redis-cli del resque:queue:maint_git-server-$uuid
-ghe-redis-cli srem resque:queues maint_git-server-$uuid
-EOF
+      1>&3 ghe-ssh "$GHE_HOSTNAME" -- "$(typeset -f cleanup_cluster_nodes); cleanup_cluster_nodes $uuid"
     done
   fi
 fi

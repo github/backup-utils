@@ -58,6 +58,9 @@ begin_test "ghe-restore into configured vm"
   # verify connect to right host
   grep -q "Connect 127.0.0.1:22 OK" "$TRASHDIR/restore-out"
 
+  # verify stale servers were cleared
+  grep -q "Cleaning up stale nodes ..." "$TRASHDIR/restore-out"
+
   # Verify all the data we've restored is as expected
   verify_all_restored_data
 )
@@ -140,6 +143,12 @@ begin_test "ghe-restore -c into unconfigured vm"
   # verify connect to right host
   grep -q "Connect 127.0.0.1:22 OK" "$TRASHDIR/restore-out"
 
+  # verify attempt to clear stale servers was not made
+  grep -q "Cleaning up stale nodes ..." "$TRASHDIR/restore-out" && {
+    echo "Unconfigured nodes should not be cleaned up."
+    exit 1
+  }
+
   # Verify all the data we've restored is as expected
   verify_all_restored_data
 )
@@ -167,6 +176,12 @@ begin_test "ghe-restore into unconfigured vm"
 
   # verify connect to right host
   grep -q "Connect 127.0.0.1:22 OK" "$TRASHDIR/restore-out"
+
+  # verify attempt to clear stale servers was not made
+  grep -q "Cleaning up stale nodes ..." "$TRASHDIR/restore-out" && {
+    echo "Unconfigured nodes should not be cleaned up."
+    exit 1
+  }
 
   # Verify all the data we've restored is as expected
   verify_all_restored_data

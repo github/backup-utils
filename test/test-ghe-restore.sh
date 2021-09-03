@@ -396,6 +396,30 @@ begin_test "ghe-restore with Actions settings"
 )
 end_test
 
+begin_test "ghe-restore stops and starts Actions"
+(
+  set -e
+  rm -rf "$GHE_REMOTE_ROOT_DIR"
+  setup_remote_metadata
+  enable_actions
+
+  setup_maintenance_mode "configured"
+
+  output=$(ghe-restore -v -f localhost 2>&1)
+
+  echo "$output" | grep -q "ghe-actions-stop .* OK" "$TRASHDIR/restore-out"
+  
+  # run ghe-restore and write output to file for asserting against
+  if ! ghe-restore -v -f > "$TRASHDIR/restore-out" 2>&1; then
+      cat "$TRASHDIR/restore-out"
+      : ghe-restore should have exited successfully
+      false
+  fi
+
+  grep -q "ghe-actions-stop .* OK" "$TRASHDIR/restore-out"
+  grep -q "ghe-actions-start .* OK" "$TRASHDIR/restore-out"
+)
+
 begin_test "ghe-restore with Actions data"
 (
   set -e

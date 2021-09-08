@@ -347,7 +347,7 @@ else
   ghe-restore-mysql "$GHE_HOSTNAME" 1>&3
   # Clear GitHub Connect settings stored in the restored database
   if ! $RESTORE_SETTINGS; then
-    ghe-ssh "$GHE_HOSTNAME" -- "/usr/local/share/enterprise/ghe-reset-gh-connect -y"
+    ghe-ssh "$GHE_HOSTNAME" -- "[ -x '/usr/local/share/enterprise/ghe-reset-gh-connect' ] && /usr/local/share/enterprise/ghe-reset-gh-connect -y"
   fi
 fi
 

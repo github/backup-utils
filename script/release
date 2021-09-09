@@ -447,7 +447,7 @@ if $PROGRAM_NAME == __FILE__
     puts 'Attaching Debian pkg and tarball to release...'
     base_dir = File.expand_path(File.join(File.dirname(__FILE__), '..'))
     attach_assets_to_release res['upload_url'], res['id'], ["#{base_dir}/dist/#{DEB_PKG_NAME}-v#{version}.tar.gz"]
-    attach_assets_to_release res['upload_url'], res['id'], ["#{base_dir}/dist/#{DEB_PKG_NAME}_#{version}_amd64.deb"]
+    attach_assets_to_release res['upload_url'], res['id'], ["#{base_dir}/dist/#{DEB_PKG_NAME}_#{version}_all.deb"]
 
     puts 'Publishing release...'
     publish_release res['id']

@@ -91,6 +91,11 @@ cleanup () {
     update_restore_status "$1"
   fi
 
+  if ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config --true app.actions.enabled'; then
+    echo "Restarting Actions after restore ..."
+    ghe-ssh "$GHE_HOSTNAME" -- 'ghe-actions-start' 1>&3
+  fi
+
   # Cleanup SSH multiplexing
   ghe-ssh --clean
 }
@@ -353,6 +358,9 @@ else
 fi
 
 if ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config --true app.actions.enabled'; then
+  echo "Stopping Actions before restoring databases ..."
+  ghe-ssh "$GHE_HOSTNAME" -- 'ghe-actions-stop' 1>&3
+
   echo "Restoring MSSQL databases ..."
   ghe-restore-mssql "$GHE_HOSTNAME" 1>&3
 

@@ -396,6 +396,21 @@ begin_test "ghe-restore with Actions settings"
 )
 end_test
 
+begin_test "ghe-restore stops and starts Actions"
+(
+  set -e
+  rm -rf "$GHE_REMOTE_ROOT_DIR"
+  setup_remote_metadata
+  enable_actions
+
+  setup_maintenance_mode "configured"
+
+  output=$(ghe-restore -v -f localhost 2>&1)
+
+  echo "$output" | grep -q "ghe-actions-stop .* OK"
+  echo "$output" | grep -q "ghe-actions-start .* OK"
+)
+
 begin_test "ghe-restore with Actions data"
 (
   set -e

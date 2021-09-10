@@ -1,3 +1,15 @@
+github-backup-utils (3.2.0.rc1) UNRELEASED; urgency=medium
+
+  * Leaked host key check: Avoid false positives from FIPS mode #748
+  * Always restore user-password-secrets #762
+  * Make some of the actions setting best effort #767
+  * Remove reference to `ghe-cluster-cleanup-nodes` #768
+  * Stop/Restart Actions in ghe-restore #769
+  * Clear GitHub Connect settings when not restoring settings #770
+  * GitHub Connect Reset Issue #776
+
+ -- Brett Westover <bwestover@github.com>  Fri, 10 Sep 2021 20:10:07 +0000
+
 github-backup-utils (3.2.0) UNRELEASED; urgency=medium
 
   * Leaked host key check: Avoid false positives from FIPS mode #748

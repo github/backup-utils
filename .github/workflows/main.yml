@@ -18,7 +18,7 @@ jobs:
         tar --xz -xvf "shellcheck-latest.linux.x86_64.tar.xz"
         sudo cp shellcheck-latest/shellcheck /usr/bin/shellcheck
       if: matrix.os != 'macos-latest'
-    - name: Install Dependencies (macOS)
+    - name: Install Dependencies (macOS) 
       run: |
         brew install gnu-tar shellcheck jq pigz coreutils gnu-sed gnu-getopt
         brew unlink parallel

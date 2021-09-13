@@ -417,7 +417,7 @@ is_service_external(){
     "mysql")
       if [ -n "$config_file" ]; then
         enabled=$(GIT_CONFIG="$config_file" git config mysql.external.enabled)
-        [ "$enabled" ];
+        [ "$enabled" = true ];
       else
         ghe-ssh "$GHE_HOSTNAME" -- ghe-config --true "mysql.external.enabled"
       fi

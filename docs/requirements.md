@@ -3,7 +3,7 @@
 Backup Utilities should be run on a host dedicated to long-term permanent
 storage and must have network connectivity with the GitHub Enterprise Server appliance.
 
-## Backup host requirements
+## Backup host requirements 
 
 Backup host software requirements are modest: Linux or other modern Unix operating
 system with [bash][1], [git][2], [OpenSSH][3] 5.6 or newer, and [rsync][4] v2.6.4 or newer.
@@ -32,7 +32,7 @@ To check if your filesystem supports creating hardlinks of symbolic links, you c
 ```bash
 touch file
 ln -s file symlink
-ln symlink hardlink
+ln symlink hardlink 
 ls -la
 ```
 

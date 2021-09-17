@@ -1,3 +1,9 @@
+github-backup-utils (3.2.0.rc3) UNRELEASED; urgency=medium
+
+  * Move GitHub Connect reset to after ghe-config-apply #783
+
+ -- Brett Westover <bwestover@github.com>  Fri, 17 Sep 2021 00:44:59 +0000
+
 github-backup-utils (3.2.0.rc1) UNRELEASED; urgency=medium
 
   * Leaked host key check: Avoid false positives from FIPS mode #748

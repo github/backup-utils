@@ -1,3 +1,8 @@
+github-backup-utils (3.2.0) UNRELEASED; urgency=medium
+
+
+ -- Brett Westover <bwestover@github.com>  Tue, 28 Sep 2021 16:50:00 +0000
+
 github-backup-utils (3.2.0.rc3) UNRELEASED; urgency=medium
 
   * Move GitHub Connect reset to after ghe-config-apply #783

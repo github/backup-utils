@@ -93,7 +93,7 @@ cleanup () {
 
   if ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config --true app.actions.enabled'; then
     echo "Restarting Actions after restore ..."
-    ghe-ssh "$GHE_HOSTNAME" -- 'ghe-actions-start' 1>&3
+    ghe-ssh "$GHE_HOSTNAME" -- 'ghe-actions-start -f' 1>&3
   fi
 
   # Cleanup SSH multiplexing

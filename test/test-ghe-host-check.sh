@@ -60,7 +60,7 @@ begin_test "ghe-host-check detects unsupported GitHub Enterprise Server versions
   ! GHE_TEST_REMOTE_VERSION=2.20.0 ghe-host-check
   ! GHE_TEST_REMOTE_VERSION=2.21.0 ghe-host-check
   ! GHE_TEST_REMOTE_VERSION=2.22.0 ghe-host-check
-  GHE_TEST_REMOTE_VERSION=3.0.0 ghe-host-check
+  ! GHE_TEST_REMOTE_VERSION=3.0.0 ghe-host-check
   GHE_TEST_REMOTE_VERSION=3.1.0 ghe-host-check
   GHE_TEST_REMOTE_VERSION=$BACKUP_UTILS_VERSION ghe-host-check
   GHE_TEST_REMOTE_VERSION=$BACKUP_UTILS_VERSION ghe-host-check

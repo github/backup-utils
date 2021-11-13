@@ -13,7 +13,7 @@ set -e
 bm_start "$(basename $0)"
 
 # Set up remote host and root backup snapshot directory based on config
-host="$GHE_HOSTNAME"
+host="$GHE_PAGES_HOSTNAME"
 backup_dir="$GHE_SNAPSHOT_DIR/pages"
 
 # Verify rsync is available.
@@ -23,11 +23,11 @@ if ! rsync --version 1>/dev/null 2>&1; then
 fi
 
 # Perform a host-check and establish GHE_REMOTE_XXX variables.
-ghe_remote_version_required "$host"
+ghe_remote_version_required "$host" "GHE_PAGES_HOSTNAME"
 
 # Split host:port into parts
-port=$(ssh_port_part "$GHE_HOSTNAME")
-host=$(ssh_host_part "$GHE_HOSTNAME")
+port=$(ssh_port_part "$GHE_PAGES_HOSTNAME")
+host=$(ssh_host_part "$GHE_PAGES_HOSTNAME")
 
 # Add user / -l option
 user="${host%@*}"
@@ -43,8 +43,8 @@ if [ "$GHE_BACKUP_STRATEGY" = "cluster" ]; then
   ssh_config_file="$tempdir/ssh_config"
   ssh_config_file_opt="-F $ssh_config_file"
   opts="$opts -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no"
-  hostnames=$(ghe-cluster-nodes "$GHE_HOSTNAME" "pages-server")
-  ghe-ssh-config "$GHE_HOSTNAME" "$hostnames" > "$ssh_config_file"
+  hostnames=$(ghe-cluster-nodes "$GHE_PAGES_HOSTNAME" "pages-server")
+  ghe-ssh-config "$GHE_PAGES_HOSTNAME" "$hostnames" > "$ssh_config_file"
 fi
 
 # Make sure root backup dir exists if this is the first run

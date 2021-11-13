@@ -14,7 +14,7 @@ set -e
 bm_start "$(basename $0)"
 
 # Set up remote host and root backup snapshot directory based on config
-host="$GHE_HOSTNAME"
+host="$GHE_STORAGE_HOSTNAME"
 backup_dir="$GHE_SNAPSHOT_DIR/storage"
 
 # Verify rsync is available.
@@ -27,8 +27,8 @@ fi
 ghe_remote_version_required "$host"
 
 # Split host:port into parts
-port=$(ssh_port_part "$GHE_HOSTNAME")
-host=$(ssh_host_part "$GHE_HOSTNAME")
+port=$(ssh_port_part "$GHE_STORAGE_HOSTNAME")
+host=$(ssh_host_part "$GHE_STORAGE_HOSTNAME")
 
 # Add user / -l option
 user="${host%@*}"
@@ -37,7 +37,7 @@ user="${host%@*}"
 hostnames=$host
 ssh_config_file_opt=
 tempdir=$(mktemp -d -t backup-utils-backup-XXXXXX)
-remote_tempdir=$(ghe-ssh "$GHE_HOSTNAME" -- mktemp -d -t backup-utils-backup-XXXXXX)
+remote_tempdir=$(ghe-ssh "$GHE_STORAGE_HOSTNAME" -- mktemp -d -t backup-utils-backup-XXXXXX)
 routes_list=$tempdir/routes_list
 remote_routes_list=$remote_tempdir/remote_routes_list
 opts="$GHE_EXTRA_SSH_OPTS"
@@ -47,8 +47,8 @@ if [ "$GHE_BACKUP_STRATEGY" = "cluster" ]; then
   ssh_config_file="$tempdir/ssh_config"
   ssh_config_file_opt="-F $ssh_config_file"
   opts="$opts -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no"
-  hostnames=$(ghe-cluster-nodes "$GHE_HOSTNAME" "storage-server")
-  ghe-ssh-config "$GHE_HOSTNAME" "$hostnames" > "$ssh_config_file"
+  hostnames=$(ghe-cluster-nodes "$GHE_STORAGE_HOSTNAME" "storage-server")
+  ghe-ssh-config "$GHE_STORAGE_HOSTNAME" "$hostnames" > "$ssh_config_file"
 fi
 
 # Make sure root backup dir exists if this is the first run
@@ -62,7 +62,7 @@ cleanup() {
     ghe-gc-enable $ssh_config_file_opt $hostname:$port || true
   done
 
-  ghe-ssh "$GHE_HOSTNAME" -- rm -rf $remote_tempdir
+  ghe-ssh "$GHE_STORAGE_HOSTNAME" -- rm -rf $remote_tempdir
   rm -rf $tempdir
 }
 trap 'cleanup' EXIT INT
@@ -91,12 +91,12 @@ fi
 # more performant than performing over an SSH pipe.
 #
 bm_start "$(basename $0) - Generating routes"
-echo "github-env ./bin/storage-cluster-backup-routes > $remote_routes_list" | ghe-ssh "$GHE_HOSTNAME" -- /bin/bash
-ghe-ssh "$GHE_HOSTNAME" -- cat $remote_routes_list | ghe_debug
+echo "github-env ./bin/storage-cluster-backup-routes > $remote_routes_list" | ghe-ssh "$GHE_STORAGE_HOSTNAME" -- /bin/bash
+ghe-ssh "$GHE_STORAGE_HOSTNAME" -- cat $remote_routes_list | ghe_debug
 bm_end "$(basename $0) - Generating routes"
 
 bm_start "$(basename $0) - Fetching routes"
-ghe-ssh "$GHE_HOSTNAME" -- gzip -c $remote_routes_list | gzip -d > $routes_list
+ghe-ssh "$GHE_STORAGE_HOSTNAME" -- gzip -c $remote_routes_list | gzip -d > $routes_list
 cat $routes_list | ghe_debug
 bm_end "$(basename $0) - Fetching routes"
 

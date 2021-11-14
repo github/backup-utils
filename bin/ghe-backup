@@ -147,6 +147,10 @@ echo "Starting backup of $GHE_HOSTNAME with backup-utils v$BACKUP_UTILS_VERSION 
 ghe_remote_version_required
 echo "$GHE_REMOTE_VERSION" > version
 
+ghe_remote_version_required "$GHE_PAGES_HOSTNAME" "GHE_PAGES_HOSTNAME"
+ghe_remote_version_required "$GHE_REPOS_HOSTNAME" "GHE_REPOS_HOSTNAME"
+ghe_remote_version_required "$GHE_STORAGE_HOSTNAME" "GHE_STORAGE_HOSTNAME"
+
 if [ -n "$GHE_ALLOW_REPLICA_BACKUP" ]; then
   echo "Warning: backing up a high availability replica may result in inconsistent or unreliable backups."
 fi

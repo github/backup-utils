@@ -301,13 +301,16 @@ fi
 # ghe-restore commands establish the version for all subcommands.
 ghe_remote_version_required() {
   if [ -z "$GHE_REMOTE_VERSION" ]; then
-    _out=$(ghe-host-check "$@")
+    _out=$(ghe-host-check "$1")
     echo "$_out"
+
+    hostname="${2:-GHE_HOSTNAME}"
 
     # override hostname w/ ghe-host-check output because the port could have
     # been autodetected to 122.
-    GHE_HOSTNAME=$(echo "$_out" | sed 's/Connect \(.*:[0-9]*\) OK.*/\1/')
-    export GHE_HOSTNAME
+    declare "${hostname}"=$(echo "$_out" | sed 's/Connect \(.*:[0-9]*\) OK.*/\1/')
+    # shellcheck disable=SC2163
+    export "$hostname"
 
     GHE_REMOTE_VERSION=$(echo "$_out" | sed 's/.*(\(.*\))/\1/')
     export GHE_REMOTE_VERSION

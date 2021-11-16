@@ -53,7 +53,7 @@ port=122
 hostname=$(ssh_host_part "$host")
 
 # ghe-negotiate-version verifies if the target is a Github Enterprise Server instance
-echo "ghe-negotiate-version backup-utils $BACKUP_UTILS_VERSION" | ghe-ssh -o BatchMode=no $options $host -- /bin/sh 2>&1
+output=$(echo "ghe-negotiate-version backup-utils $BACKUP_UTILS_VERSION" | ghe-ssh -o BatchMode=no $options $host -- /bin/sh 2>&1)
 
 CLUSTER=false
 if ghe-ssh "$host" -- \

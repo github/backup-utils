@@ -89,10 +89,10 @@ end_test
 begin_test "ghe-backup-config ssh_port_part"
 (
   set -e
-  [ "$(ssh_port_part 'github.example.com')" = "22" ]
-  [ "$(ssh_port_part 'github.example.com:22')" = "22" ]
-  [ "$(ssh_port_part 'github.example.com:5000')" = "5000" ]
-  [ "$(ssh_port_part 'git@github.example.com:5000')" = "5000" ]
+  [ "$(ssh_port_part 'github.example.com')" = "122" ]
+  [ ! "$(ssh_port_part 'github.example.com:22' 2>/dev/null)" ]
+  [ ! "$(ssh_port_part 'github.example.com:5000' 2>/dev/null)" ]
+  [ "$(ssh_port_part 'git@github.example.com:122')" = "122" ]
 )
 end_test
 

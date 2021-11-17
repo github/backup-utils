@@ -60,7 +60,7 @@ begin_test "ghe-restore allows restore of external DB snapshot to external DB in
   fi
 
   # verify connect to right host
-  check_restore_output_for "Connect 127.0.0.1:22 OK"
+  check_restore_output_for "Connect 127.0.0.1:122 OK"
 
   # verify stale servers were cleared
   check_restore_output_for "Cleaning up stale nodes ..."
@@ -156,7 +156,7 @@ begin_test "ghe-restore allows restore of external DB snapshot to non-external D
   check_restore_output_for "Skipping MySQL restore."
 
   # verify connect to right host
-  check_restore_output_for "Connect 127.0.0.1:22 OK"
+  check_restore_output_for "Connect 127.0.0.1:122 OK"
 
   # verify stale servers were cleared
   check_restore_output_for "Cleaning up stale nodes ..."
@@ -182,7 +182,7 @@ begin_test "ghe-restore allows restore of non external DB snapshot to external D
   check_restore_output_for "Skipping MySQL restore."
 
   # verify connect to right host
-  check_restore_output_for "Connect 127.0.0.1:22 OK"
+  check_restore_output_for "Connect 127.0.0.1:122 OK"
 
   # verify stale servers were cleared
   check_restore_output_for "Cleaning up stale nodes ..."

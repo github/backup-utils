@@ -56,7 +56,7 @@ begin_test "ghe-restore into configured vm"
   cat "$TRASHDIR/restore-out"
 
   # verify connect to right host
-  grep -q "Connect 127.0.0.1:22 OK" "$TRASHDIR/restore-out"
+  grep -q "Connect 127.0.0.1:122 OK" "$TRASHDIR/restore-out"
 
   # verify stale servers were cleared
   grep -q "Cleaning up stale nodes ..." "$TRASHDIR/restore-out"
@@ -141,7 +141,7 @@ begin_test "ghe-restore -c into unconfigured vm"
   fi
 
   # verify connect to right host
-  grep -q "Connect 127.0.0.1:22 OK" "$TRASHDIR/restore-out"
+  grep -q "Connect 127.0.0.1:122 OK" "$TRASHDIR/restore-out"
 
   # verify attempt to clear stale servers was not made
   grep -q "Cleaning up stale nodes ..." "$TRASHDIR/restore-out" && {
@@ -175,7 +175,7 @@ begin_test "ghe-restore into unconfigured vm"
   ! grep -q "ghe-config-apply OK" "$TRASHDIR/restore-out"
 
   # verify connect to right host
-  grep -q "Connect 127.0.0.1:22 OK" "$TRASHDIR/restore-out"
+  grep -q "Connect 127.0.0.1:122 OK" "$TRASHDIR/restore-out"
 
   # verify attempt to clear stale servers was not made
   grep -q "Cleaning up stale nodes ..." "$TRASHDIR/restore-out" && {

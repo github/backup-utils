@@ -215,7 +215,7 @@ begin_test "ghe-restore with host arg and config value"
   rm "$GHE_BACKUP_CONFIG_TEMP"
 
   # verify host arg overrides configured restore host
-  echo "$output" | grep -q 'Connect localhost:22 OK'
+  echo "$output" | grep -q 'Connect localhost:122 OK'
 
   # Verify all the data we've restored is as expected
   verify_all_restored_data
@@ -239,7 +239,7 @@ begin_test "ghe-restore with host arg"
   output="$(ghe-restore -f localhost)" || false
 
   # verify host arg overrides configured restore host
-  echo "$output" | grep -q 'Connect localhost:22 OK'
+  echo "$output" | grep -q 'Connect localhost:122 OK'
 
   # Verify all the data we've restored is as expected
   verify_all_restored_data

@@ -20,7 +20,7 @@ begin_test "ghe-ssh-config returns config for multiple nodes"
   # Confirm multiplexing enabled
   echo "$output" | grep -q "ControlMaster=auto"
   # Confirm ControlPath returns correct hash for admin@host1:122
-  echo "$output" | grep -q ".ghe-sshmux-84f6bdcf"
+  echo "$output" | grep -q ".ghe-sshmux-7cb77002"
 )
 end_test
 

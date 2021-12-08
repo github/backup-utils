@@ -342,6 +342,25 @@ ssh_port_part() {
   echo 122
 }
 
+# Establish an SSH connection to MySQL master
+ssh_mysql_master() {
+  # Perform a host-check and establish the remote version in GHE_REMOTE_VERSION.
+  ghe_remote_version_required "$GHE_HOSTNAME"
+
+  if $CLUSTER ; then
+    ghe_mysql_master=$(ghe-ssh "$GHE_HOSTNAME" ghe-config "cluster.mysql-master")
+    tempdir=$(mktemp -d -t backup-utils-mysql-master-XXXXXX)
+    ssh_config_file="$tempdir/ssh_config"
+    ssh_config_file_opt="-F $ssh_config_file"
+    ghe-ssh-config "$GHE_HOSTNAME" "$ghe_mysql_master" > "$ssh_config_file"
+    port=$(ssh_port_part "$GHE_HOSTNAME")
+    ghe_mysql_master=$ghe_mysql_master${port:+:$port}
+  else
+    ghe_mysql_master=$GHE_HOSTNAME
+  fi
+  ghe-ssh $ssh_config_file_opt "$ghe_mysql_master" "$@"
+}
+
 # Usage: ghe_remote_logger <message>...
 # Log a message to /var/log/syslog on the remote instance.
 # Note: Use sparingly. Remote logging requires an ssh connection per invocation.

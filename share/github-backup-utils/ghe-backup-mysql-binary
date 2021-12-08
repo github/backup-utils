@@ -17,8 +17,17 @@ ghe_remote_version_required "$GHE_HOSTNAME"
 
 echo "Backing up MySQL database using binary backup strategy ..."
 
-echo "set -o pipefail; ghe-export-mysql" |
-ghe-ssh "$GHE_HOSTNAME" -- /bin/bash > "$GHE_SNAPSHOT_DIR/mysql.sql.gz"
+if [ -n "$GHE_MYSQL_BACKGROUD_TRANSFER" ]; then
+  # ghe-mysql-generate-seed will export a MySQL binary backup
+  seed_file=$(ssh_mysql_master -- "sudo /usr/local/share/enterprise/ghe-mysql-generate-seed --force 2>/dev/null")
+  # Save the Pid to a file
+  echo "$seed_file" > "$GHE_SNAPSHOT_DIR/mysql_seed_file"
+  # We need to transfer the seed file in background in parent shell otherwise it is impossible to track it
+else
+  echo "set -o pipefail; ghe-export-mysql" |
+    ghe-ssh "$GHE_HOSTNAME" -- /bin/bash > "$GHE_SNAPSHOT_DIR/mysql.sql.gz"
+fi
+
 echo "NO_ADDITIONAL_COMPRESSION" > "$GHE_SNAPSHOT_DIR/mysql-binary-backup-sentinel"
 
 bm_end "$(basename $0)"

@@ -188,6 +188,7 @@ if [ -n "$GHE_MYSQL_BACKGROUD_TRANSFER" ] && [ -f "$GHE_SNAPSHOT_DIR/mysql_seed_
   # transfer seed file in background
   ssh_mysql_master -- "sudo cat $seed_file" > "$GHE_SNAPSHOT_DIR/mysql.sql.gz" &
   mysql_pid=$!
+  echo "MySQL backup will be transfered in background (PID $mysql_pid) ..."
 fi
 
 if ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config --true app.actions.enabled'; then

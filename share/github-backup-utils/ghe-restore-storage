@@ -53,7 +53,7 @@ cd $GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/
 find storage -mindepth 4 -maxdepth 4 -type f | xargs -0 -n 1 -P 0 wc -c > $storage_paths
 
 # No need to restore anything, early exit
-if [ -z $storage_paths ]; then
+if [ ! -s $storage_paths ]; then
   echo "Warning: Storage backup missing. Skipping ..."
   exit 0
 fi

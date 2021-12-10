@@ -26,15 +26,6 @@ GHE_HOSTNAME="$1"
 # us run this script directly.
 : ${GHE_RESTORE_SNAPSHOT:=current}
 
-# Find the objects to restore
-storage_paths=$(cd $GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/ && find storage -mindepth 4 -maxdepth 4 -type f -exec wc -c {} \;)
-
-# No need to restore anything, early exit
-if [ -z "$storage_paths" ]; then
-  echo "Warning: Storage backup missing. Skipping ..."
-  exit 0
-fi
-
 # Perform a host-check and establish GHE_REMOTE_XXX variables.
 ghe_remote_version_required "$GHE_HOSTNAME"
 
@@ -51,10 +42,21 @@ tempdir=$(mktemp -d -t backup-utils-restore-XXXXXX)
 remote_tempdir=$(ghe-ssh "$GHE_HOSTNAME" -- mktemp -d -t backup-utils-restore-XXXXXX)
 ssh_config_file_opt=
 opts="$GHE_EXTRA_SSH_OPTS"
+storage_paths=$tempdir/storage_paths
 tmp_list=$tempdir/tmp_list
 remote_tmp_list=$remote_tempdir/remote_tmp_list
 routes_list=$tempdir/routes_list
 remote_routes_list=$remote_tempdir/remote_routes_list
+
+# Find the objects to restore
+cd $GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/
+find storage -mindepth 4 -maxdepth 4 -type f -print0 | xargs -0 -n 1 -P 0 wc -c > $storage_paths
+
+# No need to restore anything, early exit
+if [ ! -s $storage_paths ]; then
+  echo "Warning: Storage backup missing. Skipping ..."
+  exit 0
+fi
 
 if $CLUSTER; then
   ssh_config_file="$tempdir/ssh_config"
@@ -82,7 +84,7 @@ trap 'cleanup' EXIT
 # b63c30f6f885e59282c2aa22cfca846516b5e72621c10a58140fb04d133e2c17 5592492
 # ...
 bm_start "$(basename $0) - Building object list"
-echo "$storage_paths" | awk '{print $2 " " $1}' | awk -F/ '{print $NF }' > $tmp_list
+cat $storage_paths | awk '{print $2 " " $1}' | awk -F/ '{print $NF }' > $tmp_list
 bm_end "$(basename $0) - Building object list"
 
 # The server returns the list of servers where the objects will be sent:

@@ -358,6 +358,8 @@ ssh_mysql_master() {
   else
     ghe_mysql_master=$GHE_HOSTNAME
   fi
+
+  echo "ssh to MySQL master $ghe_mysql_master with $ssh_config_file_opt option" 1>&3
   ghe-ssh $ssh_config_file_opt "$ghe_mysql_master" "$@"
 }
 

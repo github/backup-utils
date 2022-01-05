@@ -344,9 +344,6 @@ ssh_port_part() {
 
 # Establish an SSH connection to MySQL master
 ssh_mysql_master() {
-  # Perform a host-check and establish the remote version in GHE_REMOTE_VERSION.
-  ghe_remote_version_required "$GHE_HOSTNAME"
-
   if $CLUSTER ; then
     ghe_mysql_master=$(ghe-ssh "$GHE_HOSTNAME" ghe-config "cluster.mysql-master")
     tempdir=$(mktemp -d -t backup-utils-mysql-master-XXXXXX)

@@ -19,4 +19,11 @@ snapshots of all major datastores. These snapshots are used to restore an instan
 to a prior state or set up a new instance without having another always-on GitHub
 Enterprise instance (like the High Availability replica).
 
+### Does taking or restoring a backup impact the GitHub Enterprise Server's performance or operation?
+
+Git background maintenance and garbage collection jobs become paused during the repositories stage of a backup and restore, and the storage stage of a backup. This may result in a backlog of queued maintenance or storage jobs observable in the GitHub Enterprise Server metrics for the duration of those steps. We suggest allowing any backlog to process and drain to 0 before starting another backup run. Repositories that are frequently pushed to may experience performance degradation over time if queued maintenance jobs are not processed.
+
+Backup processes triggered by `backup-utils` running on the GitHub Enterprise Server instance run at a low CPU and IO priority to reduce any user facing impact. You may observe elevated levels of CPU usage, disk IO, and network IO for the duration of a backup run.
+
+
 [1]: https://help.github.com/enterprise/admin/guides/installation/high-availability-cluster-configuration/

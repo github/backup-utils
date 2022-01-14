@@ -132,19 +132,6 @@ begin_test "ghe-backup without password pepper"
 )
 end_test
 
-begin_test "ghe-backup empty hookshot directory"
-(
-  set -e
-
-  rm -rf $GHE_REMOTE_DATA_USER_DIR/hookshot/repository-*
-  rm -rf $GHE_DATA_DIR/current/hookshot/repository-*
-  ghe-backup
-
-  # Check that the "--link-dest arg does not exist" message hasn't occurred.
-  [ ! "$(grep "[l]ink-dest arg does not exist" $TRASHDIR/out)" ]
-)
-end_test
-
 begin_test "ghe-backup empty git-hooks directory"
 (
   set -e
@@ -352,9 +339,20 @@ begin_test "ghe-backup missing directories or files on source appliance"
 )
 end_test
 
+begin_test "ghe-backup has default cadence configured"
+(
+  set -e
+  enable_actions
+
+  [ -n "$GHE_MSSQL_BACKUP_CADENCE" ]
+)
+end_test
+
+# Override backup cadence for testing purposes
 GHE_MSSQL_BACKUP_CADENCE=10,5,1
 export GHE_MSSQL_BACKUP_CADENCE
-setup_actions_test_data $GHE_REMOTE_DATA_USER_DIR
+setup_actions_test_data "$GHE_REMOTE_DATA_USER_DIR"
+setup_minio_test_data "$GHE_REMOTE_DATA_USER_DIR"
 
 begin_test "ghe-backup takes full backup on first run"
 (
@@ -363,6 +361,7 @@ begin_test "ghe-backup takes full backup on first run"
   # setup_mssql_backup_file uses "current"
   set -e
   enable_actions
+  enable_minio
 
   rm -rf "$GHE_REMOTE_DATA_USER_DIR"/mssql/backups/*
   rm -rf "$GHE_DATA_DIR"/current/mssql/*
@@ -376,6 +375,7 @@ begin_test "ghe-backup takes full backup upon expiration"
 (
   set -e
   enable_actions
+  enable_minio
   export REMOTE_DBS="full_mssql"
 
   setup_mssql_backup_file "full_mssql" 11 "bak"
@@ -390,6 +390,7 @@ begin_test "ghe-backup takes diff backup upon expiration"
 (
   set -e
   enable_actions
+  enable_minio
   export REMOTE_DBS="full_mssql"
 
   setup_mssql_backup_file "full_mssql" 7 "bak"
@@ -448,19 +449,14 @@ begin_test "ghe-backup takes backup of Actions settings"
   required_secrets=(
     "secrets.actions.ConfigurationDatabaseSqlLogin"
     "secrets.actions.ConfigurationDatabaseSqlPassword"
-    "secrets.actions.FrameworkAccessTokenKeySecret"
     "secrets.actions.UrlSigningHmacKeyPrimary"
     "secrets.actions.UrlSigningHmacKeySecondary"
     "secrets.actions.OAuthS2SSigningCert"
     "secrets.actions.OAuthS2SSigningKey"
     "secrets.actions.OAuthS2SSigningCertThumbprint"
     "secrets.actions.PrimaryEncryptionCertificateThumbprint"
-    "secrets.actions.AADCertThumbprint"
-    "secrets.actions.DelegatedAuthCertThumbprint"
-    "secrets.actions.RuntimeServicePrincipalCertificate"
     "secrets.actions.S2SEncryptionCertificate"
     "secrets.actions.SecondaryEncryptionCertificateThumbprint"
-    "secrets.actions.ServicePrincipalCertificate"
     "secrets.actions.SpsValidationCertThumbprint"
 
     "secrets.launch.actions-secrets-private-key"
@@ -480,6 +476,15 @@ begin_test "ghe-backup takes backup of Actions settings"
     "secrets.launch.azp-app-private-key"
   )
 
+  # these 5 were removed in later versions, so we extract them as best effort
+  # - secrets.actions.FrameworkAccessTokenKeySecret
+  # - secrets.actions.AADCertThumbprint
+  # - secrets.actions.DelegatedAuthCertThumbprint
+  # - secrets.actions.RuntimeServicePrincipalCertificate
+  # - secrets.actions.ServicePrincipalCertificate
+  # add one, to make sure it still gets copied
+  required_secrets+=("secrets.actions.FrameworkAccessTokenKeySecret")
+
   for secret in "${required_secrets[@]}"; do
     ghe-ssh "$GHE_HOSTNAME" -- ghe-config "$secret" "foo"
   done
@@ -489,19 +494,14 @@ begin_test "ghe-backup takes backup of Actions settings"
   required_files=(
     "actions-config-db-login"
     "actions-config-db-password"
-    "actions-framework-access-token"
     "actions-url-signing-hmac-key-primary"
     "actions-url-signing-hmac-key-secondary"
     "actions-oauth-s2s-signing-cert"
     "actions-oauth-s2s-signing-key"
     "actions-oauth-s2s-signing-cert-thumbprint"
     "actions-primary-encryption-cert-thumbprint"
-    "actions-aad-cert-thumbprint"
-    "actions-delegated-auth-cert-thumbprint"
-    "actions-runtime-service-principal-cert"
     "actions-s2s-encryption-cert"
     "actions-secondary-encryption-cert-thumbprint"
-    "actions-service-principal-cert"
     "actions-sps-validation-cert-thumbprint"
 
     "actions-launch-secrets-private-key"
@@ -519,9 +519,24 @@ begin_test "ghe-backup takes backup of Actions settings"
     "actions-launch-app-app-private-key"
   )
 
+  # Add the one optional file we included tests for
+  required_files+=("actions-framework-access-token")
+
   for file in "${required_files[@]}"; do
     [ "$(cat "$GHE_DATA_DIR/current/$file")" = "foo" ]
   done
+
+  other_best_effort_files=(
+    "actions-aad-cert-thumbprint"
+    "actions-delegated-auth-cert-thumbprint"
+    "actions-runtime-service-principal-cert"
+    "actions-service-principal-cert"
+  )
+
+  for file in "${other_best_effort_files[@]}"; do
+    [ ! -f "$GHE_DATA_DIR/current/$file" ]
+  done
+
 )
 end_test
 

@@ -63,6 +63,12 @@ be running GitHub Enterprise Server 2.12.x or 2.13.x. You can't restore a snapsh
 
 **Note**: You _cannot_ restore a backup created from a newer verison of GitHub Enterprise Server to an older version. For example, an attempt to restore a snapshot of GitHub Enterprise Server 2.21 to a GitHub Enterprise Server 2.20 environment will fail with an error of `Error: Snapshot can not be restored to an older release of GitHub Enterprise Server.`.
 
+## Multiple backup hosts
+
+Using multiple backup hosts or backup configurations is not currently recommended.
+
+Due to how some components of Backup Utiltiies (e.g. MSSQL) take incremental backups, running another instance of Backup Utilities may result in unrestorable snapshots as data may be split across backup hosts. If you still wish to have multiple instances of Backup Utilties for redundancy purposes or to run at different frequencies, ensure that they share the same `GHE_DATA_DIR` backup directory.
+
 [1]: https://www.gnu.org/software/bash/
 [2]: https://git-scm.com/
 [3]: https://www.openssh.com/

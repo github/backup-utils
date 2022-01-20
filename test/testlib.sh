@@ -528,6 +528,18 @@ setup_mssql_backup_file() {
   fi
 }
 
+setup_mssql_stubs() {
+  export REMOTE_DBS="full_mssql"
+
+  # Transaction log LSN checks
+  export NEXT_LOG_BACKUP_STARTING_LSN=100
+  export LOG_BACKUP_FILE_LAST_LSN=100
+
+  # Differential backup LSN checks
+  export DIFFERENTIAL_BASE_LSN=100
+  export FULL_BACKUP_FILE_LSN=100
+}
+
 add_mssql_backup_file() {
   # $1 name: <name>@...
   # $2 minutes ago

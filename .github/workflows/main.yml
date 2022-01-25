@@ -21,7 +21,6 @@ jobs:
     - name: Install Dependencies (macOS)
       run: |
         brew install gnu-tar shellcheck jq pigz coreutils gnu-sed gnu-getopt
-        brew unlink parallel
         brew install moreutils gawk
       if: matrix.os == 'macos-latest'
     - name: Get Sources

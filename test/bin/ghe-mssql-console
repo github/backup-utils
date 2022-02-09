@@ -1,4 +1,21 @@
 #!/usr/bin/env bash
-# Returns environment variable REMOTE_DBS, the variable should be set as space-delimited string
 # Tests use this to emulate ghe-mssql-console from a remote GitHub Enterprise Server
-echo $REMOTE_DBS
+if [[ "$*" == *"SELECT name FROM sys.databases"* ]]; then
+  # REMOTE_DBS should be set as space-delimited string with the test database names
+  echo "$REMOTE_DBS"
+elif [[ "$*" == *"last_log_backup_lsn"* ]]; then
+  # Starting log sequence number of the next log backup.
+  # Should match the most recent log backup last_lsn.
+  echo "$NEXT_LOG_BACKUP_STARTING_LSN"
+elif [[ "$*" == *"last_lsn"* ]]; then
+  # Last LSN of the transaction log backup file being looked up.
+  echo "$LOG_BACKUP_FILE_LAST_LSN"
+elif [[ "$*" == *"differential_base_lsn"* ]]; then
+  # Next diff backup base LSN. Should match full checkpoint LSN.
+  echo "$DIFFERENTIAL_BASE_LSN"
+elif [[ "$*" == *"checkpoint_lsn"* ]]; then
+  # Checkpoint LSN of the full backup file being looked up.
+  echo "$FULL_BACKUP_FILE_LSN"
+else
+  echo "UNKNOWN QUERY: ghe-mssql-console test stub failed on: $*"
+fi

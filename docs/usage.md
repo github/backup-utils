@@ -104,4 +104,6 @@ GitHub Actions enabled, the following steps are required:
 3. Use `ghe-restore` to restore the backup.
 4. Re-register your self-hosted runners on the replacement appliance.
 
+Please refer to [GHES Documentation](https://docs.github.com/en/enterprise-server/admin/github-actions/advanced-configuration-and-troubleshooting/backing-up-and-restoring-github-enterprise-server-with-github-actions-enabled) for more details
+
 [1]: https://github.com/github/backup-utils/blob/master/docs/getting-started.md

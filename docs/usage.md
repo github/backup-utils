@@ -100,7 +100,8 @@ GitHub Actions enabled, the following steps are required:
 
 1. Enable GitHub Actions on the replacement appliance and configure it to use the same GitHub Actions
    external storage configuration as the original appliance.
-2. Use `ghe-restore` to restore the backup.
-3. Re-register your self-hosted runners on the replacement appliance.
+2. Put replacement appliance into maintaince mode. 
+3. Use `ghe-restore` to restore the backup.
+4. Re-register your self-hosted runners on the replacement appliance.
 
 [1]: https://github.com/github/backup-utils/blob/master/docs/getting-started.md

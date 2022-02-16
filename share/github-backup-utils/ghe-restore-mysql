@@ -29,6 +29,9 @@ export GHE_RESTORE_SNAPSHOT
 # The directory holding the snapshot to restore
 GHE_RESTORE_SNAPSHOT_PATH="$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT"
 
+# Always restore the password pepper here since it is tied to the MySQL data.
+restore-secret "password pepper" "password-pepper" "secrets.github.user-password-secrets"
+
 if is_external_database_snapshot; then
   if [ -n "$EXTERNAL_DATABASE_RESTORE_SCRIPT" ]; then
     $EXTERNAL_DATABASE_RESTORE_SCRIPT
@@ -63,8 +66,6 @@ if is_external_database_snapshot; then
 fi
 
 if is_binary_backup_feature_on; then
-  # Always restore the password pepper here since it is tied to the MySQL data.
-  restore-secret "password pepper" "password-pepper" "secrets.github.user-password-secrets"
   # Feature "mysql.backup.binary" is on, which means new backup scripts are available
   if is_binary_backup "$GHE_RESTORE_SNAPSHOT_PATH"; then
     ghe-restore-mysql-binary $GHE_HOSTNAME
@@ -77,8 +78,6 @@ else
     echo "To restore from a binary backup, you have to set ghe-config \"mysql.backup.binary\" to true" >&2
     exit 2
   else
-    # Always restore the password pepper here since it is tied to the MySQL data.
-    restore-secret "password pepper" "password-pepper" "secrets.github.user-password-secrets"
     if is_default_external_database_snapshot; then
       ghe-restore-mysql-logical $GHE_HOSTNAME
     else

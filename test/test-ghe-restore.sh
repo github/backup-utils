@@ -56,10 +56,10 @@ begin_test "ghe-restore into configured vm"
   cat "$TRASHDIR/restore-out"
 
   # verify connect to right host
-  grep -q "Connect 127.0.0.1:22 OK" "$TRASHDIR/restore-out"
+  grep -q "Connect 127.0.0.1:122 OK" "$TRASHDIR/restore-out"
 
   # verify stale servers were cleared
-  grep -q "ghe-cluster-cleanup-node OK" "$TRASHDIR/restore-out"
+  grep -q "Cleaning up stale nodes ..." "$TRASHDIR/restore-out"
 
   # Verify all the data we've restored is as expected
   verify_all_restored_data
@@ -141,11 +141,11 @@ begin_test "ghe-restore -c into unconfigured vm"
   fi
 
   # verify connect to right host
-  grep -q "Connect 127.0.0.1:22 OK" "$TRASHDIR/restore-out"
+  grep -q "Connect 127.0.0.1:122 OK" "$TRASHDIR/restore-out"
 
   # verify attempt to clear stale servers was not made
-  grep -q "ghe-cluster-cleanup-node OK" "$TRASHDIR/restore-out" && {
-    echo "ghe-cluster-cleanup-node should not run on unconfigured nodes."
+  grep -q "Cleaning up stale nodes ..." "$TRASHDIR/restore-out" && {
+    echo "Unconfigured nodes should not be cleaned up."
     exit 1
   }
 
@@ -175,11 +175,11 @@ begin_test "ghe-restore into unconfigured vm"
   ! grep -q "ghe-config-apply OK" "$TRASHDIR/restore-out"
 
   # verify connect to right host
-  grep -q "Connect 127.0.0.1:22 OK" "$TRASHDIR/restore-out"
+  grep -q "Connect 127.0.0.1:122 OK" "$TRASHDIR/restore-out"
 
   # verify attempt to clear stale servers was not made
-  grep -q "ghe-cluster-cleanup-node OK" "$TRASHDIR/restore-out" && {
-    echo "ghe-cluster-cleanup-node should not run on unconfigured nodes."
+  grep -q "Cleaning up stale nodes ..." "$TRASHDIR/restore-out" && {
+    echo "Unconfigured nodes should not be cleaned up."
     exit 1
   }
 
@@ -215,7 +215,7 @@ begin_test "ghe-restore with host arg and config value"
   rm "$GHE_BACKUP_CONFIG_TEMP"
 
   # verify host arg overrides configured restore host
-  echo "$output" | grep -q 'Connect localhost:22 OK'
+  echo "$output" | grep -q 'Connect localhost:122 OK'
 
   # Verify all the data we've restored is as expected
   verify_all_restored_data
@@ -239,7 +239,7 @@ begin_test "ghe-restore with host arg"
   output="$(ghe-restore -f localhost)" || false
 
   # verify host arg overrides configured restore host
-  echo "$output" | grep -q 'Connect localhost:22 OK'
+  echo "$output" | grep -q 'Connect localhost:122 OK'
 
   # Verify all the data we've restored is as expected
   verify_all_restored_data
@@ -395,6 +395,21 @@ begin_test "ghe-restore with Actions settings"
   done
 )
 end_test
+
+begin_test "ghe-restore stops and starts Actions"
+(
+  set -e
+  rm -rf "$GHE_REMOTE_ROOT_DIR"
+  setup_remote_metadata
+  enable_actions
+
+  setup_maintenance_mode "configured"
+
+  output=$(ghe-restore -v -f localhost 2>&1)
+
+  echo "$output" | grep -q "ghe-actions-stop .* OK"
+  echo "$output" | grep -q "ghe-actions-start .* OK"
+)
 
 begin_test "ghe-restore with Actions data"
 (

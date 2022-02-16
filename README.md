@@ -50,6 +50,6 @@ to your specific GitHub Enterprise Server setup or would like assistance with
 backup site setup or recovery, please contact our [Enterprise support team][3]
 instead.
 
-[1]: https://enterprise.github.com
+[1]: https://github.com/enterprise
 [2]: docs/requirements.md#github-enterprise-version-requirements
-[3]: https://enterprise.github.com/support/
+[3]: https://support.github.com/

@@ -376,7 +376,7 @@ begin_test "ghe-backup takes full backup upon expiration"
   set -e
   enable_actions
   enable_minio
-  export REMOTE_DBS="full_mssql"
+  setup_mssql_stubs
 
   setup_mssql_backup_file "full_mssql" 11 "bak"
 
@@ -391,7 +391,7 @@ begin_test "ghe-backup takes diff backup upon expiration"
   set -e
   enable_actions
   enable_minio
-  export REMOTE_DBS="full_mssql"
+  setup_mssql_stubs
 
   setup_mssql_backup_file "full_mssql" 7 "bak"
 
@@ -406,7 +406,7 @@ begin_test "ghe-backup takes transaction backup upon expiration"
 (
   set -e
   enable_actions
-  export REMOTE_DBS="full_mssql"
+  setup_mssql_stubs
 
   setup_mssql_backup_file "full_mssql" 3 "bak"
 
@@ -425,6 +425,7 @@ begin_test "ghe-backup warns if database names mismatched"
   rm -rf "$GHE_DATA_DIR/current/mssql"
   mkdir -p "$GHE_DATA_DIR/current/mssql"
 
+  setup_mssql_stubs
   export REMOTE_DBS="full_mssql_1 full_mssql_2 full_mssql_3"
 
   add_mssql_backup_file "full_mssql_1" 3 "bak"
@@ -434,6 +435,38 @@ begin_test "ghe-backup warns if database names mismatched"
   output=$(ghe-backup -v || true)
   ! echo "$output" | grep -E "Taking .* backup"
   echo "$output" | grep "Warning: Found following 2 backup files"
+)
+end_test
+
+begin_test "ghe-backup upgrades diff backup to full if diff base mismatch"
+(
+  set -e
+  enable_actions
+  setup_mssql_stubs
+  export FULL_BACKUP_FILE_LSN=100
+  export DIFFERENTIAL_BASE_LSN=101 # some other full backup interfered and moved up the diff base!
+
+  setup_mssql_backup_file "full_mssql" 7 "bak"
+
+  output=$(ghe-backup -v)
+  echo "$output" | grep "Taking a full backup instead of a diff backup"
+  echo "$output" | grep "Taking full backup"
+)
+end_test
+
+begin_test "ghe-backup upgrades transaction backup to full if LSN chain break"
+(
+  set -e
+  enable_actions
+  setup_mssql_stubs
+  export LOG_BACKUP_FILE_LAST_LSN=100
+  export NEXT_LOG_BACKUP_STARTING_LSN=101 # some other log backup interfered and stole 1 LSN!
+
+  setup_mssql_backup_file "full_mssql" 3 "bak"
+
+  output=$(ghe-backup -v)
+  echo "$output" | grep "Taking a full backup instead of a transaction backup"
+  echo "$output" | grep "Taking full backup"
 )
 end_test
 
@@ -449,19 +482,14 @@ begin_test "ghe-backup takes backup of Actions settings"
   required_secrets=(
     "secrets.actions.ConfigurationDatabaseSqlLogin"
     "secrets.actions.ConfigurationDatabaseSqlPassword"
-    "secrets.actions.FrameworkAccessTokenKeySecret"
     "secrets.actions.UrlSigningHmacKeyPrimary"
     "secrets.actions.UrlSigningHmacKeySecondary"
     "secrets.actions.OAuthS2SSigningCert"
     "secrets.actions.OAuthS2SSigningKey"
     "secrets.actions.OAuthS2SSigningCertThumbprint"
     "secrets.actions.PrimaryEncryptionCertificateThumbprint"
-    "secrets.actions.AADCertThumbprint"
-    "secrets.actions.DelegatedAuthCertThumbprint"
-    "secrets.actions.RuntimeServicePrincipalCertificate"
     "secrets.actions.S2SEncryptionCertificate"
     "secrets.actions.SecondaryEncryptionCertificateThumbprint"
-    "secrets.actions.ServicePrincipalCertificate"
     "secrets.actions.SpsValidationCertThumbprint"
 
     "secrets.launch.actions-secrets-private-key"
@@ -481,6 +509,15 @@ begin_test "ghe-backup takes backup of Actions settings"
     "secrets.launch.azp-app-private-key"
   )
 
+  # these 5 were removed in later versions, so we extract them as best effort
+  # - secrets.actions.FrameworkAccessTokenKeySecret
+  # - secrets.actions.AADCertThumbprint
+  # - secrets.actions.DelegatedAuthCertThumbprint
+  # - secrets.actions.RuntimeServicePrincipalCertificate
+  # - secrets.actions.ServicePrincipalCertificate
+  # add one, to make sure it still gets copied
+  required_secrets+=("secrets.actions.FrameworkAccessTokenKeySecret")
+
   for secret in "${required_secrets[@]}"; do
     ghe-ssh "$GHE_HOSTNAME" -- ghe-config "$secret" "foo"
   done
@@ -490,19 +527,14 @@ begin_test "ghe-backup takes backup of Actions settings"
   required_files=(
     "actions-config-db-login"
     "actions-config-db-password"
-    "actions-framework-access-token"
     "actions-url-signing-hmac-key-primary"
     "actions-url-signing-hmac-key-secondary"
     "actions-oauth-s2s-signing-cert"
     "actions-oauth-s2s-signing-key"
     "actions-oauth-s2s-signing-cert-thumbprint"
     "actions-primary-encryption-cert-thumbprint"
-    "actions-aad-cert-thumbprint"
-    "actions-delegated-auth-cert-thumbprint"
-    "actions-runtime-service-principal-cert"
     "actions-s2s-encryption-cert"
     "actions-secondary-encryption-cert-thumbprint"
-    "actions-service-principal-cert"
     "actions-sps-validation-cert-thumbprint"
 
     "actions-launch-secrets-private-key"
@@ -520,9 +552,24 @@ begin_test "ghe-backup takes backup of Actions settings"
     "actions-launch-app-app-private-key"
   )
 
+  # Add the one optional file we included tests for
+  required_files+=("actions-framework-access-token")
+
   for file in "${required_files[@]}"; do
     [ "$(cat "$GHE_DATA_DIR/current/$file")" = "foo" ]
   done
+
+  other_best_effort_files=(
+    "actions-aad-cert-thumbprint"
+    "actions-delegated-auth-cert-thumbprint"
+    "actions-runtime-service-principal-cert"
+    "actions-service-principal-cert"
+  )
+
+  for file in "${other_best_effort_files[@]}"; do
+    [ ! -f "$GHE_DATA_DIR/current/$file" ]
+  done
+
 )
 end_test
 

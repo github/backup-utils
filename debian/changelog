@@ -1,3 +1,9 @@
+github-backup-utils (3.4.0) UNRELEASED; urgency=medium
+
+  * Add anchor to usage doc for settings restore #865
+
+ -- Steve Culver <steveculver@github.com>  Tue, 15 Feb 2022 19:25:09 +0000
+
 github-backup-utils (3.3.1) UNRELEASED; urgency=medium
 
   * Fix compat issue with ghe-actions-start during maintenance mode #836

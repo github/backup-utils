@@ -80,6 +80,8 @@ The `ghe-backup` and `ghe-restore` commands also have a verbose output mode
 (`-v`) that lists files as they're being transferred. It's often useful to
 enable when output is logged to a file.
 
+### Restoring settings, TLS certificate, and license 
+
 When restoring to a new GitHub Enterprise Server instance, settings, certificate, and
 license data *are* restored. These settings must be reviewed and saved before
 using the GitHub Enterprise Server to ensure all migrations take place and all required

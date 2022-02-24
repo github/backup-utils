@@ -42,7 +42,7 @@ export GHE_BACKUP_CONFIG GHE_DATA_DIR GHE_REMOTE_DATA_DIR GHE_REMOTE_ROOT_DIR
 
 # The default remote appliance version. This may be set in the environment prior
 # to invoking tests to emulate a different remote vm version.
-: ${GHE_TEST_REMOTE_VERSION:=3.3.0.rc1}
+: ${GHE_TEST_REMOTE_VERSION:=3.4.0.rc1}
 export GHE_TEST_REMOTE_VERSION
 
 # Source in the backup config and set GHE_REMOTE_XXX variables based on the
@@ -526,6 +526,18 @@ setup_mssql_backup_file() {
   if [ "$3" = "bak" ] || [ "$3" = "diff" ]; then
     touch "$GHE_DATA_DIR/current/mssql/$1@$fake_last_utc.log"
   fi
+}
+
+setup_mssql_stubs() {
+  export REMOTE_DBS="full_mssql"
+
+  # Transaction log LSN checks
+  export NEXT_LOG_BACKUP_STARTING_LSN=100
+  export LOG_BACKUP_FILE_LAST_LSN=100
+
+  # Differential backup LSN checks
+  export DIFFERENTIAL_BASE_LSN=100
+  export FULL_BACKUP_FILE_LSN=100
 }
 
 add_mssql_backup_file() {

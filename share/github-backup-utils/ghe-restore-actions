@@ -92,6 +92,6 @@ ghe_verbose "* Restoring database logins and users to $host ..."
 ghe-ssh -p "$port" "$host" -- ghe-actions-console -s mps -c "Repair-DatabaseLogins"
 ghe-ssh -p "$port" "$host" -- ghe-actions-console -s token -c "Repair-DatabaseLogins"
 ghe-ssh -p "$port" "$host" -- ghe-actions-console -s actions -c "Repair-DatabaseLogins"
-ghe-ssh -p "$port" "$host" -- '. /usr/local/share/enterprise/ghe-actions-lib; [[ `action-services` =~ "artifactcache" ]] && ghe-actions-console -s artifactcache -c "Repair-DatabaseLogins"'
+echo '. /usr/local/share/enterprise/ghe-actions-lib; if [[ `action-services` =~ "artifactcache" ]]; then ghe-actions-console -s artifactcache -c "Repair-DatabaseLogins"; fi' | ghe-ssh -p "$port" "$host" /bin/bash
 
 bm_end "$(basename $0)"

@@ -98,7 +98,7 @@ repair_ac_db_login='
    then
       ghe-actions-console -s artifactcache -c "Repair-DatabaseLogins"
     else
-      echo "Skipping ArtifactCache service database logins"
+      echo "ArtifactCache is not enabled. Skipping Repair-DatabaseLogins for it."
   fi
 '
 echo "$repair_ac_db_login" | ghe-ssh -p "$port" "$host" /bin/bash

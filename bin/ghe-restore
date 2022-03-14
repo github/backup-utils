@@ -262,11 +262,11 @@ if $instance_configured; then
 fi
 
 # Make sure the GitHub appliance has Actions enabled if the snapshot contains Actions data.
-# It above is true, also check if ac is present in appliance then snapshot should also contains ac databases
+# If above is true, also check if ac is present in appliance then snapshot should also contains ac databases
 if [ -d "$GHE_RESTORE_SNAPSHOT_PATH/mssql" ] || [ -d "$GHE_RESTORE_SNAPSHOT_PATH/actions" ]; then
   if ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config --true app.actions.enabled'; then
     ac_in_ghe_status=`echo 'set -o pipefail; ghe-mssql-console -y -n -q "SELECT name from sys.databases where name like \"ArtifactCache%\"" | grep -iq "ArtifactCache"' | ./share/github-backup-utils/ghe-ssh "$GHE_HOSTNAME" /bin/bash; echo $?`
-    ac_in_snapshot_status=`grep -qi "ArtifactCache*" <<< ls $GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/mssql/*.bak; echo $?``
+    ac_in_snapshot_status=`grep -qi "ArtifactCache*" <<< ls $GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/mssql/*.bak; echo $?`
     if [[ $ac_in_ghe_status -eq 0  &&  $ac_in_snapshot_status -ne 0 ]]; then
       echo "Error: $GHE_HOSTNAME contains ArtifactCache databases but no ArtifactCache databases are present in snapshot. Aborting" 1>&2
       echo "Please delete ArtifactCache databases from $GHE_HOSTNAME and retry" 1>&2

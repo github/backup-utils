@@ -275,6 +275,7 @@ if [ -d "$GHE_RESTORE_SNAPSHOT_PATH/mssql" ] || [ -d "$GHE_RESTORE_SNAPSHOT_PATH
   else
     # Get GHES release version in major.minor format
     RELEASE_VERSION=$(ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config --get core.package-version' | cut -d '.' -f 1,2)
+
     echo "Error: $GHE_HOSTNAME must have GitHub Actions enabled before restoring since the snapshot contains Actions data. Aborting." 1>&2
     echo "Setup details for enabling Actions can be found here: https://docs.github.com/en/enterprise-server@$RELEASE_VERSION/admin/github-actions/advanced-configuration-and-troubleshooting/backing-up-and-restoring-github-enterprise-server-with-github-actions-enabled" 1>&2
     exit 1

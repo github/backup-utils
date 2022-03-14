@@ -1,0 +1,96 @@
+# GitHub Enterprise Server backup configuration file
+
+# The hostname of the GitHub Enterprise Server appliance to back up. The host
+# must be reachable via SSH from the backup host.
+GHE_HOSTNAME="github.example.com"
+
+# Path to where backup data is stored. By default this is the "data"
+# directory next to this file but can be set to an absolute path
+# elsewhere for backing up to a separate partition / mount point.
+GHE_DATA_DIR="data"
+
+# The number of backup snapshots to retain. Old snapshots are pruned after each
+# successful ghe-backup run. This option should be tuned based on the frequency
+# of scheduled backup runs. If backups are scheduled hourly, snapshots will be
+# available for the past N hours; if backups are scheduled daily, snapshots will
+# be available for the past N days ...
+GHE_NUM_SNAPSHOTS=10
+
+# The hostname of the GitHub appliance to restore. If you've set up a separate
+# GitHub appliance to act as a standby for recovery, specify its IP or hostname
+# here. The host to restore to may also be specified directly when running
+# ghe-restore so use of this variable isn't strictly required.
+#
+#GHE_RESTORE_HOST="github-standby.example.com"
+
+# If set to 'yes', ghe-restore will omit the restore of audit logs.
+#
+#GHE_RESTORE_SKIP_AUDIT_LOGS=no
+
+# When verbose output is enabled with `-v`, it's written to stdout by default. If
+# you'd prefer it to be written to a separate file, set this option.
+#
+#GHE_VERBOSE_LOG="/var/log/backup-verbose.log"
+
+# Any extra options passed to the SSH command.
+# In a single instance environment, nothing is required by default.
+# In a clustering environment, "-i abs-path-to-ssh-private-key" is required.
+#
+#GHE_EXTRA_SSH_OPTS=""
+
+# Any extra options passed to the rsync command. Nothing required by default.
+#
+#GHE_EXTRA_RSYNC_OPTS=""
+
+# If set to 'no', GHE_DATA_DIR will not be created automatically
+# and restore/backup will exit 8
+#
+#GHE_CREATE_DATA_DIR=yes
+
+# If set to 'yes', git fsck will run on the repositories
+# and print some additional info.
+#
+# WARNING: do not enable this, only useful for debugging/development
+#GHE_BACKUP_FSCK=no
+
+# Cadence of MSSQL backups
+# <full>,<differential>,<transactionlog> all in minutes
+# e.g.
+#   - Full backup every week (10080 minutes)
+#   - Differential backup every day (1440 minutes)
+#   - Transactionlog backup every 15 minutes
+#
+#GHE_MSSQL_BACKUP_CADENCE=10080,1440,15
+
+# If set to 'yes', ghe-backup jobs will run in parallel. Defaults to 'no'.
+#
+# WARNING: this feature is in beta.
+#GHE_PARALLEL_ENABLED=yes
+
+# Sets the maximum number of jobs to run in parallel. Defaults to the number
+# of available processing units on the machine.
+#
+# WARNING: this feature is in beta.
+#GHE_PARALLEL_MAX_JOBS=2
+
+# Sets the maximum number of rsync jobs to run in parallel. Defaults to the
+# configured GHE_PARALLEL_MAX_JOBS, or the number of available processing 
+# units on the machine.
+#
+# WARNING: this feature is in beta.
+# GHE_PARALLEL_RSYNC_MAX_JOBS=3
+
+# When jobs are running in parallel wait as needed to avoid starting new jobs
+# when the system's load average is not below the specified percentage. Defaults to
+# unrestricted.
+#
+# WARNING: this feature is in beta.
+#GHE_PARALLEL_MAX_LOAD=50
+
+# When running an external mysql database, run this script to trigger a MySQL backup
+# rather than attempting to backup via backup-utils directly.
+#EXTERNAL_DATABASE_BACKUP_SCRIPT="/bin/false"
+
+# When running an external mysql database, run this script to trigger a MySQL restore
+# rather than attempting to backup via backup-utils directly.
+#EXTERNAL_DATABASE_RESTORE_SCRIPT="/bin/false"

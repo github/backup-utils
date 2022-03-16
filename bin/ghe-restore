@@ -261,6 +261,9 @@ if $instance_configured; then
   fi
 fi
 
+# Get GHES release version in major.minor format
+  RELEASE_VERSION=$(ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config --get core.package-version' | cut -d '.' -f 1,2)
+
 # Make sure the GitHub appliance has Actions enabled if the snapshot contains Actions data.
 # If above is true, also check if ac is present in appliance then snapshot should also contains ac databases
 if [ -d "$GHE_RESTORE_SNAPSHOT_PATH/mssql" ] || [ -d "$GHE_RESTORE_SNAPSHOT_PATH/actions" ]; then
@@ -270,12 +273,10 @@ if [ -d "$GHE_RESTORE_SNAPSHOT_PATH/mssql" ] || [ -d "$GHE_RESTORE_SNAPSHOT_PATH
     if [[ $ac_db_ghe -gt 0  &&  $ac_db_snapshot -eq 0 ]]; then
       echo "Error: $GHE_HOSTNAME contains ArtifactCache databases but no ArtifactCache databases are present in snapshot. Aborting" 1>&2
       echo "Please delete ArtifactCache databases from $GHE_HOSTNAME and retry" 1>&2
+      echo "Steps to delete ArtifactCache databases can be found here: https://docs.github.com/en/enterprise-server@$RELEASE_VERSION/admin/github-actions/advanced-configuration-and-troubleshooting/deleting-artifact-cache-databases" 1>&2
       exit 1
     fi
   else
-    # Get GHES release version in major.minor format
-    RELEASE_VERSION=$(ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config --get core.package-version' | cut -d '.' -f 1,2)
-
     echo "Error: $GHE_HOSTNAME must have GitHub Actions enabled before restoring since the snapshot contains Actions data. Aborting." 1>&2
     echo "Setup details for enabling Actions can be found here: https://docs.github.com/en/enterprise-server@$RELEASE_VERSION/admin/github-actions/advanced-configuration-and-troubleshooting/backing-up-and-restoring-github-enterprise-server-with-github-actions-enabled" 1>&2
     exit 1

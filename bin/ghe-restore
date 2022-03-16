@@ -262,7 +262,7 @@ if $instance_configured; then
 fi
 
 # Get GHES release version in major.minor format
-  RELEASE_VERSION=$(ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config --get core.package-version' | cut -d '.' -f 1,2)
+RELEASE_VERSION=$(ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config --get core.package-version' | cut -d '.' -f 1,2)
 
 # Make sure the GitHub appliance has Actions enabled if the snapshot contains Actions data.
 # If above is true, also check if ac is present in appliance then snapshot should also contains ac databases

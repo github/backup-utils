@@ -26,6 +26,6 @@ git checkout -q "$PKG_HEAD"
 
 debuild -uc -us 1>&2
 cd ..
-files=$(ls -1 *.deb *.tar.gz *.dsc *.changes)
+files=$(ls -1 *.deb *.tar.xz *.dsc *.changes)
 mv $files ../
 for f in $files; do echo "dist/$f"; done

@@ -289,9 +289,15 @@ if [ -d "$GHE_RESTORE_SNAPSHOT_PATH/mssql" ] || [ -d "$GHE_RESTORE_SNAPSHOT_PATH
     ac_db_ghe=$(echo 'ghe-mssql-console -y -n -q "SELECT name FROM sys.databases" | grep -i "ArtifactCache" | wc -l | tr -d " "' | ghe-ssh "$GHE_HOSTNAME" /bin/bash)
     ac_db_snapshot=$(find "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/mssql/" -maxdepth 1 -name 'ArtifactCache*.bak' | wc -l | tr -d " ")
     if [[ $ac_db_ghe -gt 0  &&  $ac_db_snapshot -eq 0 ]]; then
-      echo "Error: $GHE_HOSTNAME contains ArtifactCache databases but no ArtifactCache databases are present in snapshot. Aborting" 1>&2
-      echo "Please delete ArtifactCache databases from $GHE_HOSTNAME and retry" 1>&2
-      echo "Steps to delete ArtifactCache databases can be found here: https://docs.github.com/en/enterprise-server@$RELEASE_VERSION/admin/github-actions/advanced-configuration-and-troubleshooting/deleting-artifact-cache-databases" 1>&2
+      echo "Error: $GHE_HOSTNAME has Actions Cache service enabled but no Actions Cache data is present in snapshot to restore. Aborting" 1>&2
+      echo "Please disable Actions cache service in $GHE_HOSTNAME and retry" 1>&2
+      echo "To disable Actions Cache service run as admin: ghe-actions-cache-disable" 1>&2
+      exit 1
+    fi
+    if [[ $ac_db_ghe -eq 0  &&  $ac_db_snapshot -gt 0 && ! $RESTORE_SETTINGS ]]; then
+      echo "Error: $GHE_HOSTNAME has Actions Cache service disabled but the snapshot is attempting to restore data for the service. Aborting" 1>&2
+      echo "Please enable Actions cache service in $GHE_HOSTNAME and retry" 1>&2
+      echo "To enable Actions Cache service run as admin: ghe-actions-cache-enable" 1>&2
       exit 1
     fi
   else

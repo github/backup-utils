@@ -1,3 +1,10 @@
+github-backup-utils (3.4.1) UNRELEASED; urgency=medium
+
+  * Backport 3.4.1 restart cron on restore failure #892
+  * Backport 3.4.1 simplify redirects #893
+
+ -- Donal Ellis <donal@github.com>  Thu, 21 Apr 2022 06:12:29 +0000
+
 github-backup-utils (3.4.0) UNRELEASED; urgency=medium
 
   * Add anchor to usage doc for settings restore #865

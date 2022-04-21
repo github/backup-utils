@@ -11,11 +11,6 @@ set -o pipefail
 # shellcheck source=share/github-backup-utils/ghe-backup-config
 . "$( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config"
 
-# Filter vanished file warnings from both stdout (rsync versions < 3.x) and
-# stderr (rsync versions >= 3.x). The complex redirections are necessary to
-# filter stderr while also keeping stdout and stderr separated.
-ignoreout='^(file has vanished: |rsync warning: some files vanished before they could be transferred)'
-
 # Check for --ignore-missing-args parameter support and remove if unavailable.
 if rsync -h | grep '\-\-ignore-missing-args' >/dev/null 2>&1; then
   parameters=("$@")
@@ -25,9 +20,15 @@ else
   done
 fi
 
-(rsync "${parameters[@]}" $GHE_EXTRA_RSYNC_OPTS 3>&1 1>&2 2>&3 3>&- |
-  (egrep -v "$ignoreout" || true)) 3>&1 1>&2 2>&3 3>&- |
-  (egrep -v "$ignoreout" || true)
+ignoreout='^(file has vanished: |rsync warning: some files vanished before they could be transferred)'
+rsync_version_check=`rsync --version | egrep "version 3.[0-9]*.[0-9]*"`
+if [ ! -z "$rsync_version_check" ]; then
+  # rsync >= 3.x sends errors to stderr. so, we need to redirect to stdout before the pipe
+  rsync "${parameters[@]}" $GHE_EXTRA_RSYNC_OPTS 2>&1 | (egrep -v "$ignoreout" || true)
+else
+  # rsync <3.x sends errors to stdout.
+  rsync "${parameters[@]}" $GHE_EXTRA_RSYNC_OPTS | (egrep -v "$ignoreout" || true)
+fi
 res=$?
 
 # Suppress exits with 24.

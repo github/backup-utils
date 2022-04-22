@@ -1,3 +1,10 @@
+github-backup-utils (3.4.1) UNRELEASED; urgency=medium
+
+  * On restore failure, restart cron on target host #900
+  * Simplify complex redirects for ghe-rsync #901
+
+ -- Donal Ellis <donal@github.com>  Thu, 21 Apr 2022 09:52:06 +0000
+
 github-backup-utils (3.4.0) UNRELEASED; urgency=medium
 
   * Add anchor to usage doc for settings restore #865

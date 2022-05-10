@@ -1,3 +1,17 @@
+github-backup-utils (3.4.1) UNRELEASED; urgency=medium
+
+  * Simplify complex redirects for ghe-rsync #881
+  * On restore failure, restart cron on target host #883
+
+ -- Donal Ellis <donal@github.com>  Fri, 22 Apr 2022 04:00:00 +0000
+
+github-backup-utils (3.3.2) UNRELEASED; urgency=medium
+
+  * Simplify complex redirects for ghe-rsync #881
+  * On restore failure, restart cron on target host #883
+
+ -- Donal Ellis <donal@github.com>  Fri, 22 Apr 2022 00:53:45 +0000
+
 github-backup-utils (3.4.0) UNRELEASED; urgency=medium
 
   * Add anchor to usage doc for settings restore #865
@@ -8,50 +22,17 @@ github-backup-utils (3.3.1) UNRELEASED; urgency=medium
 
   * Fix compat issue with ghe-actions-start during maintenance mode #836
 
- -- bonsohi@github.com  Tue, 21 Dec 2021 23:38:01 +0000
+ -- Balwinder Sohi <bonsohi@github.com>  Tue, 21 Dec 2021 23:38:01 +0000
 
 github-backup-utils (3.3.0) UNRELEASED; urgency=medium
 
-
- -- bonsohi@github.com  Wed, 08 Dec 2021 03:12:53 +0000
-
-github-backup-utils (3.3.0) UNRELEASED; urgency=medium
-
-
- -- bonsohi@github.com  Wed, 08 Dec 2021 03:10:21 +0000
-
-github-backup-utils (3.3.0) UNRELEASED; urgency=medium
-
-
- -- bonsohi@github.com  Wed, 08 Dec 2021 02:56:47 +0000
-
-github-backup-utils (3.3.0) UNRELEASED; urgency=medium
-
-
- -- bonsohi@github.com  Wed, 08 Dec 2021 02:51:06 +0000
-
-github-backup-utils (3.3.0) UNRELEASED; urgency=medium
-
-
- -- bonsohi@github.com  Wed, 08 Dec 2021 02:02:25 +0000
-
-github-backup-utils (3.3.0) UNRELEASED; urgency=medium
-
-
- -- bonsohi@github.com  Wed, 08 Dec 2021 01:56:26 +0000
-
-github-backup-utils (3.3.0) UNRELEASED; urgency=medium
-
-
- -- bonsohi@github.com  Wed, 08 Dec 2021 01:25:12 +0000
+ -- Balwinder Sohi <bonsohi@github.com>  Wed, 08 Dec 2021 03:12:53 +0000
 
 github-backup-utils (3.3.0.rc1) UNRELEASED; urgency=medium
-
 
  -- Nick Iodice <nick-iodice@github.com>  Tue, 09 Nov 2021 19:56:08 +0000
 
 github-backup-utils (3.2.0) UNRELEASED; urgency=medium
-
 
  -- Brett Westover <bwestover@github.com>  Tue, 28 Sep 2021 16:50:00 +0000
 
@@ -85,7 +66,6 @@ github-backup-utils (3.2.0) UNRELEASED; urgency=medium
  -- Brett Westover <bwestover@github.com>  Thu, 09 Sep 2021 16:42:24 +0000
 
 github-backup-utils (3.1.0) UNRELEASED; urgency=medium
-
 
  -- Zachary Mark <zachary-mark@github.com>  Thu, 03 Jun 2021 16:55:16 +0000
 

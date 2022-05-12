@@ -1,3 +1,10 @@
+github-backup-utils (3.5.0) UNRELEASED; urgency=medium
+
+  * Simplify complex redirects for ghe-rsync #881
+  * On restore failure, restart cron on target host #883
+
+ -- Bon Sohi<bonsohi@github.com>  Thu, 12 May 2022 21:06:56 +0000
+
 github-backup-utils (3.4.1) UNRELEASED; urgency=medium
 
   * Simplify complex redirects for ghe-rsync #881

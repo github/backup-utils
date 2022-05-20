@@ -70,7 +70,6 @@ restore-secret "Actions service principal cert" "actions-service-principal-cert"
 restore-secret "Actions SPS validation cert thumbprint" "actions-sps-validation-cert-thumbprint" "secrets.actions.SpsValidationCertThumbprint"
 
 restore-secret "Actions Launch secrets encryption/decryption" "actions-launch-secrets-private-key" "secrets.launch.actions-secrets-private-key"
-restore-secret "Actions Launch credz HMAC key" "actions-launch-credz-hmac" "secrets.launch.credz-hmac-secret"
 restore-secret "Actions Launch deployer HMAC key" "actions-launch-deployer-hmac" "secrets.launch.deployer-hmac-secret"
 restore-secret "Actions Launch Client id" "actions-launch-client-id" "secrets.launch.client-id"
 restore-secret "Actions Launch Client secret" "actions-launch-client-secret" "secrets.launch.client-secret"
@@ -85,6 +84,9 @@ restore-secret "Actions Launch service private key" "actions-launch-app-app-priv
 
 restore-secret "Actions Launch token oauth key" "actions-oauth-s2s-signing-key" "secrets.launch.token-oauth-key"
 restore-secret "Actions Launch token oauth cert" "actions-oauth-s2s-signing-cert" "secrets.launch.token-oauth-cert"
+
+restore-secret "Actions Kredz HMAC key" "actions-kredz-hmac" "secrets.kredz.credz-hmac-secret"
+restore-secret "Actions Kredz app relay id" "actions-kredz-app-relay-id" "secrets.kredz.app-relay-id"
 
 # Setup the database logins.
 ghe_verbose "* Restoring database logins and users to $host ..."

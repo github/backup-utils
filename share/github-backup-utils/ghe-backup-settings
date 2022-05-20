@@ -102,7 +102,6 @@ if ghe-ssh "$host" -- ghe-config --true app.actions.enabled; then
   backup-secret "Actions SPS validation cert thumbprint" "actions-sps-validation-cert-thumbprint" "secrets.actions.SpsValidationCertThumbprint"
 
   backup-secret "Actions Launch secrets encryption/decryption" "actions-launch-secrets-private-key" "secrets.launch.actions-secrets-private-key"
-  backup-secret "Actions Launch credz HMAC key" "actions-launch-credz-hmac" "secrets.launch.credz-hmac-secret"
   backup-secret "Actions Launch deployer HMAC key" "actions-launch-deployer-hmac" "secrets.launch.deployer-hmac-secret"
   backup-secret "Actions Launch Client id" "actions-launch-client-id" "secrets.launch.client-id"
   backup-secret "Actions Launch Client secret" "actions-launch-client-secret" "secrets.launch.client-secret"
@@ -114,6 +113,9 @@ if ghe-ssh "$host" -- ghe-config --true app.actions.enabled; then
   backup-secret "Actions Launch action runner secret" "actions-launch-action-runner-secret" "secrets.launch.action-runner-secret"
   backup-secret "Actions Launch service cert" "actions-launch-azp-app-cert" "secrets.launch.azp-app-cert"
   backup-secret "Actions Launch service private key" "actions-launch-app-app-private-key" "secrets.launch.azp-app-private-key"
+
+  backup-secret "Actions Kredz HMAC key" "actions-kredz-hmac" "secrets.kredz.credz-hmac-secret"
+  backup-secret "Actions Kredz relay id" "actions-kredz-app-relay-id" "secrets.kredz.app-relay-id"
 fi
 
 if ghe-ssh "$host" -- ghe-config --true app.packages.enabled; then

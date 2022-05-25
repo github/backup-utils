@@ -63,7 +63,7 @@ touch "incomplete"
 # Exit early if the snapshot filesystem doesn't support hard links, symlinks and
 # if rsync doesn't support hardlinking of dangling symlinks
 trap 'rm -rf src dest1 dest2' EXIT
-mkdir src
+mkdir -p src
 touch src/testfile
 if ! ln -s /data/does/not/exist/hooks/ src/ >/dev/null 2>&1; then
   echo "Error: the filesystem containing $GHE_DATA_DIR does not support symbolic links." 1>&2

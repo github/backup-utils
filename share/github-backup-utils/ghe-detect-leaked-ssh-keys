@@ -69,6 +69,7 @@ if [ -L "$GHE_DATA_DIR/current" ]; then
 fi
 
 leaked_keys_found=false
+leaked_keys_skippedcheck=false
 current_bkup=false
 for tar_file in $ssh_tars; do
   for key in $keys; do
@@ -79,7 +80,9 @@ for tar_file in $ssh_tars; do
       else
         fingerprint=$(ssh-keygen -lf $TEMPDIR/$key | cut -d ' ' -f 2)
       fi
-      if echo "$FINGERPRINT_BLACKLIST" | grep -q "$fingerprint"; then
+      if [ -z "$fingerprint" ]; then
+        leaked_keys_skippedcheck=true
+      elif echo "$FINGERPRINT_BLACKLIST" | grep -q "$fingerprint"; then
         leaked_keys_found=true
         if [ "$current_dir" == "$(dirname "$tar_file")" ]; then
           current_bkup=true
@@ -126,7 +129,11 @@ if $leaked_keys_found; then
     echo
   fi
 else
-  echo "* No leaked keys found"
+  if $leaked_keys_skippedcheck; then
+    echo "* No result - check not performed since host key fingerprint was empty"
+  else
+    echo "* No leaked keys found"
+  fi
 fi
 
 # Cleanup temp dir

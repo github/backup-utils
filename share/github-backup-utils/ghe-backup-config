@@ -334,7 +334,12 @@ ssh_host_part() {
 # This is used primarily to break hostspecs with non-standard ports down for
 # rsync commands.
 ssh_port_part() {
-  [ "${1##*:}" = "$1" ] && echo 22 || echo "${1##*:}"
+  if [ "${1##*:}" != "$1" ] && [ "${1##*:}" -ne "122" ]; then
+    echo "Error: SSH port has to be 122 connecting to Github Enterprise Server, current value is ${1##*:} for $1." 1>&2
+    exit 1
+  fi
+
+  echo 122
 }
 
 # Usage: ghe_remote_logger <message>...

@@ -1,5 +1,78 @@
-github-backup-utils (3.1.0) UNRELEASED; urgency=medium
+github-backup-utils (3.5.0) UNRELEASED; urgency=medium
 
+  * Simplify complex redirects for ghe-rsync #881
+  * On restore failure, restart cron on target host #883
+
+ -- Bon Sohi<bonsohi@github.com>  Thu, 12 May 2022 21:06:56 +0000
+
+github-backup-utils (3.4.1) UNRELEASED; urgency=medium
+
+  * Simplify complex redirects for ghe-rsync #881
+  * On restore failure, restart cron on target host #883
+
+ -- Donal Ellis <donal@github.com>  Fri, 22 Apr 2022 04:00:00 +0000
+
+github-backup-utils (3.3.2) UNRELEASED; urgency=medium
+
+  * Simplify complex redirects for ghe-rsync #881
+  * On restore failure, restart cron on target host #883
+
+ -- Donal Ellis <donal@github.com>  Fri, 22 Apr 2022 00:53:45 +0000
+
+github-backup-utils (3.4.0) UNRELEASED; urgency=medium
+
+  * Add anchor to usage doc for settings restore #865
+
+ -- Steve Culver <steveculver@github.com>  Tue, 15 Feb 2022 19:25:09 +0000
+
+github-backup-utils (3.3.1) UNRELEASED; urgency=medium
+
+  * Fix compat issue with ghe-actions-start during maintenance mode #836
+
+ -- Balwinder Sohi <bonsohi@github.com>  Tue, 21 Dec 2021 23:38:01 +0000
+
+github-backup-utils (3.3.0) UNRELEASED; urgency=medium
+
+ -- Balwinder Sohi <bonsohi@github.com>  Wed, 08 Dec 2021 03:12:53 +0000
+
+github-backup-utils (3.3.0.rc1) UNRELEASED; urgency=medium
+
+ -- Nick Iodice <nick-iodice@github.com>  Tue, 09 Nov 2021 19:56:08 +0000
+
+github-backup-utils (3.2.0) UNRELEASED; urgency=medium
+
+ -- Brett Westover <bwestover@github.com>  Tue, 28 Sep 2021 16:50:00 +0000
+
+github-backup-utils (3.2.0.rc3) UNRELEASED; urgency=medium
+
+  * Move GitHub Connect reset to after ghe-config-apply #783
+
+ -- Brett Westover <bwestover@github.com>  Fri, 17 Sep 2021 00:44:59 +0000
+
+github-backup-utils (3.2.0.rc1) UNRELEASED; urgency=medium
+
+  * Leaked host key check: Avoid false positives from FIPS mode #748
+  * Always restore user-password-secrets #762
+  * Make some of the actions setting best effort #767
+  * Remove reference to `ghe-cluster-cleanup-nodes` #768
+  * Stop/Restart Actions in ghe-restore #769
+  * Clear GitHub Connect settings when not restoring settings #770
+  * GitHub Connect Reset Issue #776
+
+ -- Brett Westover <bwestover@github.com>  Fri, 10 Sep 2021 20:10:07 +0000
+
+github-backup-utils (3.2.0) UNRELEASED; urgency=medium
+
+  * Leaked host key check: Avoid false positives from FIPS mode #748
+  * Always restore user-password-secrets #762
+  * Make some of the actions setting best effort #767
+  * Remove reference to `ghe-cluster-cleanup-nodes` #768
+  * Stop/Restart Actions in ghe-restore #769
+  * Clear GitHub Connect settings when not restoring settings #770
+
+ -- Brett Westover <bwestover@github.com>  Thu, 09 Sep 2021 16:42:24 +0000
+
+github-backup-utils (3.1.0) UNRELEASED; urgency=medium
 
  -- Zachary Mark <zachary-mark@github.com>  Thu, 03 Jun 2021 16:55:16 +0000
 

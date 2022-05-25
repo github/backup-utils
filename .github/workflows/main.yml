@@ -6,7 +6,7 @@ jobs:
   build:
     strategy:
       matrix:
-        os: ['ubuntu-20.04', 'ubuntu-18.04', 'ubuntu-16.04', 'macos-latest']
+        os: ['ubuntu-20.04', 'ubuntu-18.04', 'macos-latest']
       fail-fast: false
     runs-on: ${{ matrix.os }}
     steps:
@@ -21,7 +21,6 @@ jobs:
     - name: Install Dependencies (macOS)
       run: |
         brew install gnu-tar shellcheck jq pigz coreutils gnu-sed gnu-getopt
-        brew unlink parallel
         brew install moreutils gawk
       if: matrix.os == 'macos-latest'
     - name: Get Sources

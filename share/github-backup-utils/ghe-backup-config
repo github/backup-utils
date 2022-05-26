@@ -232,7 +232,7 @@ export GHE_SNAPSHOT_DIR
 # Set "true" to get verbose logging of all ssh commands on stderr
 : ${GHE_VERBOSE_SSH:=false}
 
-# The location of the cluster configuration file file on the remote side.
+# The location of the cluster configuration file on the remote side.
 # This is always "/data/user/common/cluster.conf" for GitHub Cluster instances.
 # Use of this variable allows the location to be overridden in tests.
 : ${GHE_REMOTE_CLUSTER_CONF_FILE:="$GHE_REMOTE_DATA_DIR/user/common/cluster.conf"}

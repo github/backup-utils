@@ -115,7 +115,6 @@ if ghe-ssh "$host" -- ghe-config --true app.actions.enabled; then
   backup-secret "Actions Launch service private key" "actions-launch-app-app-private-key" "secrets.launch.azp-app-private-key"
 
   backup-secret "Actions Kredz HMAC key" "actions-kredz-hmac" "secrets.kredz.credz-hmac-secret"
-  backup-secret "Actions Kredz relay id" "actions-kredz-app-relay-id" "secrets.kredz.app-relay-id"
 fi
 
 if ghe-ssh "$host" -- ghe-config --true app.packages.enabled; then

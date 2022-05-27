@@ -508,7 +508,6 @@ begin_test "ghe-backup takes backup of Actions settings"
     "secrets.launch.azp-app-private-key"
 
     "secrets.kredz.credz-hmac-secret"
-    "secrets.kredz.app-relay-id"
   )
 
   # these 5 were removed in later versions, so we extract them as best effort

@@ -348,7 +348,6 @@ begin_test "ghe-restore with Actions settings"
     "actions-launch-app-app-private-key"
 
     "secrets.kredz.credz-hmac-secret"
-    "secrets.kredz.app-relay-id"
   )
 
   for file in "${required_files[@]}"; do
@@ -391,7 +390,6 @@ begin_test "ghe-restore with Actions settings"
     "secrets.launch.azp-app-private-key"
 
     "secrets.kredz.credz-hmac-secret"
-    "secrets.kredz.app-relay-id"
   )
 
   for secret in "${required_secrets[@]}"; do

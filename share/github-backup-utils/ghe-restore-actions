@@ -86,7 +86,6 @@ restore-secret "Actions Launch token oauth key" "actions-oauth-s2s-signing-key" 
 restore-secret "Actions Launch token oauth cert" "actions-oauth-s2s-signing-cert" "secrets.launch.token-oauth-cert"
 
 restore-secret "Actions Kredz HMAC key" "actions-kredz-hmac" "secrets.kredz.credz-hmac-secret"
-restore-secret "Actions Kredz app relay id" "actions-kredz-app-relay-id" "secrets.kredz.app-relay-id"
 
 # Setup the database logins.
 ghe_verbose "* Restoring database logins and users to $host ..."

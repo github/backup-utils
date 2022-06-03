@@ -20,7 +20,7 @@ jobs:
       if: matrix.os != 'macos-latest'
     - name: Install Dependencies (macOS)
       run: |
-        brew install gnu-tar shellcheck jq pigz coreutils gnu-sed gnu-getopt
+        brew install gnu-tar shellcheck jq pigz coreutils gnu-sed gnu-getopt wget
         brew install moreutils gawk
       if: matrix.os == 'macos-latest'
     - name: Get Sources

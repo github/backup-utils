@@ -120,6 +120,12 @@ setup_maintenance_mode () {
   mkdir -p "$GHE_REMOTE_DATA_USER_DIR/repositories"
 }
 
+# Moves the instance out of maintenance mode.
+disable_maintenance_mode () {
+  # Remove file used to determine if instance is in maintenance mode.
+  rm "$GHE_REMOTE_DATA_DIR/github/current/public/system/maintenance.html"
+}
+
 # Mark the beginning of a test. A subshell should immediately follow this
 # statement.
 begin_test () {

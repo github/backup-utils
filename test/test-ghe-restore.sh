@@ -410,6 +410,25 @@ begin_test "ghe-restore stops and starts Actions"
   echo "$output" | grep -q "ghe-actions-stop .* OK"
   echo "$output" | grep -q "ghe-actions-start .* OK"
 )
+end_test
+
+begin_test "ghe-restore does not attempt to start Actions during cleanup if they never have been stopped"
+(
+  set -e
+  rm -rf "$GHE_REMOTE_ROOT_DIR"
+  setup_remote_metadata
+  enable_actions
+
+  setup_maintenance_mode "configured"
+  # We are not in maintance mode which means that we don't stop Actions and abort early.
+  disable_maintenance_mode
+
+  ! output=$(ghe-restore -v -f localhost 2>&1)
+
+  ! echo "$output" | grep -q "ghe-actions-stop"
+  ! echo "$output" | grep -q "ghe-actions-start"
+)
+end_test
 
 begin_test "ghe-restore with Actions data"
 (

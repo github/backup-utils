@@ -120,7 +120,7 @@ cat $tmp_list | ghe_debug
 bm_end "$(basename $0) - Transferring network list"
 
 bm_start "$(basename $0) - Generating routes"
-echo "cat $remote_tmp_list | github-env ./bin/dgit-cluster-restore-routes | grep 'git-server-' > $remote_routes_list" | ghe-ssh "$GHE_HOSTNAME" -- /bin/bash
+echo "cat $remote_tmp_list | ghe-spokesctl backup-utils restore-routes | grep 'git-server-' > $remote_routes_list" | ghe-ssh "$GHE_HOSTNAME" -- /bin/bash
 ghe-ssh "$GHE_HOSTNAME" -- cat $remote_routes_list | ghe_debug
 bm_end "$(basename $0) - Generating routes"
 

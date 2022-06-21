@@ -1,4 +1,4 @@
-# GitHub Enterprise Server Backup Utilities
+# **GitHub Enterprise Server Backup Utilities**
 
 This repository includes backup and recovery utilities for
 [GitHub Enterprise Server][1].
@@ -8,7 +8,7 @@ This repository includes backup and recovery utilities for
 **Note**: the [GitHub Enterprise Server version requirements][2] have
 changed starting with Backup Utilities v2.13.0, released on 27 March 2018.
 
-### Features
+### **Features**
 
 Backup Utilities implement a number of advanced capabilities for backup
 hosts, built on top of the backup and restore features already included in
@@ -29,7 +29,7 @@ GitHub Enterprise Server.
  - Runs under most Linux/Unix environments.
  - MIT licensed, open source software maintained by GitHub, Inc.
 
-### Documentation
+### **Documentation**
 
 - **[Requirements](docs/requirements.md)**
   - **[Backup host requirements](docs/requirements.md#backup-host-requirements)**
@@ -42,7 +42,7 @@ GitHub Enterprise Server.
 - **[How does Backup Utilities differ from a High Availability replica?](docs/faq.md)**
 - **[Docker](docs/docker.md)**
 
-### Support
+### **Support**
 
 If you find a bug or would like to request a feature in Backup Utilities, please
 open an issue or pull request on this repository. If you have a question related

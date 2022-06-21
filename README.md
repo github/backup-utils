@@ -44,11 +44,11 @@ GitHub Enterprise Server.
 
 ### **Support**
 
-If you find a bug or would like to request a feature in Backup Utilities, please
-open an issue or pull request on this repository. If you have a question related
-to your specific GitHub Enterprise Server setup or would like assistance with
-backup site setup or recovery, please contact our [Enterprise support team][3]
-instead.
+If you find a bug or want to request the functionality of the backup utility,
+please open the issue at or submit a request for this repository. If you have a 
+question related to your specific GitHub Enterprise Server setup or would like 
+assistance with backup site setup or recovery, please contact our 
+[Enterprise support team][3] instead.
 
 [1]: https://github.com/enterprise
 [2]: docs/requirements.md#github-enterprise-version-requirements

@@ -76,6 +76,7 @@ backup-secret() {
 
 backup-secret "management console password" "manage-password" "secrets.manage"
 backup-secret "password pepper" "password-pepper" "secrets.github.user-password-secrets"
+backup-secret "Kredz credz HMAC key" "kredz-credz-hmac" "secrets.kredz.credz-hmac-secret"
 
 # Backup external MySQL password if running external MySQL DB.
 if is_service_external 'mysql'; then
@@ -113,8 +114,6 @@ if ghe-ssh "$host" -- ghe-config --true app.actions.enabled; then
   backup-secret "Actions Launch action runner secret" "actions-launch-action-runner-secret" "secrets.launch.action-runner-secret"
   backup-secret "Actions Launch service cert" "actions-launch-azp-app-cert" "secrets.launch.azp-app-cert"
   backup-secret "Actions Launch service private key" "actions-launch-app-app-private-key" "secrets.launch.azp-app-private-key"
-
-  backup-secret "Kredz credz HMAC key" "kredz-credz-hmac" "secrets.kredz.credz-hmac-secret"
 fi
 
 if ghe-ssh "$host" -- "test -f $GHE_REMOTE_DATA_USER_DIR/common/idp.crt"; then

@@ -470,6 +470,31 @@ begin_test "ghe-backup upgrades transaction backup to full if LSN chain break"
 )
 end_test
 
+begin_test "ghe-backup takes backup of Kredz settings"
+(
+  set -e
+
+  required_secrets=(
+    "secrets.kredz.credz-hmac-secret"
+  )
+
+  for secret in "${required_secrets[@]}"; do
+    ghe-ssh "$GHE_HOSTNAME" -- ghe-config "$secret" "foo"
+  done
+
+  ghe-backup
+
+  required_files=(
+    "kredz-credz-hmac"
+  )
+
+  for file in "${required_files[@]}"; do
+    [ "$(cat "$GHE_DATA_DIR/current/$file")" = "foo" ]
+  done
+
+)
+end_test
+
 begin_test "ghe-backup takes backup of Actions settings"
 (
   set -e
@@ -507,7 +532,6 @@ begin_test "ghe-backup takes backup of Actions settings"
     "secrets.launch.azp-app-cert"
     "secrets.launch.azp-app-private-key"
 
-    "secrets.kredz.credz-hmac-secret"
   )
 
   # these 5 were removed in later versions, so we extract them as best effort
@@ -551,7 +575,6 @@ begin_test "ghe-backup takes backup of Actions settings"
     "actions-launch-azp-app-cert"
     "actions-launch-app-app-private-key"
 
-    "kredz-credz-hmac"
   )
 
   # Add the one optional file we included tests for

@@ -6,7 +6,9 @@ After the initial backup, use the following commands:
    along with full snapshots of all other pertinent data stores.
  - The `ghe-restore` command restores snapshots to the same or separate GitHub
    Enterprise appliance. You must add the backup host's SSH key to the target
-   GitHub Enterprise Server appliance before using this command.
+   GitHub Enterprise Server appliance before using this command. 
+   Your Github appliance is ready to be replaced when you have reached the my.domain.name:8443/setup/settings page. 
+   (This is a very convenient location to use to upload the public SSH key for the backup host.)
 
 These commands are run on the host you [installed][1] Backup Utilities on.
 

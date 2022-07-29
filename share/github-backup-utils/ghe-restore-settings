@@ -41,6 +41,9 @@ restore-secret "external MySQL password" "external-mysql-password" "secrets.exte
 # Restore management console password hash if present.
 restore-secret "management console password" "manage-password" "secrets.manage"
 
+# Restore kredz.credz HMAC key if present.
+restore-secret "kredz.credz HMAC key" "kredz-credz-hmac" "secrets.kredz.credz-hmac-secret"
+
 # Restore SAML keys if present.
 if [ -f "$GHE_RESTORE_SNAPSHOT_PATH/saml-keys.tar" ]; then
   echo "Restoring SAML keys ..."

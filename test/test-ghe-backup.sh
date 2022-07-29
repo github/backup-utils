@@ -470,6 +470,31 @@ begin_test "ghe-backup upgrades transaction backup to full if LSN chain break"
 )
 end_test
 
+begin_test "ghe-backup takes backup of Kredz settings"
+(
+  set -e
+
+  required_secrets=(
+    "secrets.kredz.credz-hmac-secret"
+  )
+
+  for secret in "${required_secrets[@]}"; do
+    ghe-ssh "$GHE_HOSTNAME" -- ghe-config "$secret" "foo"
+  done
+
+  ghe-backup
+
+  required_files=(
+    "kredz-credz-hmac"
+  )
+
+  for file in "${required_files[@]}"; do
+    [ "$(cat "$GHE_DATA_DIR/current/$file")" = "foo" ]
+  done
+
+)
+end_test
+
 begin_test "ghe-backup takes backup of Actions settings"
 (
   set -e
@@ -493,7 +518,6 @@ begin_test "ghe-backup takes backup of Actions settings"
     "secrets.actions.SpsValidationCertThumbprint"
 
     "secrets.launch.actions-secrets-private-key"
-    "secrets.launch.credz-hmac-secret"
     "secrets.launch.deployer-hmac-secret"
     "secrets.launch.client-id"
     "secrets.launch.client-secret"
@@ -507,6 +531,7 @@ begin_test "ghe-backup takes backup of Actions settings"
     "secrets.launch.token-oauth-cert"
     "secrets.launch.azp-app-cert"
     "secrets.launch.azp-app-private-key"
+
   )
 
   # these 5 were removed in later versions, so we extract them as best effort
@@ -538,7 +563,6 @@ begin_test "ghe-backup takes backup of Actions settings"
     "actions-sps-validation-cert-thumbprint"
 
     "actions-launch-secrets-private-key"
-    "actions-launch-credz-hmac"
     "actions-launch-deployer-hmac"
     "actions-launch-client-id"
     "actions-launch-client-secret"
@@ -550,6 +574,7 @@ begin_test "ghe-backup takes backup of Actions settings"
     "actions-launch-action-runner-secret"
     "actions-launch-azp-app-cert"
     "actions-launch-app-app-private-key"
+
   )
 
   # Add the one optional file we included tests for

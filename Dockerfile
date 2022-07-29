@@ -1,4 +1,4 @@
-FROM debian:stretch-slim
+FROM debian:bullseye-slim
 
 RUN apt-get -q -y update && \
     apt-get install -y --no-install-recommends \

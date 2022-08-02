@@ -1,0 +1,24 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+
+  build-docker:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Build the Debian Docker image
+      run: docker build . --file Dockerfile --tag backup-utils-debian:$(date +%s)
+    - name: Build the Alpine Docker image
+      run: docker build . --file Dockerfile.alpine --tag backup-utils-alpine:$(date +%s)
+    - name: Run tests in Debian Docker image
+      run: docker run -it backup-utils-debian:$(date +%s) make test
+    - name: Run tests in Alpine Docker image
+      run: docker run -it backup-utils-alpine:$(date +%s) make test

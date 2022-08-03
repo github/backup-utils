@@ -19,6 +19,6 @@ jobs:
     - name: Build the Alpine Docker image
       run: docker build . --file Dockerfile.alpine --tag backup-utils-alpine:$(date +%s)
     - name: Run tests in Debian Docker image
-      run: docker run -it backup-utils-debian:$(date +%s) make test
+      run: docker run backup-utils-debian:$(date +%s) script/cibuild --no-package
     - name: Run tests in Alpine Docker image
-      run: docker run -it backup-utils-alpine:$(date +%s) make test
+      run: docker run backup-utils-alpine:$(date +%s) script/cibuild --no-package

@@ -15,10 +15,10 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Build the Debian Docker image
-      run: docker build . --file Dockerfile --tag backup-utils-debian:$(date +%s)
+      run: docker build . --file Dockerfile --tag backup-utils-debian:${{ env. GITHUB_RUN_ID }}
     - name: Build the Alpine Docker image
-      run: docker build . --file Dockerfile.alpine --tag backup-utils-alpine:$(date +%s)
+      run: docker build . --file Dockerfile.alpine --tag backup-utils-alpine:${{ env. GITHUB_RUN_ID }}
     - name: Run tests in Debian Docker image
-      run: docker run backup-utils-debian:$(date +%s) script/cibuild --no-package
+      run: docker run backup-utils-debian:${{ env. GITHUB_RUN_ID }} script/cibuild --no-package
     - name: Run tests in Alpine Docker image
-      run: docker run backup-utils-alpine:$(date +%s) script/cibuild --no-package
+      run: docker run backup-utils-alpine:${{ env. GITHUB_RUN_ID }} script/cibuild --no-package

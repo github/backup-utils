@@ -287,8 +287,8 @@ RELEASE_VERSION=$(ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config --get core.package-vers
 
 # If the backup being restored is from an appliance with Actions disabled, restoring it onto an appliance with Actions enabled will cause
 # mismatches in the secrets needed for Actions which ultimately results in Actions not working properly. Note: xargs is to remove whitespace
-ACTIONS_ENABLED_IN_BACKUP=$(git config -f $GHE_RESTORE_SNAPSHOT_PATH/settings.json app.actions.enabled | xargs)
-if [[ $ACTIONS_ENABLED_IN_BACKUP != "true" ]] && ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config --true app.actions.enabled'; then
+ACTIONS_ENABLED_IN_BACKUP=$(git config -f $GHE_RESTORE_SNAPSHOT_PATH/settings.json --bool app.actions.enabled | xargs)
+if [[ $ACTIONS_ENABLED_IN_BACKUP != true ]] && ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config --true app.actions.enabled'; then
     echo "Error: Restoring a backup with Actions disabled onto an appliance with Actions enabled is not supported." >&2
     exit 1
 fi

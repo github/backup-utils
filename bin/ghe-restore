@@ -285,17 +285,17 @@ fi
 # Get GHES release version in major.minor format
 RELEASE_VERSION=$(ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config --get core.package-version' | cut -d '.' -f 1,2)
 
-
 # If the backup being restored is from an appliance with Actions disabled, restoring it onto an appliance with Actions enabled will cause
 # mismatches in the secrets needed for Actions which ultimately results in Actions not working properly.
-ACTIONS_ENABLED_IN_BACKUP=$(git config -f $GHE_RESTORE_SNAPSHOT_PATH/settings.json --list | tr . _ | grep "app_actions_enabled" | awk -F"=" '{ print $2 }')
+ACTIONS_ENABLED_IN_BACKUP=$(git config -f $GHE_RESTORE_SNAPSHOT_PATH/settings.json --list | grep "app.actions.enabled" | xargs)
+# Get the value of app.actions.enabled
+ACTIONS_ENABLED_IN_BACKUP=${ACTIONS_ENABLED_IN_BACKUP#*=}
 # If ACTIONS_ENABLED_IN_BACKUP is still empty, then set it to the default value of "false"
-ACTIONS_ENABLED_IN_BACKUP=${ACTIONS_ENABLED_IN_BACKUP:-false}
+ACTIONS_ENABLED_IN_BACKUP=${ACTIONS_ENABLED_IN_BACKUP:-"false"}
 if [[ $ACTIONS_ENABLED_IN_BACKUP == "false" ]] && ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config --true app.actions.enabled'; then
     echo "Error: Restoring a backup with Actions disabled onto an appliance with Actions enabled is not supported." >&2
     exit 1
 fi
-
 
 # Make sure the GitHub appliance has Actions enabled if the snapshot contains Actions data.
 # If above is true, also check if ac is present in appliance then snapshot should also contains ac databases

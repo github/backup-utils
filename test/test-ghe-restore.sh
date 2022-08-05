@@ -290,7 +290,6 @@ begin_test "ghe-restore invokes ghe-import-mssql"
   rm -rf "$GHE_REMOTE_ROOT_DIR"
   setup_remote_metadata
   enable_actions
-  setup_actions_enabled_settings_for_restore true
 
   # enable maintenance mode and create required directories
   setup_maintenance_mode
@@ -317,7 +316,6 @@ begin_test "ghe-restore with Actions settings"
   rm -rf "$GHE_REMOTE_ROOT_DIR"
   setup_remote_metadata
   enable_actions
-  setup_actions_enabled_settings_for_restore true
 
   required_files=(
     "actions-config-db-login"
@@ -405,7 +403,6 @@ begin_test "ghe-restore stops and starts Actions"
   rm -rf "$GHE_REMOTE_ROOT_DIR"
   setup_remote_metadata
   enable_actions
-  setup_actions_enabled_settings_for_restore true
 
   setup_maintenance_mode "configured"
 
@@ -440,7 +437,6 @@ begin_test "ghe-restore with Actions data"
   rm -rf "$GHE_REMOTE_ROOT_DIR"
   setup_remote_metadata
   enable_actions
-  setup_actions_enabled_settings_for_restore true
 
   setup_maintenance_mode "configured"
 

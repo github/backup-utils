@@ -312,7 +312,7 @@ setup_test_data () {
     echo "fake ghe-export-authorized-keys data" > "$loc/authorized-keys.json"
     echo "fake ghe-export-ssh-host-keys data" > "$TRASHDIR/ssh-host-keys"
     tar -C $TRASHDIR -cf "$loc/ssh-host-keys.tar" ssh-host-keys
-    echo "fake ghe-export-settings data" > "$loc/settings.json"
+    echo "[fake ghe-export-settings data]" > "$loc/settings.json"
     echo "fake ghe-export-ssl-ca-certificates data" > "$loc/ssl-ca-certificates.tar"
     echo "fake license data" > "$loc/enterprise.ghl"
     echo "fake password hash data" > "$loc/manage-password"

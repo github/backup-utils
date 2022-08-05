@@ -598,9 +598,5 @@ cleanup_moreutils_parallel() {
 # setup_actions_enabled_in_settings_json writes settings for the Actions app to settings.json
 # it accepts true or false as first argument to enable or disable actions in settings.json
 setup_actions_enabled_settings_for_restore() {
-  echo "
-  [app \"actions\"]
-	enabled = $1
-	setup-failures-detected = false
-  " > "$GHE_DATA_DIR/1/settings.json"
+  git config -f "$GHE_DATA_DIR/1/settings.json" --bool app.actions.enabled $1
 }

@@ -6,7 +6,7 @@
 . "$(dirname "$0")/testlib.sh"
 
 setup_test_data "$GHE_DATA_DIR/1"
-setup_actions_enabled_settings_for_restore true
+setup_actions_enabled_in_settings_json true
 
 # Make the current symlink
 ln -s 1 "$GHE_DATA_DIR/current"
@@ -289,7 +289,6 @@ begin_test "ghe-restore invokes ghe-import-mssql"
   set -e
   rm -rf "$GHE_REMOTE_ROOT_DIR"
   setup_remote_metadata
-  setup_actions_enabled_in_settings_json true
   enable_actions
 
   # enable maintenance mode and create required directories
@@ -316,7 +315,6 @@ begin_test "ghe-restore with Actions settings"
   set -e
   rm -rf "$GHE_REMOTE_ROOT_DIR"
   setup_remote_metadata
-  setup_actions_enabled_in_settings_json true
   enable_actions
 
   required_files=(
@@ -438,7 +436,6 @@ begin_test "ghe-restore with Actions data"
   set -e
   rm -rf "$GHE_REMOTE_ROOT_DIR"
   setup_remote_metadata
-  setup_actions_enabled_in_settings_json true
   enable_actions
 
   setup_maintenance_mode "configured"
@@ -710,10 +707,10 @@ begin_test "ghe-restore fails if Actions is disabled in the backup but enabled o
   set -e
   rm -rf "$GHE_REMOTE_ROOT_DIR"
   setup_remote_metadata
+  setup_actions_enabled_in_settings_json false
+  enable_actions
 
   setup_maintenance_mode "configured"
-
-  setup_actions_enabled_in_settings_json false
 
   ! ghe-restore -v -f localhost
 )

@@ -600,7 +600,7 @@ cleanup_moreutils_parallel() {
 setup_actions_enabled_in_settings_json() {
   echo "
   [app \"actions\"]
-	  enabled = ${$1}
+	  enabled = $1
 	  setup-failures-detected = false
   " >> "$loc/settings.json"
 }

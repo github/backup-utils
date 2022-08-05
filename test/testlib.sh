@@ -600,7 +600,7 @@ cleanup_moreutils_parallel() {
 setup_actions_enabled_settings_for_restore() {
   echo "
   [app \"actions\"]
-	  enabled = $1
-	  setup-failures-detected = false
-  " >> "$GHE_DATA_DIR/1/settings.json"
+	enabled = $1
+	setup-failures-detected = false
+  " > "$GHE_DATA_DIR/1/settings.json"
 }

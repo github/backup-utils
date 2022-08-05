@@ -291,7 +291,6 @@ begin_test "ghe-restore invokes ghe-import-mssql"
   setup_remote_metadata
   enable_actions
   setup_actions_enabled_settings_for_restore true
-  echo "$GHE_DATA_DIR/1/settings.json"
 
   # enable maintenance mode and create required directories
   setup_maintenance_mode

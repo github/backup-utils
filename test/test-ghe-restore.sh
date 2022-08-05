@@ -6,7 +6,7 @@
 . "$(dirname "$0")/testlib.sh"
 
 setup_test_data "$GHE_DATA_DIR/1"
-setup_actions_enabled_in_settings_json true
+setup_actions_enabled_settings_for_restore true
 
 # Make the current symlink
 ln -s 1 "$GHE_DATA_DIR/current"
@@ -707,7 +707,7 @@ begin_test "ghe-restore fails if Actions is disabled in the backup but enabled o
   set -e
   rm -rf "$GHE_REMOTE_ROOT_DIR"
   setup_remote_metadata
-  setup_actions_enabled_in_settings_json false
+  setup_actions_enabled_settings_for_restore false
   enable_actions
 
   setup_maintenance_mode "configured"

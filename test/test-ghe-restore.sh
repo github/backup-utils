@@ -289,6 +289,7 @@ begin_test "ghe-restore invokes ghe-import-mssql"
   set -e
   rm -rf "$GHE_REMOTE_ROOT_DIR"
   setup_remote_metadata
+  setup_actions_enabled_settings_for_restore true
   enable_actions
 
   # enable maintenance mode and create required directories

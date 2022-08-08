@@ -594,3 +594,11 @@ cleanup_moreutils_parallel() {
     unlink "$ROOTDIR/test/bin/parallel"
   fi
 }
+
+# setup_actions_enabled_in_settings_json writes settings for the Actions app to settings.json
+# it accepts true or false as first argument to enable or disable actions in settings.json
+setup_actions_enabled_settings_for_restore() {
+  # Empty the file, it now contains "fake ghe-export-settings data"
+  echo > "$GHE_DATA_DIR/1/settings.json"
+  git config -f "$GHE_DATA_DIR/1/settings.json" --bool app.actions.enabled $1
+}

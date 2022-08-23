@@ -28,6 +28,12 @@ prefix="$2"
 role=$(echo "$prefix" | cut -d '-' -f1)
 
 if ghe-ssh "$GHE_HOSTNAME" test -f $GHE_REMOTE_ROOT_DIR/etc/github/cluster; then
+  test_output=$(ghe-ssh "GHE_HOSTNAME" ls -lah /)
+  echo $test_output
+
+  test_output=$(ghe-ssh "GHE_HOSTNAME" ls -lah /usr/local/bin)
+  echo $test_output
+
   node_uuids=$(ghe-ssh "$GHE_HOSTNAME" /usr/local/bin/ghe-cluster-nodes -r "$role" -u | cut -f 2)
   hostnames=''
   for uuid in $node_uuids; do

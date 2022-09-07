@@ -7,7 +7,7 @@ set -e
 for _ in "$@"; do
   case "$1" in
     -r|--role)
-        MATCH_ROLE=$2
+        ROLE=$2
         shift
         ;;
     -u|--uuid)

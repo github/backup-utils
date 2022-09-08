@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# ghe-cluster-nodes command tests
+# ghe-cluster-find-nodes command tests
 
 # Bring in testlib
 # shellcheck source=test/testlib.sh
@@ -14,25 +14,25 @@ export GHE_DATA_DIR GHE_REMOTE_DATA_DIR
 mkdir -p "$GHE_REMOTE_DATA_USER_DIR/common"
 echo "fake-uuid" > "$GHE_REMOTE_DATA_USER_DIR/common/uuid"
 
-begin_test "ghe-cluster-nodes should return both uuids for git-server"
+begin_test "ghe-cluster-find-nodes should return both uuids for git-server"
 (
   set -e
   setup_remote_cluster
 
-  output="$(ghe-cluster-nodes "$GHE_HOSTNAME" "git-server")"
+  output="$(ghe-cluster-find-nodes "$GHE_HOSTNAME" "git-server")"
   echo "$output"
   [ "git-server-fake-uuid git-server-fake-uuid1 git-server-fake-uuid2 " = "$output" ]
 )
 end_test
 
-begin_test "ghe-cluster-nodes should return one uuid for a single node"
+begin_test "ghe-cluster-find-nodes should return one uuid for a single node"
 (
   set -e
 
   # Ensure not a cluster
   rm -rf "$GHE_REMOTE_ROOT_DIR/etc/github/cluster"
 
-  output="$(ghe-cluster-nodes "$GHE_HOSTNAME" "git-server")"
+  output="$(ghe-cluster-find-nodes "$GHE_HOSTNAME" "git-server")"
   echo "$output"
   [ "git-server-fake-uuid" = "$output" ]
 )

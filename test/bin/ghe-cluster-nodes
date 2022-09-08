@@ -21,15 +21,21 @@ CONFIG="$GHE_REMOTE_DATA_USER_DIR/common/cluster.conf"
 
 hosts=$(git config -f $CONFIG --get-regexp cluster.*.hostname | cut -d ' ' -f2)
 
-for hostname in $hosts; do
-    [ -n "$MATCH_ROLE" ] && [ "$(git config -f $CONFIG cluster.$hostname.$MATCH_ROLE-server)" != "true" ] && continue
+if $PRINT_UUIDS; then
+  CONFIG="$GHE_REMOTE_DATA_USER_DIR/common/cluster.conf"
 
-    print_line="$hostname"
+  hosts=$(git config -f $CONFIG --get-regexp cluster.*.hostname | cut -d ' ' -f2)
 
-    if [ -n "$PRINT_UUIDS" ]; then
-        uuid="$(ghe-config cluster.$hostname.uuid || true)"
-        print_line="$print_line\t$uuid"
-    fi
-
-    echo -e "${print_line#\\t}"
-done
+  if [ -z "$hosts" ]; then
+    # Mimic `ghe-cluster-each $role -u`
+    echo "fake-uuid
+  fake-uuid1
+  fake-uuid2
+  "
+  else
+    for hostname in $hosts; do
+      [ -n "$ROLE" ] && [ "$(git config -f $CONFIG cluster.$hostname.$ROLE-server)" != "true" ] && continue
+      echo $hostname
+    done
+  fi
+fi

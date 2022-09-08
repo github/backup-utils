@@ -19,12 +19,12 @@ done
 
 CONFIG="$GHE_REMOTE_DATA_USER_DIR/common/cluster.conf"
 
-hosts=$(git config -f $CONFIG --get-regexp cluster.*.hostname | cut -d ' ' -f2)
+hosts=$(git config -f "$CONFIG" --get-regexp cluster.*.hostname | cut -d ' ' -f2)
 
 if $PRINT_UUIDS; then
   CONFIG="$GHE_REMOTE_DATA_USER_DIR/common/cluster.conf"
 
-  hosts=$(git config -f $CONFIG --get-regexp cluster.*.hostname | cut -d ' ' -f2)
+  hosts=$(git config -f "$CONFIG" --get-regexp cluster.*.hostname | cut -d ' ' -f2)
 
   if [ -z "$hosts" ]; then
     # Mimic `ghe-cluster-each $role -u`
@@ -34,8 +34,8 @@ if $PRINT_UUIDS; then
   "
   else
     for hostname in $hosts; do
-      [ -n "$ROLE" ] && [ "$(git config -f $CONFIG cluster.$hostname.$ROLE-server)" != "true" ] && continue
-      echo $hostname
+      [ -n "$ROLE" ] && [ "$(git config -f "$CONFIG" cluster."$hostname"."$ROLE"-server)" != "true" ] && continue
+      echo "$hostname"
     done
   fi
 fi

@@ -22,7 +22,7 @@
     * Backup Utilities will attempt to load the backup configuration from the following
       locations, in this order:
 
-      ```
+      ```bash
       $GHE_BACKUP_CONFIG (User configurable environment variable)
       $GHE_BACKUP_ROOT/backup.config (Root directory of backup-utils install)
       $HOME/.github-backup-utils/backup.config

@@ -32,7 +32,7 @@
       with the `-i <abs path to private key>` SSH option.
 
  3. Add the backup host's SSH key to the GitHub appliance as an *Authorized SSH
-    key*. See [Adding an SSH key for shell access][4] for instructions.
+    key*. See [Adding your SSH key to the ssh-agent][4] for instructions.
 
  4. Run `bin/ghe-host-check` to verify SSH connectivity with the GitHub
     appliance.
@@ -42,4 +42,4 @@
 [1]: https://github.com/github/backup-utils/releases
 [2]: https://github.com/github/backup-utils/releases/tag/v2.11.4
 [3]: https://github.com/github/enterprise-backup-site/blob/master/backup.config-example
-[4]: https://enterprise.github.com/help/articles/adding-an-ssh-key-for-shell-access
+[4]: https://docs.github.com/en/enterprise-server@3.6/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent#adding-your-ssh-key-to-the-ssh-agent

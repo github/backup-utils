@@ -42,4 +42,4 @@
 [1]: https://github.com/github/backup-utils/releases
 [2]: https://github.com/github/backup-utils/releases/tag/v2.11.4
 [3]: https://github.com/github/enterprise-backup-site/blob/master/backup.config-example
-[4]: https://docs.github.com/en/enterprise-server@3.6/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent#adding-your-ssh-key-to-the-ssh-agent
+[4]: https://docs.github.com/enterprise-server/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent#adding-your-ssh-key-to-the-ssh-agent

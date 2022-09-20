@@ -249,7 +249,6 @@ fi
 
 # Log restore start message locally and in /var/log/syslog on remote instance
 START_TIME=$(date +%s)
-logInfo 'Start time:' $START_TIME
 logInfo "Starting restore of $GHE_HOSTNAME with backup-utils v$BACKUP_UTILS_VERSION from snapshot $GHE_RESTORE_SNAPSHOT"
 ghe_remote_logger "Starting restore from $(hostname) with backup-utils v$BACKUP_UTILS_VERSION / snapshot $GHE_RESTORE_SNAPSHOT ..."
 
@@ -575,7 +574,6 @@ else
 fi
 
 END_TIME=$(date +%s)
-logInfo 'End time:' $END_TIME
 logInfo 'Runtime:' $(($END_TIME - $START_TIME)) 'seconds'
 
 logInfo "Restore of $GHE_HOSTNAME from snapshot $GHE_RESTORE_SNAPSHOT finished."

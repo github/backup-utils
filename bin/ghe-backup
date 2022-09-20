@@ -141,7 +141,6 @@ echo "$GHE_SNAPSHOT_TIMESTAMP $$" > ../in-progress
 
 START_TIME=$(date +%s)
 echo 'Start time:' $START_TIME
-
 echo "Starting backup of $GHE_HOSTNAME with backup-utils v$BACKUP_UTILS_VERSION in snapshot $GHE_SNAPSHOT_TIMESTAMP"
 
 # Perform a host connection check and establish the remote appliance version.
@@ -257,6 +256,10 @@ if [ -z "$failures" ]; then
   ghe-prune-snapshots
 fi
 
+END_TIME=$(date +%s)
+echo 'End time:' $END_TIME
+echo 'Runtime:' $(($END_TIME - $START_TIME)) 'seconds'
+
 echo "Completed backup of $GHE_HOSTNAME in snapshot $GHE_SNAPSHOT_TIMESTAMP at $(date +"%H:%M:%S")"
 
 # Exit non-zero and list the steps that failed.
@@ -272,10 +275,6 @@ fi
 # Detect if the created backup contains any leaked ssh keys
 echo "Checking for leaked ssh keys ..."
 ghe-detect-leaked-ssh-keys -s "$GHE_SNAPSHOT_DIR" || true
-
-END_TIME=$(date +%s)
-echo 'End time:' $END_TIME
-echo 'Runtime:' $(($END_TIME - $START_TIME)) 'seconds'
 
 # Make sure we exit zero after the conditional
 true

@@ -574,7 +574,7 @@ else
 fi
 
 END_TIME=$(date +%s)
-logInfo 'Runtime:' $(($END_TIME - $START_TIME)) 'seconds'
+logInfo "Runtime: $(($END_TIME-$START_TIME)) seconds"
 
 logInfo "Restore of $GHE_HOSTNAME from snapshot $GHE_RESTORE_SNAPSHOT finished."
 

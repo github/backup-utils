@@ -260,8 +260,7 @@ fi
 logInfo "Completed backup of $GHE_HOSTNAME in snapshot $GHE_SNAPSHOT_TIMESTAMP at $(date +"%H:%M:%S")"
 
 END_TIME=$(date +%s)
-logInfo 'Runtime:' $(($END_TIME - $START_TIME)) 'seconds'
-
+logInfo "Runtime: $(($END_TIME-$START_TIME)) seconds"
 
 # Exit non-zero and list the steps that failed.
 if [ -z "$failures" ]; then

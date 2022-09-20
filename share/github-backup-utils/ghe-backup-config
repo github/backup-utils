@@ -342,6 +342,23 @@ ssh_port_part() {
   echo 122
 }
 
+# Usage: logInfo "Message"
+# Logging functions
+logCommon(){
+        local logLevel=$1
+        local message=$2
+        echo "`date +\"%Y-%m-%d %T\"` - $logLevel - $message"
+}
+logInfo(){
+        logCommon "INFO" "$1"
+}
+logWarn(){
+        logCommon "WARN" "$1"
+}
+logError(){
+        logCommon "ERROR" "$1"
+}
+
 # Usage: ghe_remote_logger <message>...
 # Log a message to /var/log/syslog on the remote instance.
 # Note: Use sparingly. Remote logging requires an ssh connection per invocation.

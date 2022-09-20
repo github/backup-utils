@@ -37,25 +37,6 @@ while true; do
   esac
 done
 
-# Logging functions
-logCommon(){
-	local logLevel=$1
-	local message=$2
-	echo "`date +\"%Y-%m-%d %T\"` - $logLevel - $message"
-}
-
-logInfo(){
-	logCommon "INFO" "$1"
-}
-
-logWarn(){
-	logCommon "WARN" "$1"
-}
-
-logError(){
-	logCommon "ERROR" "$1"
-}
-
 # Bring in the backup configuration
 # shellcheck source=share/github-backup-utils/ghe-backup-config
 . "$( dirname "${BASH_SOURCE[0]}" )/../share/github-backup-utils/ghe-backup-config"
@@ -156,7 +137,7 @@ if [ -f ../in-progress ]; then
   fi
 fi
 
-BACKUP_START_TIME=$(date +%s)
+START_TIME=$(date +%s)
 
 echo "$GHE_SNAPSHOT_TIMESTAMP $$" > ../in-progress
 
@@ -278,8 +259,8 @@ fi
 
 logInfo "Completed backup of $GHE_HOSTNAME in snapshot $GHE_SNAPSHOT_TIMESTAMP at $(date +"%H:%M:%S")"
 
-BACKUP_END_TIME=$(date +%s)
-logInfo "Total duration time: $(($BACKUP_END_TIME-$BACKUP_START_TIME)) seconds"
+END_TIME=$(date +%s)
+logInfo 'Runtime:' $(($END_TIME - $START_TIME)) 'seconds'
 
 
 # Exit non-zero and list the steps that failed.

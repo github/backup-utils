@@ -31,8 +31,8 @@
     * In a clustering environment, the `GHE_EXTRA_SSH_OPTS` key must be configured
       with the `-i <abs path to private key>` SSH option.
 
- 3. Add the backup host's SSH public key to the GitHub Enterprise Server in order to grant it administrative shell access.
-    See [Accessing the administrative shell (SSH)][4] for instructions.
+ 3. Add the backup host's SSH public key to the GitHub Enterprise Server appliance, in order to grant it administrative shell access.
+    See [Accessing the GitHub Enterprise Server administrative shell (SSH)][4] for instructions.
 
  4. Run `bin/ghe-host-check` to verify SSH connectivity with the GitHub
     appliance.

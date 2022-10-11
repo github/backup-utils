@@ -1,21 +1,11 @@
 #!/usr/bin/env bash
-# Usage: ghe-config
-# Emulates the remote GitHub ghe-config command. Tests use this
+# Usage: ghe-cluster-each
+# Emulates the remote GitHub ghe-cluster-each command. Tests use this
 # to assert that the command was executed.
 set -e
 
 for _ in "$@"; do
   case "$1" in
-    -u)
-      SHOW_UUID=true
-      shift
-      ;;
-    -r|--role)
-        # fake change last save timestamp every 1s
-        ROLE=$2
-        shift
-        shift
-        ;;
     --)
       if [ "$1" = "--" ]; then
         shift
@@ -42,23 +32,4 @@ fi
 if [ "$COMMAND" == "/usr/local/share/enterprise/ghe-nomad-cleanup" ]; then
   echo "nomad cleanup"
   exit 0
-fi
-
-if $SHOW_UUID; then
-  CONFIG="$GHE_REMOTE_DATA_USER_DIR/common/cluster.conf"
-
-  hosts=$(git config -f $CONFIG --get-regexp cluster.*.hostname | cut -d ' ' -f2)
-
-  if [ -z "$hosts" ]; then
-    # Mimic `ghe-cluster-each $role -u`
-    echo "fake-uuid
-  fake-uuid1
-  fake-uuid2
-  "
-  else
-    for hostname in $hosts; do
-      [ -n "$ROLE" ] && [ "$(git config -f $CONFIG cluster.$hostname.$ROLE-server)" != "true" ] && continue
-      echo $hostname
-    done
-  fi
 fi

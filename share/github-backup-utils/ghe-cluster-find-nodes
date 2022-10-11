@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#/ Usage: ghe-cluster-nodes <host> <prefix>
+#/ Usage: ghe-cluster-find-nodes <host> <prefix>
 #/
 #/ Finds all nodes of the cluster using the config on <host>.
 #/ If it is a 2.8 and later cluster version the results are returned as
@@ -28,7 +28,7 @@ prefix="$2"
 role=$(echo "$prefix" | cut -d '-' -f1)
 
 if ghe-ssh "$GHE_HOSTNAME" test -f $GHE_REMOTE_ROOT_DIR/etc/github/cluster; then
-  node_uuids=$(ghe-ssh "$GHE_HOSTNAME" ghe-cluster-each -r "$role" -u)
+  node_uuids=$(ghe-ssh "$GHE_HOSTNAME" ghe-cluster-nodes -r "$role" -u | cut -f 2)
   hostnames=''
   for uuid in $node_uuids; do
     hostnames+="$prefix-$uuid "

@@ -74,7 +74,7 @@ if [ "$GHE_BACKUP_STRATEGY" = "cluster" ]; then
   ssh_config_file="$tempdir/ssh_config"
   ssh_config_file_opt="-F $ssh_config_file"
   opts="$opts -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no"
-  hostnames=$(ghe-cluster-nodes "$GHE_HOSTNAME" "git-server")
+  hostnames=$(ghe-cluster-find-nodes "$GHE_HOSTNAME" "git-server")
   ghe-ssh-config "$GHE_HOSTNAME" "$hostnames" > "$ssh_config_file"
 fi
 
@@ -90,14 +90,15 @@ cleanup() {
 
   # Enable remote GC operations
   for hostname in $hostnames; do
-    ghe-gc-enable $ssh_config_file_opt $hostname:$port || true
+    ghe-gc-enable $ssh_config_file_opt $hostname:$port || { 
+      echo "Re-enable gc on $hostname failed, please manually delete $SYNC_IN_PROGRESS_FILE" 1>&2
+    }
   done
 
   ghe-ssh "$GHE_HOSTNAME" -- rm -rf $remote_tempdir
   rm -rf $tempdir
 }
-trap 'cleanup' EXIT
-trap 'exit $?' INT # ^C always terminate
+trap 'cleanup' EXIT INT
 
 # Disable remote GC operations
 for hostname in $hostnames; do

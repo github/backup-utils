@@ -8,28 +8,28 @@ This repository includes backup and recovery utilities for
 **Note**: the [GitHub Enterprise Server version requirements][2] have
 changed starting with Backup Utilities v2.13.0, released on 27 March 2018.
 
-### Features
+## Features
 
 Backup Utilities implement a number of advanced capabilities for backup
 hosts, built on top of the backup and restore features already included in
 GitHub Enterprise Server.
 
- - Complete GitHub Enterprise Server backup and recovery system via two simple
+- Complete GitHub Enterprise Server backup and recovery system via two simple
    utilities:<br>`ghe-backup` and `ghe-restore`.
- - Online backups. The GitHub appliance need not be put in maintenance mode for
+- Online backups. The GitHub appliance need not be put in maintenance mode for
    the duration of the backup run.
- - Incremental backup of Git repository data. Only changes since the last
+- Incremental backup of Git repository data. Only changes since the last
    snapshot are transferred, leading to faster backup runs and lower network
    bandwidth and machine utilization.
- - Efficient snapshot storage. Only data added since the previous snapshot
+- Efficient snapshot storage. Only data added since the previous snapshot
    consumes new space on the backup host.
- - Multiple backup snapshots with configurable retention periods.
- - Backup commands run under the lowest CPU/IO priority on the GitHub appliance,
+- Multiple backup snapshots with configurable retention periods.
+- Backup commands run under the lowest CPU/IO priority on the GitHub appliance,
    reducing performance impact while backups are in progress.
- - Runs under most Linux/Unix environments.
- - MIT licensed, open source software maintained by GitHub, Inc.
+- Runs under most Linux/Unix environments.
+- MIT licensed, open source software maintained by GitHub, Inc.
 
-### Documentation
+## Documentation
 
 - **[Requirements](docs/requirements.md)**
   - **[Backup host requirements](docs/requirements.md#backup-host-requirements)**
@@ -42,7 +42,7 @@ GitHub Enterprise Server.
 - **[How does Backup Utilities differ from a High Availability replica?](docs/faq.md)**
 - **[Docker](docs/docker.md)**
 
-### Support
+## Support
 
 If you find a bug or would like to request a feature in Backup Utilities, please
 open an issue or pull request on this repository. If you have a question related
@@ -53,3 +53,4 @@ instead.
 [1]: https://github.com/enterprise
 [2]: docs/requirements.md#github-enterprise-version-requirements
 [3]: https://support.github.com/
+

@@ -33,6 +33,9 @@ echo "Restoring settings and applying configuration ..."
 # Restore external MySQL password if running external MySQL DB.
 restore-secret "external MySQL password" "external-mysql-password" "secrets.external.mysql"
 
+echo "Restoring packages settings ..."
+ghe-restore-packages "$GHE_HOSTNAME" 1>&3
+
 # work around issue importing settings with bad storage mode values
 ( cat "$GHE_RESTORE_SNAPSHOT_PATH/settings.json" && echo ) |
   sed 's/"storage_mode": "device"/"storage_mode": "rootfs"/' |

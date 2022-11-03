@@ -53,7 +53,7 @@ port=$(ssh_port_part "$host")
 hostname=$(ssh_host_part "$host")
 
 set +e
-# ghe-negotiate-version verifies if the target is a Github Enterprise Server instance
+# ghe-negotiate-version verifies if the target is a GitHub Enterprise Server instance
 output=$(echo "ghe-negotiate-version backup-utils $BACKUP_UTILS_VERSION" | ghe-ssh -o BatchMode=no $options $host -- /bin/sh 2>&1)
 rc=$?
 set -e

@@ -67,7 +67,7 @@ be running GitHub Enterprise Server 2.12.x or 2.13.x. You can't restore a snapsh
 
 Using multiple backup hosts or backup configurations is not currently recommended.
 
-Due to how some components of Backup Utiltiies (e.g. MSSQL) take incremental backups, running another instance of Backup Utilities may result in unrestorable snapshots as data may be split across backup hosts. If you still wish to have multiple instances of Backup Utilties for redundancy purposes or to run at different frequencies, ensure that they share the same `GHE_DATA_DIR` backup directory.
+Due to how some components of Backup Utilities (e.g. MSSQL) take incremental backups, running another instance of Backup Utilities may result in unrestorable snapshots as data may be split across backup hosts. If you still wish to have multiple instances of Backup Utilities for redundancy purposes or to run at different frequencies, ensure that they share the same `GHE_DATA_DIR` backup directory.
 
 [1]: https://www.gnu.org/software/bash/
 [2]: https://git-scm.com/

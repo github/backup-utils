@@ -6,12 +6,11 @@ storage and must have network connectivity with the GitHub Enterprise Server app
 ## Backup host requirements
 
 Backup host software requirements are modest: Linux or other modern Unix operating
-system with [bash][1], [git][2], [OpenSSH][3] 5.6 or newer, and [rsync][4] v2.6.4 or newer.
+system (Ubuntu is highly recommended) with [bash][1], [git][2], [OpenSSH][3] 5.6 or newer, and [rsync][4] v2.6.4 or newer.
 
 The parallel backup and restore feature will require [GNU awk][10] and [moreutils][9] to be installed.
 
-We encourage the use of [Docker](docker.md) if your backup host doesn't meet these
-requirements, or if Docker is your preferred platform.
+We encourage the use of [Docker](docker.md), as it ensures compatible versions of the aforementioned software are availablt to backup-utils.
 
 The backup host must be able to establish outbound network connections to the
 GitHub appliance over SSH. TCP port 122 is used to backup GitHub Enterprise Server.

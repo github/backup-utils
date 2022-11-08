@@ -6,7 +6,7 @@ For example, Backup Utilities 2.13.0 can be used to backup and restore all patch
 
 There is no need to align Backup Utilities patch releases with GitHub Enterprise Server patch releases.
 
-When making a `.0` release, you will need to specify the minimum supported version of GitHub Enterprise Server that that release supports.
+When making a `.0` release, you will need to specify the minimum supported version of GitHub Enterprise Server that release supports.
 
 Only repo administrator is allowed to run the release script, otherwise it will fail.
 

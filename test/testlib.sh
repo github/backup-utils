@@ -42,7 +42,7 @@ export GHE_BACKUP_CONFIG GHE_DATA_DIR GHE_REMOTE_DATA_DIR GHE_REMOTE_ROOT_DIR
 
 # The default remote appliance version. This may be set in the environment prior
 # to invoking tests to emulate a different remote vm version.
-: ${GHE_TEST_REMOTE_VERSION:=3.4.0.rc1}
+: ${GHE_TEST_REMOTE_VERSION:=3.7.0.rc1}
 export GHE_TEST_REMOTE_VERSION
 
 # Source in the backup config and set GHE_REMOTE_XXX variables based on the
@@ -118,6 +118,12 @@ setup_maintenance_mode () {
 
   # Create fake remote repositories dir
   mkdir -p "$GHE_REMOTE_DATA_USER_DIR/repositories"
+}
+
+# Moves the instance out of maintenance mode.
+disable_maintenance_mode () {
+  # Remove file used to determine if instance is in maintenance mode.
+  rm "$GHE_REMOTE_DATA_DIR/github/current/public/system/maintenance.html"
 }
 
 # Mark the beginning of a test. A subshell should immediately follow this
@@ -587,4 +593,12 @@ cleanup_moreutils_parallel() {
   if [ -h "$ROOTDIR/test/bin/parallel" ]; then
     unlink "$ROOTDIR/test/bin/parallel"
   fi
+}
+
+# setup_actions_enabled_in_settings_json writes settings for the Actions app to settings.json
+# it accepts true or false as first argument to enable or disable actions in settings.json
+setup_actions_enabled_settings_for_restore() {
+  # Empty the file, it now contains "fake ghe-export-settings data"
+  echo > "$GHE_DATA_DIR/1/settings.json"
+  git config -f "$GHE_DATA_DIR/1/settings.json" --bool app.actions.enabled $1
 }

@@ -202,6 +202,7 @@ setup_test_data () {
   # Create a fake manage password file§
   mkdir -p "$GHE_REMOTE_DATA_USER_DIR/common"
   git config -f "$GHE_REMOTE_DATA_USER_DIR/common/secrets.conf" secrets.manage "fake password hash data"
+  git config -f "$GHE_REMOTE_DATA_USER_DIR/common/secrets.conf" secrets.manage-auth.argon-secret "fake argon2 secret"
 
   # Create a fake password pepper file
   mkdir -p "$GHE_REMOTE_DATA_USER_DIR/common"

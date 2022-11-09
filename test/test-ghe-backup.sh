@@ -132,6 +132,17 @@ begin_test "ghe-backup without password pepper"
 )
 end_test
 
+begin_test "ghe-backup without management console argon2 secret"
+(
+  set -e
+
+  git config -f "$GHE_REMOTE_DATA_USER_DIR/common/secrets.conf" secrets.manage-auth.argon-secret ""
+  ghe-backup
+
+  [ ! -f "$GHE_DATA_DIR/current/manage-argon-secret" ]
+)
+end_test
+
 begin_test "ghe-backup empty git-hooks directory"
 (
   set -e

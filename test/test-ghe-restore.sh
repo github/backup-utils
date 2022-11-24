@@ -336,6 +336,32 @@ begin_test "ghe-restore with Kredz settings"
 )
 end_test
 
+begin_test "ghe-restore with kredz-varz settings"
+(
+  set -e
+  rm -rf "$GHE_REMOTE_ROOT_DIR"
+  setup_remote_metadata
+  enable_actions
+
+  required_files=(
+    "kredz-varz-hmac"
+  )
+
+  for file in "${required_files[@]}"; do
+    echo "foo" > "$GHE_DATA_DIR/current/$file"
+  done
+
+  ghe-restore -v -f localhost
+  required_secrets=(
+    "secrets.kredz.varz-hmac-secret"
+  )
+  
+  for secret in "${required_secrets[@]}"; do
+    [ "$(ghe-ssh "$GHE_HOSTNAME" -- ghe-config "$secret")" = "foo" ]
+  done
+)
+end_test
+
 begin_test "ghe-restore with Actions settings"
 (
   set -e

@@ -47,6 +47,9 @@ restore-secret "management console password" "manage-password" "secrets.manage"
 # Restore kredz.credz HMAC key if present.
 restore-secret "kredz.credz HMAC key" "kredz-credz-hmac" "secrets.kredz.credz-hmac-secret"
 
+# Restore kredz.varz HMAC key if present.
+restore-secret "kredz.varz HMAC key" "kredz-varz-hmac" "secrets.kredz.varz-hmac-secret"
+
 # Restore SAML keys if present.
 if [ -f "$GHE_RESTORE_SNAPSHOT_PATH/saml-keys.tar" ]; then
   echo "Restoring SAML keys ..."

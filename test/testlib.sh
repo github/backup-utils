@@ -317,6 +317,7 @@ setup_test_data () {
     echo "fake ghe-export-ssl-ca-certificates data" > "$loc/ssl-ca-certificates.tar"
     echo "fake license data" > "$loc/enterprise.ghl"
     echo "fake password hash data" > "$loc/manage-password"
+    echo "fake argon2 secret" > "$loc/manage-argon-secret"
     echo "fake password pepper data" > "$loc/password-pepper"
     echo "rsync" > "$loc/strategy"
     echo "$GHE_REMOTE_VERSION" >  "$loc/version"
@@ -445,6 +446,9 @@ verify_all_backedup_data() {
 
   # verify manage-password file was backed up
   [ "$(cat "$GHE_DATA_DIR/current/manage-password")" = "fake password hash data" ]
+
+  # verify manage-argon-secret file was backed up
+  [ "$(cat "$GHE_DATA_DIR/current/manage-argon-secret")" = "fake argon2 secret" ]
 
   # verify password pepper file was backed up
   [ "$(cat "$GHE_DATA_DIR/current/password-pepper")" = "fake password pepper data" ]

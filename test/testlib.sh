@@ -508,6 +508,9 @@ verify_all_restored_data() {
   # verify management console password was *not* restored
   ! grep -q "fake password hash data" "$GHE_REMOTE_DATA_USER_DIR/common/secrets.conf"
 
+  # verify management console argon2 secret was *not* restored
+  ! grep -q "fake argon2 secret" "$GHE_REMOTE_DATA_USER_DIR/common/secrets.conf"
+
   # verify common data
   verify_common_data
 }

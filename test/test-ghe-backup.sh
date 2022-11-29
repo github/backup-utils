@@ -506,6 +506,31 @@ begin_test "ghe-backup takes backup of Kredz settings"
 )
 end_test
 
+begin_test "ghe-backup takes backup of kredz-varz settings"
+(
+  set -e
+
+  required_secrets=(
+    "secrets.kredz.varz-hmac-secret"
+  )
+
+  for secret in "${required_secrets[@]}"; do
+    ghe-ssh "$GHE_HOSTNAME" -- ghe-config "$secret" "foo"
+  done
+
+  ghe-backup
+
+  required_files=(
+    "kredz-varz-hmac"
+  )
+
+  for file in "${required_files[@]}"; do
+    [ "$(cat "$GHE_DATA_DIR/current/$file")" = "foo" ]
+  done
+
+)
+end_test
+
 begin_test "ghe-backup takes backup of Actions settings"
 (
   set -e

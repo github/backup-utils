@@ -66,14 +66,14 @@ for f in "$GHE_BACKUP_CONFIG" "$GHE_BACKUP_ROOT/backup.config" \
   fi
 done
 
-GHE_RESTORE_IN_PROGRESS="${GHE_DATA_DIR}/.in-progress-restore"
-GHE_BACKUP_IN_PROGRESS="${GHE_DATA_DIR}/.in-progress"
+GHE_RESTORE_IN_PROGRESS="../../${GHE_DATA_DIR}/.in-progress-restore"
+GHE_BACKUP_IN_PROGRESS="../../${GHE_DATA_DIR}/.in-progress"
 export GHE_RESTORE_IN_PROGRESS
 export GHE_BACKUP_IN_PROGRESS
 
-ghe_restore_started() {
-echo "$1 $$" > $GHE_RESTORE_IN_PROGRESS
-}
+#ghe_restore_started() {
+#echo "$1 $$" >> $GHE_RESTORE_IN_PROGRESS
+#}
 
 ghe_restore_check() {
 if [ -h $GHE_RESTORE_IN_PROGRESS ]; then
@@ -122,7 +122,7 @@ ghe_restore_finished() {
 }
 
 ghe_backup_finished() {
-	if [ ! -f $GHE_BACKUP_IN_PROGRESS ]; then
+	if [ -f $GHE_BACKUP_IN_PROGRESS ]; then
 		rm -f $GHE_BACKUP_IN_PROGRESS
 	fi
 }

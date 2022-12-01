@@ -122,6 +122,7 @@ trap 'exit $?' INT # ^C always terminate
 # Check to see if there is a running restore
 ghe_restore_check
 
+# Check to see if there is a running backup
 if [ -h ../in-progress ]; then
   echo "Error: detected a backup already in progress from a previous version of ghe-backup." 1>&2
   echo "If there is no backup in progress anymore, please remove" 1>&2

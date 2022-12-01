@@ -44,6 +44,10 @@ done
 # Check to make sure moreutils parallel is installed and working properly
 ghe_parallel_check
 
+
+echo "We got here without any problems"
+exit 1
+
 # Used to record failed backup steps
 failures=
 failures_file="$(mktemp -t backup-utils-backup-failures-XXXXXX)"
@@ -113,6 +117,10 @@ cleanup () {
 # Setup exit traps
 trap 'cleanup' EXIT
 trap 'exit $?' INT # ^C always terminate
+
+
+# Check to see if there is a running restore
+ghe_restore_check
 
 if [ -h ../in-progress ]; then
   echo "Error: detected a backup already in progress from a previous version of ghe-backup." 1>&2

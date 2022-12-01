@@ -656,9 +656,9 @@ begin_test "ghe-backup collects information on system where backup-utils is inst
   set -e
 
   output=$(ghe-backup)
-  echo "$output" | grep "Running on: $(cat /etc/issue.net)"
-  echo "$output" | grep "CPUs: $(nproc)"
-  echo "$output" | grep "Memory: $(free -m  | grep '^Mem:' | awk '{print "total/used/free+share/buff/cache: " $2 "/" $3 "/" $4 "+" $5 "/" $6 "/" $7}')"
+  echo "$output" | grep "Running on: $(cat /etc/issue.net)"
+  echo "$output" | grep "CPUs: $(nproc)"
+  echo "$output" | grep "Memory total/used/free+share/buff/cache:"
   
 )
 end_test

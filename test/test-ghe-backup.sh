@@ -649,3 +649,16 @@ begin_test "ghe-backup fix_paths_for_ghe_version newer/older"
     done
 )
 end_test
+
+# Check that information on system where backup-utils is installed is collected
+begin_test "ghe-backup collects information on system where backup-utils is installed"
+(
+  set -e
+
+  output=$(ghe-backup)
+  echo "$output" | grep "Running on: $(cat /etc/issue.net)"
+  echo "$output" | grep "CPUs: $(nproc)"
+  echo "$output" | grep "Memory: $(free -m  | grep '^Mem:' | awk '{print "total/used/free+share/buff/cache: " $2 "/" $3 "/" $4 "+" $5 "/" $6 "/" $7}')"
+  
+)
+end_test

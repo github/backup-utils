@@ -90,3 +90,10 @@ GHE_NUM_SNAPSHOTS=10
 # When running an external mysql database, run this script to trigger a MySQL restore
 # rather than attempting to backup via backup-utils directly.
 #EXTERNAL_DATABASE_RESTORE_SCRIPT="/bin/false"
+Developer Certificate of Origin
+Version 1.1
+
+Copyright (C) 2004, 2006 The Linux Foundation and its contributors.
+
+Everyone is permitted to copy and distribute verbatim copies of this
+license document,

@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+# Usage: ghe-cluster-nodes
+# Emulates the remote GitHub ghe-cluster-nodes command. Tests use this
+# to assert that the command was executed.
+set -e
+
+for _ in "$@"; do
+  case "$1" in
+    -r|--role)
+        ROLE=$2
+        shift
+        ;;
+    -u|--uuid)
+        PRINT_UUIDS=true
+        shift
+        ;;
+  esac
+done
+
+CONFIG="$GHE_REMOTE_DATA_USER_DIR/common/cluster.conf"
+
+hosts=$(git config -f "$CONFIG" --get-regexp cluster.*.hostname | cut -d ' ' -f2)
+
+if $PRINT_UUIDS; then
+  CONFIG="$GHE_REMOTE_DATA_USER_DIR/common/cluster.conf"
+
+  hosts=$(git config -f "$CONFIG" --get-regexp cluster.*.hostname | cut -d ' ' -f2)
+
+  if [ -z "$hosts" ]; then
+    # Mimic `ghe-cluster-each $role -u`
+    echo "fake-uuid
+  fake-uuid1
+  fake-uuid2
+  "
+  else
+    for hostname in $hosts; do
+      [ -n "$ROLE" ] && [ "$(git config -f "$CONFIG" cluster."$hostname"."$ROLE"-server)" != "true" ] && continue
+      echo "$hostname"
+    done
+  fi
+fi

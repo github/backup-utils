@@ -106,6 +106,7 @@ cleanup () {
   fi
 
   rm -rf "$failures_file"
+  rm -f ${GHE_DATA_DIR}/in-progress-backup
 
   # Cleanup SSH multiplexing
   ghe-ssh --clean

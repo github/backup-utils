@@ -154,7 +154,8 @@ cleanup_cluster_nodes() {
 # Check to make sure moreutils parallel is installed and working properly
 ghe_parallel_check
 
-# ghe_restore_check
+# Check to make sure another restore process is not running
+ghe_restore_check
 
 # Grab the host arg
 GHE_HOSTNAME="${GHE_RESTORE_HOST_OPT:-$GHE_RESTORE_HOST}"
@@ -174,6 +175,7 @@ GHE_RESTORE_SNAPSHOT_PATH="$(ghe-restore-snapshot-path "$snapshot_id")"
 GHE_RESTORE_SNAPSHOT=$(basename "$GHE_RESTORE_SNAPSHOT_PATH")
 export GHE_RESTORE_SNAPSHOT
 
+# Check to make sure backup is not running
 ghe_backup_check
 
 # Detect if the backup we are restoring has a leaked ssh key
@@ -587,7 +589,7 @@ echo 'End time:' $END_TIME
 echo 'Runtime:' $(($END_TIME - $START_TIME)) 'seconds'
 
 echo "Restore of $GHE_HOSTNAME from snapshot $GHE_RESTORE_SNAPSHOT finished."
-rm -f ${GHE_DATA_DIR}/in-progress-restore
+ghe_restore_finished
 
 if ! $instance_configured; then
   echo "To complete the restore process, please visit https://$hostname/setup/settings to review and save the appliance configuration."

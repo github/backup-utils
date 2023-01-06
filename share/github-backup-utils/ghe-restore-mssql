@@ -45,7 +45,7 @@ snapshot_dir_mssql="$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/mssql"
 # Transfer backup files from appliance to backup host
 appliance_dir="$GHE_REMOTE_DATA_USER_DIR/mssql/backups"
 echo "set -o pipefail; sudo rm -rf $appliance_dir; sudo mkdir -p $appliance_dir" | ghe-ssh "$GHE_MSSQL_PRIMARY_HOST" /bin/bash
-for b in $snapshot_dir_mssql/*
+for b in "$snapshot_dir_mssql"/*
 do
   [[ -e "$b" ]] || break
 

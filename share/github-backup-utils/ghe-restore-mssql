@@ -15,22 +15,22 @@ set -e
 # Check if the import tool is available in this version
 import_tool_available() {
   if [ -z "$GHE_TEST_REMOTE_VERSION" ]; then
-    ghe-ssh "$GHE_HOSTNAME" "test -e /usr/local/bin/ghe-import-mssql"
+    ghe-ssh "$GHE_MSSQL_PRIMARY_HOST" "test -e /usr/local/bin/ghe-import-mssql"
   else
-    ghe-ssh "$GHE_HOSTNAME" "type ghe-import-mssql"
+    ghe-ssh "$GHE_MSSQL_PRIMARY_HOST" "type ghe-import-mssql"
   fi
 }
-
-if ! import_tool_available; then
-  ghe_verbose "ghe-import-mssql is not available"
-  exit
-fi
 
 # Grab host arg
 GHE_HOSTNAME="$1"
 
 GHE_MSSQL_PRIMARY_NODE="$(ghe-ssh "$GHE_HOSTNAME" -- "ghe-config cluster.mssql-master" || true)"
 GHE_MSSQL_PRIMARY_HOST="$(ghe-ssh "$GHE_HOSTNAME" -- "ghe-config cluster.$GHE_MSSQL_PRIMARY_NODE.hostname" || true)"
+
+if ! import_tool_available; then
+  ghe_verbose "ghe-import-mssql is not available"
+  exit
+fi
 
 # Perform a host-check and establish the remote version in GHE_REMOTE_VERSION.
 ghe_remote_version_required "$GHE_MSSQL_PRIMARY_HOST"

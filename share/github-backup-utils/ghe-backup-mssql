@@ -22,12 +22,17 @@ tran_expire=
 # Check if the export tool is available in this version
 export_tool_available() {
   if [ -z "$GHE_TEST_REMOTE_VERSION" ]; then
-    ghe-ssh "$1" "test -e /usr/local/bin/ghe-export-mssql"
+    ghe-ssh "$GHE_HOSTNAME" "test -e /usr/local/bin/ghe-export-mssql"
   else
     # Always return available for test
     return 0
   fi
 }
+
+if ! export_tool_available ; then
+    ghe_verbose "ghe-export-mssql is not available"
+    exit
+  fi
 
 add_minute() {
   # Expect date string in the format of yyyymmddTHHMMSS
@@ -301,11 +306,6 @@ if [ -n "$backup_type" ]; then
   fi
   GHE_MSSQL_PRIMARY_NODE="$(ghe-ssh $GHE_HOSTNAME -- "ghe-config cluster.mssql-master" || true)"
   GHE_MSSQL_PRIMARY_HOST="$(ghe-ssh $GHE_HOSTNAME -- "ghe-config cluster.$GHE_MSSQL_PRIMARY_NODE.hostname" || true)"
-
-  if ! export_tool_available "$GHE_MSSQL_PRIMARY_HOST"; then
-    ghe_verbose "ghe-export-mssql is not available"
-    exit
-  fi
 
   bm_start "$(basename $0)"
   ghe-ssh "$GHE_MSSQL_PRIMARY_HOST" -- "$backup_command" || failures="$failures mssql"

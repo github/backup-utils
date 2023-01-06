@@ -29,8 +29,8 @@ fi
 # Grab host arg
 GHE_HOSTNAME="$1"
 
-GHE_MSSQL_PRIMARY_NODE="$(ghe-ssh $GHE_HOSTNAME -- "ghe-config cluster.mssql-master" || true)"
-GHE_MSSQL_PRIMARY_HOST="$(ghe-ssh $GHE_HOSTNAME -- "ghe-config cluster.$GHE_MSSQL_PRIMARY_NODE.hostname" || true)"
+GHE_MSSQL_PRIMARY_NODE="$(ghe-ssh "$GHE_HOSTNAME" -- "ghe-config cluster.mssql-master" || true)"
+GHE_MSSQL_PRIMARY_HOST="$(ghe-ssh "$GHE_HOSTNAME" -- "ghe-config cluster.$GHE_MSSQL_PRIMARY_NODE.hostname" || true)"
 
 # Perform a host-check and establish the remote version in GHE_REMOTE_VERSION.
 ghe_remote_version_required "$GHE_MSSQL_PRIMARY_HOST"

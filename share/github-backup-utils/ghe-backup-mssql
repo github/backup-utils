@@ -37,9 +37,19 @@ if [ -z "$GHE_MSSQL_PRIMARY_HOST" ]; then
 fi
 
 if ! export_tool_available ; then
-    ghe_verbose "ghe-export-mssql is not available"
-    exit
-  fi
+  ghe_verbose "ghe-export-mssql is not available"
+  exit
+fi
+
+tempdir=$(mktemp -d -t backup-utils-backup-XXXXXX)
+ssh_config_file_opt=
+# git server hostnames under cluster
+if [ "$GHE_BACKUP_STRATEGY" = "cluster" ]; then
+  ssh_config_file="$tempdir/ssh_config"
+  ssh_config_file_opt="-F $ssh_config_file"
+  opts="$opts -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no"
+  ghe-ssh-config "$GHE_HOSTNAME" "$GHE_MSSQL_PRIMARY_HOST" > "$ssh_config_file"
+fi
 
 add_minute() {
   # Expect date string in the format of yyyymmddTHHMMSS
@@ -313,21 +323,21 @@ if [ -n "$backup_type" ]; then
   elif [ "$backup_type" = "transaction" ]; then
     backup_command='ghe-export-mssql -t'
   fi
-
+  
   bm_start "$(basename "$0")"
-  ghe-ssh "$GHE_MSSQL_PRIMARY_HOST" -- "$backup_command" || failures="$failures mssql"
+  ghe-ssh $opts $ssh_config_file_opt "$GHE_MSSQL_PRIMARY_HOST"  -- "$backup_command" || failures="$failures mssql"
   bm_end "$(basename "$0")"
 
   # Configure the backup cadence on the appliance, which is used for diagnostics
-  ghe-ssh "$GHE_MSSQL_PRIMARY_HOST" "ghe-config mssql.backup.cadence $GHE_MSSQL_BACKUP_CADENCE"
+  ghe-ssh $opts $ssh_config_file_opt "$GHE_MSSQL_PRIMARY_HOST" "ghe-config mssql.backup.cadence $GHE_MSSQL_BACKUP_CADENCE"
 
   # Transfer backup files from appliance to backup host
   appliance_dir="$GHE_REMOTE_DATA_DIR/user/mssql/backups"
   backups=$(echo "set -o pipefail; if sudo test -d \"$appliance_dir\"; then \
-    sudo ls \"$appliance_dir\"; fi" | ghe-ssh "$GHE_MSSQL_PRIMARY_HOST" /bin/bash)
+    sudo ls \"$appliance_dir\"; fi" | ghe-ssh $opts $ssh_config_file_opt "$GHE_MSSQL_PRIMARY_HOST" /bin/bash)
   for b in $backups
   do
     ghe_verbose "Transferring to backup host $b"
-    ghe-ssh "$GHE_MSSQL_PRIMARY_HOST" "sudo cat $appliance_dir/$b" > "$backup_dir"/"$b"
+    ghe-ssh $opts $ssh_config_file_opt "$GHE_MSSQL_PRIMARY_HOST" "sudo cat $appliance_dir/$b" > "$backup_dir"/"$b"
   done
 fi

@@ -15,9 +15,9 @@ set -e
 # Check if the import tool is available in this version
 import_tool_available() {
   if [ -z "$GHE_TEST_REMOTE_VERSION" ]; then
-    ghe-ssh "$GHE_MSSQL_PRIMARY_HOST" "test -e /usr/local/bin/ghe-import-mssql"
+    ghe-ssh $opts $ssh_config_file_opt "$GHE_MSSQL_PRIMARY_HOST" "test -e /usr/local/bin/ghe-import-mssql"
   else
-    ghe-ssh "$GHE_MSSQL_PRIMARY_HOST" "type ghe-import-mssql"
+    ghe-ssh $opts $ssh_config_file_opt "$GHE_MSSQL_PRIMARY_HOST" "type ghe-import-mssql"
   fi
 }
 

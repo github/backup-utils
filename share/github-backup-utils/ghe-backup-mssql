@@ -32,6 +32,10 @@ export_tool_available() {
 GHE_MSSQL_PRIMARY_NODE="$(ghe-ssh "$GHE_HOSTNAME" -- "ghe-config cluster.mssql-master" || true)"
 GHE_MSSQL_PRIMARY_HOST="$(ghe-ssh "$GHE_HOSTNAME" -- "ghe-config cluster.$GHE_MSSQL_PRIMARY_NODE.hostname" || true)"
 
+if [ -z "$GHE_MSSQL_PRIMARY_HOST" ]; then
+  GHE_MSSQL_PRIMARY_HOST="$GHE_HOSTNAME"
+fi
+
 if ! export_tool_available ; then
     ghe_verbose "ghe-export-mssql is not available"
     exit

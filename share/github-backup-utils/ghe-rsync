@@ -25,11 +25,9 @@ rsync_version_check=`rsync --version | egrep "version 3.[0-9]*.[0-9]*"`
 if [ ! -z "$rsync_version_check" ]; then
   # rsync >= 3.x sends errors to stderr. so, we need to redirect to stdout before the pipe
   rsync "${parameters[@]}" $GHE_EXTRA_RSYNC_OPTS 2>&1 | (egrep -v "$ignoreout" || true)
-  
 else
   # rsync <3.x sends errors to stdout.
   rsync "${parameters[@]}" $GHE_EXTRA_RSYNC_OPTS | (egrep -v "$ignoreout" || true)
-  
 fi
 res=$?
 

@@ -46,6 +46,11 @@ if [ "$GHE_BACKUP_STRATEGY" = "cluster" ]; then
   ghe-ssh-config "$GHE_HOSTNAME" "$GHE_MSSQL_PRIMARY_HOST" > "$ssh_config_file"
 fi
 
+cleanup() {
+  rm -rf $tempdir
+}
+trap 'cleanup' EXIT INT
+
 # Perform a host-check and establish the remote version in GHE_REMOTE_VERSION.
 ghe_remote_version_required "$GHE_HOSTNAME"
 
@@ -73,5 +78,5 @@ ghe-ssh $opts $ssh_config_file_opt "$GHE_MSSQL_PRIMARY_HOST" "sudo chown -R mssq
 
 # Invoke restore command
 bm_start "$(basename $0)"
-ghe-ssh $opts $ssh_config_file_opt "$GHE_MSSQL_PRIMARY_HOST" -- "ghe-import-mssql" < "/dev/null" 1>&3
+ghe-ssh "$GHE_HOSTNAME" -- "ghe-import-mssql" < "/dev/null" 1>&3
 bm_end "$(basename $0)"

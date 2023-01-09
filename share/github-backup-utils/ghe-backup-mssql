@@ -51,16 +51,19 @@ if [ "$GHE_BACKUP_STRATEGY" = "cluster" ]; then
   ghe-ssh-config "$GHE_HOSTNAME" "$GHE_MSSQL_PRIMARY_HOST" > "$ssh_config_file"
 fi
 
+cleanup() {
+  rm -rf $tempdir
+}
+trap 'cleanup' EXIT INT
+
 add_minute() {
   # Expect date string in the format of yyyymmddTHHMMSS
   # Here parse date differently depending on GNU Linux vs BSD MacOS
   if date -v -1d > /dev/null 2>&1; then
-    # shellcheck disable=SC2005
-    echo "$(date -v +"$2"M -ujf'%Y%m%dT%H%M%S' "$1" +%Y%m%dT%H%M%S)"
+    date -v +"$2"M -ujf'%Y%m%dT%H%M%S' "$1" +%Y%m%dT%H%M%S
   else
     dt=$1
-    # shellcheck disable=SC2005
-    echo "$(date -u '+%Y%m%dT%H%M%S' -d "${dt:0:8} ${dt:9:2}:${dt:11:2}:${dt:13:2} $2 minutes")"
+    date -u '+%Y%m%dT%H%M%S' -d "${dt:0:8} ${dt:9:2}:${dt:11:2}:${dt:13:2} $2 minutes"
   fi
 }
 
@@ -72,7 +75,7 @@ find_timestamp() {
 }
 
 actions_dbs() {
-  all_dbs=$(echo 'set -o pipefail; ghe-mssql-console -y -n -p -q "SET NOCOUNT ON; SELECT name FROM sys.databases"' | ghe-ssh "$GHE_HOSTNAME" /bin/bash)
+  all_dbs=$(echo 'set -o pipefail; ghe-mssql-console -y -n -q "SET NOCOUNT ON; SELECT name FROM sys.databases"' | ghe-ssh "$GHE_MSSQL_PRIMARY_HOST" /bin/bash)
   for db in $all_dbs; do
     if [[ ! "$db" =~ ^(master|tempdb|model|msdb)$ ]] && [[ "$db" =~ ^[a-zA-Z0-9_-]+$ ]]; then
       echo "$db"
@@ -109,7 +112,7 @@ ensure_same_dbs() {
 }
 
 run_query() {
-  echo "set -o pipefail; ghe-mssql-console -y -n -p -q \"SET NOCOUNT ON; $1\"" | ghe-ssh "$GHE_HOSTNAME" /bin/bash | sed 's/^[[:space:]]*//;s/[[:space:]]*$//'
+  echo "set -o pipefail; ghe-mssql-console -y -n -q \"SET NOCOUNT ON; $1\"" | ghe-ssh "$GHE_MSSQL_PRIMARY_HOST" /bin/bash | sed 's/^[[:space:]]*//;s/[[:space:]]*$//'
 }
 
 get_latest_backup_file() {
@@ -325,11 +328,11 @@ if [ -n "$backup_type" ]; then
   fi
   
   bm_start "$(basename "$0")"
-  ghe-ssh $opts $ssh_config_file_opt "$GHE_MSSQL_PRIMARY_HOST"  -- "$backup_command" || failures="$failures mssql"
+  ghe-ssh "$GHE_HOSTNAME"  -- "$backup_command" || failures="$failures mssql"
   bm_end "$(basename "$0")"
 
   # Configure the backup cadence on the appliance, which is used for diagnostics
-  ghe-ssh $opts $ssh_config_file_opt "$GHE_MSSQL_PRIMARY_HOST" "ghe-config mssql.backup.cadence $GHE_MSSQL_BACKUP_CADENCE"
+  ghe-ssh "$GHE_HOSTNAME" "ghe-config mssql.backup.cadence $GHE_MSSQL_BACKUP_CADENCE"
 
   # Transfer backup files from appliance to backup host
   appliance_dir="$GHE_REMOTE_DATA_DIR/user/mssql/backups"

@@ -78,5 +78,5 @@ ghe-ssh $opts $ssh_config_file_opt "$GHE_MSSQL_PRIMARY_HOST" "sudo chown -R mssq
 
 # Invoke restore command
 bm_start "$(basename $0)"
-ghe-ssh "$GHE_HOSTNAME" -- "ghe-import-mssql" < "/dev/null" 1>&3
+ghe-ssh $opts $ssh_config_file_opt "$GHE_MSSQL_PRIMARY_HOST" -- "ghe-import-mssql" < "/dev/null" 1>&3
 bm_end "$(basename $0)"

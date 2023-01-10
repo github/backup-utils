@@ -66,8 +66,8 @@ for f in "$GHE_BACKUP_CONFIG" "$GHE_BACKUP_ROOT/backup.config" \
   fi
 done
 
-GHE_RESTORE_IN_PROGRESS=$(readlink -fm "${GHE_DATA_DIR}/in-progress-restore")
-GHE_BACKUP_IN_PROGRESS=$(readlink -fm "${GHE_DATA_DIR}/in-progress-backup")
+GHE_RESTORE_IN_PROGRESS=$(readlink -m "${GHE_DATA_DIR}/in-progress-restore")
+GHE_BACKUP_IN_PROGRESS=$(readlink -m "${GHE_DATA_DIR}/in-progress-backup")
 
 export GHE_RESTORE_IN_PROGRESS
 export GHE_BACKUP_IN_PROGRESS

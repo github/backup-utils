@@ -66,8 +66,8 @@ for f in "$GHE_BACKUP_CONFIG" "$GHE_BACKUP_ROOT/backup.config" \
   fi
 done
 
-GHE_RESTORE_IN_PROGRESS=$(readlink -m "${GHE_DATA_DIR}/in-progress-restore")
-GHE_BACKUP_IN_PROGRESS=$(readlink -m "${GHE_DATA_DIR}/in-progress-backup")
+GHE_RESTORE_IN_PROGRESS=$(readlink -fm "${GHE_DATA_DIR}/in-progress-restore")
+GHE_BACKUP_IN_PROGRESS=$(readlink -fm "${GHE_DATA_DIR}/in-progress-backup")
 
 export GHE_RESTORE_IN_PROGRESS
 export GHE_BACKUP_IN_PROGRESS
@@ -82,7 +82,6 @@ ghe_restore_check() {
 
   if [ -f $GHE_RESTORE_IN_PROGRESS ]; then
     progress=$(cat $GHE_RESTORE_IN_PROGRESS)
-    snapshot=$(echo "$progress" | cut -d ' ' -f 1)
     pid=$(echo "$progress" | cut -d ' ' -f 2)
     echo "  Error: A restore of $GHE_HOSTNAME may still be running on PID $pid." 1>&2
     echo "  If PID $pid is not a process related to the restore utilities, please remove" 1>&2
@@ -101,7 +100,6 @@ ghe_backup_check() {
 
   if [ -f $GHE_BACKUP_IN_PROGRESS ]; then
     progress=$(cat $GHE_BACKUP_IN_PROGRESS)
-    snapshot=$(echo "$progress" | cut -d ' ' -f 1)
     pid=$(echo "$progress" | cut -d ' ' -f 2)
     echo "  Error: A backup of $GHE_HOSTNAME may still be running on PID $pid." 1>&2
     echo "  If PID $pid is not a process related to the backup utilities, please remove" 1>&2

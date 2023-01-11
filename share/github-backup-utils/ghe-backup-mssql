@@ -38,7 +38,7 @@ fi
 
 tempdir=$(mktemp -d -t backup-utils-backup-XXXXXX)
 ssh_config_file_opt=
-opts=
+opts=$GHE_EXTRA_SSH_OPTS
 
 # git server hostnames under cluster
 if [ "$GHE_BACKUP_STRATEGY" = "cluster" ]; then
@@ -56,7 +56,7 @@ fi
 cleanup() {
   rm -rf $tempdir
 }
-#trap 'cleanup' EXIT INT
+trap 'cleanup' EXIT INT
 
 add_minute() {
   # Expect date string in the format of yyyymmddTHHMMSS

@@ -33,7 +33,7 @@ fi
 
 tempdir=$(mktemp -d -t backup-utils-backup-XXXXXX)
 ssh_config_file_opt=
-opts=
+opts=$GHE_EXTRA_SSH_OPTS
 # git server hostnames under cluster
 if [ "$GHE_BACKUP_STRATEGY" = "cluster" ]; then
   ssh_config_file="$tempdir/ssh_config"

@@ -9,6 +9,7 @@ RUN apt-get -q -y update && \
     git \
     moreutils \
     gawk \
+    zstd \
     && rm -rf /var/lib/apt/lists/*
 
 COPY ./ /backup-utils/

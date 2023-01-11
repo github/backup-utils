@@ -86,6 +86,8 @@ setup_remote_metadata () {
   mkdir -p "$GHE_REMOTE_DATA_DIR" "$GHE_REMOTE_DATA_USER_DIR"
   mkdir -p "$GHE_REMOTE_DATA_USER_DIR/common"
   mkdir -p "$GHE_REMOTE_ROOT_DIR/etc/github"
+  mkdir -p "$GHE_REMOTE_ROOT_DIR/usr/local/bin"
+  touch "$GHE_REMOTE_ROOT_DIR/usr/local/bin/ghe-import-mssql"
 }
 setup_remote_metadata
 

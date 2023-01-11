@@ -76,7 +76,6 @@ done
 
 # Change owner to mssql:mssql to ready for restore
 ghe-ssh $opts $ssh_config_file_opt "$GHE_MSSQL_PRIMARY_HOST" "sudo chown -R mssql:mssql $appliance_dir"
-# Change permission of ghe-import-mssql
 
 # Invoke restore command
 bm_start "$(basename $0)"

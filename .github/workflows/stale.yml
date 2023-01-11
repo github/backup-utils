@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/stale@v6
+    - uses: actions/stale@v7
       with:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
         stale-issue-message: "👋 This issue has been marked as stale because it has been open with no activity. You can: comment on the issue or remove the stale label to hold stale off for a while, add the `Keep` label to hold stale off permanently, or do nothing. If you do nothing this issue will be closed eventually by the stale bot."

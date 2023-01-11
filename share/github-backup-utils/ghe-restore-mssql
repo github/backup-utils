@@ -31,11 +31,6 @@ if [ -z "$GHE_MSSQL_PRIMARY_HOST" ]; then
   GHE_MSSQL_PRIMARY_HOST="$GHE_HOSTNAME"
 fi
 
-if ! import_tool_available; then
-  ghe_verbose "ghe-import-mssql is not available"
-  exit
-fi
-
 tempdir=$(mktemp -d -t backup-utils-backup-XXXXXX)
 ssh_config_file_opt=
 opts=
@@ -45,6 +40,11 @@ if [ "$GHE_BACKUP_STRATEGY" = "cluster" ]; then
   ssh_config_file_opt="-F $ssh_config_file"
   opts="$opts -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no"
   ghe-ssh-config "$GHE_HOSTNAME" "$GHE_MSSQL_PRIMARY_HOST" > "$ssh_config_file"
+fi
+
+if ! import_tool_available; then
+  ghe_verbose "ghe-import-mssql is not available"
+  exit
 fi
 
 cleanup() {

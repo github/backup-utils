@@ -36,14 +36,10 @@ if [ -z "$GHE_MSSQL_PRIMARY_HOST" ]; then
   GHE_MSSQL_PRIMARY_HOST="$GHE_HOSTNAME"
 fi
 
-if ! export_tool_available ; then
-  ghe_verbose "ghe-export-mssql is not available"
-  exit
-fi
-
 tempdir=$(mktemp -d -t backup-utils-backup-XXXXXX)
 ssh_config_file_opt=
 opts=
+
 # git server hostnames under cluster
 if [ "$GHE_BACKUP_STRATEGY" = "cluster" ]; then
   ssh_config_file="$tempdir/ssh_config"
@@ -52,10 +48,15 @@ if [ "$GHE_BACKUP_STRATEGY" = "cluster" ]; then
   ghe-ssh-config "$GHE_HOSTNAME" "$GHE_MSSQL_PRIMARY_HOST" > "$ssh_config_file"
 fi
 
+if ! export_tool_available ; then
+  ghe_verbose "ghe-export-mssql is not available"
+  exit
+fi
+
 cleanup() {
   rm -rf $tempdir
 }
-trap 'cleanup' EXIT INT
+#trap 'cleanup' EXIT INT
 
 add_minute() {
   # Expect date string in the format of yyyymmddTHHMMSS

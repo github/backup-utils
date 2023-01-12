@@ -38,13 +38,13 @@ fi
 
 tempdir=$(mktemp -d -t backup-utils-backup-XXXXXX)
 ssh_config_file_opt=
-opts=$GHE_EXTRA_SSH_OPTS
+opts=
 
 # git server hostnames under cluster
 if [ "$GHE_BACKUP_STRATEGY" = "cluster" ]; then
   ssh_config_file="$tempdir/ssh_config"
   ssh_config_file_opt="-F $ssh_config_file"
-  opts="$opts -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no"
+  opts="-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no"
   ghe-ssh-config "$GHE_HOSTNAME" "$GHE_MSSQL_PRIMARY_HOST" > "$ssh_config_file"
 fi
 

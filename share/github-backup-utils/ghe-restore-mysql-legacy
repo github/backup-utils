@@ -35,7 +35,7 @@ snapshot_dir="$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT"
 ssh_config_file_opt=
 
 # legacy mode
-IMPORT_MYSQL="unpigz | ghe-import-mysql"
+IMPORT_MYSQL="unzstd | ghe-import-mysql"
 GHE_RESTORE_HOST=$GHE_HOSTNAME
 
 cleanup() {

@@ -17,8 +17,8 @@ ghe_remote_version_required "$GHE_HOSTNAME"
 
 echo "Backing up MySQL database using logical backup strategy ..."
 
-echo "set -o pipefail; ghe-export-mysql | pigz" |
-ghe-ssh "$GHE_HOSTNAME" -- /bin/bash > "$GHE_SNAPSHOT_DIR/mysql.sql.gz"
+echo "set -o pipefail; ghe-export-mysql | zstd" |
+ghe-ssh "$GHE_HOSTNAME" -- /bin/bash > "$GHE_SNAPSHOT_DIR/mysql.sql.zst"
 
 if is_external_database_target; then
   echo "LOGICAL_EXTERNAL_BACKUP" > "$GHE_SNAPSHOT_DIR/logical-external-database-backup-sentinel"

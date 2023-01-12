@@ -30,7 +30,7 @@ export_tool_available() {
 }
 
 ghe_ssh_mssql() {
-  ghe-ssh $opts $ssh_config_file_opt "$GHE_MSSQL_PRIMARY_HOST" $@
+  ghe-ssh $opts $ssh_config_file_opt "$GHE_MSSQL_PRIMARY_HOST" "$@"
 }
 
 cleanup() {

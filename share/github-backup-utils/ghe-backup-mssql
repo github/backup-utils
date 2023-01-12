@@ -22,7 +22,7 @@ tran_expire=
 # Check if the export tool is available in this version
 export_tool_available() {
   if [ -z "$GHE_TEST_REMOTE_VERSION" ]; then
-    ghe-ssh $opts $ssh_config_file_opt "$GHE_MSSQL_PRIMARY_HOST" "test -e /usr/local/bin/ghe-export-mssql"
+    ghe_ssh_mssql "test -e /usr/local/bin/ghe-export-mssql"
   else
     # Always return available for test
     return 0

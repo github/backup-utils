@@ -22,31 +22,12 @@ tran_expire=
 # Check if the export tool is available in this version
 export_tool_available() {
   if [ -z "$GHE_TEST_REMOTE_VERSION" ]; then
-    ghe-ssh $opts $ssh_config_file_opt "$GHE_MSSQL_PRIMARY_HOST" "test -e /usr/local/bin/ghe-export-mssql"
+    ghe-ssh-mssql "test -e /usr/local/bin/ghe-export-mssql"
   else
     # Always return available for test
     return 0
   fi
 }
-
-GHE_MSSQL_PRIMARY_NODE="$(ghe-ssh "$GHE_HOSTNAME" -- "ghe-config cluster.mssql-master" || true)"
-GHE_MSSQL_PRIMARY_HOST="$(ghe-ssh "$GHE_HOSTNAME" -- "ghe-config cluster.$GHE_MSSQL_PRIMARY_NODE.hostname" || true)"
-
-if [ -z "$GHE_MSSQL_PRIMARY_HOST" ]; then
-  GHE_MSSQL_PRIMARY_HOST="$GHE_HOSTNAME"
-fi
-
-tempdir=$(mktemp -d -t backup-utils-backup-XXXXXX)
-ssh_config_file_opt=
-opts=
-
-# git server hostnames under cluster
-if [ "$GHE_BACKUP_STRATEGY" = "cluster" ]; then
-  ssh_config_file="$tempdir/ssh_config"
-  ssh_config_file_opt="-F $ssh_config_file"
-  opts="-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no"
-  ghe-ssh-config "$GHE_HOSTNAME" "$GHE_MSSQL_PRIMARY_HOST" > "$ssh_config_file"
-fi
 
 if ! export_tool_available ; then
   ghe_verbose "ghe-export-mssql is not available"
@@ -77,7 +58,7 @@ find_timestamp() {
 }
 
 actions_dbs() {
-  all_dbs=$(echo 'set -o pipefail; ghe-mssql-console -y -n -q "SET NOCOUNT ON; SELECT name FROM sys.databases"' | ghe-ssh $opts $ssh_config_file_opt "$GHE_MSSQL_PRIMARY_HOST" /bin/bash)
+  all_dbs=$(echo 'set -o pipefail; ghe-mssql-console -y -n -q "SET NOCOUNT ON; SELECT name FROM sys.databases"' | ghe-ssh-mssql /bin/bash)
   for db in $all_dbs; do
     if [[ ! "$db" =~ ^(master|tempdb|model|msdb)$ ]] && [[ "$db" =~ ^[a-zA-Z0-9_-]+$ ]]; then
       echo "$db"
@@ -114,7 +95,7 @@ ensure_same_dbs() {
 }
 
 run_query() {
-  echo "set -o pipefail; ghe-mssql-console -y -n -q \"SET NOCOUNT ON; $1\"" | ghe-ssh $opts $ssh_config_file_opt "$GHE_MSSQL_PRIMARY_HOST" /bin/bash | sed 's/^[[:space:]]*//;s/[[:space:]]*$//'
+  echo "set -o pipefail; ghe-mssql-console -y -n -q \"SET NOCOUNT ON; $1\"" | ghe-ssh-mssql  /bin/bash | sed 's/^[[:space:]]*//;s/[[:space:]]*$//'
 }
 
 get_latest_backup_file() {
@@ -330,19 +311,19 @@ if [ -n "$backup_type" ]; then
   fi
   
   bm_start "$(basename "$0")"
-  ghe-ssh $opts $ssh_config_file_opt "$GHE_MSSQL_PRIMARY_HOST"  -- "$backup_command" || failures="$failures mssql"
+  ghe-ssh-mssql  -- "$backup_command" || failures="$failures mssql"
   bm_end "$(basename "$0")"
 
   # Configure the backup cadence on the appliance, which is used for diagnostics
-  ghe-ssh $opts $ssh_config_file_opt "$GHE_MSSQL_PRIMARY_HOST" "ghe-config mssql.backup.cadence $GHE_MSSQL_BACKUP_CADENCE"
+  ghe-ssh-mssql "ghe-config mssql.backup.cadence $GHE_MSSQL_BACKUP_CADENCE"
 
   # Transfer backup files from appliance to backup host
   appliance_dir="$GHE_REMOTE_DATA_DIR/user/mssql/backups"
   backups=$(echo "set -o pipefail; if sudo test -d \"$appliance_dir\"; then \
-    sudo ls \"$appliance_dir\"; fi" | ghe-ssh $opts $ssh_config_file_opt "$GHE_MSSQL_PRIMARY_HOST" /bin/bash)
+    sudo ls \"$appliance_dir\"; fi" | ghe-ssh-mssql /bin/bash)
   for b in $backups
   do
     ghe_verbose "Transferring to backup host $b"
-    ghe-ssh $opts $ssh_config_file_opt "$GHE_MSSQL_PRIMARY_HOST" "sudo cat $appliance_dir/$b" > "$backup_dir"/"$b"
+    ghe-ssh-mssql "sudo cat $appliance_dir/$b" > "$backup_dir"/"$b"
   done
 fi

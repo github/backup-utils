@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+#/ Usage: ghe-ssh-mssql [<command>...]
+#/   
+#/ Helper to ssh into the mssql master instance with the correct ssh configuration.
+set -e
+
+# Bring in the backup configuration
+# shellcheck source=share/github-backup-utils/ghe-backup-config
+. "$( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config"
+
+# use the mssql primary host if GHES cluster configuration contains a mssql-master or use the ghe server if the mssql-master is not available.
+GHE_MSSQL_PRIMARY_NODE="$(ghe-ssh "$GHE_HOSTNAME" -- "ghe-config cluster.mssql-master" || true)"
+GHE_MSSQL_PRIMARY_HOST="$(ghe-ssh "$GHE_HOSTNAME" -- "ghe-config cluster.$GHE_MSSQL_PRIMARY_NODE.hostname" || true)"
+
+if [ -z "$GHE_MSSQL_PRIMARY_HOST" ]; then
+  GHE_MSSQL_PRIMARY_HOST="$GHE_HOSTNAME"
+fi
+
+tempdir=$(mktemp -d -t backup-utils-backup-XXXXXX)
+ssh_config_file_opt=
+opts=
+
+# proxy ssh to mssql-master via GHE_HOSTNAME
+if [ "$GHE_BACKUP_STRATEGY" = "cluster" ]; then
+  ssh_config_file="$tempdir/ssh_config"
+  ssh_config_file_opt="-F $ssh_config_file"
+  opts="-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no"
+  ghe-ssh-config "$GHE_HOSTNAME" "$GHE_MSSQL_PRIMARY_HOST" > "$ssh_config_file"
+fi
+
+
+exec ghe-ssh $opts $ssh_config_file_opt $GHE_MSSQL_PRIMARY_HOST "$@"

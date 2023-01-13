@@ -10,7 +10,7 @@ jobs:
       fail-fast: false
     runs-on: ${{ matrix.os }}
     steps:
-    - name: Install Dependencies (Linux)
+    - name: Install Dependencies (unix)
       run: |
         sudo apt-get update -y
         sudo apt-get install -y devscripts debhelper moreutils fakeroot jq pigz help2man

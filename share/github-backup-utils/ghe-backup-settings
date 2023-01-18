@@ -78,6 +78,7 @@ backup-secret "management console password" "manage-password" "secrets.manage"
 backup-secret "management console argon2 secret" "manage-argon-secret" "secrets.manage-auth.argon-secret"
 backup-secret "password pepper" "password-pepper" "secrets.github.user-password-secrets"
 backup-secret "kredz.credz HMAC key" "kredz-credz-hmac" "secrets.kredz.credz-hmac-secret"
+backup-secret "kredz.varz HMAC key" "kredz-varz-hmac" "secrets.kredz.varz-hmac-secret"
 
 # Backup external MySQL password if running external MySQL DB.
 if is_service_external 'mysql'; then

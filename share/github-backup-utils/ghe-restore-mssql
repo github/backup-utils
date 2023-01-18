@@ -44,8 +44,11 @@ fi
 tempdir=$(mktemp -d -t backup-utils-backup-XXXXXX)
 ssh_config_file_opt=
 opts=
-# git server hostnames under cluster
-if [ "$GHE_BACKUP_STRATEGY" = "cluster" ]; then
+
+isHA="$(ghe-ssh "$GHE_HOSTNAME" -- "ghe-config cluster.ha" || true)"
+
+# get server hostnames under cluster and HA
+if [ "$GHE_BACKUP_STRATEGY" = "cluster" ] || [ "$isHA" = "true" ]  ; then
   ssh_config_file="$tempdir/ssh_config"
   ssh_config_file_opt="-F $ssh_config_file"
   opts="-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no"

@@ -448,7 +448,9 @@ verify_all_backedup_data() {
   [ "$(cat "$GHE_DATA_DIR/current/manage-password")" = "fake password hash data" ]
 
   # verify manage-argon-secret file was backed up
-  [ "$(cat "$GHE_DATA_DIR/current/manage-argon-secret")" = "fake argon2 secret" ]
+  if [ "$(version $GHE_REMOTE_VERSION)" -gt "$(version 3.7.0)" ]; then
+    [ "$(cat "$GHE_DATA_DIR/current/manage-argon-secret")" = "fake argon2 secret" ]
+  fi
 
   # verify password pepper file was backed up
   [ "$(cat "$GHE_DATA_DIR/current/password-pepper")" = "fake password pepper data" ]

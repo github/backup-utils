@@ -265,7 +265,7 @@ begin_test "ghe-backup cluster"
 
   if ! ghe-backup -v > "$TRASHDIR/backup-out" 2>&1; then
     cat "$TRASHDIR/backup-out"
-    : ghe-restore should have exited successfully
+    : ghe-backup should have exited successfully
     false
   fi
 

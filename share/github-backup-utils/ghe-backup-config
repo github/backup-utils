@@ -232,7 +232,7 @@ export GHE_SNAPSHOT_DIR
 # Set "true" to get verbose logging of all ssh commands on stderr
 : ${GHE_VERBOSE_SSH:=false}
 
-# The location of the cluster configuration file file on the remote side.
+# The location of the cluster configuration file on the remote side.
 # This is always "/data/user/common/cluster.conf" for GitHub Cluster instances.
 # Use of this variable allows the location to be overridden in tests.
 : ${GHE_REMOTE_CLUSTER_CONF_FILE:="$GHE_REMOTE_DATA_DIR/user/common/cluster.conf"}
@@ -335,7 +335,7 @@ ssh_host_part() {
 # rsync commands.
 ssh_port_part() {
   if [ "${1##*:}" != "$1" ] && [ "${1##*:}" -ne "122" ]; then
-    echo "Error: SSH port has to be 122 connecting to Github Enterprise Server, current value is ${1##*:} for $1." 1>&2
+    echo "Error: SSH port has to be 122 connecting to GitHub Enterprise Server, current value is ${1##*:} for $1." 1>&2
     exit 1
   fi
 

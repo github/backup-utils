@@ -104,7 +104,7 @@ cleanup () {
     update_restore_status "$1"
   fi
 
-  if ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config --true app.actions.enabled'; then
+  if $ACTIONS_STOPPED && ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config --true app.actions.enabled'; then
     echo "Restarting Actions after restore ..."
     # In GHES 3.3+, ghe-actions-start no longer has a -f (force) flag. In GHES 3.2 and below, we must provide the
     # force flag to make sure it can start in maintenance mode. Use it conditionally based on whether it exists
@@ -160,6 +160,9 @@ hostname=$(echo "$GHE_HOSTNAME" | cut -f 1 -d :)
 
 # Show usage with no <host>
 [ -z "$GHE_HOSTNAME" ] && print_usage
+
+# Flag to indicate if this script has stopped Actions.
+ACTIONS_STOPPED=false
 
 # ghe-restore-snapshot-path validates it exists, determines what current is,
 # and if there's any problem, exit for us
@@ -282,6 +285,14 @@ fi
 # Get GHES release version in major.minor format
 RELEASE_VERSION=$(ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config --get core.package-version' | cut -d '.' -f 1,2)
 
+# If the backup being restored is from an appliance with Actions disabled, restoring it onto an appliance with Actions enabled will cause
+# mismatches in the secrets needed for Actions which ultimately results in Actions not working properly. Note: xargs is to remove whitespace
+ACTIONS_ENABLED_IN_BACKUP=$(git config -f $GHE_RESTORE_SNAPSHOT_PATH/settings.json --bool app.actions.enabled | xargs)
+if [[ $ACTIONS_ENABLED_IN_BACKUP != true ]] && ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config --true app.actions.enabled'; then
+    echo "Error: Restoring a backup with Actions disabled onto an appliance with Actions enabled is not supported." >&2
+    exit 1
+fi
+
 # Make sure the GitHub appliance has Actions enabled if the snapshot contains Actions data.
 # If above is true, also check if ac is present in appliance then snapshot should also contains ac databases
 if [ -d "$GHE_RESTORE_SNAPSHOT_PATH/mssql" ] || [ -d "$GHE_RESTORE_SNAPSHOT_PATH/actions" ]; then
@@ -399,6 +410,9 @@ fi
 
 if ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config --true app.actions.enabled'; then
   echo "Stopping Actions before restoring databases ..."
+  # We mark Actions as stopped even if the `ghe-actions-stop`
+  # fails to ensure that we cleanly start actions when performing cleanup.
+  ACTIONS_STOPPED=true
   ghe-ssh "$GHE_HOSTNAME" -- 'ghe-actions-stop' 1>&3
 
   echo "Restoring MSSQL databases ..."

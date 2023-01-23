@@ -43,7 +43,7 @@ if [ "$GHE_BACKUP_STRATEGY" = "cluster" ]; then
   ssh_config_file="$tempdir/ssh_config"
   ssh_config_file_opt="-F $ssh_config_file"
   opts="$opts -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no"
-  hostnames=$(ghe-cluster-nodes "$GHE_HOSTNAME" "pages-server")
+  hostnames=$(ghe-cluster-find-nodes "$GHE_HOSTNAME" "pages-server")
   ghe-ssh-config "$GHE_HOSTNAME" "$hostnames" > "$ssh_config_file"
 fi
 

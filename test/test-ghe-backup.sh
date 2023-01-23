@@ -132,14 +132,26 @@ begin_test "ghe-backup without password pepper"
 )
 end_test
 
-begin_test "ghe-backup without management console argon2 secret"
+begin_test "ghe-backup without management console argon2 secret for ghes lower than 3.8"
 (
   set -e
 
-  git config -f "$GHE_REMOTE_DATA_USER_DIR/common/secrets.conf" secrets.manage-auth.argon-secret ""
-  ghe-backup
+  git config -f "$GHE_REMOTE_DATA_USER_DIR/common/secrets.conf" secrets.manage-auth.argon-secret "fake pw"
+  GHE_REMOTE_VERSION=3.7.0 ghe-backup
 
   [ ! -f "$GHE_DATA_DIR/current/manage-argon-secret" ]
+)
+end_test
+
+# multiuser auth introduced in ghes version 3.8
+begin_test "ghe-backup management console argon2 secret"
+(
+  set -e
+
+  git config -f "$GHE_REMOTE_DATA_USER_DIR/common/secrets.conf" secrets.manage-auth.argon-secret "fake pw"
+  GHE_REMOTE_VERSION=3.8.0 ghe-backup
+
+  [ "$(cat "$GHE_DATA_DIR/current/manage-argon-secret")" = "fake pw" ]
 )
 end_test
 

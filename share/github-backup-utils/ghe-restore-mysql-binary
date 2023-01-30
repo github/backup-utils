@@ -52,7 +52,7 @@ if [ "$(cat $snapshot_dir/mysql-binary-backup-sentinel)" = "NO_ADDITIONAL_COMPRE
   IMPORT_MYSQL=ghe-import-mysql-xtrabackup
   GHE_RESTORE_HOST=$ghe_mysql_master
 else
-  IMPORT_MYSQL="unpigz | ghe-import-mysql-xtrabackup"
+  IMPORT_MYSQL="unzstd | ghe-import-mysql-xtrabackup"
   GHE_RESTORE_HOST=$ghe_mysql_master
 fi
 

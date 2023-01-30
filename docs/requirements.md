@@ -6,12 +6,11 @@ storage and must have network connectivity with the GitHub Enterprise Server app
 ## Backup host requirements
 
 Backup host software requirements are modest: Linux or other modern Unix operating
-system with [bash][1], [git][2], [OpenSSH][3] 5.6 or newer, and [rsync][4] v2.6.4 or newer.
+system (Ubuntu is highly recommended) with [bash][1], [git][2], [OpenSSH][3] 5.6 or newer, [rsync][4] v2.6.4 or newer, and [jq][11] v1.5 or newer.
 
-The new parallel backup and restore beta feature will require [GNU awk][10] and [moreutils][9] to be installed.
+The parallel backup and restore feature will require [GNU awk][10] and [moreutils][9] to be installed.
 
-We encourage the use of [Docker](docker.md) if your backup host doesn't meet these
-requirements, or if Docker is your preferred platform.
+We encourage the use of [Docker](docker.md), as it ensures compatible versions of the aforementioned software are available to backup-utils.
 
 The backup host must be able to establish outbound network connections to the
 GitHub appliance over SSH. TCP port 122 is used to backup GitHub Enterprise Server.
@@ -61,7 +60,13 @@ snapshot of GitHub Enterprise Server 2.11, the target GitHub Enterprise Server a
 be running GitHub Enterprise Server 2.12.x or 2.13.x. You can't restore a snapshot from
 2.10 to 2.13, because that's three releases ahead.
 
-**Note**: You _cannot_ restore a backup created from a newer verison of GitHub Enterprise Server to an older version. For example, an attempt to restore a snapshot of GitHub Enterprise Server 2.21 to a GitHub Enterprise Server 2.20 environment will fail with an error of `Error: Snapshot can not be restored to an older release of GitHub Enterprise Server.`.
+**Note**: You _cannot_ restore a backup created from a newer version of GitHub Enterprise Server to an older version. For example, an attempt to restore a snapshot of GitHub Enterprise Server 2.21 to a GitHub Enterprise Server 2.20 environment will fail with an error of `Error: Snapshot can not be restored to an older release of GitHub Enterprise Server.`.
+
+## Multiple backup hosts
+
+Using multiple backup hosts or backup configurations is not currently recommended.
+
+Due to how some components of Backup Utilities (e.g. MSSQL) take incremental backups, running another instance of Backup Utilities may result in unrestorable snapshots as data may be split across backup hosts. If you still wish to have multiple instances of Backup Utilities for redundancy purposes or to run at different frequencies, ensure that they share the same `GHE_DATA_DIR` backup directory.
 
 [1]: https://www.gnu.org/software/bash/
 [2]: https://git-scm.com/
@@ -73,3 +78,4 @@ be running GitHub Enterprise Server 2.12.x or 2.13.x. You can't restore a snapsh
 [8]: https://help.github.com/enterprise/admin/guides/installation/upgrade-requirements/
 [9]: https://joeyh.name/code/moreutils
 [10]: https://www.gnu.org/software/gawk
+[11]: https://stedolan.github.io/jq/

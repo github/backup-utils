@@ -44,10 +44,12 @@ for index in $indices; do
   index_size=$2
 
   if [[ -f $GHE_DATA_DIR/current/audit-log/$index_name.gz && $(cat $GHE_DATA_DIR/current/audit-log/$index_name.gz.size 2>/dev/null || true) -eq $index_size ]]; then
+    ghe_verbose "* Linking unchanged audit log index: $index_name"
     # Hard link any indices that have not changed since the last backup
     ln $GHE_DATA_DIR/current/audit-log/$index_name.gz $GHE_SNAPSHOT_DIR/audit-log/$index_name.gz
     ln $GHE_DATA_DIR/current/audit-log/$index_name.gz.size $GHE_SNAPSHOT_DIR/audit-log/$index_name.gz.size
   else
+    ghe_verbose "* Performing audit log export for index: $index_name"
     echo "/usr/local/share/enterprise/ghe-es-dump-json \"http://localhost:9201/$index_name\" | gzip" | ghe-ssh "$host" -- /bin/bash > $GHE_SNAPSHOT_DIR/audit-log/$index_name.gz
     echo $index_size > $GHE_SNAPSHOT_DIR/audit-log/$index_name.gz.size
   fi

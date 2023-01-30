@@ -27,7 +27,6 @@ ownership:
 - name: backup-utils
   long_name: backup-utils
   description: backup-utils is backup and restore tooling for Github enterprise server
-    (GHES)
   kind: code
   repo: https://github.com/github/backup-utils
   qos: critical

@@ -6,7 +6,7 @@
 #/ Note that the GitHub Enterprise host must be reachable and your SSH key must
 #/ be setup as described in the following help article:
 #/
-#/ <https://enterprise.github.com/help/articles/adding-an-ssh-key-for-shell-access>
+#/ <https://docs.github.com/enterprise-server/admin/configuration/configuring-your-enterprise/accessing-the-administrative-shell-ssh >
 #/
 #/ OPTIONS:
 #/   -c | --config       Restore appliance settings and license in addition to

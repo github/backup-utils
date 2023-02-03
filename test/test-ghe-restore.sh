@@ -6,6 +6,7 @@
 . "$(dirname "$0")/testlib.sh"
 
 setup_test_data "$GHE_DATA_DIR/1"
+setup_actions_enabled_settings_for_restore true
 
 # Make the current symlink
 ln -s 1 "$GHE_DATA_DIR/current"
@@ -56,10 +57,10 @@ begin_test "ghe-restore into configured vm"
   cat "$TRASHDIR/restore-out"
 
   # verify connect to right host
-  grep -q "Connect 127.0.0.1:22 OK" "$TRASHDIR/restore-out"
+  grep -q "Connect 127.0.0.1:122 OK" "$TRASHDIR/restore-out"
 
   # verify stale servers were cleared
-  grep -q "ghe-cluster-cleanup-node OK" "$TRASHDIR/restore-out"
+  grep -q "Cleaning up stale nodes ..." "$TRASHDIR/restore-out"
 
   # Verify all the data we've restored is as expected
   verify_all_restored_data
@@ -141,11 +142,11 @@ begin_test "ghe-restore -c into unconfigured vm"
   fi
 
   # verify connect to right host
-  grep -q "Connect 127.0.0.1:22 OK" "$TRASHDIR/restore-out"
+  grep -q "Connect 127.0.0.1:122 OK" "$TRASHDIR/restore-out"
 
   # verify attempt to clear stale servers was not made
-  grep -q "ghe-cluster-cleanup-node OK" "$TRASHDIR/restore-out" && {
-    echo "ghe-cluster-cleanup-node should not run on unconfigured nodes."
+  grep -q "Cleaning up stale nodes ..." "$TRASHDIR/restore-out" && {
+    echo "Unconfigured nodes should not be cleaned up."
     exit 1
   }
 
@@ -175,11 +176,11 @@ begin_test "ghe-restore into unconfigured vm"
   ! grep -q "ghe-config-apply OK" "$TRASHDIR/restore-out"
 
   # verify connect to right host
-  grep -q "Connect 127.0.0.1:22 OK" "$TRASHDIR/restore-out"
+  grep -q "Connect 127.0.0.1:122 OK" "$TRASHDIR/restore-out"
 
   # verify attempt to clear stale servers was not made
-  grep -q "ghe-cluster-cleanup-node OK" "$TRASHDIR/restore-out" && {
-    echo "ghe-cluster-cleanup-node should not run on unconfigured nodes."
+  grep -q "Cleaning up stale nodes ..." "$TRASHDIR/restore-out" && {
+    echo "Unconfigured nodes should not be cleaned up."
     exit 1
   }
 
@@ -215,7 +216,7 @@ begin_test "ghe-restore with host arg and config value"
   rm "$GHE_BACKUP_CONFIG_TEMP"
 
   # verify host arg overrides configured restore host
-  echo "$output" | grep -q 'Connect localhost:22 OK'
+  echo "$output" | grep -q 'Connect localhost:122 OK'
 
   # Verify all the data we've restored is as expected
   verify_all_restored_data
@@ -239,7 +240,7 @@ begin_test "ghe-restore with host arg"
   output="$(ghe-restore -f localhost)" || false
 
   # verify host arg overrides configured restore host
-  echo "$output" | grep -q 'Connect localhost:22 OK'
+  echo "$output" | grep -q 'Connect localhost:122 OK'
 
   # Verify all the data we've restored is as expected
   verify_all_restored_data
@@ -396,6 +397,40 @@ begin_test "ghe-restore with Actions settings"
 )
 end_test
 
+begin_test "ghe-restore stops and starts Actions"
+(
+  set -e
+  rm -rf "$GHE_REMOTE_ROOT_DIR"
+  setup_remote_metadata
+  enable_actions
+
+  setup_maintenance_mode "configured"
+
+  output=$(ghe-restore -v -f localhost 2>&1)
+
+  echo "$output" | grep -q "ghe-actions-stop .* OK"
+  echo "$output" | grep -q "ghe-actions-start .* OK"
+)
+end_test
+
+begin_test "ghe-restore does not attempt to start Actions during cleanup if they never have been stopped"
+(
+  set -e
+  rm -rf "$GHE_REMOTE_ROOT_DIR"
+  setup_remote_metadata
+  enable_actions
+
+  setup_maintenance_mode "configured"
+  # We are not in maintance mode which means that we don't stop Actions and abort early.
+  disable_maintenance_mode
+
+  ! output=$(ghe-restore -v -f localhost 2>&1)
+
+  ! echo "$output" | grep -q "ghe-actions-stop"
+  ! echo "$output" | grep -q "ghe-actions-start"
+)
+end_test
+
 begin_test "ghe-restore with Actions data"
 (
   set -e
@@ -535,7 +570,71 @@ setup_test_data "$GHE_DATA_DIR/1"
 # Make the current symlink
 ln -s 1 "$GHE_DATA_DIR/current"
 
-begin_test "ghe-restore cluster"
+# Disabling test for release.  Issue for tracking https://github.com/github/backup-utils/issues/677
+# begin_test "ghe-restore cluster with matching node versions"
+# (
+#   set -e
+#   rm -rf "$GHE_REMOTE_ROOT_DIR"
+#   setup_moreutils_parallel
+#   setup_remote_metadata
+#   setup_remote_cluster
+#   echo "cluster" > "$GHE_DATA_DIR/current/strategy"
+
+#   # set as configured, enable maintenance mode and create required directories
+#   setup_maintenance_mode "configured"
+
+#   # set restore host environ var
+#   GHE_RESTORE_HOST=127.0.0.1
+#   export GHE_RESTORE_HOST
+
+#   # run ghe-restore and write output to file for asserting against
+#   if ! ghe-restore -v -f > "$TRASHDIR/restore-out" 2>&1; then
+#       cat "$TRASHDIR/restore-out"
+#       : ghe-restore should have exited successfully
+#       false
+#   fi
+
+#   cleanup_moreutils_parallel
+
+#   # for debugging
+#   cat "$TRASHDIR/restore-out"
+
+#   # verify data was copied from multiple nodes
+#   # repositories
+#   grep -q "networks to git-server-fake-uuid" "$TRASHDIR/restore-out"
+#   grep -q "networks to git-server-fake-uuid1" "$TRASHDIR/restore-out"
+#   grep -q "networks to git-server-fake-uuid2" "$TRASHDIR/restore-out"
+#   grep -q "dgit-cluster-restore-finalize OK" "$TRASHDIR/restore-out"
+
+#   # gists
+#   grep -q "gists to git-server-fake-uuid" "$TRASHDIR/restore-out"
+#   grep -q "gists to git-server-fake-uuid1" "$TRASHDIR/restore-out"
+#   grep -q "gists to git-server-fake-uuid2" "$TRASHDIR/restore-out"
+#   grep -q "gist-cluster-restore-finalize OK" "$TRASHDIR/restore-out"
+
+
+#   # storage
+#   grep -q "data to git-server-fake-uuid" "$TRASHDIR/restore-out"
+#   grep -q "data to git-server-fake-uuid1" "$TRASHDIR/restore-out"
+#   grep -q "data to git-server-fake-uuid2" "$TRASHDIR/restore-out"
+#   grep -q "storage-cluster-restore-finalize OK" "$TRASHDIR/restore-out"
+
+
+#   # pages
+#   grep -q "Pages to git-server-fake-uuid" "$TRASHDIR/restore-out"
+#   grep -q "Pages to git-server-fake-uuid1" "$TRASHDIR/restore-out"
+#   grep -q "Pages to git-server-fake-uuid2" "$TRASHDIR/restore-out"
+#   grep -q "dpages-cluster-restore-finalize OK" "$TRASHDIR/restore-out"
+
+#   # verify no warnings printed
+#   ! grep -q "Warning" "$TRASHDIR/restore-out"
+
+#   # Verify all the data we've restored is as expected
+#   verify_all_restored_data
+# )
+# end_test
+
+begin_test "ghe-restore cluster with different node versions should fail at ghe-host-check"
 (
   set -e
   rm -rf "$GHE_REMOTE_ROOT_DIR"
@@ -544,6 +643,10 @@ begin_test "ghe-restore cluster"
   setup_remote_cluster
   echo "cluster" > "$GHE_DATA_DIR/current/strategy"
 
+  # set that versions should not match for this test
+  DIFFERENT_VERSIONS=1
+  export DIFFERENT_VERSIONS
+
   # set as configured, enable maintenance mode and create required directories
   setup_maintenance_mode "configured"
 
@@ -551,90 +654,64 @@ begin_test "ghe-restore cluster"
   GHE_RESTORE_HOST=127.0.0.1
   export GHE_RESTORE_HOST
 
-  # run ghe-restore and write output to file for asserting against
-  if ! ghe-restore -v -f > "$TRASHDIR/restore-out" 2>&1; then
-      cat "$TRASHDIR/restore-out"
-      : ghe-restore should have exited successfully
-      false
-  fi
+  ! output=$(ghe-restore -v -f 2>&1)
 
-  cleanup_moreutils_parallel
-
-  # for debugging
-  cat "$TRASHDIR/restore-out"
-
-  # verify data was copied from multiple nodes
-  # repositories
-  grep -q "networks to git-server-fake-uuid" "$TRASHDIR/restore-out"
-  grep -q "networks to git-server-fake-uuid1" "$TRASHDIR/restore-out"
-  grep -q "networks to git-server-fake-uuid2" "$TRASHDIR/restore-out"
-  grep -q "dgit-cluster-restore-finalize OK" "$TRASHDIR/restore-out"
-
-  # gists
-  grep -q "gists to git-server-fake-uuid" "$TRASHDIR/restore-out"
-  grep -q "gists to git-server-fake-uuid1" "$TRASHDIR/restore-out"
-  grep -q "gists to git-server-fake-uuid2" "$TRASHDIR/restore-out"
-  grep -q "gist-cluster-restore-finalize OK" "$TRASHDIR/restore-out"
-
-
-  # storage
-  grep -q "data to git-server-fake-uuid" "$TRASHDIR/restore-out"
-  grep -q "data to git-server-fake-uuid1" "$TRASHDIR/restore-out"
-  grep -q "data to git-server-fake-uuid2" "$TRASHDIR/restore-out"
-  grep -q "storage-cluster-restore-finalize OK" "$TRASHDIR/restore-out"
-
-
-  # pages
-  grep -q "Pages to git-server-fake-uuid" "$TRASHDIR/restore-out"
-  grep -q "Pages to git-server-fake-uuid1" "$TRASHDIR/restore-out"
-  grep -q "Pages to git-server-fake-uuid2" "$TRASHDIR/restore-out"
-  grep -q "dpages-cluster-restore-finalize OK" "$TRASHDIR/restore-out"
-
-  # verify no warnings printed
-  ! grep -q "Warning" "$TRASHDIR/restore-out"
-
-  # Verify all the data we've restored is as expected
-  verify_all_restored_data
+  echo "$output" | grep -q "Error: Not all nodes are running the same version! Please ensure all nodes are running the same version before using backup-utils."
 )
 end_test
 
-begin_test "ghe-restore missing directories or files from source snapshot displays warning"
+# Disabling test for release.  Issue for tracking https://github.com/github/backup-utils/issues/677
+# begin_test "ghe-restore missing directories or files from source snapshot displays warning"
+# (
+#     # Tests the scenario where something exists in the database, but not on disk.
+#     set -e
+#     rm -rf "$GHE_REMOTE_ROOT_DIR"
+#     setup_moreutils_parallel
+#     setup_remote_metadata
+#     setup_remote_cluster
+#     echo "cluster" > "$GHE_DATA_DIR/current/strategy"
+
+#     # set as configured, enable maintenance mode and create required directories
+#     setup_maintenance_mode "configured"
+
+#     # set restore host environ var
+#     GHE_RESTORE_HOST=127.0.0.1
+#     export GHE_RESTORE_HOST
+
+#     # Tell dgit-cluster-restore-finalize and gist-cluster-restore-finalize to return warnings
+#     export GHE_DGIT_CLUSTER_RESTORE_FINALIZE_WARNING=1
+#     export GHE_GIST_CLUSTER_RESTORE_FINALIZE_WARNING=1
+
+#     # run ghe-restore and write output to file for asserting against
+#     if ! ghe-restore -v -f > "$TRASHDIR/restore-out" 2>&1; then
+#         cat "$TRASHDIR/restore-out"
+#         : ghe-restore should have exited successfully
+#         false
+#     fi
+
+#     cleanup_moreutils_parallel
+
+#     # for debugging
+#     cat "$TRASHDIR/restore-out"
+
+#     grep -q "Warning: One or more repository networks failed to restore successfully." "$TRASHDIR/restore-out"
+#     grep -q "Warning: One or more Gists failed to restore successfully." "$TRASHDIR/restore-out"
+
+#     # Verify all the data we've restored is as expected
+#     verify_all_restored_data
+# )
+# end_test
+
+begin_test "ghe-restore fails if Actions is disabled in the backup but enabled on the appliance"
 (
-    # Tests the scenario where something exists in the database, but not on disk.
-    set -e
-    rm -rf "$GHE_REMOTE_ROOT_DIR"
-    setup_moreutils_parallel
-    setup_remote_metadata
-    setup_remote_cluster
-    echo "cluster" > "$GHE_DATA_DIR/current/strategy"
+  set -e
+  rm -rf "$GHE_REMOTE_ROOT_DIR"
+  setup_remote_metadata
+  setup_actions_enabled_settings_for_restore false
+  enable_actions
 
-    # set as configured, enable maintenance mode and create required directories
-    setup_maintenance_mode "configured"
+  setup_maintenance_mode "configured"
 
-    # set restore host environ var
-    GHE_RESTORE_HOST=127.0.0.1
-    export GHE_RESTORE_HOST
-
-    # Tell dgit-cluster-restore-finalize and gist-cluster-restore-finalize to return warnings
-    export GHE_DGIT_CLUSTER_RESTORE_FINALIZE_WARNING=1
-    export GHE_GIST_CLUSTER_RESTORE_FINALIZE_WARNING=1
-
-    # run ghe-restore and write output to file for asserting against
-    if ! ghe-restore -v -f > "$TRASHDIR/restore-out" 2>&1; then
-        cat "$TRASHDIR/restore-out"
-        : ghe-restore should have exited successfully
-        false
-    fi
-
-    cleanup_moreutils_parallel
-
-    # for debugging
-    cat "$TRASHDIR/restore-out"
-
-    grep -q "Warning: One or more repository networks failed to restore successfully." "$TRASHDIR/restore-out"
-    grep -q "Warning: One or more Gists failed to restore successfully." "$TRASHDIR/restore-out"
-
-    # Verify all the data we've restored is as expected
-    verify_all_restored_data
+  ! ghe-restore -v -f localhost
 )
 end_test

@@ -2,6 +2,12 @@
 # ghe-restore command tests run in parallel
 set -e
 
+# Currently disabled on macOS due to rsync issues
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  echo "Skipping $(basename "$0") tests as they are temporarily disabled on macOS: https://github.com/github/backup-utils/issues/841"
+  exit 0
+fi
+
 export GHE_PARALLEL_ENABLED=yes
 
 # use temp dir to fix rsync file issues in parallel execution:

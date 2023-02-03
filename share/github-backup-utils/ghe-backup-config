@@ -232,7 +232,7 @@ export GHE_SNAPSHOT_DIR
 # Set "true" to get verbose logging of all ssh commands on stderr
 : ${GHE_VERBOSE_SSH:=false}
 
-# The location of the cluster configuration file file on the remote side.
+# The location of the cluster configuration file on the remote side.
 # This is always "/data/user/common/cluster.conf" for GitHub Cluster instances.
 # Use of this variable allows the location to be overridden in tests.
 : ${GHE_REMOTE_CLUSTER_CONF_FILE:="$GHE_REMOTE_DATA_DIR/user/common/cluster.conf"}
@@ -242,6 +242,12 @@ export GHE_SNAPSHOT_DIR
 
 # Base path for temporary directories and files.
 : ${TMPDIR:="/tmp"}
+
+# Backup cadence for MS SQL. Determines the kind of backup taken, either full, differential,
+# or transaction log, based on when the last backup of that kind was taken. This defaults to
+# taking a full backup once a week, a differential backup once a day, and transaction logs every
+# 15 minutes.
+: ${GHE_MSSQL_BACKUP_CADENCE:=10080,1440,15}
 
 ###############################################################################
 ### Dynamic remote version config
@@ -328,7 +334,12 @@ ssh_host_part() {
 # This is used primarily to break hostspecs with non-standard ports down for
 # rsync commands.
 ssh_port_part() {
-  [ "${1##*:}" = "$1" ] && echo 22 || echo "${1##*:}"
+  if [ "${1##*:}" != "$1" ] && [ "${1##*:}" -ne "122" ]; then
+    echo "Error: SSH port has to be 122 connecting to GitHub Enterprise Server, current value is ${1##*:} for $1." 1>&2
+    exit 1
+  fi
+
+  echo 122
 }
 
 # Usage: ghe_remote_logger <message>...
@@ -462,7 +473,7 @@ is_external_database_snapshot(){
 # This file exists if this is a backup for an external database AND the backup was
 # taken via our logical backup strategy.
 is_default_external_database_snapshot(){
-  is_external_database_snapshot && test -f "$1/logical-external-database-backup-sentinel"
+  is_external_database_snapshot && test -f "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/logical-external-database-backup-sentinel"
 }
 
 prompt_for_confirmation(){

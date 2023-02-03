@@ -93,4 +93,10 @@ ghe-ssh -p "$port" "$host" -- ghe-actions-console -s mps -c "Repair-DatabaseLogi
 ghe-ssh -p "$port" "$host" -- ghe-actions-console -s token -c "Repair-DatabaseLogins"
 ghe-ssh -p "$port" "$host" -- ghe-actions-console -s actions -c "Repair-DatabaseLogins"
 
+if [ ! -z "$(find "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/mssql/" -maxdepth 1 -name 'ArtifactCache_Configuration*.bak')" ]; then
+  ghe-ssh -p "$port" "$host" -- ghe-actions-console -s artifactcache -c "Repair-DatabaseLogins"
+  else
+   echo "ArtifactCache is not present in mssql backup. Skipping Repair-DatabaseLogins for it."
+fi
+
 bm_end "$(basename $0)"

@@ -80,6 +80,8 @@ The `ghe-backup` and `ghe-restore` commands also have a verbose output mode
 (`-v`) that lists files as they're being transferred. It's often useful to
 enable when output is logged to a file.
 
+### Restoring settings, TLS certificate, and license 
+
 When restoring to a new GitHub Enterprise Server instance, settings, certificate, and
 license data *are* restored. These settings must be reviewed and saved before
 using the GitHub Enterprise Server to ensure all migrations take place and all required
@@ -89,5 +91,19 @@ When restoring to an already configured GitHub Enterprise Server instance, setti
 are *not* restored to prevent overwriting manual configuration on the restore
 host. This behavior can be overridden by passing the `-c` argument to `ghe-restore`,
 forcing settings, certificate, and license data to be overwritten with the backup copy's data.
+
+## Backup and restore with GitHub Actions enabled
+
+GitHub Actions data on your external storage provider is not included in regular GitHub Enterprise Server
+backups, and must be backed up separately.  When restoring a GitHub Enterprise Server backup with 
+GitHub Actions enabled, the following steps are required:
+
+1. Enable GitHub Actions on the replacement appliance and configure it to use the same GitHub Actions
+   external storage configuration as the original appliance.
+2. Put replacement appliance into maintenance mode. 
+3. Use `ghe-restore` to restore the backup.
+4. Re-register your self-hosted runners on the replacement appliance.
+
+Please refer to [GHES Documentation](https://docs.github.com/en/enterprise-server/admin/github-actions/advanced-configuration-and-troubleshooting/backing-up-and-restoring-github-enterprise-server-with-github-actions-enabled) for more details.
 
 [1]: https://github.com/github/backup-utils/blob/master/docs/getting-started.md

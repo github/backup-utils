@@ -54,16 +54,40 @@ begin_test "ghe-host-check detects unsupported GitHub Enterprise Server versions
   set -e
   # shellcheck disable=SC2046 # Word splitting is required to populate the variables
   read -r bu_version_major bu_version_minor _ <<<$(ghe_parse_version $BACKUP_UTILS_VERSION)
+  bu_major_minor="$bu_version_major.$bu_version_minor"
+  releases=$(/usr/bin/curl -s https://github-enterprise.s3.amazonaws.com/release/latest.json)
+  supported=$(echo $releases | jq -r 'select(."'${bu_major_minor}'")')
+  # shellcheck disable=SC2207 # Command required as alternatives fail
+  keys=($(echo $releases | jq -r 'keys[]'))
 
+  if [ -z "$supported" ]
+  then
+     #BACKUP_UTILS_VERSION WAS NOT FOUND IN LATEST.JSON, CHECK IF ITS GREATER THAN LAST VERSION
+     if [ "$(version $bu_major_minor)" -ge "$(version ${keys[$((${#keys[@]} - 2 ))]})" ]; then
+        GHE_TEST_REMOTE_VERSION="$bu_major_minor.0" ghe-host-check
+        GHE_TEST_REMOTE_VERSION="${keys[$(( ${#keys[@]} - 2 ))]}.0" ghe-host-check
+        GHE_TEST_REMOTE_VERSION="${keys[$(( ${#keys[@]} - 3 ))]}.0" ghe-host-check
+     fi
+  else
+      #BACKUP_UTILS_VERSION WAS FOUND IN LATEST.JSON
+      ix=0
+      for i in "${keys[@]}";do 
+       if [ "$i" == "$bu_major_minor" ];then
+          break
+       fi
+       ix=$(( $ix + 1 ))
+      done
+      GHE_TEST_REMOTE_VERSION="${keys[$ix]}.0" ghe-host-check
+      GHE_TEST_REMOTE_VERSION="${keys[$(( $ix - 1 ))]}.0" ghe-host-check
+      GHE_TEST_REMOTE_VERSION="${keys[$(( $ix - 2 ))]}.0" ghe-host-check
+
+  fi
   ! GHE_TEST_REMOTE_VERSION=11.340.36 ghe-host-check
-  ! GHE_TEST_REMOTE_VERSION=2.$((bu_version_minor-3)).0 ghe-host-check
-  GHE_TEST_REMOTE_VERSION=2.$((bu_version_minor-2)).0 ghe-host-check
-  GHE_TEST_REMOTE_VERSION=$BACKUP_UTILS_VERSION ghe-host-check
-  GHE_TEST_REMOTE_VERSION=$BACKUP_UTILS_VERSION ghe-host-check
   GHE_TEST_REMOTE_VERSION=$bu_version_major.$bu_version_minor.999 ghe-host-check
   GHE_TEST_REMOTE_VERSION=$bu_version_major.$bu_version_minor.999gm1 ghe-host-check
-  ! GHE_TEST_REMOTE_VERSION=2.9999.1521793591.performancetest ghe-host-check
+  ! GHE_TEST_REMOTE_VERSION=3.9999.1521793591.performancetest ghe-host-check
   GHE_TEST_REMOTE_VERSION=$((bu_version_major+1)).0.0 ghe-host-check
+
 )
 end_test
 

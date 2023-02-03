@@ -165,7 +165,7 @@ rsync /data/user/db remote:/data/user/db
 ---
 ##### Use lowercase and uppercase variable names
 
-Use lowercase variables for locals and internal veriables, and uppercase for variables inherited or exported via the environment
+Use lowercase variables for locals and internal variables, and uppercase for variables inherited or exported via the environment
 
 ```bash
 #!/usr/bin/env bash

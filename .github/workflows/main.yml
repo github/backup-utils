@@ -11,9 +11,10 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
     - name: Install Dependencies (Linux)
+      # TODO: WE SHOULD PROBABLY SEE ABOUT SETTING UP A REQUIREMENTS FILE SOMEWHERE WITH PINNED VERSIONS ADDED IN -f FOR DEPENDENCY FIX
       run: |
         sudo apt-get update -y
-        sudo apt-get install -y devscripts debhelper moreutils fakeroot jq pigz help2man
+        sudo apt-get install -f -y devscripts debhelper moreutils fakeroot jq pigz help2man
         wget "https://github.com/koalaman/shellcheck/releases/download/latest/shellcheck-latest.linux.x86_64.tar.xz"
         tar --xz -xvf "shellcheck-latest.linux.x86_64.tar.xz"
         sudo cp shellcheck-latest/shellcheck /usr/bin/shellcheck

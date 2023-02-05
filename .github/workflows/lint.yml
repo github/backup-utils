@@ -1,8 +1,8 @@
 name: Lint Code Base
 
 on:
-  push:
-    branches-ignore: [master]
+  # push: # IS THIS REALLY NEEDED IF WE ARE DOING THIS ON ALL PULL REQUESTS?
+  #   branches-ignore: [master] # IS THIS REALLY NEEDED IF WE ARE DOING THIS ON ALL PULL REQUESTS?
   pull_request:
     branches: [master]
 

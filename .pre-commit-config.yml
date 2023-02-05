@@ -1,0 +1,28 @@
+repos:
+  - repo: https://github.com/petalmd/dockerfile-pre-commit
+    rev: master  # Use the revision rev you want to point at
+    hooks:
+      - id: dockerlint
+  - repo: https://github.com/jumanjihouse/pre-commit-hook-yamlfmt
+    rev: master  # or other specific tag
+    hooks:
+       - id: yamlfmt
+  - repo: https://github.com/dnephin/pre-commit-golang
+    rev: master
+    hooks:
+      - id: go-fmt
+      - id: go-vet
+      - id: go-lint
+      - id: go-imports
+      - id: go-cyclo
+        args: [-over=15]
+      - id: validate-toml
+      - id: golangci-lint
+      - id: go-critic
+      - id: go-build
+      - id: go-mod-tidy
+  - repo: https://github.com/koalaman/shellcheck-precommit
+    rev: v0.9.0
+    hooks:
+    -   id: shellcheck
+        args: ["--severity=warning"]  # Optionally only show errors and warnings

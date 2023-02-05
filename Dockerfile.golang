@@ -1,0 +1,61 @@
+###############
+# CACHE IMAGE #
+###############
+ARG GO_IMAGE=golang:1.18.10-alpine3.17
+ARG BASE_IMAGE=alpine:3.17
+
+FROM ${GO_IMAGE} AS cache
+LABEL org.opencontainers.image.source https://github.com/github/backup-utils
+
+# Add the keys
+ARG GITHUB_ID
+ENV GITHUB_ID=$GITHUB_ID
+ARG GITHUB_TOKEN
+ENV GITHUB_TOKEN=$GITHUB_TOKEN
+
+# Install Git
+RUN apk add git
+
+# TODO: ENCRYPT THE GITHUB_ID AND GITHUB_TOKEN
+# Make Git Configuration in case repository is ever marked private
+
+RUN --mount=type=secret,id=TOKEN \
+    echo "machine github.com login x password $(head -n 1 /run/secrets/TOKEN)" > ~/.netrc && \
+    git config \
+    --global \
+    url."https://${GITHUB_ID}:${TOKEN}@github.com/".insteadOf \
+    "https://github.com/"
+    
+RUN git config \
+    --global \
+    url."https://${GITHUB_ID}:${GITHUB_TOKEN}@github.com/".insteadOf \
+    "https://github.com/"
+
+WORKDIR /src
+COPY go.mod go.sum /src/
+RUN go mod download
+
+##############
+# BASE IMAGE #
+##############
+FROM cache as backup-utils
+COPY . /bin
+WORKDIR /bin
+
+# Setup Git Terminal Prompt & Go Build
+RUN go build .
+
+###############
+# FINAL IMAGE #
+###############
+FROM ${BASE_IMAGE}
+LABEL org.opencontainers.image.source https://github.com/github/backup-utils
+
+# TODO: NEED TO ADD A USER SIMILAR TO THE FOLLOWING UBUNTU BLOCK
+RUN addgroup -g 1001 backupuser && \
+    adduser -S -u 1001 -G backupuser backupuser
+
+USER appuser
+
+COPY --from=backup-utils /bin/backup-utils bin
+ENTRYPOINT [ "bin/backup-utils" ]

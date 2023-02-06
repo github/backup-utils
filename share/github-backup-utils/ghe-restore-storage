@@ -60,7 +60,7 @@ if $CLUSTER; then
   ssh_config_file="$tempdir/ssh_config"
   ssh_config_file_opt="-F $tempdir/ssh_config"
   opts="$opts -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no"
-  hostnames=$(ghe-cluster-nodes "$GHE_HOSTNAME" "storage-server")
+  hostnames=$(ghe-cluster-find-nodes "$GHE_HOSTNAME" "storage-server")
   ghe-ssh-config "$GHE_HOSTNAME" "$hostnames" > "$ssh_config_file"
 fi
 

@@ -1,0 +1,25 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+
+  build-docker:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Build the Debian Docker image
+      run: docker build . --file Dockerfile --tag backup-utils-debian:${GITHUB_RUN_ID}
+    - name: Build the Alpine Docker image
+      run: docker build . --file Dockerfile.alpine --tag backup-utils-alpine:${GITHUB_RUN_ID}
+    - name: Run tests in Debian Docker image
+      run: docker run backup-utils-debian:${GITHUB_RUN_ID} ghe-backup --version
+    - name: Run tests in Alpine Docker image
+      run: docker run backup-utils-alpine:${GITHUB_RUN_ID} ghe-backup --version
+      

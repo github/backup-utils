@@ -122,6 +122,8 @@ cleanup () {
 
   # Cleanup SSH multiplexing
   ghe-ssh --clean
+  # Remove in-progress file
+  rm -f ${GHE_DATA_DIR}/in-progress-restore
 }
 
 # This function's type definition is being passed to a remote host via `ghe-ssh` but is not used locally.
@@ -152,6 +154,9 @@ cleanup_cluster_nodes() {
 # Check to make sure moreutils parallel is installed and working properly
 ghe_parallel_check
 
+# Check to make sure another restore process is not running
+ghe_restore_check
+
 # Grab the host arg
 GHE_HOSTNAME="${GHE_RESTORE_HOST_OPT:-$GHE_RESTORE_HOST}"
 
@@ -169,6 +174,9 @@ ACTIONS_STOPPED=false
 GHE_RESTORE_SNAPSHOT_PATH="$(ghe-restore-snapshot-path "$snapshot_id")"
 GHE_RESTORE_SNAPSHOT=$(basename "$GHE_RESTORE_SNAPSHOT_PATH")
 export GHE_RESTORE_SNAPSHOT
+
+# Check to make sure backup is not running
+ghe_backup_check
 
 # Detect if the backup we are restoring has a leaked ssh key
 echo "Checking for leaked keys in the backup snapshot that is being restored ..."
@@ -252,6 +260,8 @@ START_TIME=$(date +%s)
 echo 'Start time:' $START_TIME
 echo "Starting restore of $GHE_HOSTNAME with backup-utils v$BACKUP_UTILS_VERSION from snapshot $GHE_RESTORE_SNAPSHOT"
 ghe_remote_logger "Starting restore from $(hostname) with backup-utils v$BACKUP_UTILS_VERSION / snapshot $GHE_RESTORE_SNAPSHOT ..."
+# Create an in-progress-restore file to prevent simultaneous backup or restore runs
+echo "${START_TIME} $$" > ${GHE_DATA_DIR}/in-progress-restore
 
 # Keep other processes on the VM or cluster in the loop about the restore status.
 #
@@ -579,6 +589,7 @@ echo 'End time:' $END_TIME
 echo 'Runtime:' $(($END_TIME - $START_TIME)) 'seconds'
 
 echo "Restore of $GHE_HOSTNAME from snapshot $GHE_RESTORE_SNAPSHOT finished."
+ghe_restore_finished
 
 if ! $instance_configured; then
   echo "To complete the restore process, please visit https://$hostname/setup/settings to review and save the appliance configuration."

@@ -15,11 +15,24 @@ Only repo administrator is allowed to run the release script, otherwise it will 
 Prior to making a release,
 
 1. Sync any changes that have been merged to backup-utils-private into this repository.
-1. Go through the list of open pull requests and merge any that are ready for merging.
-1. Go through the list of closed pull requests since the last release and ensure those that should be included in the release notes:
-  - have a "bug", "enhancement" or "feature" label,
-  - have a title that clearly describes the changes in that pull request. Reword if necessary.
-1. Perform a dry run (add `--dry-run` to one of the commands below) and verify the version strings are going to be changed and verify the release notes.
+
+  One possible way to accomplish this is to add the other repository as a remote and merge the changes from the default branch of that remote.
+  ```
+  git clone git@github.com:github/backup-utils
+  cd backup-utils
+  git checkout master
+  git checkout -b sync-private-to-public
+  git remote add private <private-repo>
+  git fetch private
+  git merge private/master
+  git push origin HEAD
+  ```
+  Then open a pull request on this repository with the changes.
+2. Go through the list of open pull requests and merge any that are ready for merging.
+3. Go through the list of closed pull requests since the last release and ensure those that should be included in the release notes:
+    - have a "bug", "enhancement" or "feature" label,
+    - have a title that clearly describes the changes in that pull request. Reword if necessary.
+4. Perform a dry run (add `--dry-run` to one of the commands below) and verify the version strings are going to be changed and verify the release notes.
 
 ## Automatic Process from chatops (internal to GitHub only)
 

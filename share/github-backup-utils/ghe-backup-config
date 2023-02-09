@@ -507,3 +507,57 @@ restore-secret() {
     ghe-ssh "$GHE_HOSTNAME" -- /bin/bash
   fi
 }
+
+# Logging display and formatting functions
+
+# Terminal colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+NC='\033[0m' # No Color
+
+# Log a message to stdout
+loglevel() {
+  local level=$1
+  shift
+  local message=$*
+  local display=""
+  local timestamp
+  timestamp=$(date +"%Y-%m-%d %H:%M:%S")
+
+
+  if [ "$TERM" = "dumb" ]; then
+    if [ "$level" = "info" ]; then
+      display="INFO"
+    elif [ "$level" = "warn" ]; then
+      display="WARN"
+    elif [ "$level" = "error" ]; then
+      display="ERROR"
+    else
+      display="-"
+    fi
+  else
+    if [ "$level" = "info" ]; then
+      display="${GREEN}INFO${NC}"
+    elif [ "$level" = "warn" ]; then
+      display="${YELLOW}WARN${NC}"
+    elif [ "$level" = "error" ]; then
+      display="${RED}ERROR${NC}"
+    else
+      display="-"
+    fi
+  fi
+  echo -e "$timestamp | $display | $message"
+}
+
+logInfo(){
+  loglevel "info" "$1"
+}
+
+logWarn(){
+  loglevel "warn" "$1"
+}
+
+logError(){
+  loglevel "error" "$1"
+}

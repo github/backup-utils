@@ -475,7 +475,7 @@ if $CLUSTER || [ "$(version $GHE_REMOTE_VERSION)" -ge "$(version 2.12.9)" ]; the
     logInfo "Skipping restore of audit logs."
   else
     commands+=("
-     echo \"Restoring Audit logs ...\"
+     logInfo \"Restoring Audit logs ...\"
     ghe-restore-es-audit-log \"$GHE_HOSTNAME\" 1>&3")
   fi
 
@@ -490,7 +490,7 @@ else
 fi
 
 # Restart an already running memcached to reset the cache after restore
-echo "Restarting memcached ..." 1>&3
+logInfo "Restarting memcached ..." 1>&3
 echo "sudo restart -q memcached 2>/dev/null || true" |
   ghe-ssh "$GHE_HOSTNAME" -- /bin/sh
 
@@ -498,7 +498,7 @@ echo "sudo restart -q memcached 2>/dev/null || true" |
 # the configuration by setting the last run date to now.
 if ! $RESTORE_SETTINGS; then
   logInfo "Setting last run date for GitHub Connect jobs ..." 1>&3
-  logInfo "now=$(date +%s.0000000); ghe-redis-cli mset timer:UpdateConnectInstallationInfo \$now timer:UploadEnterpriseServerUserAccountsJob \$now timer:UploadConnectMetricsJob \$now timer:GitHubConnectPushNewContributionsJob \$now" |
+  echo "now=$(date +%s.0000000); ghe-redis-cli mset timer:UpdateConnectInstallationInfo \$now timer:UploadEnterpriseServerUserAccountsJob \$now timer:UploadConnectMetricsJob \$now timer:GitHubConnectPushNewContributionsJob \$now" |
     ghe-ssh "$GHE_HOSTNAME" -- /bin/sh 1>&3
 fi
 

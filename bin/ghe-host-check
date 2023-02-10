@@ -144,11 +144,14 @@ if [ -z "$supported" ]; then
   exit 1
 fi
 
+# Bring in the requirements file
+. "$(dirname "${BASH_SOURCE[0]}")/../share/github-backup-utils/requirements.txt"
+
 #Display dir requirements for repositories and mysql
 backup_dir=${GHE_DATA_DIR}
 available_space=$(df $backup_dir | awk 'END{print $4}')
 repo_disk_size=$(ghe-ssh "$host" sudo du -sh /data/user/repositories | awk '{print $1}')
-mysql_disk_size=$(ghe-ssh "$host" sudo du -sh /data/user/mysql | awk '{print $1}')
+#mysql_disk_size=$(ghe-ssh "$host" sudo du -sh /data/user/mysql | awk '{print $1}')
 # Convert the data size to kilobytes
 case "$repo_disk_size" in
   *T) repo_disk_size=$(( $(echo "$repo_disk_size" | sed 's/T/000000000/') )) ;;
@@ -163,24 +166,24 @@ fi
 
 #Check rsync, openssh & jq versions
 rsync_version=$(rsync --version | grep 'version' | awk '{print $3}')
-if awk "BEGIN {exit !($rsync_version < 2.6.4)}" &> /dev/null; then
+if awk "BEGIN {exit !($rsync_version < $min_rsync)}" &> /dev/null; then
   echo "rsync version $rsync_version in backup-host does not meet minimum requirements."
-  echo "Please make sure you have the minimum required version of rsync installed"
-  exit 2
+  echo "Please make sure you have the minimum required version of rsync: "$min_rsync" installed"
+  exit 1
 fi
 
 ssh_version=$(ssh -V 2>&1 | awk '{print $1}'|grep -oPm 1 '[\d\.]+' |head -1)
-if awk "BEGIN {exit !($ssh_version < 5.6)}" &> /dev/null; then
+if awk "BEGIN {exit !($ssh_version < $min_openssh)}" &> /dev/null; then
   echo "openSSH version $ssh_version in backup-host does not meet minimum requirements."
-  echo "Please make sure the minimum required version of openSSH is installed"
-  exit 2
+  echo "Please make sure the minimum required version of openSSH: "$min_openssh" is installed"
+  exit 1
 fi
 
 jq_version=$(jq --version |awk -F\- '{print $2}')
-if awk "BEGIN {exit !($jq_version < 1.5)}" &> /dev/null; then
+if awk "BEGIN {exit !($jq_version < $min_jq)}" &> /dev/null; then
   echo "jq version $jq_version in backup-host does not meet minimum requirements."
-  echo "Please make sure you have the minimum required version of jq installed"
-  exit 2
+  echo "Please make sure you have the minimum required version of jq: "$min_jq" installed"
+  exit 1
 fi
 
 

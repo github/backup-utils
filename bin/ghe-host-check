@@ -145,6 +145,10 @@ if [ -z "$supported" ]; then
 fi
 
 # Bring in the requirements file
+min_rsync=""
+min_openssh=""
+min_jq=""
+# shellcheck source=share/github-backup-utils/requirements.txt
 . "$(dirname "${BASH_SOURCE[0]}")/../share/github-backup-utils/requirements.txt"
 
 #Display dir requirements for repositories and mysql

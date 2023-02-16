@@ -199,8 +199,7 @@ export CLUSTER
 
 # Restoring a cluster backup to a standalone appliance is not supported
 if ! $CLUSTER && [ "$GHE_BACKUP_STRATEGY" = "cluster" ]; then
-  logError "Error: Snapshot from a GitHub Enterprise cluster cannot be restored" \
-    "to a standalone appliance. Aborting." >&2
+  logError "Error: Snapshot from a GitHub Enterprise cluster cannot be restored to a standalone appliance. Aborting." >&2
   exit 1
 fi
 
@@ -212,8 +211,7 @@ fi
 # Figure out if this appliance is in a replication pair
 if ghe-ssh "$GHE_HOSTNAME" -- \
   "[ -f '$GHE_REMOTE_ROOT_DIR/etc/github/repl-state' ]"; then
-  logError "Error: Restoring to an appliance with replication enabled is not supported." >&2
-  logError "       Please teardown replication before restoring." >&2
+  logError "Error: Restoring to an appliance with replication enabled is not supported. Please teardown replication before restoring." >&2
   exit 1
 fi
 
@@ -289,7 +287,7 @@ RELEASE_VERSION=$(ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config --get core.package-vers
 # mismatches in the secrets needed for Actions which ultimately results in Actions not working properly. Note: xargs is to remove whitespace
 ACTIONS_ENABLED_IN_BACKUP=$(git config -f $GHE_RESTORE_SNAPSHOT_PATH/settings.json --bool app.actions.enabled | xargs)
 if [[ $ACTIONS_ENABLED_IN_BACKUP != true ]] && ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config --true app.actions.enabled'; then
-    logError "Error: Restoring a backup with Actions disabled onto an appliance with Actions enabled is not supported." >&2
+    logError "Restoring a backup with Actions disabled onto an appliance with Actions enabled is not supported." >&2
     exit 1
 fi
 
@@ -300,20 +298,20 @@ if [ -d "$GHE_RESTORE_SNAPSHOT_PATH/mssql" ] || [ -d "$GHE_RESTORE_SNAPSHOT_PATH
     ac_db_ghe=$(echo 'ghe-mssql-console -y -n -q "SELECT name FROM sys.databases" | grep -i "ArtifactCache" | wc -l | tr -d " "' | ghe-ssh "$GHE_HOSTNAME" /bin/bash)
     ac_db_snapshot=$(find "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/mssql/" -maxdepth 1 -name 'ArtifactCache*.bak' | wc -l | tr -d " ")
     if [[ $ac_db_ghe -gt 0  &&  $ac_db_snapshot -eq 0 ]]; then
-      logError "Error: $GHE_HOSTNAME has Actions Cache service enabled but no Actions Cache data is present in snapshot to restore. Aborting" 1>&2
-      logError "Please disable Actions cache service in $GHE_HOSTNAME and retry" 1>&2
-      logError "To disable Actions Cache service run as admin: ghe-actions-cache-disable" 1>&2
+      logError "$GHE_HOSTNAME has Actions Cache service enabled but no Actions Cache data is present in snapshot to restore. Aborting" \
+      "\n""Please disable Actions cache service in $GHE_HOSTNAME and retry" \
+      "\n""To disable Actions Cache service run as admin: ghe-actions-cache-disable" 1>&2
       exit 1
     fi
     if [[ $ac_db_ghe -eq 0  &&  $ac_db_snapshot -gt 0 && ! $RESTORE_SETTINGS ]]; then
-      logError "Error: $GHE_HOSTNAME has Actions Cache service disabled but the snapshot is attempting to restore data for the service. Aborting" 1>&2
-      logError "Please enable Actions cache service in $GHE_HOSTNAME and retry" 1>&2
-      logError "To enable Actions Cache service run as admin: ghe-actions-cache-enable" 1>&2
+      logError "$GHE_HOSTNAME has Actions Cache service disabled but the snapshot is attempting to restore data for the service. Aborting." \
+      "\n""Please enable Actions cache service in $GHE_HOSTNAME and retry" \
+      "\n""To enable Actions Cache service run as admin: ghe-actions-cache-enable" 1>&2
       exit 1
     fi
   else
-    logError "Error: $GHE_HOSTNAME must have GitHub Actions enabled before restoring since the snapshot contains Actions data. Aborting." 1>&2
-    logError "Setup details for enabling Actions can be found here: https://docs.github.com/en/enterprise-server@$RELEASE_VERSION/admin/github-actions/advanced-configuration-and-troubleshooting/backing-up-and-restoring-github-enterprise-server-with-github-actions-enabled" 1>&2
+    logError "$GHE_HOSTNAME must have GitHub Actions enabled before restoring since the snapshot contains Actions data. Aborting." \
+     "\n""Setup details for enabling Actions can be found here: https://docs.github.com/en/enterprise-server@$RELEASE_VERSION/admin/github-actions/advanced-configuration-and-troubleshooting/backing-up-and-restoring-github-enterprise-server-with-github-actions-enabled" 1>&2
     exit 1
   fi
 fi
@@ -464,7 +462,7 @@ if ! $CLUSTER && [ -d "$GHE_RESTORE_SNAPSHOT_PATH/elasticsearch" ]; then
 fi
 
 # Restore the audit log migration sentinel file, if it exists in the snapshot
-if test -f $GHE_RESTORE_SNAPSHOT_PATH/es-scan-complete; then
+if [ -f "$GHE_RESTORE_SNAPSHOT_PATH"/es-scan-complete ]; then
   ghe-ssh "$GHE_HOSTNAME" -- "sudo touch $GHE_REMOTE_DATA_USER_DIR/common/es-scan-complete"
 fi
 
@@ -482,7 +480,7 @@ if $CLUSTER || [ "$(version $GHE_REMOTE_VERSION)" -ge "$(version 2.12.9)" ]; the
 fi
 
 if [ "$GHE_PARALLEL_ENABLED" = "yes" ]; then
-  $GHE_PARALLEL_COMMAND $GHE_PARALLEL_COMMAND_OPTIONS -- "${commands[@]}"
+  $GHE_PARALLEL_COMMAND "$GHE_PARALLEL_COMMAND_OPTIONS" -- "${commands[@]}"
 else
   for c in "${commands[@]}"; do
     eval "$c"

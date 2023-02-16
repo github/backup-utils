@@ -81,6 +81,9 @@ fi
 # Turn on verbose SSH logging if needed
 $GHE_VERBOSE_SSH && set -x
 
+logSSH "BEGIN: ssh $opts -p $port -o BatchMode=yes \"$host\" -- $GHE_NICE $GHE_IONICE \"$@\""
 # Exec ssh command with modified host / port args and add nice to command.
 # shellcheck disable=SC2090 # We don't need the quote/backslashes respected
 exec ssh $opts -p $port -o BatchMode=yes "$host" -- $GHE_NICE $GHE_IONICE "$@"
+
+logSSH "END: ssh $opts -p $port -o BatchMode=yes \"$host\" -- $GHE_NICE $GHE_IONICE \"$@\""

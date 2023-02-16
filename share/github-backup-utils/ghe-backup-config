@@ -533,6 +533,12 @@ loglevel() {
       display="WARN"
     elif [ "$level" = "error" ]; then
       display="ERROR"
+    elif [ "$level" = "verbose" ]; then
+      display="VERBOSE"
+    elif [ "$level" = "rsync" ]; then
+      display="RSYNC"
+    elif [ "$level" = "ssh" ]; then
+      display="SSH"
     else
       display="-"
     fi
@@ -543,6 +549,12 @@ loglevel() {
       display="${YELLOW}WARN${NC}"
     elif [ "$level" = "error" ]; then
       display="${RED}ERROR${NC}"
+    elif [ "$level" = "verbose" ]; then
+      display="${GREEN}VERBOSE${NC}"
+    elif [ "$level" = "rsync" ]; then
+      display="${GREEN}RSYNC${NC}"
+    elif [ "$level" = "ssh" ]; then
+      display="${GREEN}SSH${NC}"
     else
       display="-"
     fi
@@ -561,6 +573,15 @@ logWarn(){
 logError(){
   loglevel "error" "$1"
 }
+
 logVerbose(){
   loglevel "verbose" "$1"
+}
+
+logRsync(){
+  loglevel "rsync" "$1"
+}
+
+logSSH(){
+  loglevel "ssh" "$1"
 }

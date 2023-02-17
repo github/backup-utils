@@ -19,7 +19,7 @@ backup_dir="${GHE_SNAPSHOT_DIR}/minio"
 
 # Verify rsync is available.
 if ! command -v rsync 1> /dev/null 2>&1; then
-  echo "Error: rsync not found." 1>&2
+  LogError "rsync not found." 1>&2
   exit 1
 fi
 

@@ -534,7 +534,7 @@ loglevel() {
     elif [ "$level" = "error" ]; then
       display="ERROR"
     elif [ "$level" = "verbose" ]; then
-      display="VERBOSE"
+      display="INFO"
     elif [ "$level" = "rsync" ]; then
       display="RSYNC"
     elif [ "$level" = "ssh" ]; then
@@ -550,7 +550,7 @@ loglevel() {
     elif [ "$level" = "error" ]; then
       display="${RED}ERROR${NC}"
     elif [ "$level" = "verbose" ]; then
-      display="${GREEN}VERBOSE${NC}"
+      display="${GREEN}INFO${NC}"
     elif [ "$level" = "rsync" ]; then
       display="${GREEN}RSYNC${NC}"
     elif [ "$level" = "ssh" ]; then

@@ -14,7 +14,7 @@ bm_start "$(basename $0)"
 
 # Verify rsync is available.
 if ! rsync --version 1>/dev/null 2>&1; then
-  echo "Error: rsync not found." 1>&2
+  logError "rsync not found." 1>&2
   exit 1
 fi
 

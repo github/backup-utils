@@ -22,7 +22,7 @@ ghe_remote_version_required "$host"
 mkdir -p "$GHE_SNAPSHOT_DIR/audit-log"
 
 if ! indices=$(ghe-ssh "$host" "curl -s \"localhost:9201/_cat/indices/audit_log*?h=index,pri.store.size&bytes=b\""); then
-  echo "Error: failed to retrieve audit log indices." 1>&2
+  logError "ghe-backup-es-audit-log: Failed to retrieve audit log indices." 1>&2
   exit 1
 fi
 

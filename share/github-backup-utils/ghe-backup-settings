@@ -19,10 +19,10 @@ host="$GHE_HOSTNAME"
 mkdir -p "$GHE_SNAPSHOT_DIR"
 cd "$GHE_SNAPSHOT_DIR"
 
-echo "* Transferring settings data ..." 1>&3
+logInfo "* Transferring settings data ..." 1>&3
 ghe-ssh "$host" -- 'ghe-export-settings' > settings.json
 
-echo "* Transferring license data ..." 1>&3
+logInfo "* Transferring license data ..." 1>&3
 ghe-ssh "$host" -- "sudo cat '$GHE_REMOTE_LICENSE_FILE'" > enterprise.ghl
 
 # Function to backup a secret setting to a file.
@@ -61,7 +61,7 @@ backup-secret() {
     esac
   done
 
-  echo "* Transferring $description ..." 1>&3
+  logInfo "* Transferring $description ..." 1>&3
   ghe-ssh "$host" -- ghe-config "$setting" > "$file+" || (
     if  [ "$best_effort" = "false" ]; then
       echo "Warning: $description not set" >&2
@@ -133,24 +133,24 @@ if ghe-ssh "$host" -- ghe-config --true app.packages.enabled; then
 fi
 
 if ghe-ssh "$host" -- "test -f $GHE_REMOTE_DATA_USER_DIR/common/idp.crt"; then
-  echo "* Transferring SAML keys ..." 1>&3
+  logInfo "* Transferring SAML keys ..." 1>&3
   ghe-ssh $host -- sudo tar -C $GHE_REMOTE_DATA_USER_DIR/common/ -cf - "idp.crt saml-sp.p12" > saml-keys.tar
 fi
 
 if ghe-ssh "$host" -- "which ghe-export-ssl-ca-certificates 1>/dev/null"; then
-  echo "* Transferring CA certificates ..." 1>&3
+  logInfo "* Transferring CA certificates ..." 1>&3
   ghe-ssh "$host" -- "ghe-export-ssl-ca-certificates" > ssl-ca-certificates.tar
 fi
 
 if [ "$GHE_BACKUP_STRATEGY" = "cluster" ]; then
-  echo "* Transferring cluster configuration ..." 1>&3
+  logInfo "* Transferring cluster configuration ..." 1>&3
   if ! ghe-ssh "$host" -- "sudo cat $GHE_REMOTE_CLUSTER_CONF_FILE 2>/dev/null" > cluster.conf; then
-    echo "Error: Enterprise Cluster is not configured yet, backup will fail" >&2
+    logError "Error: Enterprise Cluster is not configured yet, backup will fail" >&2
     exit 1
   fi
 else
   if ghe-ssh "$host" -- "sudo cat $GHE_REMOTE_DATA_USER_DIR/common/uuid 2>/dev/null" > uuid; then
-    echo "* Transferring UUID ..." 1>&3
+    logInfo "* Transferring UUID ..." 1>&3
   fi
 fi
 

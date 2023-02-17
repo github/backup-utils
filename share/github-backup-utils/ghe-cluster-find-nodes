@@ -16,7 +16,7 @@ set -e
 
 # Check if the REMOTE DATA USER directory is set
 if [ -z $GHE_REMOTE_DATA_USER_DIR ]; then
-  echo "Env variable GHE_REMOTE_DATA_USER_DIR is not set. Exiting"
+  logError "Env variable GHE_REMOTE_DATA_USER_DIR is not set. Exiting"
   exit 1
 fi
 

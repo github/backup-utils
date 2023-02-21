@@ -30,7 +30,7 @@ host=$(ssh_host_part "$GHE_HOSTNAME")
 
 # No need to restore anything, early exit
 if [ ! -d "$GHE_RESTORE_SNAPSHOT_PATH/actions" ]; then
-  logWarn "Warning: Actions backup missing. Skipping ..."
+  log_warn "Warning: Actions backup missing. Skipping ..."
   exit 0
 fi
 
@@ -96,7 +96,7 @@ ghe-ssh -p "$port" "$host" -- ghe-actions-console -s actions -c "Repair-Database
 if [ ! -z "$(find "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/mssql/" -maxdepth 1 -name 'ArtifactCache_Configuration*.bak')" ]; then
   ghe-ssh -p "$port" "$host" -- ghe-actions-console -s artifactcache -c "Repair-DatabaseLogins"
   else
-   logInfo "ArtifactCache is not present in mssql backup. Skipping Repair-DatabaseLogins for it."
+   log_info "ArtifactCache is not present in mssql backup. Skipping Repair-DatabaseLogins for it."
 fi
 
 bm_end "$(basename $0)"

@@ -27,7 +27,7 @@ pages_paths=$(cd $GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/ && find pages -mindepth 5 
 
 # No need to restore anything, early exit
 if [ -z "$pages_paths" ]; then
-  logWarn "Warning: Pages backup missing. Skipping ..."
+  log_warn "Warning: Pages backup missing. Skipping ..."
   exit 0
 fi
 
@@ -123,7 +123,7 @@ ghe_debug "\n$(find "$tempdir" -maxdepth 1 -name '*.rsync')"
 bm_end "$(basename $0) - Processing routes"
 
 if [ -z "$(find "$tempdir" -maxdepth 1 -name '*.rsync')" ]; then
-  logWarn "Warning: no routes found, skipping pages restore ..."
+  log_warn "Warning: no routes found, skipping pages restore ..."
   exit 0
 fi
 

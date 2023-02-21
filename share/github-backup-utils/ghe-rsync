@@ -11,7 +11,7 @@ set -o pipefail
 # shellcheck source=share/github-backup-utils/ghe-backup-config
 . "$( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config"
 
-logRsync "BEGIN: rsync $@ $GHE_EXTRA_RSYNC_OPTS" 1>&3
+log_rsync "BEGIN: rsync $@ $GHE_EXTRA_RSYNC_OPTS" 1>&3
 # Check for --ignore-missing-args parameter support and remove if unavailable.
 if rsync -h | grep '\-\-ignore-missing-args' >/dev/null 2>&1; then
   parameters=("$@")
@@ -42,5 +42,5 @@ if [ $res = 23 ] && [ -n "$ignore23" ]; then
   res=0
 fi
 
-logRsync "END: rsync $@ $GHE_EXTRA_RSYNC_OPTS | exit code $res" 1>&3
+log_rsync "END: rsync $@ $GHE_EXTRA_RSYNC_OPTS | exit code $res" 1>&3
 exit $res

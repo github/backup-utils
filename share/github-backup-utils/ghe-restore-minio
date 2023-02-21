@@ -30,7 +30,7 @@ host="$(ssh_host_part "${GHE_HOSTNAME}")"
 
 # No need to restore anything, early exit
 if [ ! -d "${GHE_RESTORE_SNAPSHOT_PATH}/minio" ]; then
-  logWarn "Warning: minio backup missing. Skipping ..."
+  log_warn "Warning: minio backup missing. Skipping ..."
   exit 0
 fi
 

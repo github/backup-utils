@@ -20,7 +20,7 @@ backup_dir="$GHE_SNAPSHOT_DIR/actions"
 
 # Verify rsync is available.
 if ! rsync --version 1>/dev/null 2>&1; then
-  logError "Error: rsync not found." 1>&2
+  log_error "Error: rsync not found." 1>&2
   exit 1
 fi
 

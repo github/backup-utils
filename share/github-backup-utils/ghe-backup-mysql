@@ -17,14 +17,14 @@ ghe_remote_version_required "$GHE_HOSTNAME"
 
 if is_external_database_target; then
   if [ -n "$EXTERNAL_DATABASE_BACKUP_SCRIPT" ]; then
-    logInfo "Backing up external MySQL database using customer-provided script..."
+    log_info "Backing up external MySQL database using customer-provided script..."
     $EXTERNAL_DATABASE_BACKUP_SCRIPT
     bm_end "$(basename $0)"
     exit 0
   else
     if is_binary_backup_feature_on; then
-      logWarn "Binary backups are configured on the target environment."
-      logWarn "Binary backup is not supported with an external MySQL database. Backing up using logical backup strategy. Please disable binary backups with 'ghe-config mysql.backup.binary false', or provide a custom backup script using EXTERNAL_DATABASE_BACKUP_SCRIPT"
+      log_warn "Binary backups are configured on the target environment."
+      log_warn "Binary backup is not supported with an external MySQL database. Backing up using logical backup strategy. Please disable binary backups with 'ghe-config mysql.backup.binary false', or provide a custom backup script using EXTERNAL_DATABASE_BACKUP_SCRIPT"
     fi
 
     ghe-backup-mysql-logical

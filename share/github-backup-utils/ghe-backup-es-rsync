@@ -20,7 +20,7 @@ ghe_remote_version_required "$host"
 
 # Verify rsync is available.
 if ! rsync --version 1>/dev/null 2>&1; then
-  logError "rsync not found." 1>&2
+  log_error "rsync not found." 1>&2
   exit 1
 fi
 

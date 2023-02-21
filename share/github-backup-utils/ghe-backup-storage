@@ -19,7 +19,7 @@ backup_dir="$GHE_SNAPSHOT_DIR/storage"
 
 # Verify rsync is available.
 if ! rsync --version 1>/dev/null 2>&1; then
-  logError "rsync not found." 1>&2
+  log_error "rsync not found." 1>&2
   exit 1
 fi
 
@@ -60,7 +60,7 @@ cleanup() {
   # Enable remote maintenance operations
   for hostname in $hostnames; do
     ghe-gc-enable $ssh_config_file_opt $hostname:$port || { 
-      logWarn "Re-enable gc on $hostname failed, please manually delete $SYNC_IN_PROGRESS_FILE" 1>&2
+      log_warn "Re-enable gc on $hostname failed, please manually delete $SYNC_IN_PROGRESS_FILE" 1>&2
     }
   done
 
@@ -111,7 +111,7 @@ ghe_debug "\n$(find "$tempdir" -maxdepth 1 -name '*.rsync')"
 bm_end "$(basename $0) - Processing routes"
 
 if [ -z "$(find "$tempdir" -maxdepth 1 -name '*.rsync')" ]; then
-  logWarn "no routes found, skipping storage backup ..."
+  log_warn "no routes found, skipping storage backup ..."
   exit 0
 fi
 

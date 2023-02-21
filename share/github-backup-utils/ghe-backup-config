@@ -354,7 +354,7 @@ ghe_remote_logger() {
 # Log if verbose mode is enabled (GHE_VERBOSE or `-v`).
 ghe_verbose() {
   if [ -n "$GHE_VERBOSE" ]; then
-    logVerbose "$@" 1>&3
+    log_verbose "$@" 1>&3
   fi
 }
 
@@ -517,13 +517,13 @@ YELLOW='\033[0;33m'
 NC='\033[0m' # No Color
 
 # Log a message to stdout
-loglevel() {
+log_level() {
   local level=$1
   shift
   local message=$*
   local display=""
   local timestamp
-  timestamp=$(date +"%Y-%m-%d %H:%M:%S")
+  timestamp=$(date -u "+%FT%TZ")
 
 
   if [ "$TERM" = "dumb" ]; then
@@ -562,26 +562,26 @@ loglevel() {
   echo -e "$timestamp | $display | $message"
 }
 
-logInfo(){
-  loglevel "info" "$1"
+log_info(){
+  log_level "info" "$1"
 }
 
-logWarn(){
-  loglevel "warn" "$1"
+log_warn(){
+  log_level "warn" "$1"
 }
 
-logError(){
-  loglevel "error" "$1"
+log_error(){
+  log_level "error" "$1"
 }
 
-logVerbose(){
-  loglevel "verbose" "$1"
+log_verbose(){
+  log_level "verbose" "$1"
 }
 
-logRsync(){
-  loglevel "rsync" "$1"
+log_rsync(){
+  log_level "rsync" "$1"
 }
 
-logSSH(){
-  loglevel "ssh" "$1"
+log_ssh(){
+  log_level "ssh" "$1"
 }

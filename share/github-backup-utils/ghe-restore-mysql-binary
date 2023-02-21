@@ -66,7 +66,7 @@ ghe-ssh $ssh_config_file_opt "$GHE_RESTORE_HOST" -- "sudo mkdir -p '$GHE_REMOTE_
 # Transfer MySQL data from the snapshot to the GitHub instance.
 cat $snapshot_dir/mysql.sql.gz | ghe-ssh $ssh_config_file_opt "$GHE_RESTORE_HOST" -- "sudo dd of=$GHE_REMOTE_DATA_USER_DIR/tmp/mysql.sql.gz >/dev/null 2>&1"
 
-echo "Restore MySQL database ..."
+logInfo "Restore MySQL database ..."
 # Import the database
 echo "cat $GHE_REMOTE_DATA_USER_DIR/tmp/mysql.sql.gz | $IMPORT_MYSQL" | ghe-ssh $ssh_config_file_opt "$GHE_RESTORE_HOST" -- /bin/bash 1>&3
 

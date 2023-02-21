@@ -31,7 +31,7 @@ storage_paths=$(cd $GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/ && find storage -mindept
 
 # No need to restore anything, early exit
 if [ -z "$storage_paths" ]; then
-  echo "Warning: Storage backup missing. Skipping ..."
+  logWarn "Warning: Storage backup missing. Skipping ..."
   exit 0
 fi
 
@@ -118,7 +118,7 @@ ghe_debug "\n$(find "$tempdir" -maxdepth 1 -name '*.rsync')"
 bm_end "$(basename $0) - Processing routes"
 
 if [ -z "$(find "$tempdir" -maxdepth 1 -name '*.rsync')" ]; then
-  echo "Warning: no routes found, skipping storage restore ..."
+  logWarn "Warning: no routes found, skipping storage restore ..."
   exit 0
 fi
 
@@ -136,7 +136,7 @@ for file_list in $tempdir/*.rsync; do
 
   rsync_commands+=("
   if [ -n \"$GHE_VERBOSE\" ]; then
-    echo \"* Transferring data to $server ...\" 1>&3
+    logInfo \"* Transferring data to $server ...\" 1>&3
   fi
 
   ghe-rsync -arvHR --delete \

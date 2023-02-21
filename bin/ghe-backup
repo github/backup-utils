@@ -44,6 +44,7 @@ done
 # Check to make sure moreutils parallel is installed and working properly
 ghe_parallel_check
 
+
 # Used to record failed backup steps
 failures=
 failures_file="$(mktemp -t backup-utils-backup-failures-XXXXXX)"
@@ -104,6 +105,7 @@ cleanup () {
   fi
 
   rm -rf "$failures_file"
+  rm -f ${GHE_DATA_DIR}/in-progress-backup
 
   # Cleanup SSH multiplexing
   ghe-ssh --clean
@@ -113,10 +115,14 @@ cleanup () {
 trap 'cleanup' EXIT
 trap 'exit $?' INT # ^C always terminate
 
+
+# Check to see if there is a running restore
+ghe_restore_check
+
+# Check to see if there is a running backup
 if [ -h ../in-progress ]; then
-  log_error "Error: detected a backup already in progress from a previous version of ghe-backup." 1>&2
-  log_error "If there is no backup in progress anymore, please remove" 1>&2
-  log_error "the $GHE_DATA_DIR/in-progress file." 1>&2
+
+  log_error "Error: detected a backup already in progress from a previous version of ghe-backup. \nIf there is no backup in progress anymore, please remove \nthe $GHE_DATA_DIR/in-progress file." 1>&2
   exit 1
 fi
 
@@ -129,14 +135,13 @@ if [ -f ../in-progress ]; then
     # will clean up the failed backup.
     unlink ../in-progress
   else
-    log_error "Error: A backup of $GHE_HOSTNAME may still be running on PID $pid." 1>&2
-    log_error "If PID $pid is not a process related to the backup utilities, please remove" 1>&2
-    log_error "the $GHE_DATA_DIR/in-progress file and try again." 1>&2
+    log_error "Error: A backup of $GHE_HOSTNAME may still be running on PID $pid. \nIf PID $pid is not a process related to the backup utilities, please remove \nthe $GHE_DATA_DIR/in-progress file and try again." 1>&2
     exit 1
   fi
 fi
 
 echo "$GHE_SNAPSHOT_TIMESTAMP $$" > ../in-progress
+echo "$GHE_SNAPSHOT_TIMESTAMP $$" > ${GHE_DATA_DIR}/in-progress-backup
 
 log_info "Starting backup of $GHE_HOSTNAME with backup-utils v$BACKUP_UTILS_VERSION in snapshot $GHE_SNAPSHOT_TIMESTAMP"
 
@@ -272,3 +277,6 @@ ghe-detect-leaked-ssh-keys -s "$GHE_SNAPSHOT_DIR" || true
 
 # Make sure we exit zero after the conditional
 true
+
+# Remove in-progress file
+ghe_backup_finished

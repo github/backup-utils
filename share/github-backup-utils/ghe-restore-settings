@@ -36,6 +36,9 @@ restore-secret "external MySQL password" "external-mysql-password" "secrets.exte
 log_info "Restoring packages settings ..."
 ghe-restore-packages "$GHE_HOSTNAME" 1>&3
 
+echo "Restoring chat integration settings ..."
+ghe-restore-chat-integration "$GHE_HOSTNAME" 1>&3
+
 # work around issue importing settings with bad storage mode values
 ( cat "$GHE_RESTORE_SNAPSHOT_PATH/settings.json" && echo ) |
   sed 's/"storage_mode": "device"/"storage_mode": "rootfs"/' |

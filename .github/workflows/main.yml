@@ -2,11 +2,15 @@ name: Test and build
 
 on: [pull_request]
 
+
 jobs:
   build:
     strategy:
       matrix:
-        os: ['ubuntu-22.04', 'ubuntu-20.04', 'macos-latest']
+        # macos-latest references are kept here for historical purposes. removed macos-latest from the 
+        #matrix as it is not a typical case for users and causes a lot of friction with other linux-based 
+        # installs. Recommend developing on codespaces or using an ubuntu container. 
+        os: ['ubuntu-22.04', 'ubuntu-20.04', 'ubuntu-18.04']
       fail-fast: false
     runs-on: ${{ matrix.os }}
     steps:

@@ -78,7 +78,7 @@ if [ -z "$GHE_DISABLE_SSH_MUX" ]; then
   fi
 fi
 
-log_ssh " $host : $*" 1>&3
+#log_ssh " $host : $*" 1>&3
 # Turn on verbose SSH logging if needed
 $GHE_VERBOSE_SSH && set -x
 

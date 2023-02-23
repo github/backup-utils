@@ -44,12 +44,12 @@ if is_external_database_snapshot; then
     exit 0
   else
     if is_binary_backup "$GHE_RESTORE_SNAPSHOT_PATH"; then
-      log_error "Error: Restore of a binary backup to appliance with an external database configured is not supported. \nPlease provide a custom external database restore script with EXTERNAL_DATABASE_RESTORE_SCRIPT"
+      log_error "Error: Restore of a binary backup to appliance with an external database configured is not supported. Please provide a custom external database restore script with EXTERNAL_DATABASE_RESTORE_SCRIPT"
       exit 1
     fi 
 
     if ! is_default_external_database_snapshot; then
-      log_error "Error: Backup was not taken with a GitHub provided backup strategy. \nYou must provide a custom restore script for this backup using EXTERNAL_DATABASE_BACKUP_SCRIPT"
+      log_error "Error: Backup was not taken with a GitHub provided backup strategy. You must provide a custom restore script for this backup using EXTERNAL_DATABASE_BACKUP_SCRIPT"
 
       exit 1
     fi

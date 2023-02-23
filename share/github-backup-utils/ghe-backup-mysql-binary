@@ -18,7 +18,7 @@ ghe_remote_version_required "$GHE_HOSTNAME"
 log_verbose "Backing up MySQL database using binary backup strategy ..."
 
 echo "set -o pipefail; ghe-export-mysql" |
-log_verbose "$GHE_HOSTNAME" -- /bin/bash > "$GHE_SNAPSHOT_DIR/mysql.sql.gz"
+ghe-ssh "$GHE_HOSTNAME" -- /bin/bash > "$GHE_SNAPSHOT_DIR/mysql.sql.gz"
 echo "NO_ADDITIONAL_COMPRESSION" > "$GHE_SNAPSHOT_DIR/mysql-binary-backup-sentinel"
 
 bm_end "$(basename $0)"

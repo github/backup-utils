@@ -580,7 +580,7 @@ log_level() {
   timestamp=$(date -u "+%FT%TZ")
 
 
-  if [ "$TERM" = "dumb" ]; then
+  if [ "$TERM" = "dumb" ] || [[ "$OUTPUT_COLOR" != "yes" ]]; then
     if [ "$level" = "info" ]; then
       display="INFO"
     elif [ "$level" = "warn" ]; then
@@ -596,7 +596,7 @@ log_level() {
     else
       display="-"
     fi
-  else
+  else 
     if [ "$level" = "info" ]; then
       display="${GREEN}INFO${NC}"
     elif [ "$level" = "warn" ]; then

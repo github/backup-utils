@@ -9,7 +9,7 @@ on:
         type: string
       ref:
         description: 'Ref'
-        required: true
+        required: false
         type: string
         default: 'master'
   workflow_call:
@@ -20,7 +20,7 @@ on:
         type: string
       ref:
         description: 'Ref'
-        required: true
+        required: false
         type: string
         default: 'master'
     
@@ -32,7 +32,6 @@ jobs:
       with:
         repository: github/backup-utils-private
         ref: ${{ inputs.ref }}
-        token: ${{ secrets.BACKUPUTILACCESS }}
     - run: docker build . --file Dockerfile --tag backup-utils 
     - run: docker save backup-utils -o backup-utils.tar
     - uses: actions/upload-artifact@v3

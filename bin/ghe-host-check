@@ -152,6 +152,7 @@ min_jq=""
 . "$(dirname "${BASH_SOURCE[0]}")/../share/github-backup-utils/requirements.txt"
 
 #source disk size file
+# shellcheck source=share/github-backup-utils/ghe-rsync-size.sh
 . "$(dirname "${BASH_SOURCE[0]}")/../share/github-backup-utils/ghe-rsync-size.sh"
 
 #Display dir requirements for repositories and mysql

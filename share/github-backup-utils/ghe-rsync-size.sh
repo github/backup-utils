@@ -22,7 +22,7 @@ fi
 transfer_size()
 {
   local backup_data=$1
-  local dir=/data/user/$1/
+  local data_user_dir=/data/user/$1/
   local dest_dir=$2/
 
   # Define user for rsync-path
@@ -51,13 +51,12 @@ transfer_size()
     ;;
   esac
 
-#  local total_file_size=$(ghe-ssh "$GHE_HOSTNAME" sudo rsync -arvn $link_dest/$1 --stats "$dir" "$dest_dir" | grep "Total transferred file size" | sed 's/.*size: //; s/,//')
-  local total_file_size=$(ghe-rsync -arn --stats \
+  total_file_size=$(ghe-rsync -arn --stats \
       -e "ssh -q $GHE_EXTRA_SSH_OPTS -p 122 -l admin" \
       --rsync-path="sudo -u $user rsync" \
       $link_dest/$1 \
       --ignore-missing-args \
-      "$GHE_HOSTNAME:$GHE_REMOTE_DATA_USER_DIR/user/$1/" \
+      "$GHE_HOSTNAME:$data_user_dir/" \
       "$dest_dir" | grep "Total transferred file size" | sed 's/.*size: //; s/,//g')
   echo "$total_file_size" 
 }

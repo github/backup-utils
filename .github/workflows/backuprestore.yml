@@ -9,7 +9,7 @@ on:
         type: string
       ref:
         description: 'Ref'
-        required: true
+        required: false
         type: string
         default: 'master'
   workflow_call:
@@ -20,7 +20,7 @@ on:
         type: string
       ref:
         description: 'Ref'
-        required: true
+        required: false
         type: string
         default: 'master'
     

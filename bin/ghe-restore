@@ -6,7 +6,7 @@
 #/ Note that the GitHub Enterprise host must be reachable and your SSH key must
 #/ be setup as described in the following help article:
 #/
-#/ <https://enterprise.github.com/help/articles/adding-an-ssh-key-for-shell-access>
+#/ <https://docs.github.com/enterprise-server/admin/configuration/configuring-your-enterprise/accessing-the-administrative-shell-ssh >
 #/
 #/ OPTIONS:
 #/   -c | --config       Restore appliance settings and license in addition to
@@ -89,11 +89,11 @@ done
 start_cron () {
   echo "Starting cron ..."
   if $CLUSTER; then
-    if ! ghe-ssh "$GHE_HOSTNAME" -- "ghe-cluster-each -- sudo service cron start"; then
+    if ! ghe-ssh "$GHE_HOSTNAME" -- "ghe-cluster-each -- sudo timeout 120s service cron start"; then
       echo "* Warning: Failed to start cron on one or more nodes"
     fi
   else
-    if ! ghe-ssh "$GHE_HOSTNAME" -- "sudo service cron start"; then
+    if ! ghe-ssh "$GHE_HOSTNAME" -- "sudo timeout 120s service cron start"; then
       echo "* Warning: Failed to start cron"
     fi
   fi

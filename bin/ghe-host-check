@@ -156,28 +156,22 @@ min_jq=""
 . "$(dirname "${BASH_SOURCE[0]}")/../share/github-backup-utils/ghe-rsync-size.sh"
 
 #Display dir requirements for repositories and mysql
-available_space=$(df $GHE_DATA_DIR | awk 'END{print $4}') 
+available_space=$(df -B 1k $GHE_DATA_DIR | awk 'END{printf "%.0f", $4 * 1024}') 
 echo "Available space: $available_space" 1>&2
 
-repo_disk_size=$(ghe-ssh "$host" sudo du -sh /data/user/repositories | awk '{print $1}')
-# Convert the data size to kilobytes
-case "$repo_disk_size" in
-  *T) repo_disk_size=$(( $(echo "$repo_disk_size" | sed 's/T/000000000/') )) ;;
-  *G) repo_disk_size=$(( $(echo "$repo_disk_size" | sed 's/G/000000/') )) ;;
-  *M) repo_disk_size=$(( $(echo "$repo_disk_size" | sed 's/M/000/') )) ;;
-  *K) repo_disk_size=$(( $(echo "$repo_disk_size" | sed 's/K//') )) ;;
-esac
 repos_disk_size=$(transfer_size repositories /tmp)
 pages_disk_size=$(transfer_size pages /tmp)
 es_disk_size=$(transfer_size elasticsearch /tmp)
 stor_disk_size=$(transfer_size storage /tmp)
 minio_disk_size=$(transfer_size minio /tmp)
-min_disk_req=$(( $(echo "$repos_disk_size" | awk '{print $1}') + $(echo "$pages_disk_size" | awk '{print $1}') + $(echo "$es_disk_size" | awk '{print $1}') + $(echo "$stor_disk_size" | awk '{print $1}') + $(echo "$minio_disk_size" | awk '{print $1}') ))
-echo "repositories = $repos_disk_size, pages: $pages_disk_size, elasticsearch: $es_disk_size, storage: $stor_disk_size, minio: $minio_disk_size" 1>&2
+mysql_disk_size=$(transfer_size mysql /tmp)
+
+min_disk_req=$(( $(echo "$repos_disk_size" | awk '{printf "%.0f", $1}') + $(echo "$pages_disk_size" | awk '{printf "%.0f", $1}') + $(echo "$es_disk_size" | awk '{printf "%.0f", $1}') + $(echo "$stor_disk_size" | awk '{printf "%.0f", $1}') + $(echo "$minio_disk_size" | awk '{printf "%.0f", $1}') + $(echo "$mysql_disk_size" | awk '{printf "%.0f", $1/2}') ))
+echo "repositories = $repos_disk_size, pages: $pages_disk_size, elasticsearch: $es_disk_size, storage: $stor_disk_size, minio: $minio_disk_size, mysql: $mysql_disk_size" 1>&2
 echo "min_disk_required for backup = $min_disk_req bytes" 1>&2
 
-if [[ $available_space -lt $repo_disk_size ]]; then
-  echo "There is not enough disk space for the backup" 1>&2
+if [[ $available_space -lt $min_disk_req ]]; then
+  echo "There is not enough disk space for the backup. Please allocate more space and continue." 1>&2
   exit 1
 fi
 

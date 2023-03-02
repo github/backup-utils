@@ -22,8 +22,12 @@ fi
 transfer_size()
 {
   local backup_data=$1
-  local data_user_dir=/data/user/$1/
-  local dest_dir=$2/
+  if [[ "$1" == "mssql" ]]; then
+    data_user_dir="/data/user/$1/backups"
+  else
+    data_user_dir="/data/user/$1"
+  fi
+  local dest_dir=$2
 
   # Define user for rsync-path
   case "$backup_data" in
@@ -42,6 +46,9 @@ transfer_size()
   "mssql")
     user="mssql"
     ;;
+  "actions")
+    user="actions"
+    ;;
   "minio")
     user="minio"
     ;;
@@ -57,6 +64,6 @@ transfer_size()
       $link_dest/$1 \
       --ignore-missing-args \
       "$GHE_HOSTNAME:$data_user_dir/" \
-      "$dest_dir" | grep "Total transferred file size" | sed 's/.*size: //; s/,//g')
-  echo "$total_file_size" 
+      "$dest_dir/" | grep "Total transferred file size" | sed 's/.*size: //; s/,//g')
+  echo "$total_file_size"
 }

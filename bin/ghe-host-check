@@ -186,27 +186,27 @@ echo -e "### Data Transfer Sizes \nrepositories: $repos_disk_size \npages: $page
     echo "rsync version $rsync_version in backup-host does not meet minimum requirements." 1>&2
     echo "Please make sure you have the minimum required version of rsync: $min_rsync installed" 1>&2
     exit 1
-else
-  echo "rsync ${rsync_version} >= required ($min_rsync)"
-fi
+  else
+    echo "rsync ${rsync_version} >= required ($min_rsync)"
+  fi
 
   ssh_version=$(ssh -V 2>&1 | awk '{print $1}'|grep -oPm 1 '[\d\.]+' |head -1)
   if awk "BEGIN {exit !($ssh_version < $min_openssh)}" &> /dev/null; then
     echo "openSSH version $ssh_version in backup-host does not meet minimum requirements." 1>&2
     echo "Please make sure the minimum required version of openSSH: $min_openssh is installed" 1>&2
     exit 1
-else
-  echo "openSSH ${ssh_version} >= required ($min_openssh)"
-fi
+  else
+    echo "openSSH ${ssh_version} >= required ($min_openssh)"
+  fi
 
   jq_version=$(jq --version |awk -F\- '{print $2}')
   if awk "BEGIN {exit !($jq_version < $min_jq)}" &> /dev/null; then
     echo "jq version $jq_version in backup-host does not meet minimum requirements." 1>&2
     echo "Please make sure you have the minimum required version of jq: $min_jq installed" 1>&2
     exit 1
-else
-  echo "jq ${jq_version} >= required ($min_jq)"
-fi```
+  else
+    echo "jq ${jq_version} >= required ($min_jq)"
+  fi
 fi
 
 echo "Connect $hostname:$port OK (v$version)"

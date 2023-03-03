@@ -144,7 +144,7 @@ if [ -z "$supported" ]; then
   exit 1
 fi
 
-if [[ "$CALLING_SCRIPT" != "ghe-backup" ]]; then
+if [[ "$CALLING_SCRIPT" == "ghe-backup" ]]; then
   # Bring in the requirements file
   min_rsync=""
   min_openssh=""

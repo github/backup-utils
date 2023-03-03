@@ -194,7 +194,9 @@ fi
     echo "openSSH version $ssh_version in backup-host does not meet minimum requirements." 1>&2
     echo "Please make sure the minimum required version of openSSH: $min_openssh is installed" 1>&2
     exit 1
-  fi
+else
+  echo "openSSH ${ssh_version} >= required ($min_openssh)"
+fi
 
   jq_version=$(jq --version |awk -F\- '{print $2}')
   if awk "BEGIN {exit !($jq_version < $min_jq)}" &> /dev/null; then

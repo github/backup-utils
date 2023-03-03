@@ -65,5 +65,11 @@ transfer_size()
       --ignore-missing-args \
       "$GHE_HOSTNAME:$data_user_dir/" \
       "$dest_dir/" | grep "Total transferred file size" | sed 's/.*size: //; s/,//g')
-  echo "$total_file_size"
+
+  # Reduce mysql size as only the compressed file is transferred
+  if [[ "$1" == "mysql" ]]; then
+    echo "$total_file_size" | awk '{printf "%.0f\n", $1/2}'
+  else
+    echo "$total_file_size" | awk '{printf "%.0f\n", $1}'
+  fi
 }

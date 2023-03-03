@@ -170,7 +170,8 @@ if [[ "$CALLING_SCRIPT" == "ghe-backup" ]]; then
   actions_disk_size=$(transfer_size actions /tmp)
   mssql_disk_size=$(transfer_size mssql /tmp)
 
-  min_disk_req=$(( $(echo "$repos_disk_size" | awk '{printf "%.0f", $1}') + $(echo "$pages_disk_size" | awk '{printf "%.0f", $1}') + $(echo "$es_disk_size" | awk '{printf "%.0f", $1}') + $(echo "$stor_disk_size" | awk '{printf "%.0f", $1}') + $(echo "$minio_disk_size" | awk '{printf "%.0f", $1}') + $(echo "$mysql_disk_size" | awk '{printf "%.0f", $1/2}') + $(echo "$actions_disk_size" | awk '{printf "%.0f", $1}') + $(echo "$mssql_disk_size" | awk '{printf "%.0f", $1}') ))
+  #min_disk_req=$(( $(echo "$repos_disk_size" | awk '{printf "%.0f", $1}') + $(echo "$pages_disk_size" | awk '{printf "%.0f", $1}') + $(echo "$es_disk_size" | awk '{printf "%.0f", $1}') + $(echo "$stor_disk_size" | awk '{printf "%.0f", $1}') + $(echo "$minio_disk_size" | awk '{printf "%.0f", $1}') + $(echo "$mysql_disk_size" | awk '{printf "%.0f", $1/2}') + $(echo "$actions_disk_size" | awk '{printf "%.0f", $1}') + $(echo "$mssql_disk_size" | awk '{printf "%.0f", $1}') ))
+  min_disk_req=$(( $(echo "$repos_disk_size") + $(echo "$pages_disk_size") + $(echo "$es_disk_size") + $(echo "$stor_disk_size") + $(echo "$minio_disk_size") + $(echo "$mysql_disk_size") + $(echo "$actions_disk_size") + $(echo "$mssql_disk_size") ))
   echo "Data transfer size for - repositories = $repos_disk_size, pages: $pages_disk_size, elasticsearch: $es_disk_size, storage: $stor_disk_size, minio: $minio_disk_size, mysql: $mysql_disk_size, actions: $actions_disk_size, mssql: $mssql_disk_size" 1>&2
   printf "min_disk_required for this backup is at least %d MB\n" "$((min_disk_req / 1024 ** 2))" 1>&2
 

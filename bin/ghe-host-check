@@ -144,7 +144,7 @@ if [ -z "$supported" ]; then
   exit 1
 fi
 
-if [[ "$CALLING_SCRIPT" == "ghe-backup" ]]; then
+if [[ "$CALLING_SCRIPT" != "ghe-backup" ]]; then
   # Bring in the requirements file
   min_rsync=""
   min_openssh=""
@@ -187,7 +187,7 @@ echo -e "### Data Transfer Sizes \nrepositories: $repos_disk_size \npages: $page
     echo "Please make sure you have the minimum required version of rsync: $min_rsync installed" 1>&2
     exit 1
   else
-    echo "rsync ${rsync_version} >= required ($min_rsync)"
+    echo "rsync ${rsync_version} >= required ($min_rsync)" 1>&2
   fi
 
   ssh_version=$(ssh -V 2>&1 | awk '{print $1}'|grep -oPm 1 '[\d\.]+' |head -1)
@@ -196,7 +196,7 @@ echo -e "### Data Transfer Sizes \nrepositories: $repos_disk_size \npages: $page
     echo "Please make sure the minimum required version of openSSH: $min_openssh is installed" 1>&2
     exit 1
   else
-    echo "openSSH ${ssh_version} >= required ($min_openssh)"
+    echo "openSSH ${ssh_version} >= required ($min_openssh)" 1>&2
   fi
 
   jq_version=$(jq --version |awk -F\- '{print $2}')
@@ -205,7 +205,7 @@ echo -e "### Data Transfer Sizes \nrepositories: $repos_disk_size \npages: $page
     echo "Please make sure you have the minimum required version of jq: $min_jq installed" 1>&2
     exit 1
   else
-    echo "jq ${jq_version} >= required ($min_jq)"
+    echo "jq ${jq_version} >= required ($min_jq)" 1>&2
   fi
 fi
 

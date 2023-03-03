@@ -206,7 +206,6 @@ fi
 else
   echo "jq ${jq_version} >= required ($min_jq)"
 fi```
-  echo "Backup host meets minimum software requirements for OpenSSH, rsync and jq." 1>&2
 fi
 
 echo "Connect $hostname:$port OK (v$version)"

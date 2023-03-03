@@ -203,7 +203,9 @@ fi
     echo "jq version $jq_version in backup-host does not meet minimum requirements." 1>&2
     echo "Please make sure you have the minimum required version of jq: $min_jq installed" 1>&2
     exit 1
-  fi
+else
+  echo "jq ${jq_version} >= required ($min_jq)"
+fi```
   echo "Backup host meets minimum software requirements for OpenSSH, rsync and jq." 1>&2
 fi
 

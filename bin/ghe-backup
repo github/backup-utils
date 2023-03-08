@@ -44,6 +44,7 @@ done
 # Check to make sure moreutils parallel is installed and working properly
 ghe_parallel_check
 
+
 # Used to record failed backup steps
 failures=
 failures_file="$(mktemp -t backup-utils-backup-failures-XXXXXX)"
@@ -63,7 +64,7 @@ touch "incomplete"
 # Exit early if the snapshot filesystem doesn't support hard links, symlinks and
 # if rsync doesn't support hardlinking of dangling symlinks
 trap 'rm -rf src dest1 dest2' EXIT
-mkdir src
+mkdir -p src
 touch src/testfile
 if ! ln -s /data/does/not/exist/hooks/ src/ >/dev/null 2>&1; then
   echo "Error: the filesystem containing $GHE_DATA_DIR does not support symbolic links." 1>&2
@@ -105,6 +106,7 @@ cleanup () {
   fi
 
   rm -rf "$failures_file"
+  rm -f ${GHE_DATA_DIR}/in-progress-backup
 
   # Cleanup SSH multiplexing
   ghe-ssh --clean
@@ -114,10 +116,15 @@ cleanup () {
 trap 'cleanup' EXIT
 trap 'exit $?' INT # ^C always terminate
 
+
+# Check to see if there is a running restore
+ghe_restore_check
+
+# Check to see if there is a running backup
 if [ -h ../in-progress ]; then
   echo "Error: detected a backup already in progress from a previous version of ghe-backup." 1>&2
   echo "If there is no backup in progress anymore, please remove" 1>&2
-  echo "the $GHE_DATA_DIR/in-progress file." 1>&2
+  echo "the $GHE_DATA_DIR/in-progress file and try again." 1>&2
   exit 1
 fi
 
@@ -131,13 +138,15 @@ if [ -f ../in-progress ]; then
     unlink ../in-progress
   else
     echo "Error: A backup of $GHE_HOSTNAME may still be running on PID $pid." 1>&2
-    echo "If PID $pid is not a process related to the backup utilities, please remove" 1>&2
-    echo "the $GHE_DATA_DIR/in-progress file and try again." 1>&2
+    echo 1>&2
+    echo "  If PID $pid is not a process related to the backup utilities, please remove" 1>&2
+    echo "  the $GHE_DATA_DIR/in-progress file and try again." 1>&2
     exit 1
   fi
 fi
 
 echo "$GHE_SNAPSHOT_TIMESTAMP $$" > ../in-progress
+echo "$GHE_SNAPSHOT_TIMESTAMP $$" > ${GHE_DATA_DIR}/in-progress-backup
 
 START_TIME=$(date +%s)
 echo 'Start time:' $START_TIME
@@ -278,3 +287,6 @@ ghe-detect-leaked-ssh-keys -s "$GHE_SNAPSHOT_DIR" || true
 
 # Make sure we exit zero after the conditional
 true
+
+# Remove in-progress file
+ghe_backup_finished

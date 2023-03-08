@@ -130,14 +130,14 @@ bm_end "$(basename $0) - Generating routes"
 
 bm_start "$(basename $0) - Fetching routes"
 ghe-ssh "$GHE_HOSTNAME" -- gzip -c $remote_routes_list | gzip -d > $routes_list
-cat $routes_list | ghe_debug
+< $routes_list ghe_debug
 bm_end "$(basename $0) - Fetching routes"
 
 bm_start "$(basename $0) - Processing routes"
 if [ "$GHE_BACKUP_STRATEGY" != "cluster" ]; then
   server=$host
 fi
-cat $routes_list | awk -v tempdir="$tempdir" -v server="$server" '{ for(i=2;i<=NF;i++){ server != "" ? host=server : host=$i; print $1 > (tempdir"/"host".rsync") }}'
+< $routes_list awk -v tempdir="$tempdir" -v server="$server" '{ for(i=2;i<=NF;i++){ server != "" ? host=server : host=$i; print $1 > (tempdir"/"host".rsync") }}'
 ghe_debug "\n$(find "$tempdir" -maxdepth 1 -name '*.rsync')"
 bm_end "$(basename $0) - Processing routes"
 
@@ -325,7 +325,7 @@ bm_start "$(basename $0) - Repo sync"
 for file_list in $tempdir/*.rsync; do
   hostname=$(basename $file_list .rsync)
 
-  repo_num=$(cat $file_list | wc -l)
+  repo_num=$(< $file_list wc -l)
   ghe_verbose "* Transferring $repo_num repositories from $hostname"
 
   sync_data $hostname $file_list &
@@ -367,7 +367,9 @@ bm_end "$(basename $0) - Special Data Directories Sync"
 
 if [ -z "$GHE_SKIP_ROUTE_VERIFICATION" ]; then
   bm_start "$(basename $0) - Verifying Routes"
-  cat $tempdir/*.rsync | uniq | sort | uniq > $tempdir/source_routes
+  for file_lst in $tempdir/*.rsync; do
+  < $file_lst sort | uniq
+  done |sort|uniq > $tempdir/source_routes
   (cd $backup_dir/ && find * -mindepth 5 -maxdepth 6 -type d -name \*.git | fix_paths_for_ghe_version | uniq | sort | uniq) > $tempdir/destination_routes
 
   git --no-pager diff --unified=0 --no-prefix -- $tempdir/source_routes $tempdir/destination_routes || echo "Warning: One or more repository networks and/or gists were not found on the source appliance. Please contact GitHub Enterprise Support for assistance."

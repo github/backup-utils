@@ -68,7 +68,7 @@ if [ $rc -ne 0 ]; then
     echo "$output" 1>&2
     echo "Error: ssh connection with '$host' failed" 1>&2
     echo "Note that your SSH key needs to be setup on $host as described in:" 1>&2
-    echo "* https://enterprise.github.com/help/articles/adding-an-ssh-key-for-shell-access" 1>&2
+    echo "* https://docs.github.com/enterprise-server/admin/configuration/configuring-your-enterprise/accessing-the-administrative-shell-ssh" 1>&2
     ;;
   101)
     echo "Error: couldn't read GitHub Enterprise Server fingerprint on '$host' or this isn't a GitHub appliance." 1>&2
@@ -131,7 +131,7 @@ fi
 
 # backup-utils 2.13 onwards limits support to the current and previous two releases
 # of GitHub Enterprise Server.
-supported_minimum_version="3.5.0"
+supported_minimum_version="3.6.0"
 
 if [ "$(version $version)" -ge "$(version $supported_minimum_version)" ]; then
   supported=1

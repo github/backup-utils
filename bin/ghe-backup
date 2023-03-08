@@ -37,6 +37,7 @@ while true; do
   esac
 done
 
+export CALLING_SCRIPT="ghe-backup"
 # Bring in the backup configuration
 # shellcheck source=share/github-backup-utils/ghe-backup-config
 . "$( dirname "${BASH_SOURCE[0]}" )/../share/github-backup-utils/ghe-backup-config"

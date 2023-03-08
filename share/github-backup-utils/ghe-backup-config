@@ -613,7 +613,7 @@ log_level() {
       display="-"
     fi
   fi
-  echo -e "$timestamp | $display | $message"
+  echo -e "$timestamp  $display  $message"
 }
 
 log_info(){

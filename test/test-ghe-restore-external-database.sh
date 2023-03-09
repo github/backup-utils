@@ -7,6 +7,7 @@
 
 setup_test_data "$GHE_DATA_DIR/1"
 
+export GHE_TESTING="true"
 # Make the current symlink
 ln -s 1 "$GHE_DATA_DIR/current"
 

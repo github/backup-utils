@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Docker image build tests
-
+export GHE_TESTING="true"
 # If docker is not installed, skip the whole docker test
 # Travis CI does not currently support docker on OSX (https://docs.travis-ci.com/user/docker/)
 if ! docker ps >/dev/null 2>&1; then

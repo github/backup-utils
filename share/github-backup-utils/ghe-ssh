@@ -58,9 +58,9 @@ host=$(ssh_host_part "$host")
 user="${host%@*}"
 [ "$user" = "$host" ] && user="admin"
 opts="-l $user $opts"
-if [ ! "${GHE_TESTING}" ]; then
-  log_ssh "$host"
-fi
+#if [ ! "${GHE_TESTING}" ]; then
+#  log_ssh "$host"
+#fi
 # Bail out with error if the simple command form is used with complex commands.
 # Complex
 if echo "$*" | grep "[|;]" >/dev/null || [ "$(echo "$*" | wc -l)" -gt 1 ]; then

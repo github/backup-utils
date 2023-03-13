@@ -9,7 +9,7 @@ Backup host software requirements are modest: Ubuntu Linux operating system with
 
 Ubuntu is the operating system we use to test `backup-utils` and it’s what we recommend you use too. You are welcome to use a different operating system, and we'll do our best to help you if you run into issues. But we can't guarantee that we'll be able to resolve issues that are specific to that operating system.
 
-Additinoally, we encourage the use of [Docker](docker.md), as it ensures compatible versions of the aforementioned software are available to backup-utils.
+Additionally, we encourage the use of [Docker](docker.md), as it ensures compatible versions of the aforementioned software are available to backup-utils.
 
 The parallel backup and restore feature will require [GNU awk][10] and [moreutils][9] to be installed.
 

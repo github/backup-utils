@@ -32,7 +32,7 @@ fi
 # Determine if the audit log migration has occurred or is needed.
 if echo 'set -o pipefail; ! test -e /data/user/common/es-scan-complete && test -f /usr/local/share/enterprise/run-audit-log-transitions.sh' | ghe-ssh "$host" /bin/bash; then
   if echo 'set -o pipefail; echo n | /usr/local/share/enterprise/run-audit-log-transitions.sh > /dev/null 2>&1 && touch /data/user/common/es-scan-complete' | ghe-ssh "$host" /bin/bash; then
-    touch $GHE_SNAPSHOT_DIR/es-scan-complete
+   sudo touch $GHE_SNAPSHOT_DIR/es-scan-complete
   fi
 fi
 

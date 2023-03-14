@@ -449,42 +449,45 @@ if ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config --true app.minio.enabled'; then
 fi
 
 commands=("
-echo \"Restoring Redis database ...\"
+log_info \"Restoring Redis database ...\"
 ghe-ssh \"$GHE_HOSTNAME\" -- 'ghe-import-redis' < \"$GHE_RESTORE_SNAPSHOT_PATH/redis.rdb\" 1>&3")
 
 commands+=("
-echo \"Restoring Git repositories ...\"
+log_info \"Restoring Git repositories ...\"
 ghe-restore-repositories \"$GHE_HOSTNAME\"")
 
 commands+=("
-echo \"Restoring Gists ...\"
+log_info \"Restoring Gists ...\"
 ghe-restore-repositories-gist \"$GHE_HOSTNAME\"")
 
 commands+=("
-echo \"Restoring GitHub Pages artifacts ...\"
+log_info \"Restoring GitHub Pages artifacts ...\"
 ghe-restore-pages \"$GHE_HOSTNAME\" 1>&3")
 
 commands+=("
-echo \"Restoring SSH authorized keys ...\"
+log_info \"Restoring SSH authorized keys ...\"
 ghe-ssh \"$GHE_HOSTNAME\" -- 'ghe-import-authorized-keys' < \"$GHE_RESTORE_SNAPSHOT_PATH/authorized-keys.json\" 1>&3")
 
 commands+=("
-echo \"Restoring storage data ...\"
+log_info \"Restoring storage data ...\"
 ghe-restore-storage \"$GHE_HOSTNAME\" 1>&3")
 
 commands+=("
-echo \"Restoring custom Git hooks ...\"
+log_info \"Restoring custom Git hooks ...\"
 ghe-restore-git-hooks \"$GHE_HOSTNAME\" 1>&3")
 
 if ! $CLUSTER && [ -d "$GHE_RESTORE_SNAPSHOT_PATH/elasticsearch" ]; then
   commands+=("
-  echo \"Restoring Elasticsearch indices ...\"
+  log_info \"Restoring Elasticsearch indices ...\"
   ghe-restore-es-rsync \"$GHE_HOSTNAME\" 1>&3")
 fi
 
 # Restore the audit log migration sentinel file, if it exists in the snapshot
 if [ -f "$GHE_RESTORE_SNAPSHOT_PATH"/es-scan-complete ]; then
-  ghe-ssh "$GHE_HOSTNAME" -- "sudo touch $GHE_REMOTE_DATA_USER_DIR/common/es-scan-complete"
+  log_info "Restoring Elasticsearch audit log migration sentinel file ..."
+  if ! ghe-ssh "$GHE_HOSTNAME" -- "sudo touch $GHE_REMOTE_DATA_USER_DIR/common/es-scan-complete"; then
+    log_warn "Failed to restore Elasticsearch audit log migration sentinel file."
+  fi
 fi
 
 # Restore exported audit logs to 2.12.9 and newer single nodes and
@@ -494,7 +497,7 @@ if $CLUSTER || [ "$(version $GHE_REMOTE_VERSION)" -ge "$(version 2.12.9)" ]; the
     log_info "Skipping restore of audit logs."
   else
     commands+=("
-     echo \"Restoring Audit logs ...\"
+     log_info \"Restoring Audit logs ...\"
     ghe-restore-es-audit-log \"$GHE_HOSTNAME\" 1>&3")
   fi
 

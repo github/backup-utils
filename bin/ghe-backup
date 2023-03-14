@@ -202,32 +202,32 @@ if ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config --true app.minio.enabled'; then
 fi
 
 commands=("
-echo \"Backing up Redis database ...\"
+log_info \"Backing up Redis database ...\"
 ghe-backup-redis > redis.rdb || printf %s \"redis \" >> \"$failures_file\"")
 
 commands+=("
-echo \"Backing up audit log ...\"
+log_info \"Backing up audit log ...\"
 ghe-backup-es-audit-log || printf %s \"audit-log \" >> \"$failures_file\"")
 
 commands+=("
-echo \"Backing up Git repositories ...\"
+log_info \"Backing up Git repositories ...\"
 ghe-backup-repositories || printf %s \"repositories \" >> \"$failures_file\"")
 
 commands+=("
-echo \"Backing up GitHub Pages artifacts ...\"
+log_info \"Backing up GitHub Pages artifacts ...\"
 ghe-backup-pages || printf %s \"pages \" >> \"$failures_file\"")
 
 commands+=("
-echo \"Backing up storage data ...\"
+log_info \"Backing up storage data ...\"
 ghe-backup-storage || printf %s \"storage \" >> \"$failures_file\"")
 
 commands+=("
-echo \"Backing up custom Git hooks ...\"
+log_info \"Backing up custom Git hooks ...\"
 ghe-backup-git-hooks || printf %s \"git-hooks \" >> \"$failures_file\"")
 
 if [ "$GHE_BACKUP_STRATEGY" = "rsync" ]; then
   commands+=("
-  echo \"Backing up Elasticsearch indices ...\"
+  log_info \"Backing up Elasticsearch indices ...\"
   ghe-backup-es-rsync || printf %s \"elasticsearch \" >> \"$failures_file\"")
 fi
 

@@ -88,18 +88,19 @@ done
 
 start_cron () {
   log_info "Starting cron ..." 1>&3
-  # if $CLUSTER; then
-  #   if [ ! ghe-ssh "$GHE_HOSTNAME" -- "ghe-cluster-each -- sudo service cron start" ]; then
-  #     log_warn "* Warning: Failed to start cron on one or more nodes"
-  #   fi
-  # else
-  #   if [ ! ghe-ssh "$GHE_HOSTNAME" -- "sudo service cron start" ] ; then
-  #     log_warn "* Warning: Failed to start cron"
-  #   fi
-  # fi
+  if $CLUSTER; then
+    if [ ! ghe-ssh "$GHE_HOSTNAME" -- "ghe-cluster-each -- sudo service cron start" ]; then
+      log_warn "Failed to start cron on one or more nodes"
+    fi
+  else
+    if [ ! ghe-ssh "$GHE_HOSTNAME" -- "sudo service cron start" ] ; then
+      log_warn "Failed to start cron"
+    fi
+  fi
 }
 
 cleanup () {
+  log_info "Cleaning up ..." 1>&3
   if [ -n "$1" ]; then
     update_restore_status "$1"
   fi
@@ -126,7 +127,11 @@ cleanup () {
     log_warn "Failed to clean up SSH multiplexing"
   fi
   # Remove in-progress file
-  rm -f ${GHE_DATA_DIR}/in-progress-restore
+  log_info "Removing in-progress file ..." 1>&3
+
+  if ! rm -f ${GHE_DATA_DIR}/in-progress-restore ; then
+    log_warn "Failed to remove in-progress file"
+  fi
 }
 
 # This function's type definition is being passed to a remote host via `ghe-ssh` but is not used locally.
@@ -134,18 +139,21 @@ cleanup () {
 cleanup_cluster_nodes() {
   uuid="$1"
   if [ -z "$uuid" ]; then
-    log_info "Node UUID required."
+    log_error "Node UUID required."
     exit 2
   fi
-
+  log_info "Cleaning up spokes" 1>&3
   ghe-spokes server evacuate git-server-$uuid 'Removing replica'
   ghe-spokes server destroy git-server-$uuid
 
+  log_info "Cleaning up storage" 1>&3
   ghe-storage destroy-host storage-server-$uuid --force
 
+  log_info "Cleaning up dpages" 1>&3
   ghe-dpages offline pages-server-$uuid
   ghe-dpages remove pages-server-$uuid
 
+  log_info "Cleaning up redis" 1>&3
   ghe-redis-cli del resque:queue:maint_git-server-$uuid
   ghe-redis-cli srem resque:queues maint_git-server-$uuid
 }

@@ -87,8 +87,7 @@ while true; do
 done
 
 start_cron () {
-  echo "Starting cron ..."
-  true
+  log_info "Starting cron ..." 1>&3
   # if $CLUSTER; then
   #   if [ ! ghe-ssh "$GHE_HOSTNAME" -- "ghe-cluster-each -- sudo service cron start" ]; then
   #     log_warn "* Warning: Failed to start cron on one or more nodes"
@@ -122,6 +121,7 @@ cleanup () {
   fi
 
   # Cleanup SSH multiplexing
+  log_info "Cleaning up SSH multiplexing ..." 1>&3
   ghe-ssh --clean
   # Remove in-progress file
   rm -f ${GHE_DATA_DIR}/in-progress-restore

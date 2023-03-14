@@ -42,7 +42,7 @@ ghe_verbose "* Transferring minio files to ${host} ..."
 
 ghe-ssh -p "${port}" "${host}" -- sudo mkdir -p "${GHE_REMOTE_DATA_USER_DIR}/minio"
 ghe-ssh -p "${port}" "${host}" -- sudo chown -R minio:minio "${GHE_REMOTE_DATA_USER_DIR}/minio"
-
+log_rsync "BEGIN: minio rsync" 1>&3
 ghe-rsync \
   --verbose \
   --archive \
@@ -53,5 +53,5 @@ ghe-rsync \
   --rsync-path='sudo -u minio rsync' \
   "${GHE_RESTORE_SNAPSHOT_PATH}/minio/./" \
   "${host}:${GHE_REMOTE_DATA_USER_DIR}/minio/" 1>&3
-
+log_rsync "END: minio rsync" 1>&3
 bm_end "$(basename "${0}")"

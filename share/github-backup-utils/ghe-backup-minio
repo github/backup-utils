@@ -41,7 +41,7 @@ fi
 
 # Transfer all minio data from the user data directory using rsync.
 ghe_verbose "* Transferring minio files from ${host} ..."
-
+log_rsync "BEGIN: minio rsync" 1>&3
 ghe-rsync \
   --archive \
   --verbose \
@@ -52,5 +52,5 @@ ghe-rsync \
   ${link_dest} \
   "${host}:${GHE_REMOTE_DATA_USER_DIR}/minio/" \
   "${GHE_SNAPSHOT_DIR}/minio" 1>&3
-
+log_rsync "END: minio rsync" 1>&3
 bm_end "$(basename "${0}")"

@@ -136,7 +136,7 @@ for file_list in $tempdir/*.rsync; do
 
   rsync_commands+=("
   if [ -n \"$GHE_VERBOSE\" ]; then
-    log_info \"* Transferring data to $server ...\" 1>&3
+    echo \"* Transferring data to $server ...\" 1>&3
   fi
 
   log_rsync \"BEGIN: storage rsync\" 1>&3

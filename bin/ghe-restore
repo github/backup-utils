@@ -438,36 +438,36 @@ if ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config --true app.minio.enabled'; then
 fi
 
 commands=("
-log_info \"Restoring Redis database ...\"
+echo \"Restoring Redis database ...\"
 ghe-ssh \"$GHE_HOSTNAME\" -- 'ghe-import-redis' < \"$GHE_RESTORE_SNAPSHOT_PATH/redis.rdb\" 1>&3")
 
 commands+=("
-log_info \"Restoring Git repositories ...\"
+echo \"Restoring Git repositories ...\"
 ghe-restore-repositories \"$GHE_HOSTNAME\"")
 
 commands+=("
-log_info \"Restoring Gists ...\"
+echo \"Restoring Gists ...\"
 ghe-restore-repositories-gist \"$GHE_HOSTNAME\"")
 
 commands+=("
-log_info \"Restoring GitHub Pages artifacts ...\"
+echo \"Restoring GitHub Pages artifacts ...\"
 ghe-restore-pages \"$GHE_HOSTNAME\" 1>&3")
 
 commands+=("
-log_info \"Restoring SSH authorized keys ...\"
+echo \"Restoring SSH authorized keys ...\"
 ghe-ssh \"$GHE_HOSTNAME\" -- 'ghe-import-authorized-keys' < \"$GHE_RESTORE_SNAPSHOT_PATH/authorized-keys.json\" 1>&3")
 
 commands+=("
-log_info \"Restoring storage data ...\"
+echo \"Restoring storage data ...\"
 ghe-restore-storage \"$GHE_HOSTNAME\" 1>&3")
 
 commands+=("
-log_info \"Restoring custom Git hooks ...\"
+echo \"Restoring custom Git hooks ...\"
 ghe-restore-git-hooks \"$GHE_HOSTNAME\" 1>&3")
 
 if ! $CLUSTER && [ -d "$GHE_RESTORE_SNAPSHOT_PATH/elasticsearch" ]; then
   commands+=("
-  log_info \"Restoring Elasticsearch indices ...\"
+  echo \"Restoring Elasticsearch indices ...\"
   ghe-restore-es-rsync \"$GHE_HOSTNAME\" 1>&3")
 fi
 
@@ -483,7 +483,7 @@ if $CLUSTER || [ "$(version $GHE_REMOTE_VERSION)" -ge "$(version 2.12.9)" ]; the
     log_info "Skipping restore of audit logs."
   else
     commands+=("
-     log_info \"Restoring Audit logs ...\"
+     echo \"Restoring Audit logs ...\"
     ghe-restore-es-audit-log \"$GHE_HOSTNAME\" 1>&3")
   fi
 

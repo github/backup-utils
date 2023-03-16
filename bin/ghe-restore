@@ -266,7 +266,6 @@ fi
 
 # Log restore start message locally and in /var/log/syslog on remote instance
 START_TIME=$(date +%s)
-log_info "Start time: $START_TIME"
 log_info "Starting restore of $GHE_HOSTNAME with backup-utils v$BACKUP_UTILS_VERSION from snapshot $GHE_RESTORE_SNAPSHOT"
 ghe_remote_logger "Starting restore from $(hostname) with backup-utils v$BACKUP_UTILS_VERSION / snapshot $GHE_RESTORE_SNAPSHOT ..."
 # Create an in-progress-restore file to prevent simultaneous backup or restore runs
@@ -600,7 +599,6 @@ else
 fi
 
 END_TIME=$(date +%s)
-log_info "End time: ${END_TIME}"
 log_info "Runtime: $((${END_TIME} - ${START_TIME})) seconds"
 log_info "Restore of $GHE_HOSTNAME from snapshot $GHE_RESTORE_SNAPSHOT finished."
 

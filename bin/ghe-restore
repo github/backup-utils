@@ -473,12 +473,12 @@ echo \"Restoring storage data ...\"
 ghe-restore-storage \"$GHE_HOSTNAME\" 1>&3")
 
 commands+=("
-log_info \"Restoring custom Git hooks ...\"
+echo \"Restoring custom Git hooks ...\"
 ghe-restore-git-hooks \"$GHE_HOSTNAME\" 1>&3")
 
 if ! $CLUSTER && [ -d "$GHE_RESTORE_SNAPSHOT_PATH/elasticsearch" ]; then
   commands+=("
-  log_info \"Restoring Elasticsearch indices ...\"
+  echo \"Restoring Elasticsearch indices ...\"
   ghe-restore-es-rsync \"$GHE_HOSTNAME\" 1>&3")
 fi
 
@@ -497,7 +497,7 @@ if $CLUSTER || [ "$(version $GHE_REMOTE_VERSION)" -ge "$(version 2.12.9)" ]; the
     log_info "Skipping restore of audit logs."
   else
     commands+=("
-     log_info \"Restoring Audit logs ...\"
+     echo \"Restoring Audit logs ...\"
     ghe-restore-es-audit-log \"$GHE_HOSTNAME\" 1>&3")
   fi
 
@@ -505,8 +505,10 @@ fi
 
 if [ "$GHE_PARALLEL_ENABLED" = "yes" ]; then
   log_info "Restoring data in parallel ..." 1>&3
+  echo "$GHE_PARALLEL_COMAND $GHE_PARALLEL_COMMAND_OPTIONS -- ${commands[@]}" 1>&3
   $GHE_PARALLEL_COMMAND "$GHE_PARALLEL_COMMAND_OPTIONS" -- "${commands[@]}"
 else
+  log_info "Restoring data serially ..." 1>&3
   for c in "${commands[@]}"; do
     eval "$c"
   done

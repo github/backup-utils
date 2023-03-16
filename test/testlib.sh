@@ -436,7 +436,7 @@ verify_all_backedup_data() {
   fi
 
   # check that redis data was backed up
-#  [ "$(cat "$GHE_DATA_DIR/current/redis.rdb")" = "fake redis data" ]
+  [ "$(cat "$GHE_DATA_DIR/current/redis.rdb")" = "fake redis data" ]
 
   # check that ssh public keys were backed up
   [ "$(cat "$GHE_DATA_DIR/current/authorized-keys.json")" = "fake ghe-export-authorized-keys data" ]
@@ -494,7 +494,6 @@ verify_all_restored_data() {
   if ! $SKIP_MYSQL; then
     grep -q "fake ghe-export-mysql data" "$TRASHDIR/restore-out"
   fi
-  cat "$TRASHDIR/restore-out" 
   grep -q "fake ghe-export-redis data" "$TRASHDIR/restore-out"
   grep -q "fake ghe-export-authorized-keys data" "$TRASHDIR/restore-out"
 

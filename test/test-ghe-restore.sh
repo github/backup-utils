@@ -707,7 +707,6 @@ begin_test "ghe-restore cluster with different node versions should fail at ghe-
   export GHE_RESTORE_HOST
 
   ! output=$(ghe-restore -v -f 2>&1)
-  echo "$output"
   echo "$output" | grep -q "Error: Not all nodes are running the same version! Please ensure all nodes are running the same version before using backup-utils."
 )
 end_test

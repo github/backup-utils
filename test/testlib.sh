@@ -494,6 +494,7 @@ verify_all_restored_data() {
   if ! $SKIP_MYSQL; then
     grep -q "fake ghe-export-mysql data" "$TRASHDIR/restore-out"
   fi
+  cat "$TRASHDIR/restore-out" 
   grep -q "fake ghe-export-redis data" "$TRASHDIR/restore-out"
   grep -q "fake ghe-export-authorized-keys data" "$TRASHDIR/restore-out"
 

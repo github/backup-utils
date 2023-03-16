@@ -47,7 +47,7 @@ begin_test "ghe-restore into configured vm"
   export GHE_RESTORE_HOST
 
   # run ghe-restore and write output to file for asserting against
-  if ! GHE_DEBUG=1 ghe-restore -v -f > "$TRASHDIR/restore-out" 2>&1; then
+  if ! GHE_DEBUG=1 ghe-restore -v -f > "$TRASHDIR/restore-out" 2>&1 1>&3; then
       cat "$TRASHDIR/restore-out"
       : ghe-restore should have exited successfully
       false

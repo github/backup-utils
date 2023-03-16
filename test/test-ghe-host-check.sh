@@ -4,7 +4,7 @@
 # Bring in testlib
 # shellcheck source=test/testlib.sh
 . "$(dirname "$0")/testlib.sh"
-export GHE_TESTING="true"
+
 begin_test "ghe-host-check"
 (
   set -e

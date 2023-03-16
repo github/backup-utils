@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 BASE_PATH=$(cd "$(dirname "$0")/../" && pwd)
-export GHE_TESTING="true"
+
 # Bring in testlib
 # shellcheck source=test/testlib.sh
 . "$(dirname "$0")/testlib.sh"

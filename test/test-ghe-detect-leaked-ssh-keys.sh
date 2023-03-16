@@ -4,7 +4,7 @@
 # Bring in testlib
 # shellcheck source=test/testlib.sh
 . "$(dirname "$0")/testlib.sh"
-export GHE_TESTING="true"
+
 # Add some fake repositories to the snapshot
 mkdir -p "$GHE_DATA_DIR/1"
 

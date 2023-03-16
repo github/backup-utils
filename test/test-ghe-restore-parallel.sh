@@ -9,7 +9,7 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
 fi
 
 export GHE_PARALLEL_ENABLED=yes
-export GHE_TESTING="true"
+
 # use temp dir to fix rsync file issues in parallel execution:
 # we are imitating remote server by local files, and running rsync in parallel may cause
 # race conditions when two processes writing to same folder

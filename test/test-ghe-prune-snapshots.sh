@@ -4,7 +4,7 @@
 # Bring in testlib
 # shellcheck source=test/testlib.sh
 . "$(dirname "$0")/testlib.sh"
-export GHE_TESTING="true"
+
 # helper for generating dirs to clean up
 generate_prune_files() {
   rm -rf "${GHE_DATA_DIR:?}"/*

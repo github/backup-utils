@@ -10,7 +10,7 @@ TESTS_DIR="$PWD/$(dirname "$0")"
 mkdir -p "$GHE_DATA_DIR" "$GHE_REMOTE_DATA_USER_DIR"
 
 setup_test_data $GHE_REMOTE_DATA_USER_DIR
-export GHE_TESTING="true"
+
 
 begin_test "ghe-backup first snapshot"
 (

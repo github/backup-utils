@@ -4,7 +4,7 @@
 # Bring in testlib
 # shellcheck source=test/testlib.sh
 . "$(dirname "$0")/testlib.sh"
-export GHE_TESTING="true"
+
 
 # Setup backup snapshot data dir and remote repositories dir locations to use
 # the per-test temp space.

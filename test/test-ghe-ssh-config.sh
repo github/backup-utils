@@ -6,7 +6,7 @@
 . "$(dirname "$0")/testlib.sh"
 
 export CLUSTER_CONF="$ROOTDIR/test/cluster.conf"
-export GHE_TESTING="true"
+
 begin_test "ghe-ssh-config returns config for git-server nodes"
 (
   set -e

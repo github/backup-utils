@@ -14,6 +14,12 @@
 #     . $( dirname "${BASH_SOURCE[0]}" )/../share/github-backup-utils/ghe-backup-config
 #
 set +o posix
+# Terminal colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+NC='\033[0m' # No Color
+
 # Assume this script lives in share/github-backup-utils/ when setting the root
 GHE_BACKUP_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
@@ -187,7 +193,7 @@ if [ -n "$GHE_VERBOSE" ]; then
       fi
       calling_script_name="$(caller | sed 's:.*/::')"
       date_format=$(date -u "+%FT%TZ")
-      exec 3> >(awk -v c="$calling_script_name" d="$date_format" '{ print d" INFO ", c":", $0; fflush(); }' >>"$GHE_VERBOSE_LOG")
+      exec 3> >(awk -v '{ print d" INFO ", c":", $0; fflush(); }' c="$calling_script_name" d="$date_format" >>"$GHE_VERBOSE_LOG")
     fi
   else
     exec 3>&1
@@ -563,13 +569,10 @@ restore-secret() {
   fi
 }
 
-# Logging display and formatting functions
 
-# Terminal colors
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[0;33m'
-NC='\033[0m' # No Color
+
+
+# Logging display and formatting functions
 
 # Log a message to stdout
 log_level() {

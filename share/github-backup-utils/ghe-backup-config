@@ -19,9 +19,77 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[0;33m'
 BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+NC='\033[0m' # No Colo# Logging display and formatting functions
 
-# Assume this script lives in share/github-backup-utils/ when setting the root
+# Log a message to stdout
+log_level() {
+  local level=$1
+  shift
+  local message=$*
+  local display=""
+  local timestamp
+  timestamp=$(date -u "+%FT%TZ")
+
+
+  if [ "$TERM" = "dumb" ] || [[ "$OUTPUT_COLOR" != "yes" ]]; then
+    if [ "$level" = "info" ]; then
+      display="INFO"
+    elif [ "$level" = "warn" ]; then
+      display="WARN"
+    elif [ "$level" = "error" ]; then
+      display="ERROR"
+    elif [ "$level" = "verbose" ]; then
+      display="INFO"
+    elif [ "$level" = "rsync" ]; then
+      display="RSYNC"
+    elif [ "$level" = "ssh" ]; then
+      display="SSH"
+    else
+      display="-"
+    fi
+  else 
+    if [ "$level" = "info" ]; then
+      display="${GREEN}INFO${NC}"
+    elif [ "$level" = "warn" ]; then
+      display="${YELLOW}WARN${NC}"
+    elif [ "$level" = "error" ]; then
+      display="${RED}ERROR${NC}"
+    elif [ "$level" = "verbose" ]; then
+      display="${GREEN}INFO${NC}"
+    elif [ "$level" = "rsync" ]; then
+      display="${GREEN}RSYNC${NC}"
+    elif [ "$level" = "ssh" ]; then
+      display="${GREEN}SSH${NC}"
+    else
+      display="-"
+    fi
+  fi
+  echo -e "$timestamp  $display  $message"
+}
+
+log_info(){
+  log_level "info" "$1"
+}
+
+log_warn(){
+  log_level "warn" "$1"
+}
+
+log_error(){
+  log_level "error" "$1"
+}
+
+log_verbose(){
+  log_level "verbose" "$1"
+}
+
+log_rsync(){
+  log_level "rsync" "$1"
+}
+
+log_ssh(){
+  log_level "ssh" "$1"
+} Assume this script lives in share/github-backup-utils/ when setting the root
 GHE_BACKUP_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
 # Get the version from the version file.
@@ -576,74 +644,4 @@ restore-secret() {
 
 
 
-# Logging display and formatting functions
 
-# Log a message to stdout
-log_level() {
-  local level=$1
-  shift
-  local message=$*
-  local display=""
-  local timestamp
-  timestamp=$(date -u "+%FT%TZ")
-
-
-  if [ "$TERM" = "dumb" ] || [[ "$OUTPUT_COLOR" != "yes" ]]; then
-    if [ "$level" = "info" ]; then
-      display="INFO"
-    elif [ "$level" = "warn" ]; then
-      display="WARN"
-    elif [ "$level" = "error" ]; then
-      display="ERROR"
-    elif [ "$level" = "verbose" ]; then
-      display="INFO"
-    elif [ "$level" = "rsync" ]; then
-      display="RSYNC"
-    elif [ "$level" = "ssh" ]; then
-      display="SSH"
-    else
-      display="-"
-    fi
-  else 
-    if [ "$level" = "info" ]; then
-      display="${GREEN}INFO${NC}"
-    elif [ "$level" = "warn" ]; then
-      display="${YELLOW}WARN${NC}"
-    elif [ "$level" = "error" ]; then
-      display="${RED}ERROR${NC}"
-    elif [ "$level" = "verbose" ]; then
-      display="${GREEN}INFO${NC}"
-    elif [ "$level" = "rsync" ]; then
-      display="${GREEN}RSYNC${NC}"
-    elif [ "$level" = "ssh" ]; then
-      display="${GREEN}SSH${NC}"
-    else
-      display="-"
-    fi
-  fi
-  echo -e "$timestamp  $display  $message"
-}
-
-log_info(){
-  log_level "info" "$1"
-}
-
-log_warn(){
-  log_level "warn" "$1"
-}
-
-log_error(){
-  log_level "error" "$1"
-}
-
-log_verbose(){
-  log_level "verbose" "$1"
-}
-
-log_rsync(){
-  log_level "rsync" "$1"
-}
-
-log_ssh(){
-  log_level "ssh" "$1"
-}

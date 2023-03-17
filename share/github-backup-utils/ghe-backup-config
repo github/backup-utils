@@ -186,7 +186,8 @@ if [ -n "$GHE_VERBOSE" ]; then
         exit 1
       fi
       calling_script_name="$(caller | sed 's:.*/::')"
-      exec 3> >(awk -v c="$calling_script_name" '{ print strftime("%b %d %H:%M:%S"), c":", $0; fflush(); }' >>"$GHE_VERBOSE_LOG")
+      date_format=$(date -u "+%FT%TZ")
+      exec 3> >(awk -v c="$calling_script_name" d="$date_format" '{ print d" INFO ", c":", $0; fflush(); }' >>"$GHE_VERBOSE_LOG")
     fi
   else
     exec 3>&1

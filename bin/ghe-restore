@@ -480,7 +480,7 @@ ghe-restore-git-hooks \"$GHE_HOSTNAME\" 1>&3")
 if ! $CLUSTER && [ -d "$GHE_RESTORE_SNAPSHOT_PATH/elasticsearch" ]; then
   cmd_title=$(log_info "Restoring Elasticsearch indices ...")
   commands+=("
-  echo \"cmd_title\"
+  echo \"$cmd_title\"
   ghe-restore-es-rsync \"$GHE_HOSTNAME\" 1>&3")
 fi
 

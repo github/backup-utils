@@ -18,6 +18,7 @@ set +o posix
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[0;33m'
+BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Assume this script lives in share/github-backup-utils/ when setting the root
@@ -187,19 +188,14 @@ if [ -n "$GHE_VERBOSE" ]; then
     if [ "$GHE_PARALLEL_ENABLED" != "yes" ]; then
       exec 3>>"$GHE_VERBOSE_LOG"
     else
-      if ! echo | awk '{ print strftime("%b %d %H:%M:%S"); fflush(); }' &>/dev/null; then
-        echo "Error: awk command failed. Please install https://www.gnu.org/software/gawk" 1>&2
-        exit 1
-      fi
       calling_script_name="$(caller | sed 's:.*/::')"
       date_format=$(date -u "+%FT%TZ")
       if [ "$TERM" = "dumb" ] || [[ "$OUTPUT_COLOR" != "yes" ]]; then
-        #exec 3> >(awk -v c="$calling_script_name" d="$date_format" '{ print d" INFO ", c":", $0; fflush(); }'  >>"$GHE_VERBOSE_LOG")
         exec 3> >(echo -e "$date_format INFO $calling_script_name: $*" >>"$GHE_VERBOSE_LOG")
       else
         display_info=" ${GREEN}INFO${NC} " 
-        #exec 3> >(awk '{ print d, i, c":", $0; fflush(); }' -v c="$calling_script_name" d="$date_format" i="$display_info" >>"$GHE_VERBOSE_LOG")
-        exec 3> >(echo -e "$date_format $display_info $calling_script_name: $*" >>"$GHE_VERBOSE_LOG")
+        display_caller="${BLUE}$calling_script_name${NC}"
+        exec 3> >(echo -e "$date_format $display_info $display_caller: $*" >>"$GHE_VERBOSE_LOG")
       fi
     fi
   else

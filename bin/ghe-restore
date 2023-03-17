@@ -87,14 +87,14 @@ while true; do
 done
 
 start_cron () {
-  echo  "Starting cron ..." 
+  log_info  "Starting cron ..." 
   if $CLUSTER; then
-    if ! ghe-ssh "$GHE_HOSTNAME" -- "ghe-cluster-each -- sudo service cron start" ; then
-      echo  "Failed to start cron on one or more nodes"
+    if ! ghe-ssh "$GHE_HOSTNAME" -- "ghe-cluster-each -- sudo timeout 120s service cron start" ; then
+      log_warn  "Failed to start cron on one or more nodes"
     fi
   else
-    if ! ghe-ssh "$GHE_HOSTNAME" -- "sudo service cron start" ; then
-      echo  "Failed to start cron"
+    if ! ghe-ssh "$GHE_HOSTNAME" -- "sudo timeout 120s service cron start" ; then
+      log_warn  "Failed to start cron"
     fi
   fi
 }

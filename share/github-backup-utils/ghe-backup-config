@@ -194,10 +194,10 @@ if [ -n "$GHE_VERBOSE" ]; then
       calling_script_name="$(caller | sed 's:.*/::')"
       date_format=$(date -u "+%FT%TZ")
       if [ "$TERM" = "dumb" ] || [[ "$OUTPUT_COLOR" != "yes" ]]; then
-        exec 3> >(awk -v '{ print d" INFO ", c":", $0; fflush(); }' c="$calling_script_name" d="$date_format" >>"$GHE_VERBOSE_LOG")
+        exec 3> >(awk '{ print d" INFO ", c":", $0; fflush(); }' -v c="$calling_script_name" d="$date_format" >>"$GHE_VERBOSE_LOG")
       else
         display_info=" ${GREEN}INFO${NC} " 
-        exec 3> >(awk -v '{ print d, i, c":", $0; fflush(); }' c="$calling_script_name" d="$date_format" i="$display_info" >>"$GHE_VERBOSE_LOG")
+        exec 3> >(awk '{ print d, i, c":", $0; fflush(); }' -v c="$calling_script_name" d="$date_format" i="$display_info" >>"$GHE_VERBOSE_LOG")
       fi
     fi
   else

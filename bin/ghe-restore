@@ -496,7 +496,7 @@ fi
 
 if [ "$GHE_PARALLEL_ENABLED" = "yes" ]; then
   echo  "Restoring data in parallel ..."
-  $GHE_PARALLEL_COMMAND "$GHE_PARALLEL_COMMAND_OPTIONS" -- "${commands[@]}"
+  $GHE_PARALLEL_COMMAND $GHE_PARALLEL_COMMAND_OPTIONS -- "${commands[@]}"
 else
   echo  "Restoring data serially ..." 1>&3
   for c in "${commands[@]}"; do

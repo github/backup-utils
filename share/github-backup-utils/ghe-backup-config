@@ -193,6 +193,7 @@ if [ -n "$GHE_VERBOSE" ]; then
       if [ "$TERM" = "dumb" ] || [[ "$OUTPUT_COLOR" != "yes" ]]; then
         exec 3> >(echo -e "$date_format INFO $calling_script_name: $*" >>"$GHE_VERBOSE_LOG")
       else
+        # colorize the input if supported. 
         display_info=" ${GREEN}INFO${NC} " 
         display_caller="${BLUE}$calling_script_name${NC}"
         exec 3> >(echo -e "$date_format $display_info $display_caller: $*" >>"$GHE_VERBOSE_LOG")

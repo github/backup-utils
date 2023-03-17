@@ -60,7 +60,7 @@ if [ -d "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/git-hooks/environments/tarballs" ];
 
   if [ -n "$hostname" ]; then
     ghe-ssh $ssh_config_file_opt -l $user "$hostname:122" -- "sudo -u git mkdir -p $GHE_REMOTE_DATA_USER_DIR/git-hooks/environments/tarballs"
-    log_rsync "BEGIN: git-hooksi tarball rsync" 1>&3
+    log_rsync "BEGIN: git-hooks tarball rsync" 1>&3
     ghe-rsync -avH --delete \
     -e "ssh -q $opts -p $port $ssh_config_file_opt -l $user" \
     --rsync-path="sudo -u git rsync" \

@@ -73,15 +73,13 @@ if ! ln -s /data/does/not/exist/hooks/ src/ >/dev/null 2>&1; then
 fi
 
 if ! output=$(rsync -a src/ dest1 2>&1 && rsync -av src/ --link-dest=../dest1 dest2 2>&1); then
-  log_error "Error: rsync encountered an error that could indicate a problem with permissions," 1>&2
-  log_error "hard links, symbolic links, or another issue that may affect backups." 1>&2
+  log_error "Error: rsync encountered an error that could indicate a problem with permissions,\n hard links, symbolic links, or another issue that may affect backups." 1>&2
   echo "$output"
   exit 1
 fi
 
 if [ "$(ls -il dest1/testfile | awk '{ print $1 }')" != "$(ls -il dest2/testfile | awk '{ print $1 }')" ]; then
-  log_error "Error: the filesystem containing $GHE_DATA_DIR does not support hard links." 1>&2
-  log_error "Backup Utilities use hard links to store backup data efficiently." 1>&2
+  log_error "Error: the filesystem containing $GHE_DATA_DIR does not support hard links.\n Backup Utilities use hard links to store backup data efficiently." 1>&2
   exit 1
 fi
 rm -rf src dest1 dest2
@@ -168,6 +166,9 @@ echo "$GHE_BACKUP_STRATEGY" > strategy
 # Create benchmark file
 bm_init > /dev/null
 
+START_TIME=$(date +%s)
+log_info "Starting backup of $GHE_HOSTNAME with backup-utils v$BACKUP_UTILS_VERSION"
+
 ghe-backup-store-version  ||
 log_warn "Warning: storing backup-utils version remotely failed."
 
@@ -201,33 +202,40 @@ if ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config --true app.minio.enabled'; then
   ghe-backup-minio 1>&3 || failures="$failures minio"
 fi
 
+cmd_title=$(log_info "Backing up Redis database ...")
 commands=("
-echo \"Backing up Redis database ...\"
+echo \"$cmd_title\"
 ghe-backup-redis > redis.rdb || printf %s \"redis \" >> \"$failures_file\"")
 
+cmd_title=$(log_info "Backing up audit log ...")
 commands+=("
-echo \"Backing up audit log ...\"
+echo \"$cmd_title\"
 ghe-backup-es-audit-log || printf %s \"audit-log \" >> \"$failures_file\"")
 
+cmd_title=$(log_info "Backing up Git repositories ...")
 commands+=("
-echo \"Backing up Git repositories ...\"
+echo \"$cmd_title\"
 ghe-backup-repositories || printf %s \"repositories \" >> \"$failures_file\"")
 
+cmd_title=$(log_info "Backing up GitHub Pages artifacts ...")
 commands+=("
-echo \"Backing up GitHub Pages artifacts ...\"
+echo \"$cmd_title\"
 ghe-backup-pages || printf %s \"pages \" >> \"$failures_file\"")
 
+cmd_title=$(log_info "Backing up storage data ...")
 commands+=("
-echo \"Backing up storage data ...\"
+echo \"$cmd_title\"
 ghe-backup-storage || printf %s \"storage \" >> \"$failures_file\"")
 
+cmd_title=$(log_info "Backing up custom Git hooks ...")
 commands+=("
-echo \"Backing up custom Git hooks ...\"
+echo \"$cmd_title\"
 ghe-backup-git-hooks || printf %s \"git-hooks \" >> \"$failures_file\"")
 
 if [ "$GHE_BACKUP_STRATEGY" = "rsync" ]; then
+  cmd_title=$(log_info "Backing up Elasticsearch indices ...")
   commands+=("
-  echo \"Backing up Elasticsearch indices ...\"
+  echo \"$cmd_title\"
   ghe-backup-es-rsync || printf %s \"elasticsearch \" >> \"$failures_file\"")
 fi
 
@@ -277,6 +285,9 @@ fi
 log_info "Checking for leaked ssh keys ..."
 ghe-detect-leaked-ssh-keys -s "$GHE_SNAPSHOT_DIR" || true
 
+END_TIME=$(date +%s)
+log_info "Runtime: $((${END_TIME} - ${START_TIME})) seconds"
+log_info "Backup of $GHE_HOSTNAME finished."
 # Make sure we exit zero after the conditional
 true
 

@@ -47,7 +47,7 @@ log_level() {
     else
       display="-"
     fi
-  else 
+  else
     if [ "$level" = "info" ]; then
       display="${GREEN}INFO${NC}"
     elif [ "$level" = "warn" ]; then
@@ -89,7 +89,7 @@ log_rsync(){
 
 log_ssh(){
   log_level "ssh" "$1"
-} 
+}
 
 # Assume this script lives in share/github-backup-utils/ when setting the root
 GHE_BACKUP_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
@@ -150,15 +150,15 @@ export GHE_RESTORE_IN_PROGRESS
 export GHE_BACKUP_IN_PROGRESS
 
 ghe_restore_check() {
-  if [ -h $GHE_RESTORE_IN_PROGRESS ]; then
+  if [ -h "$GHE_RESTORE_IN_PROGRESS" ]; then
     echo "  Error: detected a restore already in progress from a previous version of ghe-restore." 1>&2
     echo "  If there is no restore in progress anymore, please remove" 1>&2
     echo "  the $GHE_RESTORE_IN_PROGRESS file and try again." 1>&2
     exit 1
   fi
 
-  if [ -f $GHE_RESTORE_IN_PROGRESS ]; then
-    progress=$(cat $GHE_RESTORE_IN_PROGRESS)
+  if [ -f "$GHE_RESTORE_IN_PROGRESS" ]; then
+    progress=$(cat "$GHE_RESTORE_IN_PROGRESS")
     pid=$(echo "$progress" | cut -d ' ' -f 2)
     echo "  Error: A restore of $GHE_HOSTNAME may still be running on PID $pid." 1>&2
     echo "  If PID $pid is not a process related to the restore utilities, please remove" 1>&2
@@ -168,15 +168,15 @@ ghe_restore_check() {
 }
 
 ghe_backup_check() {
-  if [ -h $GHE_BACKUP_IN_PROGRESS ]; then
+  if [ -h "$GHE_BACKUP_IN_PROGRESS" ]; then
     echo "  Error: detected a backup already in progress from a previous version of ghe-backup." 1>&2
     echo "  If there is no backup in progress anymore, please remove" 1>&2
     echo "  the $GHE_DATA_DIR/$GHE_BACKUP_IN_PROGRESS file and try again." 1>&2
     exit 1
   fi
 
-  if [ -f $GHE_BACKUP_IN_PROGRESS ]; then
-    progress=$(cat $GHE_BACKUP_IN_PROGRESS)
+  if [ -f "$GHE_BACKUP_IN_PROGRESS" ]; then
+    progress=$(cat "$GHE_BACKUP_IN_PROGRESS")
     pid=$(echo "$progress" | cut -d ' ' -f 2)
     echo "  Error: A backup of $GHE_HOSTNAME may still be running on PID $pid." 1>&2
     echo "  If PID $pid is not a process related to the backup utilities, please remove" 1>&2
@@ -186,14 +186,14 @@ ghe_backup_check() {
 }
 
 ghe_restore_finished() {
-  if [ -f $GHE_RESTORE_IN_PROGRESS ]; then
-    rm -f $GHE_RESTORE_IN_PROGRESS
+  if [ -f "$GHE_RESTORE_IN_PROGRESS" ]; then
+    rm -f "$GHE_RESTORE_IN_PROGRESS"
   fi
 }
 
 ghe_backup_finished() {
-  if [ -f $GHE_BACKUP_IN_PROGRESS ]; then
-    rm -f $GHE_BACKUP_IN_PROGRESS
+  if [ -f "$GHE_BACKUP_IN_PROGRESS" ]; then
+    rm -f "$GHE_BACKUP_IN_PROGRESS"
   fi
 }
 
@@ -265,7 +265,7 @@ if [ -n "$GHE_VERBOSE" ]; then
         exec 3>>"$GHE_VERBOSE_LOG"
         log_info "$calling_script_name $*" 1>&3
       else
-        # colorize the input if supported. 
+        # colorize the input if supported.
         display_caller="${BLUE}$calling_script_name${NC}"
         exec 3>>"$GHE_VERBOSE_LOG"
         log_info "$display_caller $*" 1>&3
@@ -327,11 +327,11 @@ if [ ! -d "$GHE_DATA_DIR" ]; then
 fi
 
 # Set some defaults if needed.
-: ${GHE_NUM_SNAPSHOTS:=10}
+: "${GHE_NUM_SNAPSHOTS:=10}"
 
 # Generate a backup timestamp if one has not already been generated.
 # We export the variable so the process group shares the same value.
-: ${GHE_SNAPSHOT_TIMESTAMP:=$(date +"%Y%m%dT%H%M%S")}
+: "${GHE_SNAPSHOT_TIMESTAMP:=$(date +"%Y%m%dT%H%M%S")}"
 export GHE_SNAPSHOT_TIMESTAMP
 
 # Set the current snapshot directory to <data-dir>/<timestamp>. This is where
@@ -341,12 +341,12 @@ export GHE_SNAPSHOT_DIR
 
 # The root filesystem location. This must be used so that tests can override
 # the root as a local directory location.
-: ${GHE_REMOTE_ROOT_DIR:=""}
+: "${GHE_REMOTE_ROOT_DIR:=""}"
 
 # The root location of persistent data and applications on the remote side. This
 # is always "/data" for GitHub instances. Use of this variable allows
 # the location to be overridden in tests.
-: ${GHE_REMOTE_DATA_DIR:="/data"}
+: "${GHE_REMOTE_DATA_DIR:="/data"}"
 
 # The root location of user data stores such as git repositories, pages sites,
 # elasticsearch indices, etc. This is "/data" under 1.x filesystem layouts and
@@ -354,37 +354,37 @@ export GHE_SNAPSHOT_DIR
 # dynamically in ghe_remote_version_config() immediately after obtaining the
 # remote version. Utilities that transfer data in and out of the appliance
 # should use this variable to ensure proper behavior under different versions.
-: ${GHE_REMOTE_DATA_USER_DIR:="$GHE_REMOTE_DATA_DIR"}
+: "${GHE_REMOTE_DATA_USER_DIR:="$GHE_REMOTE_DATA_DIR"}"
 
 # The location of the license file on the remote side. This is always
 # "/data/enterprise/enterprise.ghl" for GitHub instances. Use of this variable
 # allows the location to be overridden in tests.
-: ${GHE_REMOTE_LICENSE_FILE:="$GHE_REMOTE_DATA_DIR/enterprise/enterprise.ghl"}
+: "${GHE_REMOTE_LICENSE_FILE:="$GHE_REMOTE_DATA_DIR/enterprise/enterprise.ghl"}"
 
 # The number of seconds to wait for in progress git-gc processes to complete
 # before starting the sync of git data. See share/github-backup-utils/ghe-backup-repositories-rsync
 # for more information. Default: 10 minutes.
-: ${GHE_GIT_COOLDOWN_PERIOD:=600}
+: "${GHE_GIT_COOLDOWN_PERIOD:=600}"
 
 # Set "true" to get verbose logging of all ssh commands on stderr
-: ${GHE_VERBOSE_SSH:=false}
+: "${GHE_VERBOSE_SSH:=false}"
 
 # The location of the cluster configuration file on the remote side.
 # This is always "/data/user/common/cluster.conf" for GitHub Cluster instances.
 # Use of this variable allows the location to be overridden in tests.
-: ${GHE_REMOTE_CLUSTER_CONF_FILE:="$GHE_REMOTE_DATA_DIR/user/common/cluster.conf"}
+: "${GHE_REMOTE_CLUSTER_CONF_FILE:="$GHE_REMOTE_DATA_DIR/user/common/cluster.conf"}"
 
 # The location of the file used to disable GC operations on the remote side.
-: ${SYNC_IN_PROGRESS_FILE:="$GHE_REMOTE_DATA_USER_DIR/repositories/.sync_in_progress"}
+: "${SYNC_IN_PROGRESS_FILE:="$GHE_REMOTE_DATA_USER_DIR/repositories/.sync_in_progress"}"
 
 # Base path for temporary directories and files.
-: ${TMPDIR:="/tmp"}
+: "${TMPDIR:="/tmp"}"
 
 # Backup cadence for MS SQL. Determines the kind of backup taken, either full, differential,
 # or transaction log, based on when the last backup of that kind was taken. This defaults to
 # taking a full backup once a week, a differential backup once a day, and transaction logs every
 # 15 minutes.
-: ${GHE_MSSQL_BACKUP_CADENCE:=10080,1440,15}
+: "${GHE_MSSQL_BACKUP_CADENCE:=10080,1440,15}"
 
 ###############################################################################
 ### Dynamic remote version config
@@ -404,11 +404,22 @@ ghe_remote_version_config() {
 # If we don't have a readlink command, parse ls -l output.
 if ! type readlink 1>/dev/null 2>&1; then
   readlink() {
-    if [ -x "$1" ]; then
-      ls -ld "$1" | sed 's/.*-> //'
-    else
-      return 1
-    fi
+    local ret=0 f=''
+    while [ $# -gt 0 ]; do
+      f="$1"
+      shift 1
+
+      [ ! -e "$f" ] && [ ! -h "$f" ] && {
+        ret=1
+        continue
+      }
+
+      # shellcheck disable=SC2012 # In this specific scenario, this method is OK
+      f="$(ls -ld "$f")"
+      echo "${f//*-> /}"
+    done
+
+    return $ret
   }
 fi
 
@@ -426,10 +437,12 @@ ghe_remote_version_required() {
 
     # override hostname w/ ghe-host-check output because the port could have
     # been autodetected to 122.
-    GHE_HOSTNAME=$(echo "$_out" | sed 's/Connect \(.*:[0-9]*\) OK.*/\1/')
+    GHE_HOSTNAME="${_out/Connect /}"
+    GHE_HOSTNAME="${GHE_HOSTNAME/ OK*/}"
     export GHE_HOSTNAME
 
-    GHE_REMOTE_VERSION=$(echo "$_out" | sed 's/.*(\(.*\))/\1/')
+    GHE_REMOTE_VERSION="${GHE_HOSTNAME#*\(}"
+    GHE_REMOTE_VERSION="${GHE_HOSTNAME%%\)*}"
     export GHE_REMOTE_VERSION
 
     ghe_parse_remote_version "$GHE_REMOTE_VERSION"
@@ -441,9 +454,11 @@ ghe_remote_version_required() {
 # Parse a version string into major, minor and patch parts and echo.
 ghe_parse_version() {
   local version_major version_minor version_patch
-  version_major=$(echo "${1#v}" | cut -f 1 -d .)
-  version_minor=$(echo "$1" | cut -f 2 -d .)
-  version_patch=$(echo "$1" | cut -f 3 -d .)
+  version_patch="${1#v}"
+  version_major="${version_patch%%.*}"
+  version_patch="${version_patch#*.}"
+  version_minor="${version_patch%%.*}"
+  version_patch="${version_patch#*.}"
   version_patch=${version_patch%%[a-zA-Z]*}
 
   echo "$version_major $version_minor $version_patch"
@@ -457,7 +472,7 @@ ghe_parse_version() {
 # appliance version.
 ghe_parse_remote_version() {
   # shellcheck disable=SC2046 # Word splitting is required to populate the variables
-  read -r GHE_VERSION_MAJOR GHE_VERSION_MINOR GHE_VERSION_PATCH <<<$(ghe_parse_version $1)
+  read -r GHE_VERSION_MAJOR GHE_VERSION_MINOR GHE_VERSION_PATCH < <(ghe_parse_version "$1")
   export GHE_VERSION_MAJOR GHE_VERSION_MINOR GHE_VERSION_PATCH
 }
 
@@ -504,15 +519,18 @@ ghe_debug() {
   if [ $# -ne 0 ]; then
     echo -e "Debug: $*" 1>&3
   elif [ -p /dev/stdin ]; then
-    echo "\n" 1>&3
-    while read line; do
+    echo -e "\n" 1>&3
+    while read -r line; do
       echo -e "Debug: $line" 1>&3
     done </dev/stdin
   fi
 }
 
 version() {
-  echo "${@#v}" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }'
+  local v="${*#v}"
+
+  # shellcheck disable=SC2183,SC2086 # We want to glob (SC2086) and expect 4 (fuzzy) params (SC2183)
+  printf "%d%03d%03d%03d\n" ${v//./ }
 }
 
 # The list of gists returned by the source changed in 2.16.23, 2.17.14,
@@ -521,11 +539,11 @@ version() {
 # In newer versions, gist paths are unmodified, and only other repo types
 # are truncated with `dirname`.
 fix_paths_for_ghe_version() {
-  if [[ "$GHE_REMOTE_VERSION" =~ 2.16. && "$(version $GHE_REMOTE_VERSION)" -ge "$(version 2.16.23)" ]] ||
-    [[ "$GHE_REMOTE_VERSION" =~ 2.17. && "$(version $GHE_REMOTE_VERSION)" -ge "$(version 2.17.14)" ]] ||
-    [[ "$GHE_REMOTE_VERSION" =~ 2.18. && "$(version $GHE_REMOTE_VERSION)" -ge "$(version 2.18.8)" ]] ||
-    [[ "$(version $GHE_REMOTE_VERSION)" -ge "$(version 2.19.3)" ]]; then
-    GIST_FILTER="-e /gist/b"
+  if [[ "$GHE_REMOTE_VERSION" =~ 2.16. && "$(version "$GHE_REMOTE_VERSION")" -ge "$(version 2.16.23)" ]] ||
+    [[ "$GHE_REMOTE_VERSION" =~ 2.17. && "$(version "$GHE_REMOTE_VERSION")" -ge "$(version 2.17.14)" ]] ||
+    [[ "$GHE_REMOTE_VERSION" =~ 2.18. && "$(version "$GHE_REMOTE_VERSION")" -ge "$(version 2.18.8)" ]] ||
+    [[ "$(version "$GHE_REMOTE_VERSION")" -ge "$(version 2.19.3)" ]]; then
+    GIST_FILTER=(-e /gist/b)
   else
     unset GIST_FILTER
   fi
@@ -538,7 +556,7 @@ fix_paths_for_ghe_version() {
   #   3. truncate from the final slash (if any) to the end
   # If the GIST_FILTER was set above (because we're on a modern version of
   # GHES), then don't modify lines with "gist" in them.
-  sed $GIST_FILTER -e 's/\/$//; s/^[^\/]*$/./; s/\/[^\/]*$//'
+  sed "${GIST_FILTER[@]}" -e 's/\/$//; s/^[^\/]*$/./; s/\/[^\/]*$//'
 }
 
 is_binary_backup_feature_on() {

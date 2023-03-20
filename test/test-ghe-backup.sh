@@ -11,6 +11,7 @@ mkdir -p "$GHE_DATA_DIR" "$GHE_REMOTE_DATA_USER_DIR"
 
 setup_test_data $GHE_REMOTE_DATA_USER_DIR
 
+
 begin_test "ghe-backup first snapshot"
 (
   set -e

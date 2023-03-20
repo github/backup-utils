@@ -38,6 +38,9 @@ while true; do
 done
 
 export CALLING_SCRIPT="ghe-backup"
+export BACKUP_PROGRESS=0 # Used to track progress of backup
+export BACKUP_PROGRESS_TOTAL=15 # Maximum number of steps in backup
+export BACKUP_PROGRESS_DESCRIPTION="" # Used to store information about current step
 # Bring in the backup configuration
 # shellcheck source=share/github-backup-utils/ghe-backup-config
 . "$( dirname "${BASH_SOURCE[0]}" )/../share/github-backup-utils/ghe-backup-config"
@@ -121,7 +124,7 @@ ghe_restore_check
 # Check to see if there is a running backup
 if [ -h ../in-progress ]; then
 
-  log_error "Error: detected a backup already in progress from a previous version of ghe-backup. \nIf there is no backup in progress anymore, please remove \nthe $GHE_DATA_DIR/in-progress file." 1>&2
+  log_error "Detected a backup already in progress from a previous version of ghe-backup. \nIf there is no backup in progress anymore, please remove \nthe $GHE_DATA_DIR/in-progress file." 1>&2
   exit 1
 fi
 
@@ -278,6 +281,7 @@ else
   steps="$(echo $failures | sed 's/ /, /g')"
   ghe_remote_logger "Completed backup from $(hostname) / snapshot $GHE_SNAPSHOT_TIMESTAMP with failures: ${steps}."
   log_error "Error: Snapshot incomplete. Some steps failed: ${steps}. "
+  ghe_backup_finished
   exit 1
 fi
 

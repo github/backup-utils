@@ -86,6 +86,10 @@ while true; do
   esac
 done
 
+export GHE_RESTORE_PROGRESS=0
+export GHE_RESTORE_PROGRESS_TOTAL=15
+export GHE_RESTORE_PROGRESS_DESCRIPTION=""
+
 start_cron () {
   log_info  "Starting cron ..." 
   if $CLUSTER; then

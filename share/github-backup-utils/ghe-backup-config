@@ -454,11 +454,8 @@ ghe_remote_version_required() {
 # Parse a version string into major, minor and patch parts and echo.
 ghe_parse_version() {
   local version_major version_minor version_patch
-  version_patch="${1#v}"
-  version_major="${version_patch%%.*}"
-  version_patch="${version_patch#*.}"
-  version_minor="${version_patch%%.*}"
-  version_patch="${version_patch#*.}"
+
+  IFS=. read -r version_major version_minor version_patch _ <<<"${1#v}"
   version_patch=${version_patch%%[a-zA-Z]*}
 
   echo "$version_major $version_minor $version_patch"

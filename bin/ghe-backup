@@ -39,7 +39,9 @@ done
 
 export CALLING_SCRIPT="ghe-backup"
 export BACKUP_PROGRESS=0 # Used to track progress of backup
-export BACKUP_PROGRESS_TOTAL=15 # Maximum number of steps in backup
+echo "${BACKUP_PROGRESS}" > /tmp/progress
+BACKUP_PROGRESS_TOTAL=15 # Maximum number of steps in backup
+echo "${BACKUP_PROGRESS_TOTAL}" > /tmp/progress-total
 export BACKUP_PROGRESS_DESCRIPTION="" # Used to store information about current step
 # Bring in the backup configuration
 # shellcheck source=share/github-backup-utils/ghe-backup-config

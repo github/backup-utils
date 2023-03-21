@@ -3,8 +3,8 @@
 
 # Current version is working solely with backups
 
-export BACKUP_PROGRESS=$((BACKUP_PROGRESS + 1))
-
+BACKUP_PROGRESS=$(($(cat /tmp/progress) + 1))
+BACKUP_PROGRESS=$(cat /tmp/progress-total)
 BACKUP_PROGRESS_PERCENT=$(( (BACKUP_PROGRESS / BACKUP_PROGRESS_TOTAL) * 100))
 
 echo "Backup progress: $BACKUP_PROGRESS_PERCENT %"

@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+#/ track-progress: track progress of backup or restore tasks
+
+# Current version is working solely with backups
+
+progress(){
+export BACKUP_PROGRESS=$((BACKUP_PROGRESS + 1))
+
+BACKUP_PROGRESS_PERCENT=$(( (BACKUP_PROGRESS / BACKUP_PROGRESS_STEPS) * 100))
+export BACKUP_PROGRESS_DESCRIPTION="$1"
+echo "Backup progress: $BACKUP_PROGRESS_PERCENT % - ($BACKUP_PROGRESS_DESCRIPTION))"
+
+}

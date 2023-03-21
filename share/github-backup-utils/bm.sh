@@ -58,5 +58,5 @@ bm_end() {
     echo "Debug: $1 took ${total}s (bm_end)"
   fi
   # track progress
-  progress "Completed $1 in ${total}s"
+  . "$GHE_BACKUP_ROOT/share/github-backup-utils/track-progress"
 }

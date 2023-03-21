@@ -607,7 +607,9 @@ fi
 
 END_TIME=$(date +%s)
 log_info "Runtime: $((END_TIME - START_TIME)) seconds"
-log_info "Restore of $GHE_HOSTNAME from snapshot $GHE_RESTORE_SNAPSHOT finished."
+log_info "Completed restore of $GHE_HOSTNAME from snapshot $GHE_RESTORE_SNAPSHOT at $(date +"%H:%M:%S")"
+
+log_info "Restore of $GHE_HOSTNAME finished."
 
 if ! $instance_configured; then
   echo "To complete the restore process, please visit https://$hostname/setup/settings to review and save the appliance configuration."

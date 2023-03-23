@@ -2,9 +2,9 @@
 #/ track-progress: track progress of backup or restore tasks
 
 # Current version is working solely with backups
-
-BACKUP_PROGRESS=$(($(cat /tmp/progress) + 1))
-BACKUP_PROGRESS=$(cat /tmp/progress-total)
-BACKUP_PROGRESS_PERCENT=$(( (BACKUP_PROGRESS / BACKUP_PROGRESS_TOTAL) * 100))
-
-echo "Backup progress: $BACKUP_PROGRESS_PERCENT %"
+progress(){
+BACKUP_PROGRESS=$(cat /tmp/track-progress)
+BACKUP_PROGRESS_PERCENT=$( echo "scale = 2; ($BACKUP_PROGRESS / $BACKUP_PROGRESS_TOTAL) * 100" | bc)
+echo "Backup progress: $BACKUP_PROGRESS_PERCENT % ($BACKUP_PROGRESS / $BACKUP_PROGRESS_TOTAL ) $1 " > /tmp/progress-info
+echo $((BACKUP_PROGRESS +1)) > /tmp/track-progress
+}

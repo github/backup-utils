@@ -300,10 +300,9 @@ if [ -z "$GHE_DATA_DIR" ]; then
 fi
 
 # Convert the data directory path to an absolute path, basing any relative
-# paths on the backup-utils root, and using readlink, if available, to
-# canonicalize the path.
+# paths on the backup-utils root, and use readlink to canonicalize the path.
 if [ "${GHE_DATA_DIR:0:1}" != "/" ]; then
-  GHE_DATA_DIR="$(cd "$GHE_BACKUP_ROOT" && readlink -m "$GHE_DATA_DIR" 2>/dev/null || echo "$GHE_BACKUP_ROOT/$GHE_DATA_DIR")"
+  GHE_DATA_DIR="$(cd "$GHE_BACKUP_ROOT" && readlink -m "$GHE_DATA_DIR")"
 fi
 export GHE_DATA_DIR
 

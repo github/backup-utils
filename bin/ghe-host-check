@@ -170,10 +170,10 @@ if [[ "$CALLING_SCRIPT" == "ghe-backup" ]]; then
   actions_disk_size=$(transfer_size actions /tmp)
   mssql_disk_size=$(transfer_size mssql /tmp)
 
-  #min_disk_req=$(( $(echo "$repos_disk_size" | awk '{printf "%.0f", $1}') + $(echo "$pages_disk_size" | awk '{printf "%.0f", $1}') + $(echo "$es_disk_size" | awk '{printf "%.0f", $1}') + $(echo "$stor_disk_size" | awk '{printf "%.0f", $1}') + $(echo "$minio_disk_size" | awk '{printf "%.0f", $1}') + $(echo "$mysql_disk_size" | awk '{printf "%.0f", $1/2}') + $(echo "$actions_disk_size" | awk '{printf "%.0f", $1}') + $(echo "$mssql_disk_size" | awk '{printf "%.0f", $1}') ))
   min_disk_req=$(( $(echo "$repos_disk_size") + $(echo "$pages_disk_size") + $(echo "$es_disk_size") + $(echo "$stor_disk_size") + $(echo "$minio_disk_size") + $(echo "$mysql_disk_size") + $(echo "$actions_disk_size") + $(echo "$mssql_disk_size") ))
-echo -e "### Data Transfer Sizes \nrepositories: $repos_disk_size \npages: $pages_disk_size \nelasticsearch: $es_disk_size \nstorage: $stor_disk_size \nminio: $minio_disk_size \nmysql: $mysql_disk_size \nactions: $actions_disk_size \nmssql: $mssql_disk_size" 1>&2
-  printf "min_disk_required for this backup is at least %d MB\n" "$((min_disk_req / 1024 ** 2))" 1>&2
+
+  echo -e "### Data Transfer Sizes \nrepositories: $repos_disk_size MB\npages: $pages_disk_size MB\nelasticsearch: $es_disk_size MB\nstorage: $stor_disk_size MB\nminio: $minio_disk_size MB\nmysql: $mysql_disk_size MB\nactions: $actions_disk_size MB\nmssql: $mssql_disk_size MB" 1>&2
+  printf "min_disk_required for this backup is at least %d MB\n" "$min_disk_req" 1>&2
 
   if [[ $available_space -lt $min_disk_req ]]; then
     echo "There is not enough disk space for the backup. Please allocate more space and continue." 1>&2

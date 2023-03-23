@@ -170,7 +170,7 @@ if [[ "$CALLING_SCRIPT" == "ghe-backup" ]]; then
   actions_disk_size=$(transfer_size actions /tmp)
   mssql_disk_size=$(transfer_size mssql /tmp)
 
-  min_disk_req=$(($repos_disk_size + pages_disk_size + es_disk_size + stor_disk_size + minio_disk_size + mysql_disk_size + actions_disk_size + mssql_disk_size))
+  min_disk_req=$((repos_disk_size + pages_disk_size + es_disk_size + stor_disk_size + minio_disk_size + mysql_disk_size + actions_disk_size + mssql_disk_size))
 
   echo -e "### Data Transfer Sizes \nrepositories: $repos_disk_size MB\npages: $pages_disk_size MB\nelasticsearch: $es_disk_size MB\nstorage: $stor_disk_size MB\nminio: $minio_disk_size MB\nmysql: $mysql_disk_size MB\nactions: $actions_disk_size MB\nmssql: $mssql_disk_size MB" 1>&2
   printf "min_disk_required for this backup is at least %d MB\n" "$min_disk_req" 1>&2

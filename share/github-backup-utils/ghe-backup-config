@@ -144,7 +144,7 @@ for f in "$GHE_BACKUP_CONFIG" "$GHE_BACKUP_ROOT/backup.config" \
 done
 
 # If we don't have a readlink command, error out
-[ ! type readlink 1>/dev/null 2>&1 ] && {
+! type readlink 1>/dev/null 2>&1 && {
     echo "Error: readlink not found. Please install readlink and ensure it is in your PATH." 1>&2
     exit 1
 }

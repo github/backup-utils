@@ -143,6 +143,12 @@ for f in "$GHE_BACKUP_CONFIG" "$GHE_BACKUP_ROOT/backup.config" \
   fi
 done
 
+# If we don't have a readlink command, error out
+[ ! type readlink 1>/dev/null 2>&1 ] && {
+    echo "Error: readlink not found. Please install readlink and ensure it is in your PATH." 1>&2
+    exit 1
+}
+
 GHE_RESTORE_IN_PROGRESS=$(readlink -fm "${GHE_DATA_DIR}/in-progress-restore")
 GHE_BACKUP_IN_PROGRESS=$(readlink -fm "${GHE_DATA_DIR}/in-progress-backup")
 
@@ -400,17 +406,6 @@ ghe_remote_version_config() {
 
 ###############################################################################
 ### Utility functions
-
-# If we don't have a readlink command, parse ls -l output.
-if ! type readlink 1>/dev/null 2>&1; then
-  readlink() {
-    if [ -x "$1" ]; then
-      ls -ld "$1" | sed 's/.*-> //'
-    else
-      return 1
-    fi
-  }
-fi
 
 # Run ghe-host-check and establish the version of the remote GitHub instance in
 # the exported GHE_REMOTE_VERSION variable. If the remote version has already

@@ -104,7 +104,7 @@ if [ -n "$GHE_SHOW_VERSION" ]; then
 fi
 
 # Check for "--help|-h" in args or GHE_SHOW_HELP=true and show usage
-# shellcheck disable=SC2120 # the script name is always referenced
+# shellcheck disable=SC2120 # Our arguments are optional and not meant to be the owning script's
 print_usage() {
   grep '^#/' <"$0" | cut -c 4-
   exit "${1:-1}"
@@ -198,6 +198,8 @@ ghe_backup_finished() {
 }
 
 ghe_parallel_check() {
+  GHE_PARALLEL_COMMAND_OPTIONS=()
+
   if [ "$GHE_PARALLEL_ENABLED" != "yes" ]; then
     return 0
   fi
@@ -219,13 +221,13 @@ ghe_parallel_check() {
   done
 
   # Check that the GHE_PARALLEL_COMMAND is pointing to moreutils parallel
-  if ! $GHE_PARALLEL_COMMAND -h | grep -q "parallel \[OPTIONS\] command -- arguments"; then
+  if ! "$GHE_PARALLEL_COMMAND" -h | grep -q "parallel \[OPTIONS\] command -- arguments"; then
     echo "Error: moreutils not found. Please install https://joeyh.name/code/moreutils" 1>&2
     exit 1
   fi
 
   if [ -n "$GHE_PARALLEL_MAX_JOBS" ]; then
-    GHE_PARALLEL_COMMAND_OPTIONS="-j $GHE_PARALLEL_MAX_JOBS"
+    GHE_PARALLEL_COMMAND_OPTIONS+=(-j "$GHE_PARALLEL_MAX_JOBS")
     # Default to the number of max rsync jobs to the same as GHE_PARALLEL_MAX_JOBS, if not set.
     # This is only applicable to ghe-restore-repositories currently.
     : "${GHE_PARALLEL_RSYNC_MAX_JOBS:="$GHE_PARALLEL_MAX_JOBS"}"
@@ -236,7 +238,7 @@ ghe_parallel_check() {
   fi
 
   if [ -n "$GHE_PARALLEL_MAX_LOAD" ]; then
-    GHE_PARALLEL_COMMAND_OPTIONS+=" -l $GHE_PARALLEL_MAX_LOAD"
+    GHE_PARALLEL_COMMAND_OPTIONS+=(-l "$GHE_PARALLEL_MAX_LOAD")
     GHE_PARALLEL_RSYNC_COMMAND_OPTIONS+=" -l $GHE_PARALLEL_MAX_LOAD"
   fi
 }
@@ -416,6 +418,7 @@ fi
 # that need the remote version should use this function instead of calling
 # ghe-host-check directly to reduce ssh roundtrips. The top-level ghe-backup and
 # ghe-restore commands establish the version for all subcommands.
+# shellcheck disable=SC2120 # Our arguments are optional and not meant to be the owning script's
 ghe_remote_version_required() {
   if [ -z "$GHE_REMOTE_VERSION" ]; then
     _out=$(ghe-host-check "$@")

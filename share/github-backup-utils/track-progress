@@ -3,8 +3,9 @@
 
 # Current version is working solely with backups
 progress(){
-BACKUP_PROGRESS=$(cat /tmp/track-progress)
-BACKUP_PROGRESS_PERCENT=$( echo "scale = 2; ($BACKUP_PROGRESS / $BACKUP_PROGRESS_TOTAL) * 100" | bc)
-echo "Backup progress: $BACKUP_PROGRESS_PERCENT % ($BACKUP_PROGRESS / $BACKUP_PROGRESS_TOTAL ) $1 " > /tmp/progress-info
-echo $((BACKUP_PROGRESS +1)) > /tmp/track-progress
+    PROGRESS=$(cat /tmp/track-progress)
+    PROGRESS_TYPE=$(cat /tmp/track-progress-type)
+    PROGRESS_PERCENT=$( echo "scale = 2; ($PROGRESS / $PROGRESS_TOTAL) * 100" | bc)
+    echo "${PROGRESS_TYPE} progress: $PROGRESS_PERCENT % ($PROGRESS / $PROGRESS_TOTAL ) $1 " > /tmp/progress-info
+    echo $((BACKUP_PROGRESS +1)) > /tmp/track-progress
 }

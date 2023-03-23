@@ -86,9 +86,7 @@ while true; do
   esac
 done
 
-export GHE_RESTORE_PROGRESS=0
-export GHE_RESTORE_PROGRESS_TOTAL=15
-export GHE_RESTORE_PROGRESS_DESCRIPTION=""
+
 
 start_cron () {
   log_info  "Starting cron ..." 
@@ -165,6 +163,14 @@ cleanup_cluster_nodes() {
 # Bring in the backup configuration
 # shellcheck source=share/github-backup-utils/ghe-backup-config
 . "$( dirname "${BASH_SOURCE[0]}" )/../share/github-backup-utils/ghe-backup-config"
+
+# Set up progress tracking
+init-progress
+export PROGRESS_TYPE="Restore"
+echo $PROGRESS_TYPE > /tmp/track-progress-type
+export PROGRESS=0 # Used to track progress of restore
+echo $PROGRESS > /tmp/track-progress
+export PROGRESS_TOTAL=15 # Maximum number of steps in restore
 
 # Check to make sure moreutils parallel is installed and working properly
 ghe_parallel_check

@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+#/ Usage: ghe-progress [--once]
+#/ Tracks the completed steps of a backup or restore operation.
+#/
+#/ By default the progress is printed every 5 seconds or until a key is pressed.
+#/ Use the --once option to print the current progress once and exit.
+#/
+#/ Options:
+#/  --once  Don't loop, just print the current progress once.
+#
+
+while true; do
+    case "$1" in
+        -o|--once) 
+            export ONCE=1; 
+            shift 
+            ;;
+        -h|--help)
+            export GHE_SHOW_HELP=true
+            shift
+            ;;
+        -*) 
+            echo "Unknown option: $1" >&2; 
+            exit 1 
+            ;;
+        *) 
+            break 
+            ;;
+    esac
+done
+
+check_for_progress_file() {
+    if [ ! -f /tmp/progress-info ]; then
+        echo "No progress file found. has a backup or restore been started?"
+        exit 1
+    fi
+}
+
+if ONCE=1; then
+    cat /tmp/progress-info
+else
+    while true; do
+    if ! read -r -t 5 -n 1; then
+        exit ;
+    else
+        cat /tmp/progress-info
+    fi
+    done
+fi

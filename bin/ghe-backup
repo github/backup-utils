@@ -37,14 +37,20 @@ while true; do
   esac
 done
 
+
 export CALLING_SCRIPT="ghe-backup"
-export BACKUP_PROGRESS=0 # Used to track progress of backup
-echo $BACKUP_PROGRESS > /tmp/track-progress
-export BACKUP_PROGRESS_TOTAL=18 # Maximum number of steps in backup
-export BACKUP_PROGRESS_DESCRIPTION="" # Used to store information about current step
+
 # Bring in the backup configuration
 # shellcheck source=share/github-backup-utils/ghe-backup-config
 . "$( dirname "${BASH_SOURCE[0]}" )/../share/github-backup-utils/ghe-backup-config"
+
+# Setup progress tracking
+init-progress
+export PROGRESS_TYPE="Backup"
+echo $PROGRESS_TYPE > /tmp/track-progress-type
+export PROGRESS=0 # Used to track progress of backup
+echo $PROGRESS > /tmp/track-progress
+export PROGRESS_TOTAL=18 # Maximum number of steps in backup
 
 # Check to make sure moreutils parallel is installed and working properly
 ghe_parallel_check

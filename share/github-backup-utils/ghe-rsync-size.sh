@@ -61,7 +61,7 @@ transfer_size()
   total_file_size=$(ghe-rsync -arn --stats \
       -e "ssh -q $GHE_EXTRA_SSH_OPTS -p 122 -l admin" \
       --rsync-path="sudo -u $user rsync" \
-      $link_dest/$1 \
+      "$link_dest"/"$1" \
       --ignore-missing-args \
       "$GHE_HOSTNAME:$data_user_dir/" \
       "$dest_dir/" | grep "Total transferred file size" | sed 's/.*size: //; s/,//g')

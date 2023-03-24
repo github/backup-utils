@@ -510,8 +510,9 @@ ghe_debug() {
 version() {
   local v="${*#v}"
 
+  # Discard stderr and always return true as trailing alpha (eg. "v1.2.3pre") will upset printf
   # shellcheck disable=SC2183,SC2086 # We want to glob (SC2086) and expect 4 (fuzzy) params (SC2183)
-  printf "%d%03d%03d%03d\n" ${v//./ }
+  printf "%d%03d%03d%03d\n" ${v//./ } 2>/dev/null || true
 }
 
 # The list of gists returned by the source changed in 2.16.23, 2.17.14,

@@ -164,13 +164,10 @@ cleanup_cluster_nodes() {
 # shellcheck source=share/github-backup-utils/ghe-backup-config
 . "$( dirname "${BASH_SOURCE[0]}" )/../share/github-backup-utils/ghe-backup-config"
 
-# Set up progress tracking
-init-progress
-export PROGRESS_TYPE="Restore"
-echo $PROGRESS_TYPE > /tmp/track-progress-type
-export PROGRESS=0 # Used to track progress of restore
-echo $PROGRESS > /tmp/track-progress
-export PROGRESS_TOTAL=15 # Maximum number of steps in restore
+# Calculate the actual amounts of steps in the restore process
+# taking into account the options passed to the script and the appliance configuration
+
+
 
 # Check to make sure moreutils parallel is installed and working properly
 ghe_parallel_check
@@ -273,6 +270,47 @@ if is_external_database_snapshot && ! $instance_configured && ! $FORCE; then
 
   prompt_for_confirmation "Please confirm this before continuing."
 fi
+
+# calculate restore steps
+OPTIONAL_STEPS=0
+# Cluster restores add an additional step  
+if $CLUSTER ; then
+  OPTIONAL_STEPS=$((OPTIONAL_STEPS + 1))
+fi
+# Restoring UUID 
+if [ -s "$GHE_RESTORE_SNAPSHOT_PATH/uuid" ] && ! $CLUSTER; then
+  OPTIONAL_STEPS=$((OPTIONAL_STEPS + 1))
+fi
+# Restoring Actions
+if ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config --true app.actions.enabled'; then
+  OPTIONAL_STEPS=$((OPTIONAL_STEPS + 1))
+fi  
+# Restoring minio 
+if ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config --true app.minio.enabled'; then
+  OPTIONAL_STEPS=$((OPTIONAL_STEPS + 1))
+fi
+# Elasticsearch is optional for cluster restores
+if ! $CLUSTER && [ -d "$GHE_RESTORE_SNAPSHOT_PATH/elasticsearch" ]; then
+  OPTIONAL_STEPS=$((OPTIONAL_STEPS + 1))
+fi
+# Restoring audit log
+if $CLUSTER || [ "$(version $GHE_REMOTE_VERSION)" -ge "$(version 2.12.9)" ]; then
+  if [[ "$GHE_RESTORE_SKIP_AUDIT_LOG" != "yes" ]]; then
+    OPTIONAL_STEPS=$((OPTIONAL_STEPS + 1))
+  fi
+fi
+# Replica cleanup
+if ! $CLUSTER && $instance_configured; then
+  OPTIONAL_STEPS=$((OPTIONAL_STEPS + 1))
+fi
+# Maximum restore steps
+export PROGRESS_TOTAL=$((OPTIONAL_STEPS + 9))
+
+init-progress
+export PROGRESS_TYPE="Restore"
+echo $PROGRESS_TYPE > /tmp/track-progress-type
+export PROGRESS=0 # Used to track progress of restore
+echo $PROGRESS > /tmp/track-progress
 
 # Log restore start message locally and in /var/log/syslog on remote instance
 START_TIME=$(date +%s)

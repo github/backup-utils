@@ -2,7 +2,7 @@
 #/ Usage: ghe-progress [--once]
 #/ Tracks the completed steps of a backup or restore operation.
 #/
-#/ By default the progress is printed every 5 seconds or until a key is pressed.
+#/ By default the progress is printed every continuously or until a key is pressed.
 #/ Use the --once option to print the current progress once and exit.
 #/
 #/ Options:
@@ -12,7 +12,7 @@
 while true; do
     case "$1" in
         -o|--once) 
-            export ONCE=1; 
+            ONCE=1; 
             shift 
             ;;
         -h|--help)
@@ -36,14 +36,20 @@ check_for_progress_file() {
     fi
 }
 
-if ONCE=1; then
+if [ -n "$ONCE" ]; then
+    check_for_progress_file
     cat /tmp/progress-info
 else
+    check_for_progress_file
+    clear
+    cat /tmp/progress-info
     while true; do
-    if ! read -r -t 5 -n 1; then
+    if read -r -t 1 -n 1; then
+	clear
         exit ;
     else
-        cat /tmp/progress-info
+	clear
+	cat /tmp/progress-info
     fi
     done
 fi

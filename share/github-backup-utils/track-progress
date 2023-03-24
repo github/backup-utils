@@ -7,5 +7,5 @@ progress(){
     PROGRESS_TYPE=$(cat /tmp/track-progress-type)
     PROGRESS_PERCENT=$( echo "scale = 2; ($PROGRESS / $PROGRESS_TOTAL) * 100" | bc)
     echo "${PROGRESS_TYPE} progress: $PROGRESS_PERCENT % ($PROGRESS / $PROGRESS_TOTAL ) $1 " > /tmp/progress-info
-    echo $((BACKUP_PROGRESS +1)) > /tmp/track-progress
+    echo $((PROGRESS +1)) > /tmp/track-progress
 }

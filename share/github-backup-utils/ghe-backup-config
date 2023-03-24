@@ -165,6 +165,12 @@ for f in "$GHE_BACKUP_CONFIG" "$GHE_BACKUP_ROOT/backup.config" \
   fi
 done
 
+# If we don't have a readlink command, error out
+! type readlink 1>/dev/null 2>&1 && {
+    echo "Error: readlink not found. Please install readlink and ensure it is in your PATH." 1>&2
+    exit 1
+}
+
 GHE_RESTORE_IN_PROGRESS=$(readlink -fm "${GHE_DATA_DIR}/in-progress-restore")
 GHE_BACKUP_IN_PROGRESS=$(readlink -fm "${GHE_DATA_DIR}/in-progress-backup")
 
@@ -317,10 +323,9 @@ if [ -z "$GHE_DATA_DIR" ]; then
 fi
 
 # Convert the data directory path to an absolute path, basing any relative
-# paths on the backup-utils root, and using readlink, if available, to
-# canonicalize the path.
+# paths on the backup-utils root, and use readlink to canonicalize the path.
 if [ "${GHE_DATA_DIR:0:1}" != "/" ]; then
-  GHE_DATA_DIR="$(cd "$GHE_BACKUP_ROOT" && readlink -m "$GHE_DATA_DIR" 2>/dev/null || echo "$GHE_BACKUP_ROOT/$GHE_DATA_DIR")"
+  GHE_DATA_DIR="$(cd "$GHE_BACKUP_ROOT" && readlink -m "$GHE_DATA_DIR")"
 fi
 export GHE_DATA_DIR
 

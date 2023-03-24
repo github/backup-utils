@@ -21,28 +21,6 @@ YELLOW='\033[0;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Colo# Logging display and formatting functions
 
-# If we don't have a readlink command, parse ls -l output.
-if ! type readlink 1>/dev/null 2>&1; then
-  readlink() {
-    local ret=0 f=''
-    while [ $# -gt 0 ]; do
-      f="$1"
-      shift 1
-
-      [ ! -e "$f" ] && [ ! -h "$f" ] && {
-        ret=1
-        continue
-      }
-
-      # shellcheck disable=SC2012 # In this specific scenario, this method is OK
-      f="$(ls -ld "$f")"
-      echo "${f//*-> /}"
-    done
-
-    return $ret
-  }
-fi
-
 # Log a message to stdout
 log_level() {
   local level=$1

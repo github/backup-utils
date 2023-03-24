@@ -404,7 +404,9 @@ if $CLUSTER; then
       log_warn "Failed to stop github-timerd on one or more nodes" 1>&3
     fi
   fi
+  bm_end "$(basename $0) - Stopping cron and github-timerd on cluster"
 else
+  bm_start "$(basename $0) - Stopping cron and github-timerd"
   if ! ghe-ssh "$GHE_HOSTNAME" -- "sudo service cron stop"; then
     log_warn "Failed to stop cron" 1>&3
   fi
@@ -420,7 +422,7 @@ else
       log_warn "Failed to stop github-timerd" 1>&3
     fi
   fi
-  bm_end "$(basename $0) - Stopping cron and github-timerd on cluster"
+  bm_end "$(basename $0) - Stopping cron and github-timerd on"
 fi
 CRON_RUNNING=false
 

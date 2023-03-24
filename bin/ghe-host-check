@@ -159,7 +159,8 @@ if [[ "$CALLING_SCRIPT" == "ghe-backup" ]]; then
   #Display dir requirements for repositories and mysql
   echo "Checking host for sufficient space for a backup..." 1>&2
   available_space=$(df -B 1k $GHE_DATA_DIR | awk 'END{printf "%.0f", $4 * 1024}') 
-  printf "Available space: %d MB. We recommend allocating at least 5x the amount of storage allocated to the primary GitHub appliance for historical snapshots and growth over time.\n" "$((available_space / 1024 ** 2))" 1>&2
+  echo -e "Available space: $((available_space / (1024 ** 2))) MB\n" 1>&2
+  echo -e "We recommend allocating at least 5x the amount of storage allocated to the primary GitHub appliance for historical snapshots and growth over time.\n" 1>&2
 
   repos_disk_size=$(transfer_size repositories /tmp)
   pages_disk_size=$(transfer_size pages /tmp)

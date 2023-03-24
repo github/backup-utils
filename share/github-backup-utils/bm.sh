@@ -49,6 +49,8 @@ bm_end() {
   local tend tstart total
   tend=$(date +%s)
   tstart=$(eval "echo \$$(bm_desc_to_varname "$@")_start")
+  echo "tend: $tend"
+  echo "tstart: $tstart"
   total=$(($tend - $tstart))
 
   echo "$1 took ${total}s" >> $BM_FILE_PATH

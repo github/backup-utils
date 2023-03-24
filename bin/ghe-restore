@@ -388,7 +388,7 @@ log_warn "Warning: storing backup-utils version remotely failed."
 # Stop cron and timerd, as scheduled jobs may disrupt the restore process.
 log_info "Stopping cron and github-timerd ..."
 if $CLUSTER; then
-  bm_start "stop_cron_github_timerd"
+  bm_start "stop_cron"
   if ! ghe-ssh "$GHE_HOSTNAME" -- "ghe-cluster-each -- sudo service cron stop"; then
     log_warn "Failed to stop cron on one or more nodes" 1>&3
   fi

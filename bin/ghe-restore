@@ -388,7 +388,7 @@ log_warn "Warning: storing backup-utils version remotely failed."
 # Stop cron and timerd, as scheduled jobs may disrupt the restore process.
 log_info "Stopping cron and github-timerd ..."
 if $CLUSTER; then
-  bm_start "stop_cron"
+  bm_start "basename($0) - Stopping cron and github-timerd on cluster"
   if ! ghe-ssh "$GHE_HOSTNAME" -- "ghe-cluster-each -- sudo service cron stop"; then
     log_warn "Failed to stop cron on one or more nodes" 1>&3
   fi
@@ -420,7 +420,7 @@ else
       log_warn "Failed to stop github-timerd" 1>&3
     fi
   fi
-  bm_end "stop_cron_github_timerd"
+  bm_end "basename($0) - Stopping cron and github-timerd on cluster"
 fi
 CRON_RUNNING=false
 
@@ -442,12 +442,12 @@ fi
 # Restore UUID if present and not restoring to cluster.
 if [ -s "$GHE_RESTORE_SNAPSHOT_PATH/uuid" ] && ! $CLUSTER; then
   log_info "Restoring UUID ..."
-  bm_start "restore_uuid"
+  bm_start "basename($0) - Restore UUID"
   cat "$GHE_RESTORE_SNAPSHOT_PATH/uuid" |
   ghe-ssh "$GHE_HOSTNAME" -- "sudo sponge '$GHE_REMOTE_DATA_USER_DIR/common/uuid' 2>/dev/null"
   ghe-ssh "$GHE_HOSTNAME" -- "sudo systemctl stop consul" || true
   ghe-ssh "$GHE_HOSTNAME" -- "sudo rm -rf /data/user/consul/raft"
-  bm_end "restore_uuid"
+  bm_end "basename($0) - Restore UUID"
   fi
 
 if is_external_database_snapshot; then
@@ -498,9 +498,9 @@ fi
 cmd_title=$(log_info "Restoring Redis database ...")
 commands=("
 echo \"$cmd_title\"
-bm_start \"restore_redis\"
+bm_start \"basename($0) - Restoring Redis\"
 ghe-ssh \"$GHE_HOSTNAME\" -- 'ghe-import-redis' < \"$GHE_RESTORE_SNAPSHOT_PATH/redis.rdb\" 1>&3
-bm_end \"restore_redis\"")
+bm_end  \"basename($0) - Restoring Redis\"")
 
 cmd_title=$(log_info "Restoring Git Repositories ...")
 commands+=("
@@ -520,9 +520,9 @@ ghe-restore-pages \"$GHE_HOSTNAME\" 1>&3")
 cmd_title=$(log_info "Restoring SSH authorized keys ...")
 commands+=("
 echo \"$cmd_title\"
-bm_start \"restore_authorized_keys\"
+bm_start \"basename($0) -Restoring SSH authorized keys\"
 ghe-ssh \"$GHE_HOSTNAME\" -- 'ghe-import-authorized-keys' < \"$GHE_RESTORE_SNAPSHOT_PATH/authorized-keys.json\" 1>&3
-bm_end \"restore_authorized_keys\"")
+bm_end \"basename($0) -Restoring SSH authorized keys\"")
 
 cmd_title=$(log_info "Restoring storage data ...")
 commands+=("
@@ -575,10 +575,10 @@ fi
 
 # Restart an already running memcached to reset the cache after restore
 log_info  "Restarting memcached ..." 1>&3
-bm_start "restart_memcached"
+bm_start "basename($0) - Restarting memcached"
 echo "sudo restart -q memcached 2>/dev/null || true" |
   ghe-ssh "$GHE_HOSTNAME" -- /bin/sh
-bm_end "restart_memcached"
+bm_end "basename($0) - Restarting memcached"
 
 # Prevent GitHub Connect jobs running before we've had a chance to reset
 # the configuration by setting the last run date to now.
@@ -592,7 +592,7 @@ fi
 # config run to perform data migrations.
 if $CLUSTER; then
   log_info "Configuring cluster ..."
-  bm_start "configure_cluster"
+  bm_start "basename($0) - configure cluster"
   if [ "$GHE_VERSION_MAJOR" -eq "3" ]; then
     ghe-ssh "$GHE_HOSTNAME" -- "ghe-cluster-nomad-cleanup" 1>&3 2>&3
   elif [ "$GHE_VERSION_MAJOR" -eq "2" ] && [ "$GHE_VERSION_MINOR" -eq "22" ]; then
@@ -609,7 +609,7 @@ elif $instance_configured; then
     ghe-ssh "$GHE_HOSTNAME" -- "/usr/local/share/enterprise/ghe-nomad-cleanup" 1>&3 2>&3
   fi
   ghe-ssh "$GHE_HOSTNAME" -- "ghe-config-apply" 1>&3 2>&3
-  bm_end "configure_appliance"
+  bm_end "basename($0) - configure cluster"
 fi
 
 # Clear GitHub Connect settings stored in the restored database.
@@ -627,7 +627,7 @@ CRON_RUNNING=true
 # Clean up all stale replicas on configured instances.
 if ! $CLUSTER && $instance_configured; then
   log_info "Cleaning up replicas..." 1>&3
-  bm_start "cleanup_replicas"
+  bm_start "basename($0) - Cleanup replicas"
   restored_uuid=$(cat $GHE_RESTORE_SNAPSHOT_PATH/uuid)
   other_nodes=$(echo "
     set -o pipefail; \
@@ -643,7 +643,7 @@ if ! $CLUSTER && $instance_configured; then
       echo "set -o pipefail; $(typeset -f cleanup_cluster_nodes); cleanup_cluster_nodes $uuid" | ghe-ssh "$GHE_HOSTNAME" 1>&3
     done
   fi
-  bm_end "cleanup_replicas"
+  bm_end "basename($0) - Cleanup replicas"
 fi
 
 # Update the remote status to "complete". This has to happen before importing

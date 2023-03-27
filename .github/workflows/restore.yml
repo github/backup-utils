@@ -1,0 +1,73 @@
+name: Restore Dataset
+
+on:
+  workflow_dispatch:
+    inputs:
+      size:
+        description: 'Size of the dataset to restore'
+        required: true
+        type: choice
+        default: 'small'
+        options:
+        - 'small'
+        - 'medium'
+      hostname:
+        description: 'Hostname of the server'
+        required: true
+        type: string
+      ref:
+        description: 'Branch ref to use'
+        required: false
+        type: string
+        default: 'master'
+  workflow_call:
+    inputs:
+      size:
+        description: 'Size of the dataset to restore'
+        required: true
+        type: string
+        default: 'small'
+      hostname:
+        description: 'Hostname of the server'
+        required: true
+        type: string
+      ref:
+        description: 'Branch ref to use'
+        required: false
+        type: string
+        default: 'master'
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        repository: github/backup-utils-private
+        ref: ${{ inputs.ref }}
+    - run: docker build . --file Dockerfile --tag backup-utils 
+    - run: docker save backup-utils -o backup-utils.tar
+    - uses: actions/upload-artifact@v3
+      with:
+        name: backup-utils
+        path: backup-utils.tar
+  restore:
+    needs: build
+    runs-on: ubuntu-latest
+    env:
+        SSH_KEY: ${{ secrets.BACKUP_SSH_KEY }}
+    steps:
+    - uses: actions/download-artifact@v3
+      with:
+        name: backup-utils
+    - name: Load docker container 
+      run: docker load -i backup-utils.tar
+    - uses: actions/checkout@v3
+      with:
+        repository: github/ghes-data
+        ref: main
+    - run: gunzip ghes-data/data/backup/${{ inputs.size }}/${{ inputs.size }}.zip
+    - run: ls -al ghes-data/data/backup/${{ inputs.size }}
+
+
+
+

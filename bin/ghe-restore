@@ -308,9 +308,9 @@ export PROGRESS_TOTAL=$((OPTIONAL_STEPS + 5))
 
 init-progress
 export PROGRESS_TYPE="Restore"
-echo $PROGRESS_TYPE > /tmp/track-progress-type
+echo $PROGRESS_TYPE > /tmp/backup-utils-progress-type
 export PROGRESS=0 # Used to track progress of restore
-echo $PROGRESS > /tmp/track-progress
+echo $PROGRESS > /tmp/backup-utils-progress
 
 # Log restore start message locally and in /var/log/syslog on remote instance
 START_TIME=$(date +%s)

@@ -47,9 +47,9 @@ export CALLING_SCRIPT="ghe-backup"
 # Setup progress tracking
 init-progress
 export PROGRESS_TYPE="Backup"
-echo $PROGRESS_TYPE > /tmp/track-progress-type
+echo $PROGRESS_TYPE > /tmp/backup-utils-progress-type
 export PROGRESS=0 # Used to track progress of backup
-echo $PROGRESS > /tmp/track-progress
+echo $PROGRESS > /tmp/backup-utils-progress
 export PROGRESS_TOTAL=18 # Maximum number of steps in backup
 
 # Check to make sure moreutils parallel is installed and working properly

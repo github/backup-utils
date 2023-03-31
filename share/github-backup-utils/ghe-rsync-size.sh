@@ -61,15 +61,15 @@ transfer_size()
   total_file_size=$(ghe-rsync -arn --stats \
       -e "ssh -q $GHE_EXTRA_SSH_OPTS -p 122 -l admin" \
       --rsync-path="sudo -u $user rsync" \
-      $link_dest/$1 \
+      "$link_dest"/"$1" \
       --ignore-missing-args \
       "$GHE_HOSTNAME:$data_user_dir/" \
       "$dest_dir/" | grep "Total transferred file size" | sed 's/.*size: //; s/,//g')
 
   # Reduce mysql size as only the compressed file is transferred
   if [[ "$1" == "mysql" ]]; then
-    echo "$total_file_size" | awk '{printf "%.0f\n", $1/2}'
+    echo "$total_file_size" | awk '{if ($1 > 0) printf "%.0f\n", int(($1+999999.5)/2000000); else printf "0\n"}'
   else
-    echo "$total_file_size" | awk '{printf "%.0f\n", $1}'
+    echo "$total_file_size" | awk '{if ($1 > 0) printf "%.0f\n", int(($1+999999.5)/1000000); else printf "0\n"}'
   fi
 }

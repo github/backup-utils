@@ -1,5 +1,5 @@
 name: Restore Dataset
-
+run-name: ${{ github.actor }} retrieving data-sets 
 on:
   workflow_dispatch:
     inputs:
@@ -65,7 +65,7 @@ jobs:
       with:
         repository: github/ghes-data
         ref: main
-    - run: gunzip ghes-data/data/backup/${{ inputs.size }}/${{ inputs.size }}.zip
+    - run: tar zxvf ghes-data/data/backup/${{ inputs.size }}/v3.8.0/${{ inputs.size }}-refined.tar.gz
     - run: ls -al ghes-data/data/backup/${{ inputs.size }}
 
 

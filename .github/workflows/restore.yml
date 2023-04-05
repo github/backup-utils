@@ -20,6 +20,11 @@ on:
         required: false
         type: string
         default: 'master'
+      version: 
+        description: 'GHES Version of dataset'
+        required: true
+        type: string
+        default: "3.8.0"
   workflow_call:
     inputs:
       size:
@@ -36,6 +41,11 @@ on:
         required: false
         type: string
         default: 'master'
+      version: 
+        description: 'GHES Version of dataset'
+        required: true
+        type: string
+        default: "3.8.0"
 jobs:
   build:
     runs-on: ubuntu-latest

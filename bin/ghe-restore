@@ -612,7 +612,7 @@ elif $instance_configured; then
     ghe-ssh "$GHE_HOSTNAME" -- "/usr/local/share/enterprise/ghe-nomad-cleanup" 1>&3 2>&3
   fi
   ghe-ssh "$GHE_HOSTNAME" -- "ghe-config-apply" 1>&3 2>&3
-  bm_end "$(basename $0) - configure cluster"
+  bm_end "$(basename $0) - configure appliance"
 fi
 
 # Clear GitHub Connect settings stored in the restored database.

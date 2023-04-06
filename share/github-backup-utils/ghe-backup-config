@@ -151,6 +151,70 @@ log_ssh(){
   log_level "ssh" "$1"
 } 
 
+# Assume this script lives in share/github-backup-utils/ when setting the root
+GHE_BACKUP_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+
+# Get the version from the version file.
+BACKUP_UTILS_VERSION="$(cat "$GHE_BACKUP_ROOT/share/github-backup-utils/version")"
+
+# If a version check was requested, show the current version and exit
+if [ -n "$GHE_SHOW_VERSION" ]; then
+  echo "GitHub backup-utils v$BACKUP_UTILS_VERSION"
+  exit 0
+fi
+
+# Check for "--help|-h" in args or GHE_SHOW_HELP=true and show usage
+# shellcheck disable=SC2120 # Our arguments are optional and not meant to be the owning script's
+print_usage() {
+  grep '^#/' <"$0" | cut -c 4-
+  exit "${1:-1}"
+}
+
+if [ -n "$GHE_SHOW_HELP" ]; then
+  print_usage
+else
+  for a in "$@"; do
+    if [ "$a" = "--help" ] || [ "$a" = "-h" ]; then
+      print_usage
+    fi
+  done
+fi
+
+# Add the bin and share/github-backup-utils dirs to PATH
+PATH="$GHE_BACKUP_ROOT/bin:$GHE_BACKUP_ROOT/share/github-backup-utils:$PATH"
+# shellcheck source=share/github-backup-utils/bm.sh
+. "$GHE_BACKUP_ROOT/share/github-backup-utils/bm.sh"
+
+# Save off GHE_HOSTNAME from the environment since we want it to override the
+# backup.config value when set.
+GHE_HOSTNAME_PRESERVE="$GHE_HOSTNAME"
+
+# Source in the backup config file from the copy specified in the environment
+# first and then fall back to the backup-utils root, home directory and system.
+config_found=false
+for f in "$GHE_BACKUP_CONFIG" "$GHE_BACKUP_ROOT/backup.config" \
+  "$HOME/.github-backup-utils/backup.config" "/etc/github-backup-utils/backup.config"; do
+  if [ -f "$f" ]; then
+    GHE_BACKUP_CONFIG="$f"
+    # shellcheck disable=SC1090 # This is a user-supplied value that can't be predicted
+    . "$GHE_BACKUP_CONFIG"
+    config_found=true
+    break
+  fi
+done
+
+# If we don't have a readlink command, error out
+! type readlink 1>/dev/null 2>&1 && {
+    echo "Error: readlink not found. Please install readlink and ensure it is in your PATH." 1>&2
+    exit 1
+}
+
+GHE_RESTORE_IN_PROGRESS=$(readlink -fm "${GHE_DATA_DIR}/in-progress-restore")
+GHE_BACKUP_IN_PROGRESS=$(readlink -fm "${GHE_DATA_DIR}/in-progress-backup")
+
+export GHE_RESTORE_IN_PROGRESS
+export GHE_BACKUP_IN_PROGRESS
+
 ghe_restore_check() {
   if [ -h $GHE_RESTORE_IN_PROGRESS ]; then
     echo "  Error: detected a restore already in progress from a previous version of ghe-restore." 1>&2
@@ -200,6 +264,8 @@ ghe_backup_finished() {
 }
 
 ghe_parallel_check() {
+  GHE_PARALLEL_COMMAND_OPTIONS=()
+
   if [ "$GHE_PARALLEL_ENABLED" != "yes" ]; then
     return 0
   fi
@@ -221,13 +287,13 @@ ghe_parallel_check() {
   done
 
   # Check that the GHE_PARALLEL_COMMAND is pointing to moreutils parallel
-  if ! $GHE_PARALLEL_COMMAND -h | grep -q "parallel \[OPTIONS\] command -- arguments"; then
+  if ! "$GHE_PARALLEL_COMMAND" -h | grep -q "parallel \[OPTIONS\] command -- arguments"; then
     echo "Error: moreutils not found. Please install https://joeyh.name/code/moreutils" 1>&2
     exit 1
   fi
 
   if [ -n "$GHE_PARALLEL_MAX_JOBS" ]; then
-    GHE_PARALLEL_COMMAND_OPTIONS="-j $GHE_PARALLEL_MAX_JOBS"
+    GHE_PARALLEL_COMMAND_OPTIONS+=(-j "$GHE_PARALLEL_MAX_JOBS")
     # Default to the number of max rsync jobs to the same as GHE_PARALLEL_MAX_JOBS, if not set.
     # This is only applicable to ghe-restore-repositories currently.
     : "${GHE_PARALLEL_RSYNC_MAX_JOBS:="$GHE_PARALLEL_MAX_JOBS"}"
@@ -238,7 +304,7 @@ ghe_parallel_check() {
   fi
 
   if [ -n "$GHE_PARALLEL_MAX_LOAD" ]; then
-    GHE_PARALLEL_COMMAND_OPTIONS+=" -l $GHE_PARALLEL_MAX_LOAD"
+    GHE_PARALLEL_COMMAND_OPTIONS+=(-l "$GHE_PARALLEL_MAX_LOAD")
     GHE_PARALLEL_RSYNC_COMMAND_OPTIONS+=" -l $GHE_PARALLEL_MAX_LOAD"
   fi
 }
@@ -295,10 +361,9 @@ if [ -z "$GHE_DATA_DIR" ]; then
 fi
 
 # Convert the data directory path to an absolute path, basing any relative
-# paths on the backup-utils root, and using readlink, if available, to
-# canonicalize the path.
+# paths on the backup-utils root, and use readlink to canonicalize the path.
 if [ "${GHE_DATA_DIR:0:1}" != "/" ]; then
-  GHE_DATA_DIR="$(cd "$GHE_BACKUP_ROOT" && readlink -m "$GHE_DATA_DIR" 2>/dev/null || echo "$GHE_BACKUP_ROOT/$GHE_DATA_DIR")"
+  GHE_DATA_DIR="$(cd "$GHE_BACKUP_ROOT" && readlink -m "$GHE_DATA_DIR")"
 fi
 export GHE_DATA_DIR
 
@@ -402,23 +467,13 @@ ghe_remote_version_config() {
 ###############################################################################
 ### Utility functions
 
-# If we don't have a readlink command, parse ls -l output.
-if ! type readlink 1>/dev/null 2>&1; then
-  readlink() {
-    if [ -x "$1" ]; then
-      ls -ld "$1" | sed 's/.*-> //'
-    else
-      return 1
-    fi
-  }
-fi
-
 # Run ghe-host-check and establish the version of the remote GitHub instance in
 # the exported GHE_REMOTE_VERSION variable. If the remote version has already
 # been established then don't perform the host check again. Utilities in share/github-backup-utils
 # that need the remote version should use this function instead of calling
 # ghe-host-check directly to reduce ssh roundtrips. The top-level ghe-backup and
 # ghe-restore commands establish the version for all subcommands.
+# shellcheck disable=SC2120 # Our arguments are optional and not meant to be the owning script's
 ghe_remote_version_required() {
   if [ -z "$GHE_REMOTE_VERSION" ]; then
     _out=$(ghe-host-check "$@")

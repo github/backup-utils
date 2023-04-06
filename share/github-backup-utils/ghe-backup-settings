@@ -80,7 +80,7 @@ backup-secret "kredz.credz HMAC key" "kredz-credz-hmac" "secrets.kredz.credz-hma
 backup-secret "kredz.varz HMAC key" "kredz-varz-hmac" "secrets.kredz.varz-hmac-secret"
 
 # Backup argon secrets for multiuser from ghes version 3.8 onwards
-if [ "$(version $GHE_REMOTE_VERSION)" -gt "$(version 3.7.0)" ]; then
+if [ "$(version $GHE_REMOTE_VERSION)" -ge "$(version 3.8.0)" ]; then
   backup-secret "management console argon2 secret" "manage-argon-secret" "secrets.manage-auth.argon-secret"
 fi
 

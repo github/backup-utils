@@ -7,7 +7,6 @@ on:
         description: 'Size of the dataset to restore'
         required: true
         type: choice
-        default: 'small'
         options:
         - 'small'
         - 'medium'
@@ -22,14 +21,14 @@ on:
         default: 'master'
       version: 
         description: 'GHES Version of dataset'
-        required: true
+        required: false
         type: string
         default: "3.8.0"
   workflow_call:
     inputs:
       size:
         description: 'Size of the dataset to restore'
-        required: true
+        required: false
         type: string
         default: 'small'
       hostname:
@@ -43,7 +42,7 @@ on:
         default: 'master'
       version: 
         description: 'GHES Version of dataset'
-        required: true
+        required: false
         type: string
         default: "3.8.0"
 jobs:

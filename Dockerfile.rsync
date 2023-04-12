@@ -37,7 +37,7 @@ ARG RSYNC_TAG=3.2.7
 RUN curl https://github.com/WayneD/rsync/archive/refs/tags/v${RSYNC_TAG}.tar.gz -L -o v${RSYNC_TAG}.tar.gz
 RUN tar -xzf v${RSYNC_TAG}.tar.gz
 # Change to the working directory of the rsync source
-WORKDIR rsync-${RSYNC_TAG}
+WORKDIR /rsync-${RSYNC_TAG}
 RUN ls -la && ./configure
 RUN make
 RUN make install

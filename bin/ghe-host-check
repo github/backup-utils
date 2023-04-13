@@ -192,8 +192,23 @@ DATA_TRANSFER_SIZE
   fi
 
   #Check rsync, openssh & jq versions
+  commands=("jq" "rsync" "ssh")
+  missing_command=""
+  for cmd in "${commands[@]}"; do
+    if ! command -v "$cmd" > /dev/null 2>&1; then
+      missing_command+="$cmd "
+    fi
+  done
+
+  # Check if any command is missing
+  if [[ -n "$missing_command" ]]; then
+    echo "One or more required tools not found: $missing_command" 1>&2
+    echo "Please make sure the following utils are installed and available in your PATH: $missing_command" 1>&2
+    exit 1
+  fi
+
   echo "### Software versions" 1>&2
-  rsync_version=$(rsync --version | grep 'version' | awk '{print $3}')
+  rsync_version=$(rsync --version | grep 'version' | awk '{print $3}' | tr -cd '[:digit:].\n')
   if awk "BEGIN {exit !($rsync_version < $min_rsync)}" &> /dev/null; then
     echo "rsync version $rsync_version in backup-host does not meet minimum requirements." 1>&2
     echo "Please make sure you have the minimum required version of rsync: $min_rsync installed" 1>&2
@@ -202,7 +217,7 @@ DATA_TRANSFER_SIZE
     echo "rsync ${rsync_version} >= required ($min_rsync)" 1>&2
   fi
 
-  ssh_version=$(ssh -V 2>&1 | awk '{print $1}'|grep -oPm 1 '[\d\.]+' |head -1)
+  ssh_version=$(ssh -V 2>&1 | awk '{print $1}'|grep -oPm 1 '[\d\.]+' |head -1 | tr -cd '[:digit:].\n')
   if awk "BEGIN {exit !($ssh_version < $min_openssh)}" &> /dev/null; then
     echo "openSSH version $ssh_version in backup-host does not meet minimum requirements." 1>&2
     echo "Please make sure the minimum required version of openSSH: $min_openssh is installed" 1>&2
@@ -211,7 +226,7 @@ DATA_TRANSFER_SIZE
     echo "openSSH ${ssh_version} >= required ($min_openssh)" 1>&2
   fi
 
-  jq_version=$(jq --version |awk -F\- '{print $2}')
+  jq_version=$(jq --version |awk -F\- '{print $2}' | tr -cd '[:digit:].\n')
   if awk "BEGIN {exit !($jq_version < $min_jq)}" &> /dev/null; then
     echo "jq version $jq_version in backup-host does not meet minimum requirements." 1>&2
     echo "Please make sure you have the minimum required version of jq: $min_jq installed" 1>&2

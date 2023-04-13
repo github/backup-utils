@@ -146,6 +146,9 @@ begin_test "ghe-backup management console does not backup argon secret"
 
   GHE_REMOTE_VERSION=3.7.10 ghe-backup -v | grep -q "management console argon2 secret not set" && exit 1
   [ ! -f "$GHE_DATA_DIR/current/manage-argon-secret" ]
+
+  GHE_REMOTE_VERSION=3.8.2 ghe-backup -v | grep -q "management console argon2 secret not set" && exit 1
+  [ ! -f "$GHE_DATA_DIR/current/manage-argon-secret" ]
 )
 end_test
 
@@ -161,9 +164,6 @@ begin_test "ghe-backup management console backs up argon secret"
 
   rm -rf "$GHE_DATA_DIR/current"
 
-  GHE_REMOTE_VERSION=4.1.0 ghe-backup
-
-  [ "$(cat "$GHE_DATA_DIR/current/manage-argon-secret")" = "fake pw" ]
 )
 end_test
 

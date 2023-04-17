@@ -1,4 +1,4 @@
-FROM ubuntu:focal
+FROM debian:buster-slim
 
 RUN apt-get -q -y update && \
     apt-get install -y --no-install-recommends \

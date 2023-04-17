@@ -31,7 +31,7 @@ storage_paths=$(cd $GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/ && find storage -mindept
 
 # No need to restore anything, early exit
 if [ -z "$storage_paths" ]; then
-  log_warn "Warning: Storage backup missing. Skipping ..."
+  echo "Warning: Storage backup missing. Skipping ..."
   exit 0
 fi
 
@@ -60,7 +60,7 @@ if $CLUSTER; then
   ssh_config_file="$tempdir/ssh_config"
   ssh_config_file_opt="-F $tempdir/ssh_config"
   opts="$opts -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no"
-  hostnames=$(ghe-cluster-find-nodes "$GHE_HOSTNAME" "storage-server")
+  hostnames=$(ghe-cluster-nodes "$GHE_HOSTNAME" "storage-server")
   ghe-ssh-config "$GHE_HOSTNAME" "$hostnames" > "$ssh_config_file"
 fi
 
@@ -118,7 +118,7 @@ ghe_debug "\n$(find "$tempdir" -maxdepth 1 -name '*.rsync')"
 bm_end "$(basename $0) - Processing routes"
 
 if [ -z "$(find "$tempdir" -maxdepth 1 -name '*.rsync')" ]; then
-  log_warn "Warning: no routes found, skipping storage restore ..."
+  echo "Warning: no routes found, skipping storage restore ..."
   exit 0
 fi
 
@@ -136,10 +136,9 @@ for file_list in $tempdir/*.rsync; do
 
   rsync_commands+=("
   if [ -n \"$GHE_VERBOSE\" ]; then
-    log_info \"* Transferring data to $server ...\" 1>&3
+    echo \"* Transferring data to $server ...\" 1>&3
   fi
 
-  echo \"$(date -u "+%FT%TZ") RSYNC BEGIN: storage rsync\" 1>&3
   ghe-rsync -arvHR --delete \
     -e \"ssh -q $opts -p $port $ssh_config_file_opt -l $user\" \
     --rsync-path=\"sudo -u $storage_user rsync\" \
@@ -147,7 +146,6 @@ for file_list in $tempdir/*.rsync; do
     --size-only \
     \"$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/storage/./\" \
     \"$server:$GHE_REMOTE_DATA_USER_DIR/storage/\" 1>&3
-  echo \"$(date -u "+%FT%TZ") RSYNC END: storage rsync\" 1>&3
     ")
 done
 

@@ -1,3 +1,0 @@
-min_rsync=2.6.4
-min_openssh=5.6
-min_jq=1.5

@@ -21,7 +21,7 @@ else
 fi
 
 ignoreout='^(file has vanished: |rsync warning: some files vanished before they could be transferred)'
-rsync_version_check=$(rsync --version | egrep "version 3.[0-9]*.[0-9]*")
+rsync_version_check=`rsync --version | egrep "version 3.[0-9]*.[0-9]*"`
 if [ ! -z "$rsync_version_check" ]; then
   # rsync >= 3.x sends errors to stderr. so, we need to redirect to stdout before the pipe
   rsync "${parameters[@]}" $GHE_EXTRA_RSYNC_OPTS 2>&1 | (egrep -v "$ignoreout" || true)

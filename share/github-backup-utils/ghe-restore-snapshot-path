@@ -25,7 +25,7 @@ fi
 # Bail out if we don't have a good snapshot.
 if [ -z "$GHE_RESTORE_SNAPSHOT" ] || [ ! -d "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT" ]; then
   : "${GHE_RESTORE_SNAPSHOT:=current}"
-  log_error "Error: Snapshot '$GHE_RESTORE_SNAPSHOT' doesn't exist." 1>&2
+  echo "Error: Snapshot '$GHE_RESTORE_SNAPSHOT' doesn't exist." 1>&2
   exit 1
 fi
 

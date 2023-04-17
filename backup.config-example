@@ -42,11 +42,6 @@ GHE_NUM_SNAPSHOTS=10
 #
 #GHE_EXTRA_RSYNC_OPTS=""
 
-
-# If set to 'yes', logging output will be colorized.
-#
-#OUTPUT_COLOR=no
-
 # If set to 'no', GHE_DATA_DIR will not be created automatically
 # and restore/backup will exit 8
 #
@@ -69,23 +64,27 @@ GHE_NUM_SNAPSHOTS=10
 
 # If set to 'yes', ghe-backup jobs will run in parallel. Defaults to 'no'.
 #
+# WARNING: this feature is in beta.
 #GHE_PARALLEL_ENABLED=yes
 
 # Sets the maximum number of jobs to run in parallel. Defaults to the number
 # of available processing units on the machine.
 #
+# WARNING: this feature is in beta.
 #GHE_PARALLEL_MAX_JOBS=2
 
 # Sets the maximum number of rsync jobs to run in parallel. Defaults to the
 # configured GHE_PARALLEL_MAX_JOBS, or the number of available processing 
 # units on the machine.
 #
+# WARNING: this feature is in beta.
 # GHE_PARALLEL_RSYNC_MAX_JOBS=3
 
 # When jobs are running in parallel wait as needed to avoid starting new jobs
 # when the system's load average is not below the specified percentage. Defaults to
 # unrestricted.
 #
+# WARNING: this feature is in beta.
 #GHE_PARALLEL_MAX_LOAD=50
 
 # When running an external mysql database, run this script to trigger a MySQL backup

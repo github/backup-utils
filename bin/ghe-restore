@@ -6,7 +6,7 @@
 #/ Note that the GitHub Enterprise host must be reachable and your SSH key must
 #/ be setup as described in the following help article:
 #/
-#/ <https://docs.github.com/enterprise-server/admin/configuration/configuring-your-enterprise/accessing-the-administrative-shell-ssh >
+#/ <https://enterprise.github.com/help/articles/adding-an-ssh-key-for-shell-access>
 #/
 #/ OPTIONS:
 #/   -c | --config       Restore appliance settings and license in addition to
@@ -32,13 +32,13 @@
 set -e
 
 # Parse arguments
-: "${RESTORE_SETTINGS:=false}"
+: ${RESTORE_SETTINGS:=false}
 export RESTORE_SETTINGS
 
-: "${FORCE:=false}"
+: ${FORCE:=false}
 export FORCE
 
-: "${SKIP_MYSQL:=false}"
+: ${SKIP_MYSQL:=false}
 export SKIP_MYSQL
 
 while true; do
@@ -87,30 +87,29 @@ while true; do
 done
 
 start_cron () {
-  log_info "Starting cron ..."
+  echo "Starting cron ..."
   if $CLUSTER; then
-    if ! ghe-ssh "$GHE_HOSTNAME" -- "ghe-cluster-each -- sudo timeout 120s service cron start"; then
-      log_warn "Failed to start cron on one or more nodes"
+    if ! ghe-ssh "$GHE_HOSTNAME" -- "ghe-cluster-each -- sudo service cron start"; then
+      echo "* Warning: Failed to start cron on one or more nodes"
     fi
   else
-    if ! ghe-ssh "$GHE_HOSTNAME" -- "sudo timeout 120s service cron start"; then
-      log_warn "Failed to start cron"
+    if ! ghe-ssh "$GHE_HOSTNAME" -- "sudo service cron start"; then
+      echo "* Warning: Failed to start cron"
     fi
   fi
 }
 
 cleanup () {
-  log_info " Exiting, cleaning up ..."
   if [ -n "$1" ]; then
     update_restore_status "$1"
   fi
 
   if $ACTIONS_STOPPED && ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config --true app.actions.enabled'; then
-    log_info "Restarting Actions after restore ..."
+    echo "Restarting Actions after restore ..."
     # In GHES 3.3+, ghe-actions-start no longer has a -f (force) flag. In GHES 3.2 and below, we must provide the
     # force flag to make sure it can start in maintenance mode. Use it conditionally based on whether it exists
     # in the --help output
-    if ghe-ssh "$GHE_HOSTNAME" -- 'ghe-actions-start --help' | grep -q force; then
+    if ghe-ssh "$GHE_HOSTNAME" -- 'ghe-actions-start --help' | grep -q force ; then
       ghe-ssh "$GHE_HOSTNAME" -- 'ghe-actions-start -f' 1>&3
     else
       ghe-ssh "$GHE_HOSTNAME" -- 'ghe-actions-start' 1>&3
@@ -122,16 +121,7 @@ cleanup () {
   fi
 
   # Cleanup SSH multiplexing
-  log_info "Cleaning up SSH multiplexing ..."
-  if ! ghe-ssh --clean; then
-    log_info "Failed to clean up SSH multiplexing"
-  fi
-
-  # Remove in-progress file
-  log_info "Removing in-progress file ..." 1>&3
-  if ! rm -f "${GHE_DATA_DIR}/in-progress-restore"; then
-    log_error "Failed to remove in-progress file" 1>&3
-  fi
+  ghe-ssh --clean
 }
 
 # This function's type definition is being passed to a remote host via `ghe-ssh` but is not used locally.
@@ -139,24 +129,20 @@ cleanup () {
 cleanup_cluster_nodes() {
   uuid="$1"
   if [ -z "$uuid" ]; then
-    log_error "Node UUID required."
+    echo "Node UUID required."
     exit 2
   fi
 
-  log_info "Cleaning up spokes" 1>&3
-  ghe-spokes server evacuate "git-server-$uuid" 'Removing replica'
-  ghe-spokes server destroy "git-server-$uuid"
+  ghe-spokes server evacuate git-server-$uuid 'Removing replica'
+  ghe-spokes server destroy git-server-$uuid
 
-  log_info "Cleaning up storage" 1>&3
-  ghe-storage destroy-host "storage-server-$uuid" --force
+  ghe-storage destroy-host storage-server-$uuid --force
 
-  log_info "Cleaning up dpages" 1>&3
-  ghe-dpages offline "pages-server-$uuid"
-  ghe-dpages remove "pages-server-$uuid"
+  ghe-dpages offline pages-server-$uuid
+  ghe-dpages remove pages-server-$uuid
 
-  log_info "Cleaning up redis" 1>&3
-  ghe-redis-cli del "resque:queue:maint_git-server-$uuid"
-  ghe-redis-cli srem resque:queues "maint_git-server-$uuid"
+  ghe-redis-cli del resque:queue:maint_git-server-$uuid
+  ghe-redis-cli srem resque:queues maint_git-server-$uuid
 }
 
 # Bring in the backup configuration
@@ -165,9 +151,6 @@ cleanup_cluster_nodes() {
 
 # Check to make sure moreutils parallel is installed and working properly
 ghe_parallel_check
-
-# Check to make sure another restore process is not running
-ghe_restore_check
 
 # Grab the host arg
 GHE_HOSTNAME="${GHE_RESTORE_HOST_OPT:-$GHE_RESTORE_HOST}"
@@ -186,9 +169,6 @@ ACTIONS_STOPPED=false
 GHE_RESTORE_SNAPSHOT_PATH="$(ghe-restore-snapshot-path "$snapshot_id")"
 GHE_RESTORE_SNAPSHOT=$(basename "$GHE_RESTORE_SNAPSHOT_PATH")
 export GHE_RESTORE_SNAPSHOT
-
-# Check to make sure backup is not running
-ghe_backup_check
 
 # Detect if the backup we are restoring has a leaked ssh key
 echo "Checking for leaked keys in the backup snapshot that is being restored ..."
@@ -219,7 +199,8 @@ export CLUSTER
 
 # Restoring a cluster backup to a standalone appliance is not supported
 if ! $CLUSTER && [ "$GHE_BACKUP_STRATEGY" = "cluster" ]; then
-  log_error "Error: Snapshot from a GitHub Enterprise cluster cannot be restored to a standalone appliance. Aborting." >&2
+  echo "Error: Snapshot from a GitHub Enterprise cluster cannot be restored" \
+    "to a standalone appliance. Aborting." >&2
   exit 1
 fi
 
@@ -231,7 +212,8 @@ fi
 # Figure out if this appliance is in a replication pair
 if ghe-ssh "$GHE_HOSTNAME" -- \
   "[ -f '$GHE_REMOTE_ROOT_DIR/etc/github/repl-state' ]"; then
-  log_error "Error: Restoring to an appliance with replication enabled is not supported. Please teardown replication before restoring." >&2
+  echo "Error: Restoring to an appliance with replication enabled is not supported." >&2
+  echo "       Please teardown replication before restoring." >&2
   exit 1
 fi
 
@@ -267,11 +249,9 @@ fi
 
 # Log restore start message locally and in /var/log/syslog on remote instance
 START_TIME=$(date +%s)
-log_info "Starting restore of $GHE_HOSTNAME with backup-utils v$BACKUP_UTILS_VERSION from snapshot $GHE_RESTORE_SNAPSHOT"
-
+echo 'Start time:' $START_TIME
+echo "Starting restore of $GHE_HOSTNAME with backup-utils v$BACKUP_UTILS_VERSION from snapshot $GHE_RESTORE_SNAPSHOT"
 ghe_remote_logger "Starting restore from $(hostname) with backup-utils v$BACKUP_UTILS_VERSION / snapshot $GHE_RESTORE_SNAPSHOT ..."
-# Create an in-progress-restore file to prevent simultaneous backup or restore runs
-echo "${START_TIME} $$" > "${GHE_DATA_DIR}/in-progress-restore"
 
 # Keep other processes on the VM or cluster in the loop about the restore status.
 #
@@ -297,7 +277,7 @@ update_restore_status "restoring"
 # Make sure the GitHub appliance is in maintenance mode.
 if $instance_configured; then
   if ! ghe-maintenance-mode-status "$GHE_HOSTNAME"; then
-    log_error "Error: $GHE_HOSTNAME must be put in maintenance mode before restoring. Aborting." 1>&2
+    echo "Error: $GHE_HOSTNAME must be put in maintenance mode before restoring. Aborting." 1>&2
     exit 1
   fi
 fi
@@ -307,9 +287,9 @@ RELEASE_VERSION=$(ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config --get core.package-vers
 
 # If the backup being restored is from an appliance with Actions disabled, restoring it onto an appliance with Actions enabled will cause
 # mismatches in the secrets needed for Actions which ultimately results in Actions not working properly. Note: xargs is to remove whitespace
-ACTIONS_ENABLED_IN_BACKUP=$(git config -f "$GHE_RESTORE_SNAPSHOT_PATH/settings.json" --bool app.actions.enabled | xargs)
+ACTIONS_ENABLED_IN_BACKUP=$(git config -f $GHE_RESTORE_SNAPSHOT_PATH/settings.json --bool app.actions.enabled | xargs)
 if [[ $ACTIONS_ENABLED_IN_BACKUP != true ]] && ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config --true app.actions.enabled'; then
-    log_error "Restoring a backup with Actions disabled onto an appliance with Actions enabled is not supported." >&2
+    echo "Error: Restoring a backup with Actions disabled onto an appliance with Actions enabled is not supported." >&2
     exit 1
 fi
 
@@ -320,15 +300,20 @@ if [ -d "$GHE_RESTORE_SNAPSHOT_PATH/mssql" ] || [ -d "$GHE_RESTORE_SNAPSHOT_PATH
     ac_db_ghe=$(echo 'ghe-mssql-console -y -n -q "SELECT name FROM sys.databases" | grep -i "ArtifactCache" | wc -l | tr -d " "' | ghe-ssh "$GHE_HOSTNAME" /bin/bash)
     ac_db_snapshot=$(find "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/mssql/" -maxdepth 1 -name 'ArtifactCache*.bak' | wc -l | tr -d " ")
     if [[ $ac_db_ghe -gt 0  &&  $ac_db_snapshot -eq 0 ]]; then
-      log_error "$GHE_HOSTNAME has Actions Cache service enabled but no Actions Cache data is present in snapshot to restore. Aborting \n Please disable Actions cache service in $GHE_HOSTNAME and retry\nTo disable Actions Cache service run as admin: ghe-actions-cache-disable" 1>&2
+      echo "Error: $GHE_HOSTNAME has Actions Cache service enabled but no Actions Cache data is present in snapshot to restore. Aborting" 1>&2
+      echo "Please disable Actions cache service in $GHE_HOSTNAME and retry" 1>&2
+      echo "To disable Actions Cache service run as admin: ghe-actions-cache-disable" 1>&2
       exit 1
     fi
     if [[ $ac_db_ghe -eq 0  &&  $ac_db_snapshot -gt 0 && ! $RESTORE_SETTINGS ]]; then
-      log_error "$GHE_HOSTNAME has Actions Cache service disabled but the snapshot is attempting to restore data for the service. Aborting. \n Please enable Actions cache service in $GHE_HOSTNAME and retry \n To enable Actions Cache service run as admin: ghe-actions-cache-enable" 1>&2
+      echo "Error: $GHE_HOSTNAME has Actions Cache service disabled but the snapshot is attempting to restore data for the service. Aborting" 1>&2
+      echo "Please enable Actions cache service in $GHE_HOSTNAME and retry" 1>&2
+      echo "To enable Actions Cache service run as admin: ghe-actions-cache-enable" 1>&2
       exit 1
     fi
   else
-    log_error "$GHE_HOSTNAME must have GitHub Actions enabled before restoring since the snapshot contains Actions data. Aborting. \n Setup details for enabling Actions can be found here: https://docs.github.com/en/enterprise-server@$RELEASE_VERSION/admin/github-actions/advanced-configuration-and-troubleshooting/backing-up-and-restoring-github-enterprise-server-with-github-actions-enabled" 1>&2
+    echo "Error: $GHE_HOSTNAME must have GitHub Actions enabled before restoring since the snapshot contains Actions data. Aborting." 1>&2
+    echo "Setup details for enabling Actions can be found here: https://docs.github.com/en/enterprise-server@$RELEASE_VERSION/admin/github-actions/advanced-configuration-and-troubleshooting/backing-up-and-restoring-github-enterprise-server-with-github-actions-enabled" 1>&2
     exit 1
   fi
 fi
@@ -337,40 +322,40 @@ fi
 bm_init > /dev/null
 
 ghe-backup-store-version  ||
-log_warn "Warning: storing backup-utils version remotely failed."
+echo "Warning: storing backup-utils version remotely failed."
 
 # Stop cron and timerd, as scheduled jobs may disrupt the restore process.
-log_info "Stopping cron and github-timerd ..."
+echo "Stopping cron and github-timerd ..."
 if $CLUSTER; then
   if ! ghe-ssh "$GHE_HOSTNAME" -- "ghe-cluster-each -- sudo service cron stop"; then
-    log_warn "Failed to stop cron on one or more nodes" 1>&3
+    ghe_verbose "* Warning: Failed to stop cron on one or more nodes"
   fi
 
   if [ "$GHE_VERSION_MAJOR" -eq "3" ]; then
     if ghe-ssh "$GHE_HOSTNAME" -- "systemctl -q is-active nomad && nomad job status --short github-timerd &>/dev/null"; then
       if ! ghe-ssh "$GHE_HOSTNAME" -- "sudo nomad stop github-timerd 1>/dev/null"; then
-        log_warn "Failed to stop github-timerd on one or more nodes" 1>&3
+        ghe_verbose "* Warning: Failed to stop github-timerd on one or more nodes"
       fi
     fi
   else
     if ! ghe-ssh "$GHE_HOSTNAME" -- "ghe-cluster-each -- sudo service github-timerd stop"; then
-      log_warn "Failed to stop github-timerd on one or more nodes" 1>&3
+      ghe_verbose "* Warning: Failed to stop github-timerd on one or more nodes"
     fi
   fi
 else
   if ! ghe-ssh "$GHE_HOSTNAME" -- "sudo service cron stop"; then
-    log_warn "Failed to stop cron" 1>&3
+    ghe_verbose "* Warning: Failed to stop cron"
   fi
 
   if [ "$GHE_VERSION_MAJOR" -eq "3" ]; then
     if ghe-ssh "$GHE_HOSTNAME" -- "systemctl -q is-active nomad && nomad job status --short github-timerd &>/dev/null"; then
       if ! ghe-ssh "$GHE_HOSTNAME" -- "sudo nomad stop github-timerd 1>/dev/null"; then
-        log_warn "Failed to stop github-timerd" 1>&3
+        ghe_verbose "* Warning: Failed to stop github-timerd"
       fi
     fi
   else
     if ! ghe-ssh "$GHE_HOSTNAME" -- "sudo service github-timerd stop"; then
-      log_warn "Failed to stop github-timerd" 1>&3
+      ghe_verbose "* Warning: Failed to stop github-timerd"
     fi
   fi
 fi
@@ -392,11 +377,12 @@ fi
 
 # Restore UUID if present and not restoring to cluster.
 if [ -s "$GHE_RESTORE_SNAPSHOT_PATH/uuid" ] && ! $CLUSTER; then
-  log_info "Restoring UUID ..."
-  ghe-ssh "$GHE_HOSTNAME" -- "sudo sponge '$GHE_REMOTE_DATA_USER_DIR/common/uuid' 2>/dev/null" <"$GHE_RESTORE_SNAPSHOT_PATH/uuid"
+  echo "Restoring UUID ..."
+  cat "$GHE_RESTORE_SNAPSHOT_PATH/uuid" |
+  ghe-ssh "$GHE_HOSTNAME" -- "sudo sponge '$GHE_REMOTE_DATA_USER_DIR/common/uuid' 2>/dev/null"
   ghe-ssh "$GHE_HOSTNAME" -- "sudo systemctl stop consul" || true
   ghe-ssh "$GHE_HOSTNAME" -- "sudo rm -rf /data/user/consul/raft"
-fi
+  fi
 
 if is_external_database_snapshot; then
    appliance_strategy="external"
@@ -416,117 +402,102 @@ else
 fi
 
 if is_external_database_target_or_snapshot && $SKIP_MYSQL; then
-  log_info "Skipping MySQL restore."
+  echo "Skipping MySQL restore."
 else
-  log_info "Restoring MySQL database from ${backup_snapshot_strategy} backup snapshot on an appliance configured for ${appliance_strategy} backups ..."
+  echo "Restoring MySQL database from ${backup_snapshot_strategy} backup snapshot on an appliance configured for ${appliance_strategy} backups ..."
   ghe-restore-mysql "$GHE_HOSTNAME" 1>&3
 fi
 
 if ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config --true app.actions.enabled'; then
-  log_info "Stopping Actions before restoring databases ..."
+  echo "Stopping Actions before restoring databases ..."
   # We mark Actions as stopped even if the `ghe-actions-stop`
   # fails to ensure that we cleanly start actions when performing cleanup.
   ACTIONS_STOPPED=true
   ghe-ssh "$GHE_HOSTNAME" -- 'ghe-actions-stop' 1>&3
 
-  log_info "Restoring MSSQL databases ..."
+  echo "Restoring MSSQL databases ..."
   ghe-restore-mssql "$GHE_HOSTNAME" 1>&3
 
-  log_info "Restoring Actions data ..."
+  echo "Restoring Actions data ..."
   ghe-restore-actions "$GHE_HOSTNAME" 1>&3
   echo "* WARNING: Every self-hosted Actions runner that communicates with the restored GHES server must be restarted or reconfigured in order to continue functioning."
-  echo "See https://docs.github.com/en/actions/hosting-your-own-runners/adding-self-hosted-runners for more details on how to reconfigure self-hosted Actions runners."
+  echo "           See https://docs.github.com/en/actions/hosting-your-own-runners/adding-self-hosted-runners for more details on how to reconfigure self-hosted Actions runners."
 fi
 
 if ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config --true app.minio.enabled'; then
-  log_info "Restoring MinIO data ..."
+  echo "Restoring MinIO data ..."
   ghe-restore-minio "$GHE_HOSTNAME" 1>&3
 fi
 
-# log input into a variable for the parallel command, as the functions don't work with eval
-cmd_title=$(log_info "Restoring Redis database ...")
 commands=("
-echo \"$cmd_title\"
+echo \"Restoring Redis database ...\"
 ghe-ssh \"$GHE_HOSTNAME\" -- 'ghe-import-redis' < \"$GHE_RESTORE_SNAPSHOT_PATH/redis.rdb\" 1>&3")
 
-cmd_title=$(log_info "Restoring Git Repositories ...")
 commands+=("
-echo \"$cmd_title\"
+echo \"Restoring Git repositories ...\"
 ghe-restore-repositories \"$GHE_HOSTNAME\"")
 
-cmd_title=$(log_info "Restoring Gists ...")
 commands+=("
-echo \"$cmd_title\"
+echo \"Restoring Gists ...\"
 ghe-restore-repositories-gist \"$GHE_HOSTNAME\"")
 
-cmd_title=$(log_info "Restoring Pages ...")
 commands+=("
-echo \"$cmd_title\"
+echo \"Restoring GitHub Pages artifacts ...\"
 ghe-restore-pages \"$GHE_HOSTNAME\" 1>&3")
 
-cmd_title=$(log_info "Restoring SSH authorized keys ...")
 commands+=("
-echo \"$cmd_title\"
+echo \"Restoring SSH authorized keys ...\"
 ghe-ssh \"$GHE_HOSTNAME\" -- 'ghe-import-authorized-keys' < \"$GHE_RESTORE_SNAPSHOT_PATH/authorized-keys.json\" 1>&3")
 
-cmd_title=$(log_info "Restoring storage data ...")
 commands+=("
-echo \"$cmd_title\"
+echo \"Restoring storage data ...\"
 ghe-restore-storage \"$GHE_HOSTNAME\" 1>&3")
 
-cmd_title=$(log_info "Restoring custom Git hooks ...")
 commands+=("
-echo \"$cmd_title\"
+echo \"Restoring custom Git hooks ...\"
 ghe-restore-git-hooks \"$GHE_HOSTNAME\" 1>&3")
 
 if ! $CLUSTER && [ -d "$GHE_RESTORE_SNAPSHOT_PATH/elasticsearch" ]; then
-  cmd_title=$(log_info "Restoring Elasticsearch indices ...")
   commands+=("
-  echo \"$cmd_title\"
+  echo \"Restoring Elasticsearch indices ...\"
   ghe-restore-es-rsync \"$GHE_HOSTNAME\" 1>&3")
 fi
 
 # Restore the audit log migration sentinel file, if it exists in the snapshot
-if test -f "$GHE_RESTORE_SNAPSHOT_PATH/es-scan-complete"; then
-  log_info "Restoring Elasticsearch audit log migration sentinel file ..." 1>&3
-  if ! ghe-ssh "$GHE_HOSTNAME" -- "sudo touch $GHE_REMOTE_DATA_USER_DIR/common/es-scan-complete"; then
-    log_info "Failed to restore Elasticsearch audit log migration sentinel file." 1>&3
-  fi
+if test -f $GHE_RESTORE_SNAPSHOT_PATH/es-scan-complete; then
+  ghe-ssh "$GHE_HOSTNAME" -- "sudo touch $GHE_REMOTE_DATA_USER_DIR/common/es-scan-complete"
 fi
 
 # Restore exported audit logs to 2.12.9 and newer single nodes and
 # all releases of cluster
-if $CLUSTER || [ "$(version "$GHE_REMOTE_VERSION")" -ge "$(version 2.12.9)" ]; then
+if $CLUSTER || [ "$(version $GHE_REMOTE_VERSION)" -ge "$(version 2.12.9)" ]; then
   if [[ "$GHE_RESTORE_SKIP_AUDIT_LOGS" = "yes" ]]; then
-    log_info "Skipping restore of audit logs."
+    echo "Skipping restore of audit logs."
   else
-    cmd_title=$(log_info "Restoring Audit logs ...")
     commands+=("
-    echo \"$cmd_title\"
+    echo \"Restoring Audit logs ...\"
     ghe-restore-es-audit-log \"$GHE_HOSTNAME\" 1>&3")
   fi
 
 fi
 
 if [ "$GHE_PARALLEL_ENABLED" = "yes" ]; then
-  log_info "Restoring data in parallel ..."
-  "$GHE_PARALLEL_COMMAND" "${GHE_PARALLEL_COMMAND_OPTIONS[@]}" -- "${commands[@]}"
+  $GHE_PARALLEL_COMMAND $GHE_PARALLEL_COMMAND_OPTIONS -- "${commands[@]}"
 else
-  log_info "Restoring data serially ..." 1>&3
   for c in "${commands[@]}"; do
     eval "$c"
   done
 fi
 
 # Restart an already running memcached to reset the cache after restore
-log_info "Restarting memcached ..." 1>&3
+echo "Restarting memcached ..." 1>&3
 echo "sudo restart -q memcached 2>/dev/null || true" |
   ghe-ssh "$GHE_HOSTNAME" -- /bin/sh
 
 # Prevent GitHub Connect jobs running before we've had a chance to reset
 # the configuration by setting the last run date to now.
 if ! $RESTORE_SETTINGS; then
-  log_info "Setting last run date for GitHub Connect jobs ..." 1>&3
+  echo "Setting last run date for GitHub Connect jobs ..." 1>&3
   echo "now=$(date +%s.0000000); ghe-redis-cli mset timer:UpdateConnectInstallationInfo \$now timer:UploadEnterpriseServerUserAccountsJob \$now timer:UploadConnectMetricsJob \$now timer:GitHubConnectPushNewContributionsJob \$now" |
     ghe-ssh "$GHE_HOSTNAME" -- /bin/sh 1>&3
 fi
@@ -534,7 +505,7 @@ fi
 # When restoring to a host that has already been configured, kick off a
 # config run to perform data migrations.
 if $CLUSTER; then
-  log_info "Configuring cluster ..."
+  echo "Configuring cluster ..."
   if [ "$GHE_VERSION_MAJOR" -eq "3" ]; then
     ghe-ssh "$GHE_HOSTNAME" -- "ghe-cluster-nomad-cleanup" 1>&3 2>&3
   elif [ "$GHE_VERSION_MAJOR" -eq "2" ] && [ "$GHE_VERSION_MINOR" -eq "22" ]; then
@@ -542,7 +513,7 @@ if $CLUSTER; then
   fi
   ghe-ssh "$GHE_HOSTNAME" -- "ghe-cluster-config-apply" 1>&3 2>&3
 elif $instance_configured; then
-  log_info "Configuring appliance ..."
+  echo "Configuring appliance ..."
   if [ "$GHE_VERSION_MAJOR" -eq "3" ]; then
     ghe-ssh "$GHE_HOSTNAME" -- "ghe-nomad-cleanup" 1>&3 2>&3
   elif [ "$GHE_VERSION_MAJOR" -eq "2" ] && [ "$GHE_VERSION_MINOR" -eq "22" ]; then
@@ -554,7 +525,6 @@ fi
 # Clear GitHub Connect settings stored in the restored database.
 # This needs to happen after `ghe-config-apply` to ensure all migrations have run.
 if ! $RESTORE_SETTINGS; then
-  log_info "Clearing GitHub Connect settings ..." 1>&3
   echo "if [ -f /usr/local/share/enterprise/ghe-reset-gh-connect ]; then /usr/local/share/enterprise/ghe-reset-gh-connect -y; fi" |
   ghe-ssh "$GHE_HOSTNAME" -- /bin/sh 1>&3
 fi
@@ -565,8 +535,7 @@ CRON_RUNNING=true
 
 # Clean up all stale replicas on configured instances.
 if ! $CLUSTER && $instance_configured; then
-  log_info "Cleaning up replicas..." 1>&3
-  restored_uuid=$(cat "$GHE_RESTORE_SNAPSHOT_PATH/uuid")
+  restored_uuid=$(cat $GHE_RESTORE_SNAPSHOT_PATH/uuid)
   other_nodes=$(echo "
     set -o pipefail; \
     ghe-spokes server show --json \
@@ -575,7 +544,7 @@ if ! $CLUSTER && $instance_configured; then
     | ( grep -F -x -v \"$restored_uuid\" || true )" \
   | ghe-ssh "$GHE_HOSTNAME" -- /bin/bash)
   if [ -n "$other_nodes" ]; then
-    log_info "Cleaning up stale nodes ..."
+    echo "Cleaning up stale nodes ..."
     for uuid in $other_nodes; do
       # shellcheck disable=SC2034
       echo "set -o pipefail; $(typeset -f cleanup_cluster_nodes); cleanup_cluster_nodes $uuid" | ghe-ssh "$GHE_HOSTNAME" 1>&3
@@ -593,12 +562,12 @@ update_restore_status "complete"
 ghe_remote_logger "Completed restore from $(hostname) / snapshot ${GHE_RESTORE_SNAPSHOT}."
 
 if ! $CLUSTER; then
-  log_info "Restoring SSH host keys ..."
+  echo "Restoring SSH host keys ..."
   ghe-ssh "$GHE_HOSTNAME" -- 'ghe-import-ssh-host-keys' < "$GHE_RESTORE_SNAPSHOT_PATH/ssh-host-keys.tar" 1>&3
 else
   # This will make sure that Git over SSH host keys (babeld) are
   # copied to all the cluster nodes so babeld uses the same keys.
-  log_info "Restoring Git over SSH host keys ..."
+  echo "Restoring Git over SSH host keys ..."
   ghe-ssh "$GHE_HOSTNAME" -- "sudo tar -xpf - -C $GHE_REMOTE_DATA_USER_DIR/common" < "$GHE_RESTORE_SNAPSHOT_PATH/ssh-host-keys.tar" 1>&3
   ghe-ssh "$GHE_HOSTNAME" -- "sudo chown babeld:babeld $GHE_REMOTE_DATA_USER_DIR/common/ssh_host_*" 1>&3
   echo "if [ -f /usr/local/share/enterprise/ghe-cluster-config-update ]; then /usr/local/share/enterprise/ghe-cluster-config-update -s; else ghe-cluster-config-update -s; fi" |
@@ -606,10 +575,10 @@ else
 fi
 
 END_TIME=$(date +%s)
-log_info "Runtime: $((END_TIME - START_TIME)) seconds"
-log_info "Completed restore of $GHE_HOSTNAME from snapshot $GHE_RESTORE_SNAPSHOT at $(date +"%H:%M:%S")"
+echo 'End time:' $END_TIME
+echo 'Runtime:' $(($END_TIME - $START_TIME)) 'seconds'
 
-log_info "Restore of $GHE_HOSTNAME finished."
+echo "Restore of $GHE_HOSTNAME from snapshot $GHE_RESTORE_SNAPSHOT finished."
 
 if ! $instance_configured; then
   echo "To complete the restore process, please visit https://$hostname/setup/settings to review and save the appliance configuration."

@@ -86,9 +86,9 @@ for tar_file in $ssh_tars; do
         leaked_keys_found=true
         if [ "$current_dir" == "$(dirname "$tar_file")" ]; then
           current_bkup=true
-          log_warn "* Leaked key found in current backup snapshot."
+          echo "* Leaked key found in current backup snapshot."
         else
-          log_warn "* Leaked key found in backup snapshot."
+          echo "* Leaked key found in backup snapshot."
         fi
         echo "* Snapshot file: $tar_file"
         echo "* Key file: $key"
@@ -130,9 +130,9 @@ if $leaked_keys_found; then
   fi
 else
   if $leaked_keys_skippedcheck; then
-    log_info "* No result - check not performed since host key fingerprint was empty"
+    echo "* No result - check not performed since host key fingerprint was empty"
   else
-    log_info "* No leaked keys found"
+    echo "* No leaked keys found"
   fi
 fi
 

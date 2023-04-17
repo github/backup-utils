@@ -27,7 +27,7 @@ gist_paths=$(cd $GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/  && find repositories -mind
 
 # No need to restore anything, early exit
 if [ -z "$gist_paths" ]; then
-  log_warn "Warning: Gist backup missing. Skipping ..."
+  echo "Warning: Gist backup missing. Skipping ..."
   exit 0
 fi
 
@@ -60,7 +60,7 @@ if $CLUSTER; then
   ssh_config_file="$tempdir/ssh_config"
   ssh_config_file_opt="-F $ssh_config_file"
   opts="$opts -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no"
-  hostnames=$(ghe-cluster-find-nodes "$GHE_HOSTNAME" "git-server")
+  hostnames=$(ghe-cluster-nodes "$GHE_HOSTNAME" "git-server")
   ghe-ssh-config "$GHE_HOSTNAME" "$hostnames" > "$ssh_config_file"
 fi
 
@@ -126,7 +126,7 @@ ghe_debug "\n$(find "$tempdir" -maxdepth 1 -name '*.rsync')"
 bm_end "$(basename $0) - Processing routes"
 
 if [ -z "$(find "$tempdir" -maxdepth 1 -name '*.rsync')" ]; then
-  log_warn "Warning: no routes found, skipping gists restore ..."
+  echo "Warning: no routes found, skipping gists restore ..."
   exit 0
 fi
 
@@ -162,7 +162,7 @@ fi
 
 restore_warnings="$(ghe-ssh "$GHE_HOSTNAME" -- cat "$remote_warnings" 2>/dev/null || true)"
 if [ -n "$restore_warnings" ]; then
-  log_warn "Warning: One or more Gists failed to restore successfully. Please contact GitHub Enterprise Support for assistance."
+  echo "Warning: One or more Gists failed to restore successfully. Please contact GitHub Enterprise Support for assistance."
   echo "$restore_warnings"
 fi
 

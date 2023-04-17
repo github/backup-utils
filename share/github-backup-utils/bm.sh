@@ -52,8 +52,6 @@ bm_end() {
   total=$(($tend - $tstart))
 
   echo "$1 took ${total}s" >> $BM_FILE_PATH
-  # also log timing information in the verbose log
-  echo "$1 took ${total}s" 1>&3
   if [ -n "$GHE_DEBUG" ]; then
     echo "Debug: $1 took ${total}s (bm_end)"
   fi

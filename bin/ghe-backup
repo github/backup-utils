@@ -218,9 +218,11 @@ commands+=("
 echo \"Backing up Git repositories ...\"
 ghe-backup-repositories || printf %s \"repositories \" >> \"$failures_file\"")
 
-commands+=("
-echo \"Backing up GitHub Pages artifacts ...\"
-ghe-backup-pages || printf %s \"pages \" >> \"$failures_file\"")
+if [ "$GHE_BACKUP_PAGES" = "yes" ]; then
+  commands+=("
+  echo \"Backing up GitHub Pages artifacts ...\"
+  ghe-backup-pages || printf %s \"pages \" >> \"$failures_file\"")
+fi
 
 commands+=("
 echo \"Backing up storage data ...\"

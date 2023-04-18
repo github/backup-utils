@@ -91,5 +91,5 @@ GHE_NUM_SNAPSHOTS=10
 # rather than attempting to backup via backup-utils directly.
 #EXTERNAL_DATABASE_RESTORE_SCRIPT="/bin/false"
 
-# If set to 'yes', Pages data will be included in backup and restore. Defaults to 'no'
+# If set to 'yes', Pages data will be included in backup and restore. Defaults to 'yes'
 #GHE_BACKUP_PAGES=no

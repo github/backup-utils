@@ -34,8 +34,8 @@ RUN apt-get update && apt-get install -y \
 
 # Download rsync source from https://github.com/WayneD/rsync/archive/refs/tags/[TAG].tar.gz pinned to specified tag
 ARG RSYNC_TAG=3.2.7
-RUN curl https://github.com/WayneD/rsync/archive/refs/tags/v${RSYNC_TAG}.tar.gz -L -o v${RSYNC_TAG}.tar.gz
-RUN tar -xzf v${RSYNC_TAG}.tar.gz
+RUN curl https://github.com/WayneD/rsync/archive/refs/tags/${RSYNC_TAG}.tar.gz -L -o ${RSYNC_TAG}.tar.gz
+RUN tar -xzf ${RSYNC_TAG}.tar.gz
 # Change to the working directory of the rsync source
 WORKDIR /rsync-${RSYNC_TAG}
 RUN ls -la && ./configure
@@ -45,14 +45,8 @@ RUN make install
 # Reset working directory
 WORKDIR /
 
-# Download backup-utils source from https://github.com/github/backup-utils/releases/download/[TAG]/github-backup-utils-[TAG].tar.gz pinned to specified tag
-ARG BACKUP_UTILS_TAG=v3.8.0
-RUN curl https://github.com/github/backup-utils/releases/download/${BACKUP_UTILS_TAG}/github-backup-utils-${BACKUP_UTILS_TAG}.tar.gz -L -o github-backup-utils-${BACKUP_UTILS_TAG}.tar.gz
-RUN tar -xzf github-backup-utils-${BACKUP_UTILS_TAG}.tar.gz
-
 # Runtime layer
 FROM ubuntu:focal AS runtime
-ARG BACKUP_UTILS_TAG=v3.8.0
 
 # Install runtime dependencies -  bash, git, OpenSSH 5.6 or newer, and jq v1.5 or newer.
 RUN apt-get update && apt-get install -y \
@@ -69,8 +63,8 @@ RUN apt-get update && apt-get install -y \
 # Copy rsync from build layer
 COPY --from=build /usr/local/bin/rsync /usr/local/bin/rsync
 
-# Copy backup-utils from build layer into /backup-utils
-COPY --from=build /github-backup-utils-${BACKUP_UTILS_TAG} /backup-utils
+# Copy backup-utils from repository into /backup-utils
+COPY ./ /backup-utils/
 
 WORKDIR /backup-utils
 

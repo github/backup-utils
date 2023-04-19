@@ -17,6 +17,10 @@ jobs:
         run: |
           curl --silent "https://api.github.com/repos/WayneD/rsync/tags" | jq -r '.[0].name' | xargs -I {} echo "::set-output name=latest_tag::{}"
 
+      - name: Update Dockerfile.rsync with latest tag
+        run: |
+          sed -i -E "s/RSYNC_TAG=[0-9\.]+/RSYNC_TAG=${{ steps.latest_tag.outputs.latest_tag }}/g" Dockerfile.rsync
+
       - name: Create Pull Request for tag update
         uses: peter-evans/create-pull-request@v3
         with:
@@ -28,7 +32,3 @@ jobs:
           base: "master"
           path: "."
           labels: "automated-update,rsync"
-          modify-regex: |
-            RSYNC_TAG=\K([0-9\.]+)
-          replacement: ${{ steps.latest_tag.outputs.latest_tag }}
-          file-pattern: Dockerfile.rsync

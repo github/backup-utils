@@ -1,5 +1,5 @@
 name: Restore Dataset
-run-name: ${{ github.actor }} retrieving data-sets 
+run-name: ${{ github.actor }} retrieving data-sets
 on:
   workflow_dispatch:
     inputs:
@@ -19,7 +19,7 @@ on:
         required: false
         type: string
         default: 'master'
-      version: 
+      version:
         description: 'GHES Version of dataset'
         required: false
         type: string
@@ -40,7 +40,7 @@ on:
         required: false
         type: string
         default: 'master'
-      version: 
+      version:
         description: 'GHES Version of dataset'
         required: false
         type: string
@@ -53,7 +53,8 @@ jobs:
       with:
         repository: github/backup-utils-private
         ref: ${{ inputs.ref }}
-    - run: docker build . --file Dockerfile --tag backup-utils 
+        token: "${{ secrets.INTERNAL_ACTIONS_DX_BOT_ACCOUNT_TOKEN }}"
+    - run: docker build . --file Dockerfile --tag backup-utils
     - run: docker save backup-utils -o backup-utils.tar
     - uses: actions/upload-artifact@v3
       with:
@@ -68,7 +69,7 @@ jobs:
     - uses: actions/download-artifact@v3
       with:
         name: backup-utils
-    - name: Load docker container 
+    - name: Load docker container
       run: docker load -i backup-utils.tar
     - uses: actions/checkout@v3
       with:

@@ -35,7 +35,7 @@ RUN apt-get update && apt-get install -y \
 # Download rsync source from https://github.com/WayneD/rsync/archive/refs/tags/[TAG].tar.gz pinned to specified tag
 ARG RSYNC_TAG=v3.2.7
 RUN curl https://github.com/WayneD/rsync/archive/refs/tags/${RSYNC_TAG}.tar.gz -L -o ${RSYNC_TAG}.tar.gz
-RUN tar -xzf ${RSYNC_TAG}.tar.gz -C /rsync-${RSYNC_TAG} && ls -la
+RUN mkdir -p /rsync-${RSYNC_TAG}&& tar -xzf ${RSYNC_TAG}.tar.gz -C /rsync-${RSYNC_TAG} && ls -la
 # Change to the working directory of the rsync source
 WORKDIR /rsync-${RSYNC_TAG}
 RUN ls -la && ./configure

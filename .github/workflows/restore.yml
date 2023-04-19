@@ -81,11 +81,13 @@ jobs:
 
     - name: Create backup directory
       run: |
-        mkdir $HOME/ghe-backup-data
+
 
     - name: Unzip backup
       run: |
+          mkdir $HOME/ghe-backup-data
           dir_name=$(date +%s)
+          mkdir $HOME/ghe-backup-data/$dir_name
           tar -xvf ghes-data/data/backup/${{ inputs.size }}/v3.8.0/${{ inputs.size }}-refined.tar.gz -C $HOME/ghe-backup-data/$dir_name
 
           ln -s $HOME/ghe-backup-data/$dir_name $HOME/ghe-backup-data/current

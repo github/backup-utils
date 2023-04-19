@@ -78,11 +78,35 @@ jobs:
         ref: main
         token: "${{ secrets.INTERNAL_ACTIONS_DX_BOT_ACCOUNT_TOKEN }}"
         lfs: 'true'
-    - run: ls -al ghes-data/data/backup/
-    - run: ls -al ghes-data/data/backup/small/v3.8.0
-    - run: tar -xvf ghes-data/data/backup/${{ inputs.size }}/v3.8.0/${{ inputs.size }}-refined.tar.gz
-    - run: ls -al ghes-data/data/backup/${{ inputs.size }}
 
+    - name: Create backup directory
+      run: mkdir $HOME/ghe-backup-data
+
+    - name: Unzip backup
+      run: |
+          tar -xvf ghes-data/data/backup/${{ inputs.size }}/v3.8.0/${{ inputs.size }}-refined.tar.gz -C $HOME/ghe-backup-data
+    - name: set up ssh SSH_KEY
+      run: echo -e "${SSH_KEY}\n" > $HOME/backup
+    - name: set up ssh key permissions
+      run: chmod 0600 $HOME/backup
+    - name: change version
+      run: echo "3.8.0" > $HOME/version
+
+    - name: Prepare for restore
+      run: ssh -p122 -i $HOME/backup -o StrictHostKeyChecking=no admin@${{ inputs.hostname }} "ghe-maintenance -s"
+    - name: Restore data to instance
+      run: |
+        docker run -e "GHE_HOSTNAME=${{ inputs.hostname }}" \
+        -e "GHE_DATA_DIR=/data" \
+        -e "GHE_EXTRA_SSH_OPTS=-p 122 -i /ghe-ssh/id_rsa -o ServerAliveInterval=30 -o ServerAliveCountMax=12000 -o StrictHostKeyChecking=no" \
+        -e "GHE_NUM_SNAPSHOTS=15" \
+        -v "$HOME/ghe-backup-data:/data" \
+        -v "$HOME/backup:/ghe-ssh/id_rsa" \
+        -v "$HOME/version:/backup-utils/share/github-backup-utils/version" \
+        --rm \
+        backup-utils ghe-restore ${{ inputs.hostname }}
+    - name: Reset maintenance mode after restore
+      run: ssh -p122 -i $HOME/backup -o StrictHostKeyChecking=no admin@${{ inputs.hostname }} "ghe-maintenance -u"
 
 
 

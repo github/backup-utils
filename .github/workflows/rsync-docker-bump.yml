@@ -29,7 +29,7 @@ jobs:
           path: "."
           labels: "automated-pr"
           title: "Update rsync tag in Dockerfile.rsync"
-          body: "The rsync tag in the Dockerfile.rsync is outdated. A pull request has been created to update it."
+          body: "The rsync tag in the Dockerfile.rsync is outdated. This pull request has been created to update it."
           labels: "automated-update,rsync"
           modify-regex: |
             RSYNC_TAG=\K([0-9\.]+)

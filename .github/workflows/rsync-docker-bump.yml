@@ -1,0 +1,37 @@
+name: Update Rsync Tag in Dockerfile.rsync
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # Runs daily at 00:00
+
+jobs:
+  update-rsync-tag:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Get latest rsync tag
+        id: latest_tag
+        run: |
+          curl --silent "https://api.github.com/repos/WayneD/rsync/tags" | jq -r '.[0].name' | xargs -I {} echo "::set-output name=latest_tag::{}"
+
+      - name: Create Pull Request for tag update
+        uses: peter-evans/create-pull-request@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "Update rsync tag in Dockerfile.rsync"
+          title: "Update rsync tag in Dockerfile"
+          body: "This PR updates the rsync tag in the Dockerfile.rsync to the latest tagged version."
+          branch: "update-rsync-tag"
+          base: "master"
+          path: "."
+          labels: "automated-pr"
+          title: "Update rsync tag in Dockerfile.rsync"
+          body: "The rsync tag in the Dockerfile.rsync is outdated. A pull request has been created to update it."
+          labels: "automated-update,rsync"
+          modify-regex: |
+            RSYNC_TAG=\K([0-9\.]+)
+          replacement: ${{ steps.latest_tag.outputs.latest_tag }}
+          file-pattern: Dockerfile.rsync

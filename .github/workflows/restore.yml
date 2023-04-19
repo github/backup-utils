@@ -75,6 +75,7 @@ jobs:
       with:
         repository: github/ghes-data
         ref: main
+        token: "${{ secrets.INTERNAL_ACTIONS_DX_BOT_ACCOUNT_TOKEN }}"
     - run: tar zxvf ghes-data/data/backup/${{ inputs.size }}/v3.8.0/${{ inputs.size }}-refined.tar.gz
     - run: ls -al ghes-data/data/backup/${{ inputs.size }}
 

@@ -74,7 +74,8 @@ jobs:
         jq=$(which jq)
         echo $jq
         echo $PATH
-        export PATH=$jq:$PATH
+        export PATH=$PATH:$jq
+        command -v jq
 
         echo $PATH
     - name: Perform backup

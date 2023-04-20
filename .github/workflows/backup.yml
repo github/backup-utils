@@ -69,17 +69,12 @@ jobs:
       run: chmod 0600 $HOME/backup
     - name: change version
       run: echo "3.8.0" > $HOME/version
-    - name: Add jq to path
-      run: |
-        jq=$(which jq)
-        echo $jq
-        echo $PATH
-        export PATH=$PATH:$jq
-        command -v jq
 
-        echo $PATH
     - name: Perform backup
       run: |
+        jq=$(command -v jq)
+        export PATH=$PATH:$jq
+        echo $PATH
         docker run -e "GHE_HOSTNAME=${{ inputs.hostname }}" \
         -e "GHE_DATA_DIR=/data" \
         -e "GHE_EXTRA_SSH_OPTS=-p 122 -i /ghe-ssh/id_rsa -o ServerAliveInterval=30 -o ServerAliveCountMax=12000 -o StrictHostKeyChecking=no" \

@@ -72,7 +72,11 @@ jobs:
     - name: Add jq to path
       run: |
         jq=$(which jq)
+        echo $jq
+        echo $PATH
         export PATH=$jq:$PATH
+
+        echo $PATH
     - name: Perform backup
       run: |
         docker run -e "GHE_HOSTNAME=${{ inputs.hostname }}" \

@@ -69,8 +69,10 @@ jobs:
       run: chmod 0600 $HOME/backup
     - name: change version
       run: echo "3.8.0" > $HOME/version
-    - name: Install jq
-      run: sudo apt-get install jq
+    - name: Add jq to path
+      run: |
+        jq=$(which jq)
+        export PATH=$jq:$PATH
     - name: Perform backup
       run: |
         docker run -e "GHE_HOSTNAME=${{ inputs.hostname }}" \

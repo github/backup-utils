@@ -6,7 +6,15 @@ storage and must have network connectivity with the GitHub Enterprise Server app
 ## Backup host requirements
 
 Backup host software requirements are modest: Linux or other modern Unix operating
-system (Ubuntu is highly recommended) with [bash][1], [git][2], [OpenSSH][3] 5.6 or newer, [rsync][4] v3.2.5 or newer, and [jq][11] v1.5 or newer.
+system (Ubuntu is highly recommended) with [bash][1], [git][2], [OpenSSH][3] 5.6 or newer, [rsync][4] v2.6.4 or newer, and [jq][11] v1.5 or newer.
+
+************ Update April 2023 ************
+
+The recent fix to rsync for [CVE-2022-29154](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-29154) is causing severe performance impacts on backup-utils.
+
+These impacts can be mitigated by using the `--trust-sender` flag with rsync. Unfortunately some Linux distributions have backported the fix for this CVE to their rsync package without also backporting the `--trust-sender` flag. If your backup host is running an operating system that has done this, your options are to either downgrade the rsync package to a version before the CVE fix was backported, or upgrade the rsync package to v3.2.5 or newer.
+
+*******************************************
 
 The parallel backup and restore feature will require [GNU awk][10] and [moreutils][9] to be installed.
 

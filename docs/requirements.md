@@ -10,7 +10,7 @@ system (Ubuntu is highly recommended) with [bash][1], [git][2], [OpenSSH][3] 5.6
 
 ************ Update April 2023 ************
 
-The recent fix to rsync for [CVE-2022-29154](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-29154) is causing severe performance impacts on backup-utils.
+The [recent fix to rsync](https://github.com/WayneD/rsync/blob/master/NEWS.md#news-for-rsync-325-14-aug-2022) for [CVE-2022-29154](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-29154) is causing severe performance impacts on backup-utils.
 
 These impacts can be mitigated by using the `--trust-sender` flag with rsync. Unfortunately some Linux distributions have backported the fix for this CVE to their rsync package without also backporting the `--trust-sender` flag. If your backup host is running an operating system that has done this, your options are to either downgrade the rsync package to a version before the CVE fix was backported, or upgrade the rsync package to v3.2.5 or newer.
 

@@ -5,13 +5,12 @@ storage and must have network connectivity with the GitHub Enterprise Server app
 
 ## Backup host requirements
 
-Backup host software requirements are modest: Linux or other modern Unix operating
-system (Ubuntu is highly recommended) with [bash][1], [git][2], [OpenSSH][3] 5.6 or newer, [rsync][4] v2.6.4 or newer, and [jq][11] v1.5 or newer.
+Backup host software requirements are modest: Linux or other modern Unix operating system (Ubuntu is highly recommended) with [bash][1], [git][2], [OpenSSH][3] 5.6 or newer, [rsync][4] v3.2.5 or newer, and [jq][11] v1.5 or newer.
 
 ---
 ### Update April 2023
 
-The [recent fix to rsync](https://github.com/WayneD/rsync/blob/master/NEWS.md#news-for-rsync-325-14-aug-2022) for [CVE-2022-29154](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-29154) causes severe performance impacts on backup-utils.
+The [recent fix in rsync `3.2.5`](https://github.com/WayneD/rsync/blob/master/NEWS.md#news-for-rsync-325-14-aug-2022) for [CVE-2022-29154](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-29154) causes severe performance impacts on backup-utils.
 
 These impacts can be mitigated by using the `--trust-sender` flag with rsync. Unfortunately some Linux distributions have backported the fix for this CVE to their rsync package without also backporting the `--trust-sender` flag. If your backup host is running on an operating system in this situation (i.e. the CVE fix has been backported but the `--trust-sender` flag has not) you have three options:
 
@@ -27,8 +26,7 @@ The parallel backup and restore feature will require [GNU awk][10] and [moreutil
 
 We encourage the use of [Docker](docker.md), as it ensures compatible versions of the aforementioned software are available to backup-utils.
 
-The backup host must be able to establish outbound network connections to the
-GitHub appliance over SSH. TCP port 122 is used to backup GitHub Enterprise Server.
+The backup host must be able to establish outbound network connections to the GitHub appliance over SSH. TCP port 122 is used to backup GitHub Enterprise Server.
 
 ## Storage requirements
 

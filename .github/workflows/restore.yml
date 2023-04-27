@@ -19,11 +19,7 @@ on:
         required: false
         type: string
         default: 'master'
-      version:
-        description: 'GHES Version of dataset'
-        required: false
-        type: string
-        default: "3.8.0"
+
   workflow_call:
     inputs:
       size:
@@ -40,11 +36,7 @@ on:
         required: false
         type: string
         default: 'master'
-      version:
-        description: 'GHES Version of dataset'
-        required: false
-        type: string
-        default: "3.8.0"
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -84,12 +76,22 @@ jobs:
         token: "${{ secrets.INTERNAL_ACTIONS_DX_BOT_ACCOUNT_TOKEN }}"
         lfs: 'true'
 
+    - name: Download from blob storage
+      run: |
+        az storage blob download \
+        --account-name ghesresults \
+        --container-name ghes-data \
+        --name v3.8-small-docs.tar.gz \
+        --file ghes-data/data/backup/v3.8-small-docs.tar.gz \
+        --connection-string "${{ secrets.CONNECTIONSTRING }}"
+
+
     - name: Unzip backup and setup symlink
       run: |
           mkdir $HOME/ghe-backup-data
           dir_name=$(date +%s)
           mkdir $HOME/ghe-backup-data/$dir_name
-          tar -xvf ghes-data/data/backup/${{ inputs.size }}/v3.8.0/${{ inputs.size }}-refined.tar.gz -C $HOME/ghe-backup-data/$dir_name
+          tar -xvf ghes-data/data/backup/v3.8-small-docs.tar.gz -C $HOME/ghe-backup-data/$dir_name
 
           ln -s $dir_name $HOME/ghe-backup-data/current
 

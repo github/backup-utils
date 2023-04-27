@@ -63,21 +63,22 @@ jobs:
     - name: Load docker container
       run: docker load -i backup-utils.tar
 
-    - uses: actions/checkout@v3
-      with:
-        path: ghes-data
-        repository: github/ghes-data
-        ref: main
-        token: "${{ secrets.INTERNAL_ACTIONS_DX_BOT_ACCOUNT_TOKEN }}"
-        lfs: 'true'
+    # - uses: actions/checkout@v3
+    #   with:
+    #     path: ghes-data
+    #     repository: github/ghes-data
+    #     ref: main
+    #     token: "${{ secrets.INTERNAL_ACTIONS_DX_BOT_ACCOUNT_TOKEN }}"
+    #     lfs: 'true'
 
     - name: Download from blob storage
       run: |
+        mkdir ghes-data
         az storage blob download \
         --account-name ghesresults \
         --container-name ghes-data \
         --name v3.8-small-docs.tar.gz \
-        --file ghes-data/data/backup/v3.8-small-docs.tar.gz \
+        --file ghes-data/v3.8-small-docs.tar.gz \
         --connection-string "${{ secrets.CONNECTIONSTRING }}"
 
 
@@ -86,7 +87,7 @@ jobs:
           mkdir $HOME/ghe-backup-data
           dir_name=$(date +%s)
           mkdir $HOME/ghe-backup-data/$dir_name
-          tar -xvf ghes-data/data/backup/v3.8-small-docs.tar.gz -C $HOME/ghe-backup-data/$dir_name
+          tar -xvf ghes-data/3.8-small-docs.tar.gz -C $HOME/ghe-backup-data/$dir_name
 
           ln -s $dir_name $HOME/ghe-backup-data/current
 

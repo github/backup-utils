@@ -7,7 +7,12 @@ storage and must have network connectivity with the GitHub Enterprise Server app
 
 Backup host software requirements are modest: Linux or other modern Unix operating system (Ubuntu is highly recommended) with [bash][1], [git][2], [OpenSSH][3] 5.6 or newer, [rsync][4] v3.2.5 or newer, and [jq][11] v1.5 or newer.
 
----
+The parallel backup and restore feature will require [GNU awk][10] and [moreutils][9] to be installed.
+
+We encourage the use of [Docker](docker.md), as it ensures compatible versions of the aforementioned software are available to backup-utils.
+
+The backup host must be able to establish outbound network connections to the GitHub appliance over SSH. TCP port 122 is used to backup GitHub Enterprise Server.
+
 ### Update April 2023
 
 The [recent fix in rsync `3.2.5`](https://github.com/WayneD/rsync/blob/master/NEWS.md#news-for-rsync-325-14-aug-2022) for [CVE-2022-29154](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-29154) causes severe performance impacts on backup-utils.
@@ -19,14 +24,6 @@ These impacts can be mitigated by using the `--trust-sender` flag with rsync; th
 3. Manually download and build the rsync binary
 
 Option #3 is required if your operating system's package manager does not have access to rsync v3.2.5 or later (e.g. Ubuntu Focal).
-
----
-
-The parallel backup and restore feature will require [GNU awk][10] and [moreutils][9] to be installed.
-
-We encourage the use of [Docker](docker.md), as it ensures compatible versions of the aforementioned software are available to backup-utils.
-
-The backup host must be able to establish outbound network connections to the GitHub appliance over SSH. TCP port 122 is used to backup GitHub Enterprise Server.
 
 ## Storage requirements
 

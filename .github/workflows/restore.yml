@@ -63,14 +63,6 @@ jobs:
     - name: Load docker container
       run: docker load -i backup-utils.tar
 
-    # - uses: actions/checkout@v3
-    #   with:
-    #     path: ghes-data
-    #     repository: github/ghes-data
-    #     ref: main
-    #     token: "${{ secrets.INTERNAL_ACTIONS_DX_BOT_ACCOUNT_TOKEN }}"
-    #     lfs: 'true'
-
     - name: Download from blob storage
       run: |
         mkdir ghes-data
@@ -80,7 +72,6 @@ jobs:
         --name v3.8-small-docs.tar.gz \
         --file ghes-data/v3.8-small-docs.tar.gz \
         --connection-string "${{ secrets.CONNECTIONSTRING }}"
-
 
     - name: Unzip backup and setup symlink
       run: |

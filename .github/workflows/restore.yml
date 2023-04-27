@@ -22,11 +22,6 @@ on:
 
   workflow_call:
     inputs:
-      size:
-        description: 'Size of the dataset to restore'
-        required: false
-        type: string
-        default: 'small'
       hostname:
         description: 'Hostname of the server'
         required: true

@@ -12,7 +12,7 @@ Backup host software requirements are modest: Linux or other modern Unix operati
 
 The [recent fix in rsync `3.2.5`](https://github.com/WayneD/rsync/blob/master/NEWS.md#news-for-rsync-325-14-aug-2022) for [CVE-2022-29154](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-29154) causes severe performance impacts on backup-utils.
 
-These impacts can be mitigated by using the `--trust-sender` flag with rsync. Unfortunately some Linux distributions have backported the fix for this CVE to their rsync package without also backporting the `--trust-sender` flag. If your backup host is running on an operating system in this situation (i.e. the CVE fix has been backported but the `--trust-sender` flag has not) you have three options:
+These impacts can be mitigated by using the `--trust-sender` flag with rsync; this flag is available from v3.2.5 onwards. Unfortunately some Linux distributions have backported the fix for this CVE to their rsync package without also backporting the `--trust-sender` flag. If your backup host is running on an operating system in this situation (i.e. the CVE fix has been backported but the `--trust-sender` flag has not) you have three options:
 
 1. Downgrade (using the package manager on your host) the rsync package to a version before the CVE fix was backported
 2. Upgrade (using the package manager on your host) the rsync package to v3.2.5 or newer

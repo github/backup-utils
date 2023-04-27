@@ -15,9 +15,9 @@ The backup host must be able to establish outbound network connections to the Gi
 
 ### Update April 2023
 
-The [recent fix in rsync `3.2.5`](https://github.com/WayneD/rsync/blob/master/NEWS.md#news-for-rsync-325-14-aug-2022) for [CVE-2022-29154](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-29154) causes backup-utils to timeout.
+The [fix in rsync `3.2.5`](https://github.com/WayneD/rsync/blob/master/NEWS.md#news-for-rsync-325-14-aug-2022) for [CVE-2022-29154](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-29154) causes _severe_ performance degradation to `backup-utils`, making `backup-utils` close to unusable.
 
-To avoid this time out you must use the `--trust-sender` flag with rsync; this flag is available from v3.2.5 onwards. Unfortunately some Linux distributions have backported the fix for this CVE to their rsync package without also backporting the `--trust-sender` flag. If your backup host is running on an operating system in this situation (i.e. the CVE fix has been backported but the `--trust-sender` flag has not) you have three options:
+To avoid this degradation you **must** use the `--trust-sender` flag with rsync. This flag is available from v3.2.5 onwards, but unfortunately some Linux distributions have backported the fix for CVE-2022-29154 to their rsync package without backporting the `--trust-sender` flag. If your backup host is running on an operating system in this situation (i.e. the CVE fix has been backported but the `--trust-sender` flag has not) then you have three options:
 
 1. Downgrade (using the package manager on your host) the rsync package to a version before the CVE fix was backported
 2. Upgrade (using the package manager on your host) the rsync package to v3.2.5 or newer

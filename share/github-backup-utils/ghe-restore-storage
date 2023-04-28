@@ -152,7 +152,7 @@ for file_list in $tempdir/*.rsync; do
 done
 
 if [ "$GHE_PARALLEL_ENABLED" = "yes" ]; then
-  $GHE_PARALLEL_COMMAND $GHE_PARALLEL_RSYNC_COMMAND_OPTIONS -- "${rsync_commands[@]}"
+  "$GHE_PARALLEL_COMMAND" "${GHE_PARALLEL_RSYNC_COMMAND_OPTIONS[@]}" -- "${rsync_commands[@]}"
 else
   for c in "${rsync_commands[@]}"; do
     eval "$c"

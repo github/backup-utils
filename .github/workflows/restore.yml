@@ -106,8 +106,17 @@ jobs:
         --rm \
         backup-utils ghe-restore ${{ inputs.hostname }}
 
+    # - name: Reset SSH key
+    #   run: ssh-keygen -f "/home/runner/.ssh/known_hosts" -R "${{ inputs.hostname }}:122
+
+    # - name: set up ssh SSH_KEY
+    #   run: echo -e "${SSH_KEY}\n" > "$HOME/backup"
+
+    # - name: set up ssh key permissions
+    #   run: chmod 0600 "$HOME/backup"
+
     - name: Reset maintenance mode after restore
-      run: ssh -p122 -i" $HOME/backup" -o StrictHostKeyChecking=no admin@${{ inputs.hostname }} "ghe-maintenance -u"
+      run: ssh -p122 -i "$HOME/backup" -o StrictHostKeyChecking=no admin@${{ inputs.hostname }} "ghe-maintenance -u"
 
 
 

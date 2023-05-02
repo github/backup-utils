@@ -1,5 +1,5 @@
 name: Restore Dataset
-run-name: ${{ github.actor }} retrieving data-sets 
+run-name: ${{ github.actor }} retrieving data-sets
 on:
   workflow_dispatch:
     inputs:
@@ -19,18 +19,9 @@ on:
         required: false
         type: string
         default: 'master'
-      version: 
-        description: 'GHES Version of dataset'
-        required: false
-        type: string
-        default: "3.8.0"
+
   workflow_call:
     inputs:
-      size:
-        description: 'Size of the dataset to restore'
-        required: false
-        type: string
-        default: 'small'
       hostname:
         description: 'Hostname of the server'
         required: true
@@ -40,11 +31,7 @@ on:
         required: false
         type: string
         default: 'master'
-      version: 
-        description: 'GHES Version of dataset'
-        required: false
-        type: string
-        default: "3.8.0"
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -53,12 +40,16 @@ jobs:
       with:
         repository: github/backup-utils-private
         ref: ${{ inputs.ref }}
-    - run: docker build . --file Dockerfile --tag backup-utils 
+        token: "${{ secrets.INTERNAL_ACTIONS_DX_BOT_ACCOUNT_TOKEN }}"
+
+    - run: docker build . --file Dockerfile --tag backup-utils
     - run: docker save backup-utils -o backup-utils.tar
+
     - uses: actions/upload-artifact@v3
       with:
         name: backup-utils
         path: backup-utils.tar
+
   restore:
     needs: build
     runs-on: ubuntu-latest
@@ -68,15 +59,55 @@ jobs:
     - uses: actions/download-artifact@v3
       with:
         name: backup-utils
-    - name: Load docker container 
-      run: docker load -i backup-utils.tar
-    - uses: actions/checkout@v3
-      with:
-        repository: github/ghes-data
-        ref: main
-    - run: tar zxvf ghes-data/data/backup/${{ inputs.size }}/v3.8.0/${{ inputs.size }}-refined.tar.gz
-    - run: ls -al ghes-data/data/backup/${{ inputs.size }}
 
+    - name: Load docker container
+      run: docker load -i backup-utils.tar
+
+    - name: Download from blob storage
+      run: |
+        mkdir ghes-data
+        az storage blob download \
+        --account-name ghesresults \
+        --container-name ghes-data \
+        --name v3.8-small-docs.tar.gz \
+        --file ghes-data/v3.8-small-docs.tar.gz \
+        --connection-string "${{ secrets.CONNECTIONSTRING }}"
+
+    - name: Unzip backup and setup symlink
+      run: |
+          mkdir "$HOME/ghe-backup-data"
+          dir_name=$(date +%s)
+          mkdir "$HOME/ghe-backup-data/$dir_name"
+          tar -xvf "ghes-data/3.8-small-docs.tar.gz" -C "$HOME/ghe-backup-data/$dir_name"
+
+          ln -s "$dir_name" "$HOME/ghe-backup-data/current"
+
+    - name: set up ssh SSH_KEY
+      run: echo -e "${SSH_KEY}\n" > "$HOME/backup"
+
+    - name: set up ssh key permissions
+      run: chmod 0600 "$HOME/backup"
+
+    - name: change version
+      run: echo "3.8.0" > "$HOME/version"
+
+    - name: Prepare for restore
+      run: ssh -p122 -i "$HOME/backup" -o StrictHostKeyChecking=no admin@${{ inputs.hostname }} "ghe-maintenance -s"
+
+    - name: Restore data to instance
+      run: |
+        docker run -e "GHE_HOSTNAME=${{ inputs.hostname }}" \
+        -e "GHE_DATA_DIR=/data" \
+        -e "GHE_EXTRA_SSH_OPTS=-p 122 -i /ghe-ssh/id_rsa -o ServerAliveInterval=30 -o ServerAliveCountMax=12000 -o StrictHostKeyChecking=no" \
+        -e "GHE_NUM_SNAPSHOTS=15" \
+        -v "$HOME/ghe-backup-data:/data" \
+        -v "$HOME/backup:/ghe-ssh/id_rsa" \
+        -v "$HOME/version:/backup-utils/share/github-backup-utils/version" \
+        --rm \
+        backup-utils ghe-restore ${{ inputs.hostname }}
+
+    - name: Reset maintenance mode after restore
+      run: ssh -p122 -i" $HOME/backup" -o StrictHostKeyChecking=no admin@${{ inputs.hostname }} "ghe-maintenance -u"
 
 
 

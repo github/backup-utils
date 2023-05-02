@@ -38,7 +38,6 @@ GHE_NUM_SNAPSHOTS=10
 #
 #GHE_EXTRA_SSH_OPTS=""
 
-
 # Any extra options passed to the rsync command. Nothing required by default.
 #
 #GHE_EXTRA_RSYNC_OPTS=""

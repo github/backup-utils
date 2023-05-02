@@ -107,7 +107,7 @@ jobs:
         backup-utils ghe-restore ${{ inputs.hostname }}
 
     - name: Reset maintenance mode after restore
-      run: ssh -p122 -i" $HOME/backup" -o StrictHostKeyChecking=no admin@${{ inputs.hostname }} "ghe-maintenance -u"
+      run: ssh -p122 -i "$HOME/backup" -o StrictHostKeyChecking=no admin@${{ inputs.hostname }} "ghe-maintenance -u"
 
 
 

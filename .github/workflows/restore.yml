@@ -70,7 +70,7 @@ jobs:
         --account-name ghesresults \
         --container-name ghes-data \
         --name v3.8-small-docs.tar.gz \
-        --file ghes-data/v3.8-small-docs.tar.gz \
+        --file ghes-data/3.8-small-docs.tar.gz \
         --connection-string "${{ secrets.CONNECTIONSTRING }}"
 
     - name: Unzip backup and setup symlink

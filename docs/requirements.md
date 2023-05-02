@@ -21,9 +21,9 @@ To avoid this degradation you **must** use the `--trust-sender` flag with rsync.
 
 1. Downgrade (using the package manager on your host) the rsync package to a version before the CVE fix was backported
 2. Upgrade (using the package manager on your host) the rsync package to v3.2.5 or newer
-3. Manually download and build the rsync binary
+3. Manually download rsync v3.2.5 or newer and build the rsync binary
 
-Option #3 is required if your operating system's package manager does not have access to rsync v3.2.5 or later (e.g. Ubuntu Focal). Please note that if you use a version of rsync that is lower than v3.2.5, you will need to ensure the `--trust-sender` flag is not enabled in your `backup.config` file since that flag is only supported on v3.2.5 or later.
+Option #3 is required if your operating system's package manager does not have access to rsync v3.2.5 or later (e.g. Ubuntu Focal).
 
 ## Storage requirements
 

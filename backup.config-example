@@ -38,11 +38,10 @@ GHE_NUM_SNAPSHOTS=10
 #
 #GHE_EXTRA_SSH_OPTS=""
 
-# Any extra options passed to the rsync command.
-# As of April 2023 the minimum version of rsync is 3.2.5 and 
-# the --trust-sender flag is required.
-# See docs/requirements.md#update-april-2023 for details on this change.
-GHE_EXTRA_RSYNC_OPTS="--trust-sender"
+
+# Any extra options passed to the rsync command. Nothing required by default.
+#
+#GHE_EXTRA_RSYNC_OPTS=""
 
 
 # If set to 'yes', logging output will be colorized.

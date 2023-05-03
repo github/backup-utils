@@ -20,36 +20,19 @@ else
   done
 fi
 
-# This adds `--trust-sender` to the parameters if it is supported by rsync
-# check if `--trust-sender` is supported and prepend if available.
-if rsync -h | grep '\-\-trust-sender' >/dev/null 2>&1; then
+# This prepends `--trust-sender` to the parameters if  supported by the current version of rsync to mitigate the degredation of performance due to the resolution of CVE-2022-29154
+# shellcheck source=share/github-backup-utils/ghe-rsync-feature-checker.sh
+if [ "$( dirname "${BASH_SOURCE[0]}" )/ghe-rsync-feature-checker.sh" "--trust-sender" = "true" ]; then
   parameters=("--trust-sender" "${parameters[@]}")
 fi
 
-# This loads the extra options from the config file and allows for overriding
-# load $GHE_EXTRA_RSYNC_OPTS from config if available
+# This loads the $GHE_EXTRA_RSYNC_OPTS from the config file if avalible then adds them to the parameters and skip adding if already present in the parameters
 if [ -n "$GHE_EXTRA_RSYNC_OPTS" ]; then
-  # shellcheck disable=SC2206
-  GHE_EXTRA_RSYNC_OPTS=($GHE_EXTRA_RSYNC_OPTS)
-else
-  GHE_EXTRA_RSYNC_OPTS=()
-fi
-
-# This prevents `--trust-sender` from being used if it is not supported by rsync
-# Check if `--trust-sender` is in GHE_EXTRA_RSYNC_OPTS and remove if unavailable.
-if ! rsync -h | grep '\-\-trust-sender' >/dev/null 2>&1; then
-  for options in "${GHE_EXTRA_RSYNC_OPTS[@]}"; do
-    [[ ! $options == "--trust-sender" ]] && parameters+=("$options")
+  for extra_opt in $GHE_EXTRA_RSYNC_OPTS; do
+    [[ ! " ${parameters[@]} " =~ " $extra_opt " ]] && parameters+=("$extra_opt")
   done
 fi
 
-# This removes the possibility of having `--trust-sender` twice in the parameters
-# Check if `--trust-sender` is already in parameters and remove from GHE_EXTRA_RSYNC_OPTS
-if [[ " ${parameters[*]} " == *" --trust-sender "* ]]; then
-  for options in "${GHE_EXTRA_RSYNC_OPTS[@]}"; do
-    [[ ! $options == "--trust-sender" ]] && parameters+=("$options")
-  done
-fi
 
 ignoreout='^(file has vanished: |rsync warning: some files vanished before they could be transferred)'
 rsync_version_check=$(rsync --version | grep -E "version 3.[0-9]*.[0-9]*")

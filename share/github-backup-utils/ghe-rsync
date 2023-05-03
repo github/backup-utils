@@ -20,13 +20,13 @@ else
   done
 fi
 
-# This prepends `--trust-sender` to the parameters if  supported by the current version of rsync to mitigate the degredation of performance due to the resolution of CVE-2022-29154
+# This prepends `--trust-sender` to the parameters if supported by the current version of rsync to mitigate the degradation of performance due to the resolution of CVE-2022-29154
 # shellcheck source=share/github-backup-utils/ghe-rsync-feature-checker.sh
 if [ "$( dirname "${BASH_SOURCE[0]}" )/ghe-rsync-feature-checker.sh" "--trust-sender" = "true" ]; then
   parameters=("--trust-sender" "${parameters[@]}")
 fi
 
-# This loads the $GHE_EXTRA_RSYNC_OPTS from the config file if avalible then adds them to the parameters and skip adding if already present in the parameters
+# This loads the $GHE_EXTRA_RSYNC_OPTS from the config file if available then adds them to the parameters and skip adding if already present in the parameters
 if [ -n "$GHE_EXTRA_RSYNC_OPTS" ]; then
   for extra_opt in $GHE_EXTRA_RSYNC_OPTS; do
     [[ ! " ${parameters[@]} " =~ " $extra_opt " ]] && parameters+=("$extra_opt")
@@ -34,14 +34,14 @@ if [ -n "$GHE_EXTRA_RSYNC_OPTS" ]; then
 fi
 
 
-ignoreout='^(file has vanished: |rsync warning: some files vanished before they could be transferred)'
+ignore_out='^(file has vanished: |rsync warning: some files vanished before they could be transferred)'
 rsync_version_check=$(rsync --version | grep -E "version 3.[0-9]*.[0-9]*")
 if [ -n "$rsync_version_check" ]; then
   # rsync >= 3.x sends errors to stderr. so, we need to redirect to stdout before the pipe
-  rsync "${parameters[@]}" 2>&1 | (grep -E -v "$ignoreout" || true)
+  rsync "${parameters[@]}" 2>&1 | (grep -E -v "$ignore_out" || true)
 else
   # rsync <3.x sends errors to stdout.
-  rsync "${parameters[@]}" | (grep -E -v "$ignoreout" || true)
+  rsync "${parameters[@]}" | (grep -E -v "$ignore_out" || true)
 fi
 res=$?
 

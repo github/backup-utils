@@ -6,7 +6,7 @@ TESTS_DIR="$PWD/$(dirname "$0")"
 # shellcheck source=test/testlib.sh
 . "$TESTS_DIR/testlib.sh"
 
-begin_test "ghe-rsync-feature-checker for know command `--help`"
+begin_test "ghe-rsync-feature-checker for know command --help"
 (
   set -e
 
@@ -15,7 +15,7 @@ begin_test "ghe-rsync-feature-checker for know command `--help`"
 )
 end_test
 
-begin_test "ghe-rsync-feature-checker for know command `help`"
+begin_test "ghe-rsync-feature-checker for know command help"
 (
     set -e
 
@@ -24,7 +24,7 @@ begin_test "ghe-rsync-feature-checker for know command `help`"
 )
 end_test
 
-begin_test "ghe-rsync-feature-checker for known unsupported command `--ignore-missing-args`"
+begin_test "ghe-rsync-feature-checker for known unsupported command --ignore-missing-args"
 (
     set -e
 
@@ -33,7 +33,7 @@ begin_test "ghe-rsync-feature-checker for known unsupported command `--ignore-mi
 )
 end_test
 
-begin_test "ghe-rsync-feature-checker for known unsupported command `ignore-missing-args`"
+begin_test "ghe-rsync-feature-checker for known unsupported command ignore-missing-args"
 (
     set -e
 

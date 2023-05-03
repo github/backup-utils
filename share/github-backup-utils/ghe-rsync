@@ -22,7 +22,7 @@ fi
 
 # This prepends `--trust-sender` to the parameters if supported by the current version of rsync to mitigate the degradation of performance due to the resolution of CVE-2022-29154
 # shellcheck source=share/github-backup-utils/ghe-rsync-feature-checker.sh
-if [ "$( dirname "${BASH_SOURCE[0]}" )/ghe-rsync-feature-checker.sh" "--trust-sender" = "true" ]; then
+if [ "$($( dirname "${BASH_SOURCE[0]}" )/ghe-rsync-feature-checker.sh --trust-sender)" == "true" ]; then
   parameters=("--trust-sender" "${parameters[@]}")
 fi
 

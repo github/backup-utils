@@ -5,7 +5,7 @@ storage and must have network connectivity with the GitHub Enterprise Server app
 
 ## Backup host requirements
 
-Backup host software requirements are modest: Linux or other modern Unix operating system (Ubuntu is highly recommended) with [bash][1], [git][2], [OpenSSH][3] 5.6 or newer, [rsync][4] v3.2.5 or newer, and [jq][11] v1.5 or newer.
+Backup host software requirements are modest: Linux or other modern Unix operating system (Ubuntu is highly recommended) with [bash][1], [git][2], [OpenSSH][3] 5.6 or newer, [rsync][4] v3.2.5 or newer, and [jq][11] v1.5 or newer. See below for an update on rsync.
 
 The parallel backup and restore feature will require [GNU awk][10] and [moreutils][9] to be installed.
 
@@ -13,11 +13,15 @@ We encourage the use of [Docker](docker.md), as it ensures compatible versions o
 
 The backup host must be able to establish outbound network connections to the GitHub appliance over SSH. TCP port 122 is used to backup GitHub Enterprise Server.
 
-### Update April 2023
+### Update April 2023 - rsync requirements
 
-The [fix in rsync `3.2.5`](https://github.com/WayneD/rsync/blob/master/NEWS.md#news-for-rsync-325-14-aug-2022) for [CVE-2022-29154](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-29154) causes _severe_ performance degradation to `backup-utils`, making `backup-utils` close to unusable.
+We have updated the minimum required version of rsync from `2.6.4` to `3.2.5`. This change was required due to the [fix in rsync `3.2.5`](https://github.com/WayneD/rsync/blob/master/NEWS.md#news-for-rsync-325-14-aug-2022) for [CVE-2022-29154](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-29154) causing _severe_ performance degradation to `backup-utils`. The only way to avoid this degradation is to use the `--trust-sender` flag, and since this flag is only available from rsync v3.2.5 onwards, we have updated the minimum required version of rsync.
 
-To avoid this degradation you **must** use the `--trust-sender` flag with rsync. This flag is available from v3.2.5 onwards, but unfortunately some Linux distributions have backported the fix for CVE-2022-29154 to their rsync package without backporting the `--trust-sender` flag. If your backup host is running on an operating system in this situation (i.e. the CVE fix has been backported but the `--trust-sender` flag has not) then you have three options:
+Unfortunately the situation is a little more complicated. If you are running an older version of rsync (i.e. < v3.2.5) you _might_ be ok.
+
+It depends on whether the rsync package you are using on your backup host has backported the fix for CVE-2022-29154 without backporting the `--trust-sender` flag.
+
+If your backup host is running an rsync package that has backported the CVE fix without backporting the `--trust-sender` flag then you have three options:
 
 1. Downgrade (using the package manager on your host) the rsync package to a version before the CVE fix was backported
 2. Upgrade (using the package manager on your host) the rsync package to v3.2.5 or newer

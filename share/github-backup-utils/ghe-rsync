@@ -29,7 +29,9 @@ fi
 # This loads the $GHE_EXTRA_RSYNC_OPTS from the config file if available then adds them to the parameters and skip adding if already present in the parameters
 if [ -n "$GHE_EXTRA_RSYNC_OPTS" ]; then
   for extra_opt in $GHE_EXTRA_RSYNC_OPTS; do
-    [[ ! " ${parameters[@]} " =~ " $extra_opt " ]] && parameters+=("$extra_opt")
+    if [ $($( dirname "${BASH_SOURCE[0]}" )/ghe-rsync-feature-checker.sh "$extra_opt") == "true" ]; then
+      parameters+=("$extra_opt")
+    fi
   done
 fi
 

@@ -106,3 +106,23 @@ begin_test "ghe-rsync-feature-checker.sh for know command verbose"
     ghe-rsync-feature-checker.sh verbose | grep -q "true"
 )
 end_test
+
+## testing for known supported command ignore-missing-args with and without leading dashes
+
+begin_test "ghe-rsync-feature-checker.sh  for known supported command --ignore-missing-args"
+(
+    set -e
+
+    # Test ghe-rsync-feature-checker.sh  command
+    ghe-rsync-feature-checker.sh  "--ignore-missing-args" | grep -q "true"
+)
+end_test
+
+begin_test "ghe-rsync-feature-checker.sh  for known supported command ignore-missing-args"
+(
+    set -e
+
+    # Test ghe-rsync-feature-checker.sh  command
+    ghe-rsync-feature-checker.sh  "ignore-missing-args" | grep -q "true"
+)
+end_test

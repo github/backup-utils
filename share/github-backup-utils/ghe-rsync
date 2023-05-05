@@ -11,6 +11,7 @@ set -o pipefail
 # shellcheck source=share/github-backup-utils/ghe-backup-config
 . "$( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config"
 
+# Don't use the feature checker for expected parameters as it can cause issues with server paths
 # Check for --ignore-missing-args parameter support and remove if unavailable.
 if rsync -h | grep '\-\-ignore-missing-args' >/dev/null 2>&1; then
   parameters=("$@")
@@ -20,14 +21,35 @@ else
   done
 fi
 
-ignoreout='^(file has vanished: |rsync warning: some files vanished before they could be transferred)'
-rsync_version_check=$(rsync --version | egrep "version 3.[0-9]*.[0-9]*")
-if [ ! -z "$rsync_version_check" ]; then
+# This prepends `--trust-sender` to the parameters if supported by the current version of rsync 
+# to mitigate the degradation of performance due to the resolution of CVE-2022-29154
+# shellcheck source=share/github-backup-utils/ghe-rsync-feature-checker
+# shellcheck disable=SC2046
+if [ "$($( dirname "${BASH_SOURCE[0]}" )/ghe-rsync-feature-checker --trust-sender)" == "true" ]; then
+  parameters=("--trust-sender" "${parameters[@]}")
+fi
+
+# This loads the $GHE_EXTRA_RSYNC_OPTS from the config file if available then adds them
+# to the parameters and skip adding if already present in the parameters
+# shellcheck source=share/github-backup-utils/ghe-rsync-feature-checker
+# shellcheck disable=SC2046
+if [ -n "$GHE_EXTRA_RSYNC_OPTS" ]; then
+  for extra_opt in $GHE_EXTRA_RSYNC_OPTS; do
+    if [ "$($( dirname "${BASH_SOURCE[0]}" )/ghe-rsync-feature-checker "$extra_opt")" == "true" ]; then
+      parameters+=("$extra_opt")
+    fi
+  done
+fi
+
+
+ignore_out='^(file has vanished: |rsync warning: some files vanished before they could be transferred)'
+rsync_version_check=$(rsync --version | grep -E "version 3.[0-9]*.[0-9]*")
+if [ -n "$rsync_version_check" ]; then
   # rsync >= 3.x sends errors to stderr. so, we need to redirect to stdout before the pipe
-  rsync "${parameters[@]}" $GHE_EXTRA_RSYNC_OPTS 2>&1 | (egrep -v "$ignoreout" || true)
+  rsync "${parameters[@]}" 2>&1 | (grep -E -v "$ignore_out" || true)
 else
   # rsync <3.x sends errors to stdout.
-  rsync "${parameters[@]}" $GHE_EXTRA_RSYNC_OPTS | (egrep -v "$ignoreout" || true)
+  rsync "${parameters[@]}" | (grep -E -v "$ignore_out" || true)
 fi
 res=$?
 

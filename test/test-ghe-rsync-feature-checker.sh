@@ -8,7 +8,7 @@ TESTS_DIR="$PWD/$(dirname "$0")"
 
 ## testing for known supported command help with and without leading dashes
 
-begin_test "Testing ghe-rsync-feature-checker for known supported command --help"
+begin_test "Testing ghe-rsync-feature-checker with known supported command --help"
 (
     set -e
 
@@ -17,7 +17,7 @@ begin_test "Testing ghe-rsync-feature-checker for known supported command --help
 )
 end_test
 
-begin_test "Testing ghe-rsync-feature-checker for known supported command -help"
+begin_test "Testing ghe-rsync-feature-checker with known unsupported command -help"
 (
     set -e
 
@@ -117,7 +117,7 @@ begin_test "Testing ghe-rsync-feature-checker with known supported command --ver
 )
 end_test
 
-begin_test "Testing ghe-rsync-feature-checker with known supported command -verbose"
+begin_test "Testing ghe-rsync-feature-checker with known unsupported command -verbose"
 (
     set -e
 

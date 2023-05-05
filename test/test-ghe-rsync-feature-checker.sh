@@ -17,8 +17,6 @@ begin_test "Testing ghe-rsync-feature-checker for known supported command --help
 )
 end_test
 
-<<<<<<< Updated upstream
-=======
 begin_test "Testing ghe-rsync-feature-checker for known supported command -help"
 (
     set -e
@@ -28,7 +26,6 @@ begin_test "Testing ghe-rsync-feature-checker for known supported command -help"
 )
 end_test
 
->>>>>>> Stashed changes
 begin_test "Testing ghe-rsync-feature-checker with known supported command help"
 (
     set -e
@@ -50,8 +47,6 @@ begin_test "Testing ghe-rsync-feature-checker with known unsupported command --n
 )
 end_test
 
-<<<<<<< Updated upstream
-=======
 begin_test "Testing ghe-rsync-feature-checker with known unsupported command -not-an-actual-feature"
 (
     set -e
@@ -62,7 +57,6 @@ begin_test "Testing ghe-rsync-feature-checker with known unsupported command -no
 )
 end_test
 
->>>>>>> Stashed changes
 begin_test "Testing ghe-rsync-feature-checker with known unsupported command not-an-actual-feature"
 (
     set -e
@@ -123,8 +117,6 @@ begin_test "Testing ghe-rsync-feature-checker with known supported command --ver
 )
 end_test
 
-<<<<<<< Updated upstream
-=======
 begin_test "Testing ghe-rsync-feature-checker with known supported command -verbose"
 (
     set -e
@@ -134,7 +126,6 @@ begin_test "Testing ghe-rsync-feature-checker with known supported command -verb
 )
 end_test
 
->>>>>>> Stashed changes
 begin_test "Testing ghe-rsync-feature-checker with known supported command verbose"
 (
     set -e

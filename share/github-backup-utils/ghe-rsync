@@ -11,6 +11,7 @@ set -o pipefail
 # shellcheck source=share/github-backup-utils/ghe-backup-config
 . "$( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config"
 
+# Don't use the feature checker for expected parameters as it can cause issues with server paths
 # Check for --ignore-missing-args parameter support and remove if unavailable.
 if rsync -h | grep '\-\-ignore-missing-args' >/dev/null 2>&1; then
   parameters=("$@")
@@ -20,19 +21,21 @@ else
   done
 fi
 
-# This prepends `--trust-sender` to the parameters if supported by the current version of rsync to mitigate the degradation of performance due to the resolution of CVE-2022-29154
-# shellcheck source=share/github-backup-utils/ghe-rsync-feature-checker.sh
+# This prepends `--trust-sender` to the parameters if supported by the current version of rsync 
+# to mitigate the degradation of performance due to the resolution of CVE-2022-29154
+# shellcheck source=share/github-backup-utils/ghe-rsync-feature-checker
 # shellcheck disable=SC2046
-if [ "$($( dirname "${BASH_SOURCE[0]}" )/ghe-rsync-feature-checker.sh --trust-sender)" == "true" ]; then
+if [ "$($( dirname "${BASH_SOURCE[0]}" )/ghe-rsync-feature-checker --trust-sender)" == "true" ]; then
   parameters=("--trust-sender" "${parameters[@]}")
 fi
 
-# This loads the $GHE_EXTRA_RSYNC_OPTS from the config file if available then adds them to the parameters and skip adding if already present in the parameters
-# shellcheck source=share/github-backup-utils/ghe-rsync-feature-checker.sh
+# This loads the $GHE_EXTRA_RSYNC_OPTS from the config file if available then adds them
+# to the parameters and skip adding if already present in the parameters
+# shellcheck source=share/github-backup-utils/ghe-rsync-feature-checker
 # shellcheck disable=SC2046
 if [ -n "$GHE_EXTRA_RSYNC_OPTS" ]; then
   for extra_opt in $GHE_EXTRA_RSYNC_OPTS; do
-    if [ "$($( dirname "${BASH_SOURCE[0]}" )/ghe-rsync-feature-checker.sh "$extra_opt")" == "true" ]; then
+    if [ "$($( dirname "${BASH_SOURCE[0]}" )/ghe-rsync-feature-checker "$extra_opt")" == "true" ]; then
       parameters+=("$extra_opt")
     fi
   done

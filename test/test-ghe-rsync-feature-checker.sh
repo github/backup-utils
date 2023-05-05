@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# ghe-rsync-feature-checker.sh command tests
+# ghe-rsync-feature-checker command tests
 
 TESTS_DIR="$PWD/$(dirname "$0")"
 # Bring in testlib.
@@ -8,121 +8,121 @@ TESTS_DIR="$PWD/$(dirname "$0")"
 
 ## testing for known supported command help with and without leading dashes
 
-begin_test "ghe-rsync-feature-checker.sh for known supported command --help"
+begin_test "Testing ghe-rsync-feature-checker for known supported command --help"
 (
     set -e
 
-    # Test ghe-rsync-feature-checker.sh command
-    ghe-rsync-feature-checker.sh --help | grep -q "true"
+    # Test ghe-rsync-feature-checker command
+    ghe-rsync-feature-checker --help | grep -q "true"
 )
 end_test
 
-begin_test "ghe-rsync-feature-checker.sh for known supported command help"
+begin_test "Testing ghe-rsync-feature-checker with known supported command help"
 (
     set -e
 
-    # Test ghe-rsync-feature-checker.sh command
-    ghe-rsync-feature-checker.sh help | grep -q "true"
+    # Test ghe-rsync-feature-checker command
+    ghe-rsync-feature-checker help | grep -q "true"
 )
 end_test
 
-## testing for known unsupported command not-an-actual-feature with and without leading dashes
+## testing with known unsupported command not-an-actual-feature with and without leading dashes
 
-begin_test "ghe-rsync-feature-checker.sh for known unsupported command --not-an-actual-feature"
+begin_test "Testing ghe-rsync-feature-checker with known unsupported command --not-an-actual-feature"
 (
     set -e
 
-    # Test ghe-rsync-feature-checker.sh command 
-    ghe-rsync-feature-checker.sh --not-an-actual-feature | grep -q "false"
+    # Test ghe-rsync-feature-checker command 
+    ghe-rsync-feature-checker --not-an-actual-feature | grep -q "false"
     
 )
 end_test
 
-begin_test "ghe-rsync-feature-checker.sh for known unsupported command not-an-actual-feature"
+begin_test "Testing ghe-rsync-feature-checker with known unsupported command not-an-actual-feature"
 (
     set -e
 
-    # Test ghe-rsync-feature-checker.sh command
-    ghe-rsync-feature-checker.sh not-an-actual-feature | grep -q "false"
+    # Test ghe-rsync-feature-checker command
+    ghe-rsync-feature-checker not-an-actual-feature | grep -q "false"
 )
 end_test
 
-## testing for known supported command partial with and without leading dashes
+## testing with known supported command partial with and without leading dashes
 
-begin_test "ghe-rsync-feature-checker.sh for known supported command --partial"
+begin_test "Testing ghe-rsync-feature-checker with known supported command --partial"
 (
     set -e
 
-    # Test ghe-rsync-feature-checker.sh command
-    ghe-rsync-feature-checker.sh --partial | grep -q "true"
+    # Test ghe-rsync-feature-checker command
+    ghe-rsync-feature-checker --partial | grep -q "true"
 )
 end_test
 
-begin_test "ghe-rsync-feature-checker.sh for known supported command partial"
+begin_test "Testing ghe-rsync-feature-checker with known supported command partial"
 (
     set -e
 
-    # Test ghe-rsync-feature-checker.sh command
-    ghe-rsync-feature-checker.sh partial | grep -q "true"
+    # Test ghe-rsync-feature-checker command
+    ghe-rsync-feature-checker partial | grep -q "true"
 )
 end_test
 
-## testing for known supported command -v with and without leading dashes
+## testing with known supported command -v with and without leading dashes
 
-begin_test "ghe-rsync-feature-checker.sh for known supported command -v"
+begin_test "Testing ghe-rsync-feature-checker with known supported command -v"
 (
     set -e
 
-    # Test ghe-rsync-feature-checker.sh command
-    ghe-rsync-feature-checker.sh -v | grep -q "true"
+    # Test ghe-rsync-feature-checker command
+    ghe-rsync-feature-checker -v | grep -q "true"
 )
 end_test
 
-begin_test "ghe-rsync-feature-checker.sh for known supported command v"
+begin_test "Testing ghe-rsync-feature-checker with known supported command v"
 (
     set -e
 
-    # Test ghe-rsync-feature-checker.sh command
-    ghe-rsync-feature-checker.sh v | grep -q "true"
+    # Test ghe-rsync-feature-checker command
+    ghe-rsync-feature-checker v | grep -q "true"
 )
 end_test
 
-## testing for known supported command --verbose with and without leading dashes
+## testing with known supported command --verbose with and without leading dashes
 
-begin_test "ghe-rsync-feature-checker.sh for known supported command --verbose"
+begin_test "Testing ghe-rsync-feature-checker with known supported command --verbose"
 (
     set -e
 
-    # Test ghe-rsync-feature-checker.sh command
-    ghe-rsync-feature-checker.sh --verbose | grep -q "true"
+    # Test ghe-rsync-feature-checker command
+    ghe-rsync-feature-checker --verbose | grep -q "true"
 )
 end_test
 
-begin_test "ghe-rsync-feature-checker.sh for known supported command verbose"
+begin_test "Testing ghe-rsync-feature-checker with known supported command verbose"
 (
     set -e
 
-    # Test ghe-rsync-feature-checker.sh command
-    ghe-rsync-feature-checker.sh verbose | grep -q "true"
+    # Test ghe-rsync-feature-checker command
+    ghe-rsync-feature-checker verbose | grep -q "true"
 )
 end_test
 
-## testing for known supported command ignore-missing-args with and without leading dashes
+## testing with known supported command ignore-missing-args with and without leading dashes
 
-begin_test "ghe-rsync-feature-checker.sh for known supported command --ignore-missing-args"
+begin_test "Testing ghe-rsync-feature-checker with known supported command --ignore-missing-args"
 (
     set -e
 
-    # Test ghe-rsync-feature-checker.sh command
-    ghe-rsync-feature-checker.sh "--ignore-missing-args" | grep -q "true"
+    # Test ghe-rsync-feature-checker command
+    ghe-rsync-feature-checker "--ignore-missing-args" | grep -q "true"
 )
 end_test
 
-begin_test "ghe-rsync-feature-checker.sh for known supported command ignore-missing-args"
+begin_test "Testing ghe-rsync-feature-checker with known supported command ignore-missing-args"
 (
     set -e
 
-    # Test ghe-rsync-feature-checker.sh command
-    ghe-rsync-feature-checker.sh "ignore-missing-args" | grep -q "true"
+    # Test ghe-rsync-feature-checker command
+    ghe-rsync-feature-checker "ignore-missing-args" | grep -q "true"
 )
 end_test

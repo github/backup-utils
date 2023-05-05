@@ -153,8 +153,8 @@ if [[ "$CALLING_SCRIPT" == "ghe-backup" ]]; then
   . "$(dirname "${BASH_SOURCE[0]}")/../share/github-backup-utils/requirements.txt"
 
   #source disk size file
-  # shellcheck source=share/github-backup-utils/ghe-rsync-size.sh
-  . "$(dirname "${BASH_SOURCE[0]}")/../share/github-backup-utils/ghe-rsync-size.sh"
+  # shellcheck source=share/github-backup-utils/ghe-rsync-size
+  . "$(dirname "${BASH_SOURCE[0]}")/../share/github-backup-utils/ghe-rsync-size"
 
   #Display dir requirements for repositories and mysql
   echo "Checking host for sufficient space for a backup..." 1>&2

@@ -8,12 +8,21 @@ TESTS_DIR="$PWD/$(dirname "$0")"
 
 ## testing for known supported command help with and without leading dashes
 
-begin_test "Testing ghe-rsync-feature-checker for known supported command --help"
+begin_test "Testing ghe-rsync-feature-checker with known supported command --help"
 (
     set -e
 
     # Test ghe-rsync-feature-checker command
     ghe-rsync-feature-checker --help | grep -q "true"
+)
+end_test
+
+begin_test "Testing ghe-rsync-feature-checker with known unsupported command -help"
+(
+    set -e
+
+    # Test ghe-rsync-feature-checker command
+    ghe-rsync-feature-checker -help | grep -q "false"
 )
 end_test
 
@@ -34,6 +43,16 @@ begin_test "Testing ghe-rsync-feature-checker with known unsupported command --n
 
     # Test ghe-rsync-feature-checker command 
     ghe-rsync-feature-checker --not-an-actual-feature | grep -q "false"
+    
+)
+end_test
+
+begin_test "Testing ghe-rsync-feature-checker with known unsupported command -not-an-actual-feature"
+(
+    set -e
+
+    # Test ghe-rsync-feature-checker command 
+    ghe-rsync-feature-checker -not-an-actual-feature | grep -q "false"
     
 )
 end_test
@@ -95,6 +114,15 @@ begin_test "Testing ghe-rsync-feature-checker with known supported command --ver
 
     # Test ghe-rsync-feature-checker command
     ghe-rsync-feature-checker --verbose | grep -q "true"
+)
+end_test
+
+begin_test "Testing ghe-rsync-feature-checker with known unsupported command -verbose"
+(
+    set -e
+
+    # Test ghe-rsync-feature-checker command
+    ghe-rsync-feature-checker -verbose | grep -q "false"
 )
 end_test
 

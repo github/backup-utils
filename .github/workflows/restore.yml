@@ -76,11 +76,12 @@ jobs:
     - name: Download from blob storage
       run: |
         mkdir ghes-data
+        filename="v{{ inputs.version }}-{{ inputs.size }}.tar.gz"
         az storage blob download \
         --account-name ghesresults \
         --container-name ghes-data \
-        --name v{{ inputs.version }}-{{ inputs.size }}.tar.gz \
-        --file ghes-data/{{ inputs.version }}-{{ inputs.size }}.tar.gz \
+        --name "$filename" \
+        --file "ghes-data/$filename" \
         --connection-string "${{ secrets.CONNECTIONSTRING }}"
 
     - name: Unzip backup and setup symlink
@@ -88,7 +89,8 @@ jobs:
           mkdir "$HOME/ghe-backup-data"
           dir_name=$(date +%s)
           mkdir "$HOME/ghe-backup-data/$dir_name"
-          tar -xvf "ghes-data/{{ inputs.version }}-{{ inputs.size }}.tar.gz" -C "$HOME/ghe-backup-data/$dir_name"
+          filename="v{{ inputs.version }}-{{ inputs.size }}.tar.gz"
+          tar -xvf "ghes-data/$filename" -C "$HOME/ghe-backup-data/$dir_name"
 
           ln -s "$dir_name" "$HOME/ghe-backup-data/current"
 

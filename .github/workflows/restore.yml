@@ -89,8 +89,8 @@ jobs:
         if [ "$exit_code" -eq "0" ]; then
             echo "Version $version is acceptable"
             file_version=3.8
-            echo "version=3.8" >> $GITHUB_OUTPUT
-            echo "name=v$file_version-$size.tar.gz" >> $GITHUB_OUTPUT
+            echo "version=3.8" >> "$GITHUB_OUTPUT"
+            echo "name=v$file_version-$size.tar.gz" >> "$GITHUB_OUTPUT"
         else
             echo "Version $version is not acceptable"
             exit 1

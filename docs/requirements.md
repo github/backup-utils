@@ -19,7 +19,7 @@ The [fix in rsync `3.2.5`](https://github.com/WayneD/rsync/blob/master/NEWS.md#n
 
 If you encounter this degradation you can mitigate it by using the `--trust-sender` flag, which is available in rsync >= v3.2.5.
 
-If your backup host is running rsync < v3.2.5 you may or may not need to make changes to you rsync package, depending on whether your rsync package has backported the fix for CVE-2022-29154 without also backporting the `--trust-sender` flag.
+If your backup host is running rsync < v3.2.5 you may or may not need to make changes to your rsync package, depending on whether your rsync package has backported the fix for CVE-2022-29154 without also backporting the `--trust-sender` flag.
 
 If your rsync package has backported the CVE fix _and_ the `--trust-sender` flag then you don't need to change anything.
 

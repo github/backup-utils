@@ -76,8 +76,8 @@ jobs:
     - name: Find backup file version
       id: file
       run: |
-        file_version={{ inputs.version }}
-        size={{ inputs.size }}}
+        file_version=${{ inputs.version }}
+        size=${{ inputs.size }}}
         echo "$file_version"
         V3_8_COMPATIBLE="3.6 3.7 3.8 3.9 3.10"
 
@@ -98,8 +98,8 @@ jobs:
         az storage blob download \
         --account-name ghesresults \
         --container-name ghes-data \
-        --name {{ steps.file.outputs.name }} \
-        --file ghes-data/{{ steps.file.outputs.name }} \
+        --name "${{ steps.file.outputs.name }}" \
+        --file "ghes-data/${{ steps.file.outputs.name }}" \
         --connection-string "${{ secrets.CONNECTIONSTRING }}"
 
     - name: Unzip backup and setup symlink
@@ -108,7 +108,7 @@ jobs:
           dir_name=$(date +%s)
           mkdir "$HOME/ghe-backup-data/$dir_name"
 
-          tar -xvf ghes-data/{{ steps.file.outputs.name }} -C "$HOME/ghe-backup-data/$dir_name"
+          tar -xvf "ghes-data/${{ steps.file.outputs.name }}" -C "$HOME/ghe-backup-data/$dir_name"
 
           ln -s "$dir_name" "$HOME/ghe-backup-data/current"
 
@@ -119,7 +119,7 @@ jobs:
       run: chmod 0600 "$HOME/backup"
 
     - name: change version
-      run: echo "{{ inputs.version }}.0" > "$HOME/version"
+      run: echo "${{ inputs.version }}.0" > "$HOME/version"
 
     - name: Prepare for restore
       run: ssh -p122 -i "$HOME/backup" -o StrictHostKeyChecking=no admin@${{ inputs.hostname }} "ghe-maintenance -s"

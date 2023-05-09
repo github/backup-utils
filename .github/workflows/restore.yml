@@ -73,10 +73,26 @@ jobs:
     - name: Load docker container
       run: docker load -i backup-utils.tar
 
+    - name: Find backup file version
+      id: file
+      run: |
+        file_version="{{ inputs.version }}"
+        V3_8_COMPATIBLE="3.6 3.7 3.8 3.9 3.10"
+
+        echo "$V3_8_COMPATIBLE" | tr " " '\n' | grep -F -q -x "{{ inputs.version }}"
+
+        if [ $? -eq 0 ]; then
+            echo "Version $version is acceptable"
+            echo "version=3.8" >> $GITHUB_OUTPUT
+        else
+            echo "Version $version is not acceptable"
+            exit 1
+        fi
+
     - name: Download from blob storage
       run: |
         mkdir ghes-data
-        filename="v{{ inputs.version }}-{{ inputs.size }}.tar.gz"
+        filename="v{{ steps.file.outputs.version }}-{{ inputs.size }}.tar.gz"
         az storage blob download \
         --account-name ghesresults \
         --container-name ghes-data \
@@ -89,7 +105,8 @@ jobs:
           mkdir "$HOME/ghe-backup-data"
           dir_name=$(date +%s)
           mkdir "$HOME/ghe-backup-data/$dir_name"
-          filename="v{{ inputs.version }}-{{ inputs.size }}.tar.gz"
+
+          filename="v{{ steps.file.outputs.version }}-{{ inputs.size }}.tar.gz"
           tar -xvf "ghes-data/$filename" -C "$HOME/ghe-backup-data/$dir_name"
 
           ln -s "$dir_name" "$HOME/ghe-backup-data/current"

@@ -79,13 +79,13 @@ jobs:
         file_version="{{ inputs.version }}"
         V3_8_COMPATIBLE="3.6 3.7 3.8 3.9 3.10"
 
-        echo "$V3_8_COMPATIBLE" | tr " " '\n' | grep -F -q -x "{{ inputs.version }}"
+        echo "$V3_8_COMPATIBLE" | tr " " '\n' | grep -F -q -x "$file_version"
 
         if [ $? -eq 0 ]; then
-            echo "Version $version is acceptable"
+            echo "Version $file_version is acceptable"
             echo "version=3.8" >> $GITHUB_OUTPUT
         else
-            echo "Version $version is not acceptable"
+            echo "Version $file_version is not acceptable"
             exit 1
         fi
 

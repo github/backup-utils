@@ -77,7 +77,7 @@ jobs:
       id: file
       run: |
         file_version=${{ inputs.version }}
-        size=${{ inputs.size }}}
+        size=${{ inputs.size }}
         echo "$file_version"
         V3_8_COMPATIBLE="3.6 3.7 3.8 3.9 3.10"
 

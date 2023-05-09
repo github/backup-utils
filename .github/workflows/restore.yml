@@ -19,6 +19,11 @@ on:
         required: false
         type: string
         default: 'master'
+      version:
+        description: 'Version of the dataset to restore (3.8/3.9)'
+        required: false
+        default: '3.8'
+        type: string
 
   workflow_call:
     inputs:

@@ -81,14 +81,13 @@ jobs:
     - name: Find backup file version
       id: file
       run: |
-        version=${{ inputs.version }}
-        size=${{ inputs.size }}
+        version="${{ inputs.version }}"
+        size="${{ inputs.size }}"
         V3_8_COMPATIBLE="3.6 3.7 3.8 3.9 3.10"
-
         echo "$V3_8_COMPATIBLE" | tr " " '\n' | grep -F -q -x "$version"
-
-        if [ $? -eq 0 ]; then
-            echo "Version $file_version is acceptable"
+        exit_code="$?"
+        if [ "$exit_code" -eq "0" ]; then
+            echo "Version $version is acceptable"
             file_version=3.8
             echo "version=3.8" >> $GITHUB_OUTPUT
             echo "name=v$file_version-$size.tar.gz" >> $GITHUB_OUTPUT

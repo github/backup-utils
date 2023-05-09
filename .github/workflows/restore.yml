@@ -26,6 +26,16 @@ on:
         description: 'Hostname of the server'
         required: true
         type: string
+      size:
+        description: 'Size of the dataset to restore (small/medium)'
+        required: false
+        default: 'small'
+        type: string
+      version:
+        description: 'Version of the dataset to restore (3.8/3.9)'
+        required: false
+        default: '3.8'
+        type: string
       ref:
         description: 'Branch ref to use'
         required: false
@@ -69,8 +79,8 @@ jobs:
         az storage blob download \
         --account-name ghesresults \
         --container-name ghes-data \
-        --name v3.8-small-docs.tar.gz \
-        --file ghes-data/3.8-small-docs.tar.gz \
+        --name v{{ inputs.version }}-{{ inputs.size }}.tar.gz \
+        --file ghes-data/{{ inputs.version }}-{{ inputs.size }}.tar.gz \
         --connection-string "${{ secrets.CONNECTIONSTRING }}"
 
     - name: Unzip backup and setup symlink
@@ -78,7 +88,7 @@ jobs:
           mkdir "$HOME/ghe-backup-data"
           dir_name=$(date +%s)
           mkdir "$HOME/ghe-backup-data/$dir_name"
-          tar -xvf "ghes-data/3.8-small-docs.tar.gz" -C "$HOME/ghe-backup-data/$dir_name"
+          tar -xvf "ghes-data/{{ inputs.version }}-{{ inputs.size }}.tar.gz" -C "$HOME/ghe-backup-data/$dir_name"
 
           ln -s "$dir_name" "$HOME/ghe-backup-data/current"
 
@@ -89,7 +99,7 @@ jobs:
       run: chmod 0600 "$HOME/backup"
 
     - name: change version
-      run: echo "3.8.0" > "$HOME/version"
+      run: echo "{{ inputs.version }}.0" > "$HOME/version"
 
     - name: Prepare for restore
       run: ssh -p122 -i "$HOME/backup" -o StrictHostKeyChecking=no admin@${{ inputs.hostname }} "ghe-maintenance -s"

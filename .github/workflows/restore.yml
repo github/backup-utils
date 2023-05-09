@@ -86,7 +86,7 @@ jobs:
         if [ $? -eq 0 ]; then
             echo "Version $file_version is acceptable"
             echo "version=3.8" >> $GITHUB_OUTPUT
-            echo "name=v$version-$size.tar.gz" >> $GITHUB_OUTPUT
+            echo "name=v$file_version-$size.tar.gz" >> $GITHUB_OUTPUT
         else
             echo "Version $file_version is not acceptable"
             exit 1

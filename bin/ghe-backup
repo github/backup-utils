@@ -238,10 +238,12 @@ commands+=("
 echo \"$cmd_title\"
 ghe-backup-repositories || printf %s \"repositories \" >> \"$failures_file\"")
 
-cmd_title=$(log_info "Backing up GitHub Pages artifacts ...")
-commands+=("
-echo \"$cmd_title\"
-ghe-backup-pages || printf %s \"pages \" >> \"$failures_file\"")
+if [ "$GHE_BACKUP_PAGES" != "no" ]; then
+  cmd_title=$(log_info "Backing up GitHub Pages artifacts ...")
+  commands+=("
+  echo \"$cmd_title\"
+  ghe-backup-pages || printf %s \"pages \" >> \"$failures_file\"")
+fi
 
 cmd_title=$(log_info "Backing up storage data ...")
 commands+=("

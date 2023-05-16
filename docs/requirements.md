@@ -13,6 +13,8 @@ We encourage the use of [Docker](docker.md), as it ensures compatible versions o
 
 The backup host must be able to establish outbound network connections to the GitHub appliance over SSH. TCP port 122 is used to backup GitHub Enterprise Server.
 
+CPU and memory requirements are dependent on the size of the GitHub Enterprise Server appliance. We recommend a minimum of 4 cores and 8GB of RAM for the host running [GitHub Enterprise Backup Utilities](https://github.com/github/backup-utils). We recommend monitoring the backup host's CPU and memory usage to ensure it is sufficient for your environment.
+
 ### April 2023 Update of Rsync Requirements
 
 The [fix in rsync `3.2.5`](https://github.com/WayneD/rsync/blob/master/NEWS.md#news-for-rsync-325-14-aug-2022) for [CVE-2022-29154](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-29154) can cause severe performance degradation to `backup-utils`. 
@@ -53,6 +55,7 @@ ls -la
 
 Using a [case sensitive][7] file system is also required to avoid conflicts.
 
+Performance of backup and restore operations are also dependent on the backup host's storage. We recommend using a high performance storage system for your data directory for best performance.
 ## GitHub Enterprise Server version requirements
 
 Starting with Backup Utilities v2.13.0, version support is inline with that of the

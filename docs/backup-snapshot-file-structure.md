@@ -62,3 +62,29 @@ T--T--T--T--T--T--T--T--T--T--T--T--T... (transaction log backup)
 To save disk space, at each snapshot, hard links are created to point to previous backup files. Only newly-created backup files are transferred from appliance to backup host. When a new full/differential backup is created, they become the new source for hard links and new base line for transaction log backups, for subsequent snapshots.
 
 During restore, a suite of backup files are restored in the sequence of full -> differential -> chronological transaction log.
+
+## Benchmark data
+
+Benchmark data for each snapshot is stored as a log file within the `benchmarks` directory within a snapshot directory. The benchmark log can be used to determine the duration of each backup step. For example:
+
+```text
+ghe-backup-store-version took 0s
+ghe-backup-settings took 2s
+ghe-export-authorized-keys took 0s
+ghe-export-ssh-host-keys took 0s
+ghe-backup-mysql-binary took 9s
+ghe-backup-mysql took 9s
+ghe-backup-minio took 0s
+ghe-backup-redis took 1s
+ghe-backup-es-audit-log took 1s
+ghe-backup-repositories - Generating routes took 3s
+ghe-backup-repositories - Fetching routes took 0s
+ghe-backup-repositories - Processing routes took 0s
+ghe-backup-pages - hostname took 1s
+ghe-backup-pages took 1s
+ghe-backup-storage - Generating routes took 2s
+ghe-backup-storage - Fetching routes took 0s
+ghe-backup-storage - Processing routes took 0s
+ghe-backup-git-hooks took 0s
+ghe-backup-es-rsync took 2s
+```

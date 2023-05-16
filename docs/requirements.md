@@ -55,7 +55,7 @@ ls -la
 
 Using a [case sensitive][7] file system is also required to avoid conflicts.
 
-Performance of backup and restore operations are also dependent on the backup host's storage. We recommend using a high performance storage system for your data directory for best performance.
+Performance of backup and restore operations are also dependent on the backup host's storage. We recommend using a high performance storage system with low latency and high IOPS.
 
 ## GitHub Enterprise Server version requirements
 

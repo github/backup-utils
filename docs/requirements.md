@@ -56,6 +56,7 @@ ls -la
 Using a [case sensitive][7] file system is also required to avoid conflicts.
 
 Performance of backup and restore operations are also dependent on the backup host's storage. We recommend using a high performance storage system for your data directory for best performance.
+
 ## GitHub Enterprise Server version requirements
 
 Starting with Backup Utilities v2.13.0, version support is inline with that of the

@@ -56,6 +56,12 @@ restore-secret "kredz.credz HMAC key" "kredz-credz-hmac" "secrets.kredz.credz-hm
 # Restore kredz.varz HMAC key if present.
 restore-secret "kredz.varz HMAC key" "kredz-varz-hmac" "secrets.kredz.varz-hmac-secret"
 
+# Restore encrypted column encryption keying material if present
+restore-secret "encrypted column encryption keying material" "encrypted-column-encryption-keying-material" "secrets.github.encrypted-column-keying-material"
+
+# Restore encrypted column current encryption key if present
+restore-secret "encrypted column current encryption key" "encrypted-column-current-encryption-key" "secrets.github.encrypted-column-current-encryption-key"
+
 # Restore SAML keys if present.
 if [ -f "$GHE_RESTORE_SNAPSHOT_PATH/saml-keys.tar" ]; then
   log_info "Restoring SAML keys ..."

@@ -165,8 +165,7 @@ cleanup_cluster_nodes() {
 # shellcheck source=share/github-backup-utils/ghe-backup-config
 . "$( dirname "${BASH_SOURCE[0]}" )/../share/github-backup-utils/ghe-backup-config"
 
-# Calculate the actual amounts of steps in the restore process
-# taking into account the options passed to the script and the appliance configuration
+
 
 
 
@@ -271,7 +270,8 @@ if is_external_database_snapshot && ! $instance_configured && ! $FORCE; then
 
   prompt_for_confirmation "Please confirm this before continuing."
 fi
-
+# Calculate the actual amounts of steps in the restore process
+# taking into account the options passed to the script and the appliance configuration
 # calculate restore steps
 OPTIONAL_STEPS=0
 # Cluster restores add an additional step  

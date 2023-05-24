@@ -3,6 +3,7 @@ FROM ubuntu:focal
 RUN apt-get -q -y update && \
     apt-get install -y --no-install-recommends \
     tar \
+    jq \
     rsync \
     ca-certificates \
     ssh \

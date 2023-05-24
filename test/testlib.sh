@@ -160,7 +160,8 @@ report_failure () {
 
 # Mark the end of a test.
 end_test () {
-  test_status="${1:-$?}"
+  test_result=$?
+  test_status="${1:-$test_result}"
   after_time=$(date '+%s')
   elapsed_time=$((after_time - before_time))
   set +x -e

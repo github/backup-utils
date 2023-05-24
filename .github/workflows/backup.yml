@@ -32,6 +32,12 @@ on:
       AZURE_SUBSCRIPTION_ID:
         description: Azure subscription ID
         required: false
+      AZURE_ACCOUNT_NAME:
+        description: Azure storage account name
+        required: false
+      AZURE_CONTAINER_NAME:
+        description: Azure storage container name
+        required: false
       CONNECTIONSTRING:
         description: Azure storage connection string
         required: false
@@ -105,8 +111,8 @@ jobs:
       if: ${{ inputs.backup-name }} != ""
       run: |
         az storage blob upload \
-        --account-name "ghesresults" \
-        --container-name "ghes-data" \
+        --account-name "${{ secrets.AZURE_ACCOUNT_NAME }}" \
+        --container-name "${{ secrets.AZURE_CONTAINER_NAME }}" \
         --name ${{ inputs.backup-name }}.tar.gz \
         --file ${{ inputs.backup-name }}.tar.gz \
         --connection-string "${{ secrets.CONNECTIONSTRING }}"

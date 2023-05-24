@@ -1,5 +1,5 @@
-name: Backup and save to Azure
-run-name: "${{ github.actor }} - Backup and save to Azure"
+name: Backup GHES instance and save to Azure
+run-name: "${{ github.actor }} - Backup GHES instance and save to Azure"
 
 on:
   workflow_call:

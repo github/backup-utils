@@ -76,6 +76,15 @@ backup-secret() {
 
 backup-secret "management console password" "manage-password" "secrets.manage"
 backup-secret "password pepper" "password-pepper" "secrets.github.user-password-secrets"
+backup-secret "kredz.credz HMAC key" "kredz-credz-hmac" "secrets.kredz.credz-hmac-secret"
+backup-secret "kredz.varz HMAC key" "kredz-varz-hmac" "secrets.kredz.varz-hmac-secret"
+backup-secret "encrypted column encryption keying material" "encrypted-column-encryption-keying-material" "secrets.github.encrypted-column-keying-material"
+backup-secret "encrypted column current encryption key" "encrypted-column-current-encryption-key" "secrets.github.encrypted-column-current-encryption-key"
+
+# Backup argon secrets for multiuser from ghes version 3.8 onwards
+if [[ "$(version $GHE_REMOTE_VERSION)" -ge "$(version 3.8.0)" && "$(version $GHE_REMOTE_VERSION)" -lt "$(version 3.8.2)" ]]; then
+  backup-secret "management console argon2 secret" "manage-argon-secret" "secrets.manage-auth.argon-secret"
+fi
 
 # Backup external MySQL password if running external MySQL DB.
 if is_service_external 'mysql'; then

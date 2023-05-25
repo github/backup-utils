@@ -19,6 +19,7 @@
 #
 # Copyright (c) 2011-14 by Ryan Tomayko <http://tomayko.com>
 # License: MIT
+# shellcheck disable=SC2319
 set -e
 
 # Setting basic paths

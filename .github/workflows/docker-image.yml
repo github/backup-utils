@@ -18,8 +18,6 @@ jobs:
       run: docker build . --file Dockerfile --tag backup-utils:${GITHUB_RUN_ID}
     - name: Build the Alpine Docker image
       run: docker build . --file Dockerfile.alpine --tag backup-utils-alpine:${GITHUB_RUN_ID}
-    - name: Build the Rsync source Docker image
-      run: docker build . --file Dockerfile.rsync --tag backup-utils-rsync:${GITHUB_RUN_ID}
     - name: Run tests in Ubuntu Docker image
       run: |
         docker run backup-utils:${GITHUB_RUN_ID} ghe-backup --version
@@ -28,8 +26,3 @@ jobs:
       run: |
         docker run backup-utils-alpine:${GITHUB_RUN_ID} ghe-backup --version
         docker run backup-utils-alpine:${GITHUB_RUN_ID} rsync --version
-    - name: Run tests in Rsync source Docker image
-      run: |
-        docker run backup-utils-rsync:${GITHUB_RUN_ID} ghe-backup --version
-        docker run backup-utils-rsync:${GITHUB_RUN_ID} rsync --version
-      

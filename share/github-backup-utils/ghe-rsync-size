@@ -58,13 +58,22 @@ transfer_size()
     ;;
   esac
 
-  total_file_size=$(ghe-rsync -arn --stats \
+  if [ -d "${GHE_DATA_DIR}/current/$1" ]; then
+    total_file_size=$(ghe-rsync -arn --stats \
       -e "ssh -q $GHE_EXTRA_SSH_OPTS -p 122 -l admin" \
       --rsync-path="sudo -u $user rsync" \
       "$link_dest"/"$1" \
       --ignore-missing-args \
       "$GHE_HOSTNAME:$data_user_dir/" \
       "$dest_dir/" | grep "Total transferred file size" | sed 's/.*size: //; s/,//g')
+  else
+    total_file_size=$(ghe-rsync -arn --stats \
+      -e "ssh -q $GHE_EXTRA_SSH_OPTS -p 122 -l admin" \
+      --rsync-path="sudo -u $user rsync" \
+      --ignore-missing-args \
+      "$GHE_HOSTNAME:$data_user_dir/" \
+      "$dest_dir/" | grep "Total transferred file size" | sed 's/.*size: //; s/,//g')
+  fi
 
   # Reduce mysql size as only the compressed file is transferred
   if [[ "$1" == "mysql" ]]; then

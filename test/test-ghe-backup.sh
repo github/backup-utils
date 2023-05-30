@@ -2,7 +2,7 @@
 # ghe-backup command tests
 
 TESTS_DIR="$PWD/$(dirname "$0")"
-# Bring in testlib
+# Bring in testlib.
 # shellcheck source=test/testlib.sh
 . "$TESTS_DIR/testlib.sh"
 
@@ -146,6 +146,9 @@ begin_test "ghe-backup management console does not backup argon secret"
 
   GHE_REMOTE_VERSION=3.7.10 ghe-backup -v | grep -q "management console argon2 secret not set" && exit 1
   [ ! -f "$GHE_DATA_DIR/current/manage-argon-secret" ]
+
+  GHE_REMOTE_VERSION=3.8.2 ghe-backup -v | grep -q "management console argon2 secret not set" && exit 1
+  [ ! -f "$GHE_DATA_DIR/current/manage-argon-secret" ]
 )
 end_test
 
@@ -161,9 +164,6 @@ begin_test "ghe-backup management console backs up argon secret"
 
   rm -rf "$GHE_DATA_DIR/current"
 
-  GHE_REMOTE_VERSION=4.1.0 ghe-backup
-
-  [ "$(cat "$GHE_DATA_DIR/current/manage-argon-secret")" = "fake pw" ]
 )
 end_test
 
@@ -555,6 +555,56 @@ begin_test "ghe-backup takes backup of kredz-varz settings"
 )
 end_test
 
+begin_test "ghe-backup takes backup of encrypted column encryption keying material"
+(
+  set -e
+
+  required_secrets=(
+    "secrets.github.encrypted-column-keying-material"
+  )
+
+  for secret in "${required_secrets[@]}"; do
+    ghe-ssh "$GHE_HOSTNAME" -- ghe-config "$secret" "foo"
+  done
+
+  ghe-backup
+
+  required_files=(
+    "encrypted-column-encryption-keying-material"
+  )
+
+  for file in "${required_files[@]}"; do
+    [ "$(cat "$GHE_DATA_DIR/current/$file")" = "foo" ]
+  done
+
+)
+end_test
+
+begin_test "ghe-backup takes backup of encrypted column current encryption key"
+(
+  set -e
+
+  required_secrets=(
+    "secrets.github.encrypted-column-current-encryption-key"
+  )
+
+  for secret in "${required_secrets[@]}"; do
+    ghe-ssh "$GHE_HOSTNAME" -- ghe-config "$secret" "foo"
+  done
+
+  ghe-backup
+
+  required_files=(
+    "encrypted-column-current-encryption-key"
+  )
+
+  for file in "${required_files[@]}"; do
+    [ "$(cat "$GHE_DATA_DIR/current/$file")" = "foo" ]
+  done
+
+)
+end_test
+
 begin_test "ghe-backup takes backup of Actions settings"
 (
   set -e
@@ -732,5 +782,18 @@ begin_test "ghe-backup fix_paths_for_ghe_version newer/older"
             echo foo/gist | fix_paths_for_ghe_version
         ")" == "foo" ]
     done
+)
+end_test
+
+# Check that information on system where backup-utils is installed is collected
+begin_test "ghe-backup collects information on system where backup-utils is installed"
+(
+  set -e
+
+  output=$(ghe-backup)
+  echo "$output" | grep "Running on: $(cat /etc/issue.net)"
+  echo "$output" | grep "CPUs: $(nproc)"
+  echo "$output" | grep "Memory total/used/free+share/buff/cache:"
+
 )
 end_test

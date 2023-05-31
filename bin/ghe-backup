@@ -284,15 +284,13 @@ if [ "$GHE_BACKUP_FSCK" = "yes" ]; then
 fi
 
 # If everything was successful, mark the snapshot as complete, update the
-# current symlink to point to the new snapshot and prune expired and failed
-# snapshots.
+# current symlink to point to the new snapshot
+# Expired and failed snapshots to be pruned separately
 if [ -z "$failures" ]; then
   rm "incomplete"
 
   rm -f "../current"
   ln -s "$GHE_SNAPSHOT_TIMESTAMP" "../current"
-
-  ghe-prune-snapshots
 fi
 
 END_TIME=$(date +%s)

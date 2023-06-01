@@ -213,9 +213,11 @@ DATA_TRANSFER_SIZE
     echo "rsync version $rsync_version in backup-host does not meet minimum requirements." 1>&2
     echo "Please make sure you have the minimum required version of rsync: $min_rsync installed" 1>&2
     exit 1
-  else
-    echo "rsync ${rsync_version} >= required ($min_rsync)" 1>&2
+  elif awk "BEGIN {exit !($rsync_version < 3.2.5)}" &> /dev/null && [ "$RSYNC_WARNING" != "no" ]; then
+    warn_mesg="**WARNING: rsync version $rsync_version on backup host is less than 3.2.5. For more details, please read documentation at https://github.com/github/backup-utils/blob/master/docs/requirements.md#april-2023-update-of-rsync-requirements\nIf you feel this warning doesn't apply anymore, you can disable it by updating RSYNC_WARNING to 'no' in your backup.config file.\n"
+    echo -e $warn_mesg 1>&2
   fi
+  echo "rsync ${rsync_version} >= required ($min_rsync)" 1>&2
 
   ssh_version=$(ssh -V 2>&1 | awk '{print $1}'|grep -oPm 1 '[\d\.]+' |head -1 | tr -cd '[:digit:].\n')
   if awk "BEGIN {exit !($ssh_version < $min_openssh)}" &> /dev/null; then

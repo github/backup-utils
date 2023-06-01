@@ -144,7 +144,7 @@ if [ -z "$supported" ]; then
   exit 1
 fi
 
-if [[ "$CALLING_SCRIPT" == "ghe-backup" ]]; then
+if [[ "$CALLING_SCRIPT" != "ghe-backup" ]]; then
   # Bring in the requirements file
   min_rsync=""
   min_openssh=""
@@ -214,8 +214,9 @@ DATA_TRANSFER_SIZE
     echo "Please make sure you have the minimum required version of rsync: $min_rsync installed" 1>&2
     exit 1
   elif awk "BEGIN {exit !($rsync_version < 3.2.5)}" &> /dev/null && [ "$RSYNC_WARNING" != "no" ]; then
-    warn_mesg="**WARNING: rsync version $rsync_version on backup host is less than 3.2.5. For more details, please read documentation at https://github.com/github/backup-utils/blob/master/docs/requirements.md#april-2023-update-of-rsync-requirements\nIf you feel this warning doesn't apply anymore, you can disable it by updating RSYNC_WARNING to 'no' in your backup.config file.\n"
-    echo -e $warn_mesg 1>&2
+    warn_mesg=("**WARNING: rsync version $rsync_version on backup host is less than 3.2.5. For more details, please read documentation at https://github.com/github/backup-utils/blob/master/docs/requirements.md#april-2023-update-of-rsync-requirements"
+   "If you feel this warning doesn't apply anymore, you can disable it by updating RSYNC_WARNING to 'no' in your backup.config file.")
+    printf "%s\n" "${warn_mesg[@]}" 1>&2
   fi
   echo "rsync ${rsync_version} >= required ($min_rsync)" 1>&2
 

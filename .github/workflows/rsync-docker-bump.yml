@@ -22,7 +22,7 @@ jobs:
           sed -i -E "s/RSYNC_TAG=[0-9\.]+/RSYNC_TAG=${{ steps.latest_tag.outputs.latest_tag }}/g" Dockerfile
 
       - name: Create Pull Request for tag update
-        uses: peter-evans/create-pull-request@v3
+        uses: peter-evans/create-pull-request@v5
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: "Update rsync tag in Dockerfile"

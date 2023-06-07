@@ -454,7 +454,7 @@ if [ -s "$GHE_RESTORE_SNAPSHOT_PATH/uuid" ] && ! $CLUSTER; then
   ghe-ssh "$GHE_HOSTNAME" -- "sudo systemctl stop consul" || true
   ghe-ssh "$GHE_HOSTNAME" -- "sudo rm -rf /data/user/consul/raft"
   bm_end "$(basename $0) - Restore UUID"
-  fi
+fi
 
 
 if is_external_database_snapshot; then

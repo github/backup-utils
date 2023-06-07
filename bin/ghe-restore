@@ -274,28 +274,28 @@ fi
 # taking into account the options passed to the script and the appliance configuration
 # calculate restore steps
 OPTIONAL_STEPS=0
-# Cluster restores add an additional step  
+# Cluster restores add an additional step
 if $CLUSTER ; then
   OPTIONAL_STEPS=$((OPTIONAL_STEPS + 1))
 fi
-# Restoring UUID 
+# Restoring UUID
 if [ -s "$GHE_RESTORE_SNAPSHOT_PATH/uuid" ] && ! $CLUSTER; then
   OPTIONAL_STEPS=$((OPTIONAL_STEPS + 1))
 fi
 # Restoring Actions
 if ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config --true app.actions.enabled'; then
   OPTIONAL_STEPS=$((OPTIONAL_STEPS + 1))
-fi  
-# Restoring minio 
+fi
+# Restoring minio
 if ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config --true app.minio.enabled'; then
   OPTIONAL_STEPS=$((OPTIONAL_STEPS + 1))
 fi
-# Restoring Elasticsearch 
+# Restoring Elasticsearch
 if ! $CLUSTER && [ -d "$GHE_RESTORE_SNAPSHOT_PATH/elasticsearch" ]; then
   OPTIONAL_STEPS=$((OPTIONAL_STEPS + 1))
 fi
 # Restoring audit log
-if $CLUSTER || [ "$(version $GHE_REMOTE_VERSION)" -ge "$(version 2.12.9)" ]; then
+if $CLUSTER || [ "$(version "$GHE_REMOTE_VERSION")" -ge "$(version 2.12.9)" ]; then
   if [[ "$GHE_RESTORE_SKIP_AUDIT_LOG" != "yes" ]]; then
     OPTIONAL_STEPS=$((OPTIONAL_STEPS + 1))
   fi
@@ -309,9 +309,9 @@ export PROGRESS_TOTAL=$((OPTIONAL_STEPS + 6))
 
 init-progress
 export PROGRESS_TYPE="Restore"
-echo $PROGRESS_TYPE > /tmp/backup-utils-progress-type
+echo "$PROGRESS_TYPE" > /tmp/backup-utils-progress-type
 export PROGRESS=0 # Used to track progress of restore
-echo $PROGRESS > /tmp/backup-utils-progress
+echo "$PROGRESS" > /tmp/backup-utils-progress
 
 # Log restore start message locally and in /var/log/syslog on remote instance
 START_TIME=$(date +%s)

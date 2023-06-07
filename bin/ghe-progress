@@ -11,20 +11,20 @@
 
 while true; do
     case "$1" in
-        -o|--once) 
-            ONCE=1; 
-            shift 
+        -o|--once)
+            ONCE=1
+            shift
             ;;
         -h|--help)
             export GHE_SHOW_HELP=true
             shift
             ;;
-        -*) 
-            echo "Unknown option: $1" >&2; 
-            exit 1 
+        -*)
+            echo "Unknown option: $1" >&2
+            exit 1
             ;;
-        *) 
-            break 
+        *)
+            break
             ;;
     esac
 done

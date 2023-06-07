@@ -55,7 +55,6 @@ fi
 PATH="$GHE_BACKUP_ROOT/bin:$GHE_BACKUP_ROOT/share/github-backup-utils:$PATH"
 # shellcheck source=share/github-backup-utils/bm.sh
 . "$GHE_BACKUP_ROOT/share/github-backup-utils/bm.sh"
-. "$GHE_BACKUP_ROOT/share/github-backup-utils/backup-utils-progress"
 # Save off GHE_HOSTNAME from the environment since we want it to override the
 # backup.config value when set.
 GHE_HOSTNAME_PRESERVE="$GHE_HOSTNAME"

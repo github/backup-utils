@@ -337,7 +337,7 @@ if [ -n "$backup_type" ]; then
   fi
   
   bm_start "$(basename "$0")"
-  ghe_ssh_mssql  -- "$backup_command" || failures="$failures mssql"
+  ghe_ssh_mssql  -- "$backup_command"
   bm_end "$(basename "$0")"
 
   # Configure the backup cadence on the appliance, which is used for diagnostics

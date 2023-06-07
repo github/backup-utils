@@ -8,6 +8,7 @@
 #/ Options:
 #/  --once  Don't loop, just print the current progress once.
 #
+set -e
 
 while true; do
     case "$1" in

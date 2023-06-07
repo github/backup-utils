@@ -131,7 +131,7 @@ ghe_restore_check
 # Check to see if there is a running backup
 if [ -h ../in-progress ]; then
 
-  log_error "Detected a backup already in progress from a previous version of ghe-backup. \nIf there is no backup in progress anymore, please remove \nthe $GHE_DATA_DIR/in-progress file." 1>&2
+  log_error "Detected a backup already in progress from a previous version of ghe-backup. \nIf there is no backup in progress anymore, please remove \nthe $GHE_DATA_DIR/in-progress file." >&2
   exit 1
 fi
 

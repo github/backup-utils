@@ -505,9 +505,7 @@ fi
 cmd_title=$(log_info "Restoring Redis database ...")
 commands=("
 echo \"$cmd_title\"
-bm_start \"$(basename $0) - Restoring Redis\"
-ghe-ssh \"$GHE_HOSTNAME\" -- 'ghe-import-redis' < \"$GHE_RESTORE_SNAPSHOT_PATH/redis.rdb\" 1>&3
-bm_end  \"$(basename $0) - Restoring Redis\"")
+ghe-restore-redis \"$GHE_HOSTNAME\")
 
 cmd_title=$(log_info "Restoring Git Repositories ...")
 commands+=("
@@ -527,9 +525,7 @@ ghe-restore-pages \"$GHE_HOSTNAME\" 1>&3")
 cmd_title=$(log_info "Restoring SSH authorized keys ...")
 commands+=("
 echo \"$cmd_title\"
-bm_start \"$(basename $0) -Restoring SSH authorized keys\"
-ghe-ssh \"$GHE_HOSTNAME\" -- 'ghe-import-authorized-keys' < \"$GHE_RESTORE_SNAPSHOT_PATH/authorized-keys.json\" 1>&3
-bm_end \"$(basename $0) -Restoring SSH authorized keys\"")
+ghe-restore-ssh-keys \"$GHE_HOSTNAME\" \"$GHE_RESTORE_SNAPSHOT_PATH\")
 
 cmd_title=$(log_info "Restoring storage data ...")
 commands+=("

@@ -42,6 +42,9 @@ GHE_NUM_SNAPSHOTS=10
 #
 #GHE_EXTRA_RSYNC_OPTS=""
 
+# If enabled and set to 'no', rsync warning message during backups will be suppressed.
+#RSYNC_WARNING=no
+
 
 # If set to 'yes', logging output will be colorized.
 #

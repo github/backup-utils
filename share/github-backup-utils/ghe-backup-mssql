@@ -30,7 +30,7 @@ export_tool_available() {
 }
 
 ghe_ssh_mssql() {
-  ghe-ssh "$opts" "$ssh_config_file_opt" "$GHE_MSSQL_PRIMARY_HOST" "$@"
+  ghe-ssh "${opts[@]}" "${ssh_config_file_opt[@]}" "$GHE_MSSQL_PRIMARY_HOST" "$@"
 }
 
 cleanup() {
@@ -55,8 +55,8 @@ isHA="$(ghe-ssh "$GHE_HOSTNAME" -- "ghe-config cluster.ha" || true)"
 # get server hostnames under cluster and HA
 if [ "$GHE_BACKUP_STRATEGY" = "cluster" ] || [ "$isHA" = "true" ]  ; then
   ssh_config_file="$tempdir/ssh_config"
-  ssh_config_file_opt="-F $ssh_config_file"
-  opts="-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no"
+  ssh_config_file_opt=("-F" "$ssh_config_file")
+  opts=("-o" "UserKnownHostsFile=/dev/null" "-o" "StrictHostKeyChecking=no" "-o" "PasswordAuthentication=no")
   ghe-ssh-config "$GHE_HOSTNAME" "$GHE_MSSQL_PRIMARY_HOST" > "$ssh_config_file"
 fi
 

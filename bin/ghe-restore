@@ -576,6 +576,7 @@ if [ "$GHE_PARALLEL_ENABLED" = "yes" ]; then
 else
   log_info "Restoring data serially ..." 1>&3
   for c in "${commands[@]}"; do
+    . "$( dirname "${BASH_SOURCE[0]}" )/../share/github-backup-utils/bm.sh"
     eval "$c"
   done
 fi

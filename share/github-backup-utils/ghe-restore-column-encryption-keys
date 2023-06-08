@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+#/ Usage: ghe-restore-settings <host>
+#/ Restore settings from a snapshot to the given <host>.
+set -e
+
+# Bring in the backup configuration
+# shellcheck source=share/github-backup-utils/ghe-backup-config
+. "$( dirname "${BASH_SOURCE[0]}" )/ghe-backup-config"
+
+# Show usage and bail with no arguments
+[ -z "$*" ] && print_usage
+
+bm_start "$(basename $0)"
+
+# Grab host arg
+GHE_HOSTNAME="$1"
+
+# Perform a host-check and establish GHE_REMOTE_XXX variables.
+ghe_remote_version_required "$GHE_HOSTNAME"
+
+# The snapshot to restore should be set by the ghe-restore command but this lets
+# us run this script directly.
+: ${GHE_RESTORE_SNAPSHOT:=current}
+
+# Path to snapshot dir we're restoring from
+GHE_RESTORE_SNAPSHOT_PATH="$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT"
+
+# Restore encrypted column encryption keying material if present
+restore-secret "encrypted column encryption keying material" "encrypted-column-encryption-keying-material" "secrets.github.encrypted-column-keying-material"
+
+# Restore encrypted column current encryption key if present
+restore-secret "encrypted column current encryption key" "encrypted-column-current-encryption-key" "secrets.github.encrypted-column-current-encryption-key"
+
+bm_end "$(basename $0)"

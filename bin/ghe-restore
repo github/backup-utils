@@ -383,6 +383,9 @@ if $RESTORE_SETTINGS; then
   ghe-restore-settings "$GHE_HOSTNAME"
 fi
 
+# Always restore column encryption keys
+ghe-restoe-column-encryption-keys "$GHE_HOSTNAME"
+
 # Make sure mysql and elasticsearch are prep'd and running before restoring.
 # These services will not have been started on appliances that have not been
 # configured yet.

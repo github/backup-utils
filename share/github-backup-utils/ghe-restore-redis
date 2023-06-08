@@ -16,6 +16,9 @@ set -e
 # Grab host arg
 GHE_HOSTNAME="${1}"
 
+# Grab snapshot path arg
+GHE_RESTORE_SNAPSHOT_PATH="${2}"
+
 bm_start "$(basename "${0}")"
 
 ghe-ssh "$GHE_HOSTNAME" -- 'ghe-import-redis' < "$GHE_RESTORE_SNAPSHOT_PATH/redis.rdb" 1>&3

@@ -505,7 +505,7 @@ fi
 cmd_title=$(log_info "Restoring Redis database ...")
 commands=("
 echo \"$cmd_title\"
-ghe-restore-redis \"$GHE_HOSTNAME\"")
+ghe-restore-redis \"$GHE_HOSTNAME\" \"$GHE_RESTORE_SNAPSHOT_PATH\"")
 
 cmd_title=$(log_info "Restoring Git Repositories ...")
 commands+=("

@@ -9,11 +9,11 @@ GHE_HOSTNAME="github.example.com"
 # elsewhere for backing up to a separate partition / mount point.
 GHE_DATA_DIR="data"
 
-# The number of backup snapshots to retain. Old snapshots are to be pruned separately 
-# after successful backups. This option should be tuned based on the frequency
+# The number of backup snapshots to retain. Old snapshots are pruned after each
+# successful ghe-backup run. This option should be tuned based on the frequency
 # of scheduled backup runs. If backups are scheduled hourly, snapshots will be
 # available for the past N hours; if backups are scheduled daily, snapshots will
-# be available for the past N days ... 
+# be available for the past N days ...
 GHE_NUM_SNAPSHOTS=10
 
 # Pruning snapshots can be scheduled outside of the backup process. If set to 'yes'

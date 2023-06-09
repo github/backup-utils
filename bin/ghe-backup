@@ -294,6 +294,8 @@ if [ -z "$failures" ]; then
 
   if [[ $GHE_PRUNING_SCHEDULED != "yes" ]]; then
     ghe-prune-snapshots
+  else
+    echo "Expired and incomplete snapshots to be pruned separately"
   fi
 fi
 

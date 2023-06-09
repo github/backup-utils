@@ -13,9 +13,12 @@ GHE_DATA_DIR="data"
 # after successful backups. This option should be tuned based on the frequency
 # of scheduled backup runs. If backups are scheduled hourly, snapshots will be
 # available for the past N hours; if backups are scheduled daily, snapshots will
-# be available for the past N days. Pruning enablement defaults to 'yes'
+# be available for the past N days ... 
 GHE_NUM_SNAPSHOTS=10
-#GHE_PRUNING_ENABLED=no
+
+# Pruning snapshots can be scheduled outside of the backup process. If set to 'yes'
+# ghe-pruning-snapshots will need to be invoked separately via cron
+#GHE_PRUNING_SCHEDULED=yes
 
 # The hostname of the GitHub appliance to restore. If you've set up a separate
 # GitHub appliance to act as a standby for recovery, specify its IP or hostname

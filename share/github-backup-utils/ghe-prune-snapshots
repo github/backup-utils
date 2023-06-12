@@ -20,21 +20,30 @@ prune_snapshot() {
   done
 }
 
-# First prune all incomplete / failed snapshot directories
-prune_dirs="$(ls -1 "$GHE_DATA_DIR"/[0-9]*/incomplete 2>/dev/null || true)"
-prune_num=$(echo "$prune_dirs" | grep -v '^$' | wc -l)
-
-if [ $prune_num -gt 0 ]; then
-  log_info Pruning $prune_num "failed snapshot(s) ..."
-  echo "$prune_dirs" | sed 's@/incomplete$@@' | prune_snapshot
-fi
-
-# Now prune all expired snapshots. Keep GHE_NUM_SNAPSHOTS around.
-snapshot_count=$(ls -1d "$GHE_DATA_DIR"/[0-9]* 2>/dev/null | wc -l)
-
-if [ "$snapshot_count" -gt "$GHE_NUM_SNAPSHOTS" ]; then
-  prune_dirs="$(ls -1d "$GHE_DATA_DIR"/[0-9]* | sort -r | awk "NR>$GHE_NUM_SNAPSHOTS")"
+# Prune if backup is not running
+#if [ ! -f "$GHE_DATA_DIR/in-progress" ] && [ ! -f "$GHE_DATA_DIR/in-progress-restore" ]; then
+# Check for backup or restore in-progress file
+inprogress_file=$(find $GHE_DATA_DIR -maxdepth 1 -type f \( -name "in-progress" -o -name "in-progress-restore" \) -print -quit)
+if [ -z "$inprogress_file" ]; then
+  # First prune all incomplete / failed snapshot directories
+  prune_dirs="$(ls -1 "$GHE_DATA_DIR"/[0-9]*/incomplete 2>/dev/null || true)"
   prune_num=$(echo "$prune_dirs" | grep -v '^$' | wc -l)
-  log_info Pruning $prune_num "expired snapshot(s) ..."
-  echo "$prune_dirs" | prune_snapshot
+
+  if [ $prune_num -gt 0 ]; then
+    log_info Pruning $prune_num "failed snapshot(s) ..."
+    echo "$prune_dirs" | sed 's@/incomplete$@@' | prune_snapshot
+  fi
+
+  # Now prune all expired snapshots. Keep GHE_NUM_SNAPSHOTS around.
+  snapshot_count=$(ls -1d "$GHE_DATA_DIR"/[0-9]* 2>/dev/null | wc -l)
+
+  if [ "$snapshot_count" -gt "$GHE_NUM_SNAPSHOTS" ]; then
+    prune_dirs="$(ls -1d "$GHE_DATA_DIR"/[0-9]* | sort -r | awk "NR>$GHE_NUM_SNAPSHOTS")"
+    prune_num=$(echo "$prune_dirs" | grep -v '^$' | wc -l)
+    log_info Pruning $prune_num "expired snapshot(s) ..."
+    echo "$prune_dirs" | prune_snapshot
+  fi
+else
+  log_info "Detected a running backup/restore process, please wait until that process is complete to prune expired/incomplete snapshots." 1>&2
+  log_info "If no such process is running, please remove the "$GHE_DATA_DIR/in-progress*" file and retry again." 1>&2
 fi

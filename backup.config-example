@@ -42,6 +42,14 @@ GHE_NUM_SNAPSHOTS=10
 #
 #GHE_EXTRA_RSYNC_OPTS=""
 
+# If enabled and set to 'no', rsync warning message during backups will be suppressed.
+#RSYNC_WARNING=no
+
+
+# If set to 'yes', logging output will be colorized.
+#
+#OUTPUT_COLOR=no
+
 # If set to 'no', GHE_DATA_DIR will not be created automatically
 # and restore/backup will exit 8
 #
@@ -90,3 +98,6 @@ GHE_NUM_SNAPSHOTS=10
 # When running an external mysql database, run this script to trigger a MySQL restore
 # rather than attempting to backup via backup-utils directly.
 #EXTERNAL_DATABASE_RESTORE_SCRIPT="/bin/false"
+
+# If set to 'yes', Pages data will be included in backup and restore. Defaults to 'yes'
+#GHE_BACKUP_PAGES=no

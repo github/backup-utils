@@ -28,7 +28,7 @@ GHE_HOSTNAME="$1"
 network_paths=$(cd $GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/ && find repositories -mindepth 6 -maxdepth 7 -name \*.git -exec dirname {} \; | uniq | grep nw | cut -d / -f2-)
 
 if [ -z "$network_paths" ]; then
-  echo "Warning: Repositories backup missing. Skipping ..."
+  log_warn "Warning: Repositories backup missing. Skipping ..."
   exit 0
 fi
 
@@ -140,7 +140,7 @@ ghe_debug "\n$(find "$tempdir" -maxdepth 1 -name '*.rsync')"
 bm_end "$(basename $0) - Processing routes"
 
 if [ -z "$(find "$tempdir" -maxdepth 1 -name '*.rsync')" ]; then
-  echo "Warning: no routes found, skipping repositories restore ..."
+  log_warn "Warning: no routes found, skipping repositories restore ..."
   exit 0
 fi
 
@@ -159,18 +159,19 @@ for file_list in $tempdir/git-server-*.rsync; do
     if [ -n \"$GHE_VERBOSE\" ]; then
       echo \"* Transferring repository networks to $server ($file_list) ...\" 1>&3
     fi
-
+      echo \"$(date -u "+%FT%TZ") RSYNC BEGIN: repositories rsync\" 1>&3
     ghe-rsync -avrR --delete \
       -e \"ssh -q $opts -p $port $ssh_config_file_opt -l $user\" \
       --rsync-path=\"sudo -u git rsync\" \
       --files-from=$file_list \
       \"$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/repositories/./\" \
       \"$server:$GHE_REMOTE_DATA_USER_DIR/repositories/\" 1>&3
+    echo \"$(date -u "+%FT%TZ") RSYNC END: repositories rsync\" 1>&3
     ")
 done
 
 if [ "$GHE_PARALLEL_ENABLED" = "yes" ]; then
-  $GHE_PARALLEL_COMMAND $GHE_PARALLEL_RSYNC_COMMAND_OPTIONS -- "${rsync_commands[@]}"
+  "$GHE_PARALLEL_COMMAND" "${GHE_PARALLEL_RSYNC_COMMAND_OPTIONS[@]}" -- "${rsync_commands[@]}"
 else
   for c in "${rsync_commands[@]}"; do
     eval "$c"
@@ -216,7 +217,7 @@ bm_end "$(basename $0) - Updating repository info data"
 
 restore_warnings="$(ghe-ssh "$GHE_HOSTNAME" -- cat "$remote_warnings" 2>/dev/null || true)"
 if [ -n "$restore_warnings" ]; then
-  echo "Warning: One or more repository networks failed to restore successfully. Please contact GitHub Enterprise Support for assistance."
+  log_warn "Warning: One or more repository networks failed to restore successfully. Please contact GitHub Enterprise Support for assistance."
   echo "$restore_warnings"
 fi
 

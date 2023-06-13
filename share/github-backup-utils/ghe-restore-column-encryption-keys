@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-#/ Usage: ghe-restore-settings <host>
-#/ Restore settings from a snapshot to the given <host>.
+#/ Usage: ghe-restore-column-encryption-keys <host>
+#/ Restore the column encryption keys from a snapshot to the given <host>.
+#/ This script will be run automatically by `ghe-restore
 set -e
 
 # Bring in the backup configuration
@@ -26,9 +27,11 @@ ghe_remote_version_required "$GHE_HOSTNAME"
 GHE_RESTORE_SNAPSHOT_PATH="$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT"
 
 # Restore encrypted column encryption keying material if present
+log_info "Restoring encrypted column encryption keying material"
 restore-secret "encrypted column encryption keying material" "encrypted-column-encryption-keying-material" "secrets.github.encrypted-column-keying-material"
 
 # Restore encrypted column current encryption key if present
+log_info "Restoring encrypted column current encryption key"
 restore-secret "encrypted column current encryption key" "encrypted-column-current-encryption-key" "secrets.github.encrypted-column-current-encryption-key"
 
 bm_end "$(basename $0)"

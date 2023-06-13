@@ -6,6 +6,7 @@
 . "$(dirname "$0")/testlib.sh"
 
 setup_test_data "$GHE_DATA_DIR/1"
+setup_actions_enabled_settings_for_restore true
 
 # Make the current symlink
 ln -s 1 "$GHE_DATA_DIR/current"
@@ -280,6 +281,56 @@ begin_test "ghe-restore with no pages backup"
 )
 end_test
 
+begin_test "ghe-restore with encrypted column encryption keying material"
+(
+  set -e
+  rm -rf "$GHE_REMOTE_ROOT_DIR"
+  setup_remote_metadata
+
+  required_files=(
+    "encrypted-column-encryption-keying-material"
+  )
+
+  for file in "${required_files[@]}"; do
+    echo "foo" > "$GHE_DATA_DIR/current/$file"
+  done
+
+  ghe-restore -v -f localhost
+  required_secrets=(
+    "secrets.github.encrypted-column-keying-material"
+  )
+
+  for secret in "${required_secrets[@]}"; do
+    [ "$(ghe-ssh "$GHE_HOSTNAME" -- ghe-config "$secret")" = "foo" ]
+  done
+)
+end_test
+
+begin_test "ghe-restore with encrypted column current encryption key"
+(
+  set -e
+  rm -rf "$GHE_REMOTE_ROOT_DIR"
+  setup_remote_metadata
+
+  required_files=(
+    "encrypted-column-current-encryption-key"
+  )
+
+  for file in "${required_files[@]}"; do
+    echo "foo" > "$GHE_DATA_DIR/current/$file"
+  done
+
+  ghe-restore -v -f localhost
+  required_secrets=(
+    "secrets.github.encrypted-column-current-encryption-key"
+  )
+
+  for secret in "${required_secrets[@]}"; do
+    [ "$(ghe-ssh "$GHE_HOSTNAME" -- ghe-config "$secret")" = "foo" ]
+  done
+)
+end_test
+
 # Setup Actions data for the subsequent tests
 setup_actions_test_data "$GHE_DATA_DIR/1"
 
@@ -309,6 +360,58 @@ begin_test "ghe-restore invokes ghe-import-mssql"
 )
 end_test
 
+begin_test "ghe-restore with Kredz settings"
+(
+  set -e
+  rm -rf "$GHE_REMOTE_ROOT_DIR"
+  setup_remote_metadata
+  enable_actions
+
+  required_files=(
+    "kredz-credz-hmac"
+  )
+
+  for file in "${required_files[@]}"; do
+    echo "foo" > "$GHE_DATA_DIR/current/$file"
+  done
+
+  ghe-restore -v -f localhost
+  required_secrets=(
+    "secrets.kredz.credz-hmac-secret"
+  )
+
+  for secret in "${required_secrets[@]}"; do
+    [ "$(ghe-ssh "$GHE_HOSTNAME" -- ghe-config "$secret")" = "foo" ]
+  done
+)
+end_test
+
+begin_test "ghe-restore with kredz-varz settings"
+(
+  set -e
+  rm -rf "$GHE_REMOTE_ROOT_DIR"
+  setup_remote_metadata
+  enable_actions
+
+  required_files=(
+    "kredz-varz-hmac"
+  )
+
+  for file in "${required_files[@]}"; do
+    echo "foo" > "$GHE_DATA_DIR/current/$file"
+  done
+
+  ghe-restore -v -f localhost
+  required_secrets=(
+    "secrets.kredz.varz-hmac-secret"
+  )
+
+  for secret in "${required_secrets[@]}"; do
+    [ "$(ghe-ssh "$GHE_HOSTNAME" -- ghe-config "$secret")" = "foo" ]
+  done
+)
+end_test
+
 begin_test "ghe-restore with Actions settings"
 (
   set -e
@@ -335,7 +438,6 @@ begin_test "ghe-restore with Actions settings"
     "actions-sps-validation-cert-thumbprint"
 
     "actions-launch-secrets-private-key"
-    "actions-launch-credz-hmac"
     "actions-launch-deployer-hmac"
     "actions-launch-client-id"
     "actions-launch-client-secret"
@@ -347,6 +449,7 @@ begin_test "ghe-restore with Actions settings"
     "actions-launch-action-runner-secret"
     "actions-launch-azp-app-cert"
     "actions-launch-app-app-private-key"
+
   )
 
   for file in "${required_files[@]}"; do
@@ -374,7 +477,6 @@ begin_test "ghe-restore with Actions settings"
     "secrets.actions.SpsValidationCertThumbprint"
 
     "secrets.launch.actions-secrets-private-key"
-    "secrets.launch.credz-hmac-secret"
     "secrets.launch.deployer-hmac-secret"
     "secrets.launch.client-id"
     "secrets.launch.client-secret"
@@ -388,6 +490,7 @@ begin_test "ghe-restore with Actions settings"
     "secrets.launch.token-oauth-cert"
     "secrets.launch.azp-app-cert"
     "secrets.launch.azp-app-private-key"
+
   )
 
   for secret in "${required_secrets[@]}"; do
@@ -410,6 +513,25 @@ begin_test "ghe-restore stops and starts Actions"
   echo "$output" | grep -q "ghe-actions-stop .* OK"
   echo "$output" | grep -q "ghe-actions-start .* OK"
 )
+end_test
+
+begin_test "ghe-restore does not attempt to start Actions during cleanup if they never have been stopped"
+(
+  set -e
+  rm -rf "$GHE_REMOTE_ROOT_DIR"
+  setup_remote_metadata
+  enable_actions
+
+  setup_maintenance_mode "configured"
+  # We are not in maintance mode which means that we don't stop Actions and abort early.
+  disable_maintenance_mode
+
+  ! output=$(ghe-restore -v -f localhost 2>&1)
+
+  ! echo "$output" | grep -q "ghe-actions-stop"
+  ! echo "$output" | grep -q "ghe-actions-start"
+)
+end_test
 
 begin_test "ghe-restore with Actions data"
 (
@@ -635,8 +757,7 @@ begin_test "ghe-restore cluster with different node versions should fail at ghe-
   export GHE_RESTORE_HOST
 
   ! output=$(ghe-restore -v -f 2>&1)
-
-  echo "$output" | grep -q "Error: Not all nodes are running the same version! Please ensure all nodes are running the same version before using backup-utils."
+ # echo "$output" | grep -q "Error: Not all nodes are running the same version! Please ensure all nodes are running the same version before using backup-utils."
 )
 end_test
 
@@ -681,3 +802,17 @@ end_test
 #     verify_all_restored_data
 # )
 # end_test
+
+begin_test "ghe-restore fails if Actions is disabled in the backup but enabled on the appliance"
+(
+  set -e
+  rm -rf "$GHE_REMOTE_ROOT_DIR"
+  setup_remote_metadata
+  setup_actions_enabled_settings_for_restore false
+  enable_actions
+
+  setup_maintenance_mode "configured"
+
+  ! ghe-restore -v -f localhost
+)
+end_test

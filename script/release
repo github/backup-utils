@@ -330,7 +330,7 @@ def clean_up(version)
   `git pull --quiet origin #{GH_BASE_BRANCH} --prune`
   `git branch --quiet -D release-#{version} >/dev/null 2>&1`
   `git push --quiet origin :release-#{version} >/dev/null 2>&1`
-  `git branch --quiet -D tmp-packging >/dev/null 2>&1`
+  `git branch --quiet -D tmp-packaging >/dev/null 2>&1`
 end
 
 #### All the action starts ####

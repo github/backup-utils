@@ -2,7 +2,7 @@
 # ghe-backup command tests
 
 TESTS_DIR="$PWD/$(dirname "$0")"
-# Bring in testlib
+# Bring in testlib.
 # shellcheck source=test/testlib.sh
 . "$TESTS_DIR/testlib.sh"
 
@@ -10,6 +10,7 @@ TESTS_DIR="$PWD/$(dirname "$0")"
 mkdir -p "$GHE_DATA_DIR" "$GHE_REMOTE_DATA_USER_DIR"
 
 setup_test_data $GHE_REMOTE_DATA_USER_DIR
+
 
 begin_test "ghe-backup first snapshot"
 (
@@ -129,6 +130,40 @@ begin_test "ghe-backup without password pepper"
   ghe-backup
 
   [ ! -f "$GHE_DATA_DIR/current/password-pepper" ]
+)
+end_test
+
+# before the introduction of multiuser auth
+begin_test "ghe-backup management console does not backup argon secret"
+(
+  set -e
+
+  GHE_REMOTE_VERSION=2.1.10 ghe-backup -v | grep -q "management console argon2 secret not set" && exit 1
+  [ ! -f "$GHE_DATA_DIR/current/manage-argon-secret" ]
+
+  GHE_REMOTE_VERSION=3.6.1 ghe-backup -v | grep -q "management console argon2 secret not set" && exit 1
+  [ ! -f "$GHE_DATA_DIR/current/manage-argon-secret" ]
+
+  GHE_REMOTE_VERSION=3.7.10 ghe-backup -v | grep -q "management console argon2 secret not set" && exit 1
+  [ ! -f "$GHE_DATA_DIR/current/manage-argon-secret" ]
+
+  GHE_REMOTE_VERSION=3.8.2 ghe-backup -v | grep -q "management console argon2 secret not set" && exit 1
+  [ ! -f "$GHE_DATA_DIR/current/manage-argon-secret" ]
+)
+end_test
+
+# multiuser auth introduced in ghes version 3.8
+begin_test "ghe-backup management console backs up argon secret"
+(
+  set -e
+
+  git config -f "$GHE_REMOTE_DATA_USER_DIR/common/secrets.conf" secrets.manage-auth.argon-secret "fake pw"
+  GHE_REMOTE_VERSION=3.8.0 ghe-backup
+
+  [ "$(cat "$GHE_DATA_DIR/current/manage-argon-secret")" = "fake pw" ]
+
+  rm -rf "$GHE_DATA_DIR/current"
+
 )
 end_test
 
@@ -265,7 +300,7 @@ begin_test "ghe-backup cluster"
 
   if ! ghe-backup -v > "$TRASHDIR/backup-out" 2>&1; then
     cat "$TRASHDIR/backup-out"
-    : ghe-restore should have exited successfully
+    : ghe-backup should have exited successfully
     false
   fi
 
@@ -470,6 +505,106 @@ begin_test "ghe-backup upgrades transaction backup to full if LSN chain break"
 )
 end_test
 
+begin_test "ghe-backup takes backup of Kredz settings"
+(
+  set -e
+
+  required_secrets=(
+    "secrets.kredz.credz-hmac-secret"
+  )
+
+  for secret in "${required_secrets[@]}"; do
+    ghe-ssh "$GHE_HOSTNAME" -- ghe-config "$secret" "foo"
+  done
+
+  ghe-backup
+
+  required_files=(
+    "kredz-credz-hmac"
+  )
+
+  for file in "${required_files[@]}"; do
+    [ "$(cat "$GHE_DATA_DIR/current/$file")" = "foo" ]
+  done
+
+)
+end_test
+
+begin_test "ghe-backup takes backup of kredz-varz settings"
+(
+  set -e
+
+  required_secrets=(
+    "secrets.kredz.varz-hmac-secret"
+  )
+
+  for secret in "${required_secrets[@]}"; do
+    ghe-ssh "$GHE_HOSTNAME" -- ghe-config "$secret" "foo"
+  done
+
+  ghe-backup
+
+  required_files=(
+    "kredz-varz-hmac"
+  )
+
+  for file in "${required_files[@]}"; do
+    [ "$(cat "$GHE_DATA_DIR/current/$file")" = "foo" ]
+  done
+
+)
+end_test
+
+begin_test "ghe-backup takes backup of encrypted column encryption keying material"
+(
+  set -e
+
+  required_secrets=(
+    "secrets.github.encrypted-column-keying-material"
+  )
+
+  for secret in "${required_secrets[@]}"; do
+    ghe-ssh "$GHE_HOSTNAME" -- ghe-config "$secret" "foo"
+  done
+
+  ghe-backup
+
+  required_files=(
+    "encrypted-column-encryption-keying-material"
+  )
+
+  for file in "${required_files[@]}"; do
+    [ "$(cat "$GHE_DATA_DIR/current/$file")" = "foo" ]
+  done
+
+)
+end_test
+
+begin_test "ghe-backup takes backup of encrypted column current encryption key"
+(
+  set -e
+
+  required_secrets=(
+    "secrets.github.encrypted-column-current-encryption-key"
+  )
+
+  for secret in "${required_secrets[@]}"; do
+    ghe-ssh "$GHE_HOSTNAME" -- ghe-config "$secret" "foo"
+  done
+
+  ghe-backup
+
+  required_files=(
+    "encrypted-column-current-encryption-key"
+  )
+
+  for file in "${required_files[@]}"; do
+    [ "$(cat "$GHE_DATA_DIR/current/$file")" = "foo" ]
+  done
+
+)
+end_test
+
 begin_test "ghe-backup takes backup of Actions settings"
 (
   set -e
@@ -493,7 +628,6 @@ begin_test "ghe-backup takes backup of Actions settings"
     "secrets.actions.SpsValidationCertThumbprint"
 
     "secrets.launch.actions-secrets-private-key"
-    "secrets.launch.credz-hmac-secret"
     "secrets.launch.deployer-hmac-secret"
     "secrets.launch.client-id"
     "secrets.launch.client-secret"
@@ -507,6 +641,7 @@ begin_test "ghe-backup takes backup of Actions settings"
     "secrets.launch.token-oauth-cert"
     "secrets.launch.azp-app-cert"
     "secrets.launch.azp-app-private-key"
+
   )
 
   # these 5 were removed in later versions, so we extract them as best effort
@@ -538,7 +673,6 @@ begin_test "ghe-backup takes backup of Actions settings"
     "actions-sps-validation-cert-thumbprint"
 
     "actions-launch-secrets-private-key"
-    "actions-launch-credz-hmac"
     "actions-launch-deployer-hmac"
     "actions-launch-client-id"
     "actions-launch-client-secret"
@@ -550,6 +684,7 @@ begin_test "ghe-backup takes backup of Actions settings"
     "actions-launch-action-runner-secret"
     "actions-launch-azp-app-cert"
     "actions-launch-app-app-private-key"
+
   )
 
   # Add the one optional file we included tests for
@@ -647,5 +782,18 @@ begin_test "ghe-backup fix_paths_for_ghe_version newer/older"
             echo foo/gist | fix_paths_for_ghe_version
         ")" == "foo" ]
     done
+)
+end_test
+
+# Check that information on system where backup-utils is installed is collected
+begin_test "ghe-backup collects information on system where backup-utils is installed"
+(
+  set -e
+
+  output=$(ghe-backup)
+  echo "$output" | grep "Running on: $(cat /etc/issue.net)"
+  echo "$output" | grep "CPUs: $(nproc)"
+  echo "$output" | grep "Memory total/used/free+share/buff/cache:"
+
 )
 end_test

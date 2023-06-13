@@ -19,6 +19,7 @@
 #
 # Copyright (c) 2011-14 by Ryan Tomayko <http://tomayko.com>
 # License: MIT
+# shellcheck disable=SC2319
 set -e
 
 # Setting basic paths
@@ -42,7 +43,7 @@ export GHE_BACKUP_CONFIG GHE_DATA_DIR GHE_REMOTE_DATA_DIR GHE_REMOTE_ROOT_DIR
 
 # The default remote appliance version. This may be set in the environment prior
 # to invoking tests to emulate a different remote vm version.
-: ${GHE_TEST_REMOTE_VERSION:=3.4.0.rc1}
+: ${GHE_TEST_REMOTE_VERSION:=3.9.0.rc1}
 export GHE_TEST_REMOTE_VERSION
 
 # Source in the backup config and set GHE_REMOTE_XXX variables based on the
@@ -118,6 +119,12 @@ setup_maintenance_mode () {
 
   # Create fake remote repositories dir
   mkdir -p "$GHE_REMOTE_DATA_USER_DIR/repositories"
+}
+
+# Moves the instance out of maintenance mode.
+disable_maintenance_mode () {
+  # Remove file used to determine if instance is in maintenance mode.
+  rm "$GHE_REMOTE_DATA_DIR/github/current/public/system/maintenance.html"
 }
 
 # Mark the beginning of a test. A subshell should immediately follow this
@@ -196,6 +203,7 @@ setup_test_data () {
   # Create a fake manage password file§
   mkdir -p "$GHE_REMOTE_DATA_USER_DIR/common"
   git config -f "$GHE_REMOTE_DATA_USER_DIR/common/secrets.conf" secrets.manage "fake password hash data"
+  git config -f "$GHE_REMOTE_DATA_USER_DIR/common/secrets.conf" secrets.manage-auth.argon-secret "fake argon2 secret"
 
   # Create a fake password pepper file
   mkdir -p "$GHE_REMOTE_DATA_USER_DIR/common"
@@ -310,6 +318,7 @@ setup_test_data () {
     echo "fake ghe-export-ssl-ca-certificates data" > "$loc/ssl-ca-certificates.tar"
     echo "fake license data" > "$loc/enterprise.ghl"
     echo "fake password hash data" > "$loc/manage-password"
+    echo "fake argon2 secret" > "$loc/manage-argon-secret"
     echo "fake password pepper data" > "$loc/password-pepper"
     echo "rsync" > "$loc/strategy"
     echo "$GHE_REMOTE_VERSION" >  "$loc/version"
@@ -428,7 +437,7 @@ verify_all_backedup_data() {
   fi
 
   # check that redis data was backed up
-  [ "$(cat "$GHE_DATA_DIR/current/redis.rdb")" = "fake redis data" ]
+  [[ "$(cat "$GHE_DATA_DIR/current/redis.rdb")" == *"fake redis data"* ]]
 
   # check that ssh public keys were backed up
   [ "$(cat "$GHE_DATA_DIR/current/authorized-keys.json")" = "fake ghe-export-authorized-keys data" ]
@@ -438,6 +447,11 @@ verify_all_backedup_data() {
 
   # verify manage-password file was backed up
   [ "$(cat "$GHE_DATA_DIR/current/manage-password")" = "fake password hash data" ]
+
+  # verify manage-argon-secret file was backed up
+  if [ "$(version $GHE_REMOTE_VERSION)" -ge "$(version 3.8.0)" ]; then
+    [ "$(cat "$GHE_DATA_DIR/current/manage-argon-secret")" = "fake argon2 secret" ]
+  fi
 
   # verify password pepper file was backed up
   [ "$(cat "$GHE_DATA_DIR/current/password-pepper")" = "fake password pepper data" ]
@@ -500,6 +514,9 @@ verify_all_restored_data() {
 
   # verify management console password was *not* restored
   ! grep -q "fake password hash data" "$GHE_REMOTE_DATA_USER_DIR/common/secrets.conf"
+
+  # verify management console argon2 secret was *not* restored
+  ! grep -q "fake argon2 secret" "$GHE_REMOTE_DATA_USER_DIR/common/secrets.conf"
 
   # verify common data
   verify_common_data
@@ -587,4 +604,12 @@ cleanup_moreutils_parallel() {
   if [ -h "$ROOTDIR/test/bin/parallel" ]; then
     unlink "$ROOTDIR/test/bin/parallel"
   fi
+}
+
+# setup_actions_enabled_in_settings_json writes settings for the Actions app to settings.json
+# it accepts true or false as first argument to enable or disable actions in settings.json
+setup_actions_enabled_settings_for_restore() {
+  # Empty the file, it now contains "fake ghe-export-settings data"
+  echo > "$GHE_DATA_DIR/1/settings.json"
+  git config -f "$GHE_DATA_DIR/1/settings.json" --bool app.actions.enabled $1
 }

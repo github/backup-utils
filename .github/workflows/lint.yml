@@ -1,18 +1,23 @@
 name: Lint Code Base
 
 on:
+  push:
+    branches-ignore: [master]
   pull_request:
-    branches-ignore:
-      - 'master'
+    branches: [master]
 
 jobs:
-  build:
+  lint:
     name: Lint Code Base
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
+        with:
+          # Full git history is needed to get a proper list of changed files within `super-linter`
+          fetch-depth: 0
       - name: Lint Code Base
-        uses: docker://github/super-linter:v2.1.1
+        uses: github/super-linter@v5
         env:
           VALIDATE_ALL_CODEBASE: false
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

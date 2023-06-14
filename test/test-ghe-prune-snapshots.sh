@@ -98,7 +98,7 @@ begin_test "ghe-prune-snapshots scheduled snapshot pruning"
 
   pre_num_files=$(file_count_no_current)
 
-  GHE_NUM_SNAPSHOTS=3 GHE_PRUNING_SCHEDULED=yes ghe-prune-snapshots
+  GHE_NUM_SNAPSHOTS=3 GHE_PRUNING_SCHEDULED=yes ghe-backup
 
   post_num_files=$(file_count_no_current)
 

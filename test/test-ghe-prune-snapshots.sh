@@ -89,3 +89,19 @@ begin_test "ghe-prune-snapshots incomplete snapshot pruning"
   [ ! -d "$GHE_DATA_DIR/04" ]
 )
 end_test
+
+begin_test "ghe-prune-snapshots scheduled snapshot pruning"
+(
+  set -e
+
+  generate_prune_files 5
+
+  pre_num_files=$(file_count_no_current)
+
+  GHE_NUM_SNAPSHOTS=3 GHE_PRUNING_SCHEDULED=yes ghe-prune-snapshots
+
+  post_num_files=$(file_count_no_current)
+
+  [ "$pre_num_files" = "$post_num_files" ]
+)
+end_test

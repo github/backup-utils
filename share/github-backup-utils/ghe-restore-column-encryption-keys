@@ -25,6 +25,7 @@ ghe_remote_version_required "$GHE_HOSTNAME"
 
 # Path to snapshot dir we're restoring from
 GHE_RESTORE_SNAPSHOT_PATH="$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT"
+export GHE_RESTORE_SNAPSHOT
 
 # Restore encrypted column encryption keying material if present
 log_info "Restoring encrypted column encryption keying material"

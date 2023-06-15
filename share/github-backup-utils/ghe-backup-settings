@@ -88,6 +88,12 @@ fi
 if [ "$(version $GHE_REMOTE_VERSION)" -ge "$(version 3.8.0)" ]; then
   backup-secret "encrypted column current encryption key" "encrypted-column-current-encryption-key" "secrets.github.encrypted-column-current-encryption-key"
 fi
+backup-secret "encrypted column encryption keying material" "encrypted-column-encryption-keying-material" "secrets.github.encrypted-column-keying-material"
+backup-secret "encrypted column current encryption key" "encrypted-column-current-encryption-key" "secrets.github.encrypted-column-current-encryption-key"
+backup-secret "secret scanning encrypted secrets current storage key" "secret-scanning-encrypted-secrets-current-storage-key" "secrets.secret-scanning.encrypted-secrets-current-storage-key"
+backup-secret "secret scanning encrypted secrets delimited storage keys" "secret-scanning-encrypted-secrets-delimited-storage-keys" "secrets.secret-scanning.encrypted-secrets-delimited-storage-keys"
+backup-secret "secret scanning encrypted secrets current shared transit key" "secret-scanning-encrypted-secrets-current-shared-transit-key" "secrets.secret-scanning.encrypted-secrets-current-shared-transit-key"
+backup-secret "secret scanning encrypted secrets delimited shared transit keys" "secret-scanning-encrypted-secrets-delimited-shared-transit-keys" "secrets.secret-scanning.encrypted-secrets-delimited-shared-transit-keys"
 
 # Backup argon secrets for multiuser from ghes version 3.8 onwards
 if [[ "$(version $GHE_REMOTE_VERSION)" -ge "$(version 3.8.0)" && "$(version $GHE_REMOTE_VERSION)" -lt "$(version 3.8.2)" ]]; then

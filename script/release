@@ -32,6 +32,7 @@ GH_OWNER = ENV['GH_OWNER'] || 'github'
 GH_AUTHOR = ENV['GH_AUTHOR']
 DEB_PKG_NAME = 'github-backup-utils'
 GH_BASE_BRANCH = ENV['GH_BASE_BRANCH'] || 'master'
+GH_STABLE_BRANCH = ENV['GH_STABLE_BRANCH'] || 'stable'
 
 CHANGELOG_TMPL = '''<%= package_name %> (<%= package_version %>) UNRELEASED; urgency=medium
 
@@ -137,7 +138,7 @@ def beautify_changes(changes)
 end
 
 def changelog
-  changes = `git log --pretty=oneline origin/stable...origin/#{GH_BASE_BRANCH} --reverse --grep "Merge pull request" | sort -t\# -k2`.lines.map(&:strip)
+  changes = `git log --pretty=oneline origin/#{GH_STABLE_BRANCH}...origin/#{GH_BASE_BRANCH} --reverse --grep "Merge pull request" | sort -t\# -k2`.lines.map(&:strip)
   raise 'Building the changelog failed' if $CHILD_STATUS != 0
 
   changes
@@ -228,12 +229,12 @@ def push_release_branch(version)
 end
 
 def update_stable_branch
-  `git checkout --quiet stable`
+  `git checkout --quiet #{GH_STABLE_BRANCH}`
   unless (out = `git merge --quiet --ff-only origin/#{GH_BASE_BRANCH}`)
-    warn "Merging #{GH_BASE_BRANCH} into stable failed:\n\n#{out}"
+    warn "Merging #{GH_BASE_BRANCH} into #{GH_STABLE_BRANCH} failed:\n\n#{out}"
   end
-  unless (out = `git push --quiet origin stable`)
-    warn "Failed pushing the stable branch:\n\n#{out}"
+  unless (out = `git push --quiet origin #{GH_STABLE_BRANCH}`)
+    warn "Failed pushing the #{GH_STABLE_BRANCH} branch:\n\n#{out}"
   end
 end
 

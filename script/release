@@ -343,19 +343,26 @@ def is_base_branch_valid?(branch)
   end
 end
 
+def get_stable_branch_name(branch)
+  ## derive the proper stable branch. if the base branch is "master" the stable branch is just "stable"
+  ## if the base branch is a release branch, the stable branch will be "x.y-stable"
+  result = ""
+  if branch == "master"
+    result = "stable"
+  else
+    result = branch.gsub(/-main$/, "-stable")
+  end
+
+  result
+end
+
 #### All the action starts ####
 if $PROGRAM_NAME == __FILE__
   begin
     ## validate base branch. this must either be "master" or a release branch which will match the pattern "x.y-main"
     raise "The branch #{GH_BASE_BRANCH} is not valid for releasing backup-utils. branch name must be master or match x.y-main" if !is_base_branch_valid?(GH_BASE_BRANCH)
 
-    ## derive the proper stable branch. if the base branch is "master" the stable branch is just "stable"
-    ## if the base branch is a release branch, the stable branch will be "x.y-stable"
-    if GH_BASE_BRANCH == "master"
-      GH_STABLE_BRANCH = "stable"
-    else
-      GH_STABLE_BRANCH = GH_BASE_BRANCH.gsub(/-main$/, "-stable")
-    end
+    GH_STABLE_BRANCH = get_stable_branch_name(GH_BASE_BRANCH)
 
     puts "base branch = " + GH_BASE_BRANCH
     puts "stable branch = " + GH_STABLE_BRANCH

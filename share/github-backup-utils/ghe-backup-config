@@ -703,7 +703,7 @@ restore-secret() {
 
 #initialize progress tracking by clearing out the temp files used to track
 init-progress() {
-  rm -f /tmp/backup-utils-progress-*
+  rm -f /tmp/backup-utils-progress*
 }
 
 

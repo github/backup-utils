@@ -37,10 +37,20 @@ while true; do
   esac
 done
 
+
 export CALLING_SCRIPT="ghe-backup"
+
 # Bring in the backup configuration
 # shellcheck source=share/github-backup-utils/ghe-backup-config
 . "$( dirname "${BASH_SOURCE[0]}" )/../share/github-backup-utils/ghe-backup-config"
+
+# Setup progress tracking
+init-progress
+export PROGRESS_TYPE="Backup"
+echo "$PROGRESS_TYPE" > /tmp/backup-utils-progress-type
+export PROGRESS=0 # Used to track progress of backup
+echo "$PROGRESS" > /tmp/backup-utils-progress
+export PROGRESS_TOTAL=18 # Maximum number of steps in backup
 
 # Check to make sure moreutils parallel is installed and working properly
 ghe_parallel_check
@@ -121,7 +131,7 @@ ghe_restore_check
 # Check to see if there is a running backup
 if [ -h ../in-progress ]; then
 
-  log_error "Error: detected a backup already in progress from a previous version of ghe-backup. \nIf there is no backup in progress anymore, please remove \nthe $GHE_DATA_DIR/in-progress file." 1>&2
+  log_error "Detected a backup already in progress from a previous version of ghe-backup. \nIf there is no backup in progress anymore, please remove \nthe $GHE_DATA_DIR/in-progress file." >&2
   exit 1
 fi
 
@@ -306,6 +316,7 @@ else
   steps="${failures// /, }"
   ghe_remote_logger "Completed backup from $(hostname) / snapshot $GHE_SNAPSHOT_TIMESTAMP with failures: ${steps}."
   log_error "Error: Snapshot incomplete. Some steps failed: ${steps}. "
+  ghe_backup_finished
   exit 1
 fi
 

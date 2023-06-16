@@ -2,7 +2,7 @@
 # ghe-backup command tests
 
 TESTS_DIR="$PWD/$(dirname "$0")"
-# Bring in testlib
+# Bring in testlib.
 # shellcheck source=test/testlib.sh
 . "$TESTS_DIR/testlib.sh"
 

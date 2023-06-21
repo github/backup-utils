@@ -24,7 +24,7 @@ prune_snapshot() {
 #if [ ! -f "$GHE_DATA_DIR/in-progress" ] && [ ! -f "$GHE_DATA_DIR/in-progress-restore" ]; then
 # Check for backup or restore in-progress file
 inprogress_file=$(find $GHE_DATA_DIR -maxdepth 1 -type f \( -name "in-progress" -o -name "in-progress-restore" \) -print -quit)
-if [ -z "$inprogress_file" ]; then
+if [[ "$CALLING_SCRIPT" == "ghe-backup" ]]; then
   # First prune all incomplete / failed snapshot directories
   prune_dirs="$(ls -1 "$GHE_DATA_DIR"/[0-9]*/incomplete 2>/dev/null || true)"
   prune_num=$(echo "$prune_dirs" | grep -v '^$' | wc -l)
@@ -43,7 +43,7 @@ if [ -z "$inprogress_file" ]; then
     log_info Pruning $prune_num "expired snapshot(s) ..."
     echo "$prune_dirs" | prune_snapshot
   fi
-else
+elif [ "$CALLING_SCRIPT" != "ghe-backup" ] && [ -n "$inprogress_file" ]; then
   log_info "Detected a running backup/restore process, please wait until that process is complete to prune expired/incomplete snapshots." 1>&2
   log_info "If no such process is running, please remove the "$GHE_DATA_DIR/in-progress*" file and retry again." 1>&2
 fi

@@ -1,4 +1,4 @@
-# Scheduling backups
+# Scheduling backups & snapshot pruning
 
 Regular backups should be scheduled using `cron(8)` or similar command
 scheduling service on the backup host. The backup frequency will dictate the
@@ -17,6 +17,13 @@ based on the frequency of backups. The ten most recent snapshots are retained by
 default. The number should be adjusted based on backup frequency and available
 storage.
 
+By default all expired and incomplete snapshots are deleted at the end of the main
+backup process `ghe-backup`. If pruning of these snapshots takes a long time you can
+choose to disable the pruning process from the backup run and schedule it separately.
+This can be achieved by enabling the `GHE_PRUNING_SCHEDULED` option in `backup.config`.
+Please note if this option is enabled, you will need to schedule the pruning script `ghe-prune-snapshots`
+using `cron` or similar command scheduling service on the backup host.
+
 To schedule hourly backup snapshots with verbose informational output written to
 a log file and errors generating an email:
 
@@ -30,5 +37,10 @@ To schedule nightly backup snapshots instead, use:
 
     0 0 * * * /opt/backup-utils/bin/ghe-backup -v 1>>/opt/backup-utils/backup.log 2>&1
 
+To schedule daily snapshot pruning, use:
+
+    MAILTO=admin@example.com
+
+    0 3 * * * /opt/backup-utils/share/github-backup-utils/ghe-prune-snapshots 1>>/opt/backup-utils/prune-snapshots.log 2>&1
 
 [1]: https://en.wikipedia.org/wiki/Recovery_point_objective

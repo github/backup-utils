@@ -24,7 +24,7 @@ prune_snapshot() {
 #if [ ! -f "$GHE_DATA_DIR/in-progress" ] && [ ! -f "$GHE_DATA_DIR/in-progress-restore" ]; then
 # Check for backup or restore in-progress file
 inprogress_file=$(find $GHE_DATA_DIR -maxdepth 1 -type f \( -name "in-progress" -o -name "in-progress-restore" \) -print -quit)
-if [[ "$CALLING_SCRIPT" == "ghe-backup" ]]; then
+if [[ "$CALLING_SCRIPT" == "ghe-backup" ]] || [ -z "$inprogress_file" ]; then
   # First prune all incomplete / failed snapshot directories
   prune_dirs="$(ls -1 "$GHE_DATA_DIR"/[0-9]*/incomplete 2>/dev/null || true)"
   prune_num=$(echo "$prune_dirs" | grep -v '^$' | wc -l)

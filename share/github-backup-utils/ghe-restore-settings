@@ -62,12 +62,6 @@ restore-secret "encrypted column encryption keying material" "encrypted-column-e
 # Restore encrypted column current encryption key if present
 restore-secret "encrypted column current encryption key" "encrypted-column-current-encryption-key" "secrets.github.encrypted-column-current-encryption-key"
 
-# Restore secret scanning encrypted secrets encryption keys if present
-restore-secret "secret scanning encrypted secrets current storage key" "secret-scanning-encrypted-secrets-current-storage-key" "secrets.secret-scanning.encrypted-secrets-current-storage-key"
-restore-secret "secret scanning encrypted secrets delimited storage keys" "secret-scanning-encrypted-secrets-delimited-storage-keys" "secrets.secret-scanning.encrypted-secrets-delimited-storage-keys"
-restore-secret "secret scanning encrypted secrets current shared transit key" "secret-scanning-encrypted-secrets-current-shared-transit-key" "secrets.secret-scanning.encrypted-secrets-current-shared-transit-key"
-restore-secret "secret scanning encrypted secrets delimited shared transit keys" "secret-scanning-encrypted-secrets-delimited-shared-transit-keys" "secrets.secret-scanning.encrypted-secrets-delimited-shared-transit-keys"
-
 # Restore SAML keys if present.
 if [ -f "$GHE_RESTORE_SNAPSHOT_PATH/saml-keys.tar" ]; then
   log_info "Restoring SAML keys ..."

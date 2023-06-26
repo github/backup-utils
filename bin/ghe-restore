@@ -384,6 +384,9 @@ if $RESTORE_SETTINGS; then
 fi
 
 # Always restore column encryption keys
+if [ "$(version $GHE_REMOTE_VERSION)" -ge "$(version 3.7.0)" ]; then
+  log_info "Always restore encrypted column encryption keys on GHES verions 3.7.0+"
+fi
 ghe-restore-column-encryption-keys "$GHE_HOSTNAME"
 
 # Make sure mysql and elasticsearch are prep'd and running before restoring.

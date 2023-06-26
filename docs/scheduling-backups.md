@@ -18,7 +18,7 @@ default. The number should be adjusted based on backup frequency and available
 storage.
 
 By default all expired and incomplete snapshots are deleted at the end of the main
-backup process `ghe-backup`. If pruning of these snapshots takes a long time you can
+backup process `ghe-backup`. If pruning these snapshots takes a long time you can
 choose to disable the pruning process from the backup run and schedule it separately.
 This can be achieved by enabling the `GHE_PRUNING_SCHEDULED` option in `backup.config`.
 Please note if this option is enabled, you will need to schedule the pruning script `ghe-prune-snapshots`

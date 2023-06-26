@@ -186,7 +186,7 @@ actions: $actions_disk_size MB
 mssql: $mssql_disk_size MB
 DATA_TRANSFER_SIZE
 
-  if [[ $available_space -lt $min_disk_req ]]; then
+  if [[ $((available_space / (1024 * 1024))) -lt $min_disk_req ]]; then
     echo "There is not enough disk space for the backup. Please allocate more space and continue." 1>&2
     exit 1
   fi

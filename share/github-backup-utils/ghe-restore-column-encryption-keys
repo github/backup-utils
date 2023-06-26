@@ -26,12 +26,17 @@ ghe_remote_version_required "$GHE_HOSTNAME"
 # Path to snapshot dir we're restoring from
 : ${GHE_RESTORE_SNAPSHOT_PATH:="$GHE_DATA_DIR/current"}
 
-# Restore encrypted column encryption keying material if present
-log_info "Restoring encrypted column encryption keying material"
-restore-secret "encrypted column encryption keying material" "encrypted-column-encryption-keying-material" "secrets.github.encrypted-column-keying-material"
+# Restore encrypted column encryption keying material for GHES 3.7.0 onward
+if [ "$(version $GHE_REMOTE_VERSION)" -ge "$(version 3.7.0)" ]; then
+  log_info "Restoring encrypted column encryption keying material"
+  restore-secret "encrypted column encryption keying material" "encrypted-column-encryption-keying-material" "secrets.github.encrypted-column-keying-material"
+fi
 
-# Restore encrypted column current encryption key if present
-log_info "Restoring encrypted column current encryption key"
-restore-secret "encrypted column current encryption key" "encrypted-column-current-encryption-key" "secrets.github.encrypted-column-current-encryption-key"
+# Restore encrypted column current encryption key for GHES 3.8.0 onwards
+if [ "$(version $GHE_REMOTE_VERSION)" -ge "$(version 3.8.0)" ]; then
+  log_info "Restoring encrypted column current encryption key"
+  restore-secret "encrypted column current encryption key" "encrypted-column-current-encryption-key" "secrets.github.encrypted-column-current-encryption-key"
+fi
+
 
 bm_end "$(basename $0)"

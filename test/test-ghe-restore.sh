@@ -344,9 +344,7 @@ begin_test "ghe-restore does not encrypted column current encryption key for ver
 )
 end_test
 
-
-# encrypted column current encryption key needs to be restored for versions 3.8.0+
-begin_test "ghe-restore with encrypted column current encryption key for versions 3.8.0"
+begin_test "ghe-restore with encrypted column current encryption key for versions 3.8.0+"
 (
   set -e
   rm -rf "$GHE_REMOTE_ROOT_DIR"
@@ -371,23 +369,7 @@ begin_test "ghe-restore with encrypted column current encryption key for version
   for secret in "${required_secrets[@]}"; do
     [ "$(ghe-ssh "$GHE_HOSTNAME" -- ghe-config "$secret")" = "foo" ]
   done
-)
-end_test
 
-# encrypted column current encryption key needs to be restored for versions 3.8.0+
-begin_test "ghe-restore with encrypted column current encryption key for versions 3.9.0"
-(
-  set -e
-  rm -rf "$GHE_REMOTE_ROOT_DIR"
-  setup_remote_metadata
-
-  required_files=(
-    "encrypted-column-current-encryption-key"
-  )
-
-  for file in "${required_files[@]}"; do
-    echo "foo" > "$GHE_DATA_DIR/current/$file"
-  done
 
   # GHES version 3.9.0
   GHE_REMOTE_VERSION=3.9.0

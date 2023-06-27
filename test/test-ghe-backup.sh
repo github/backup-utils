@@ -618,8 +618,7 @@ begin_test "ghe-backup does not take backup of encrypted column current encrypti
 )
 end_test
 
-# encrypted column current encryption key needs to be backed up for versions 3.8.0+
-begin_test "ghe-backup takes backup of encrypted column current encryption key for versions 3.8.0"
+begin_test "ghe-backup takes backup of encrypted column current encryption key for versions 3.8.0+"
 (
   set -e
 
@@ -642,21 +641,6 @@ begin_test "ghe-backup takes backup of encrypted column current encryption key f
 
   for file in "${required_files[@]}"; do
     [ "$(cat "$GHE_DATA_DIR/current/$file")" = "foo" ]
-  done
-)
-end_test
-
-# encrypted column current encryption key needs to be backed up for versions 3.8.0+
-begin_test "ghe-backup takes backup of encrypted column current encryption key for versions 3.9.0"
-(
-  set -e
-
-  required_secrets=(
-    "secrets.github.encrypted-column-current-encryption-key"
-  )
-
-  for secret in "${required_secrets[@]}"; do
-    ghe-ssh "$GHE_HOSTNAME" -- ghe-config "$secret" "foo"
   done
 
   # GHES version 3.9.0

@@ -39,12 +39,6 @@ if [ -d "$GHE_DATA_DIR/current/elasticsearch" ]; then
   link_dest="--link-dest=../../current/elasticsearch"
 fi
 
-# Store the existing flush_threshold_size setting if it exists and if does not set it to ES default
-current_threshold=$(ghe-ssh "$host" -- curl -s "localhost:9200/_settings" | jq -r '.[].settings.index.translog.flush_threshold_size')
-if [ -z "$current_threshold" ]; then
-  current_threshold="512MB"
-fi
-
 # Transfer ES indices from a GitHub instance to the current snapshot
 # directory, using a previous snapshot to avoid transferring files that have
 # already been transferred.
@@ -60,7 +54,7 @@ log_rsync "END elasticsearch rsync" 1>&3
 # Set up a trap to re-enable flushing on exit and remove temp file
 cleanup () {
   ghe_verbose "* Enabling ES index flushing ..."
-  echo "{\"index\":{\"translog.flush_threshold_size\":\"$current_threshold\"}}" |
+  echo '{"transient":{"index.translog.flush_threshold_size":null}}' |
   ghe-ssh "$host" -- curl -s -XPUT "localhost:9200/_settings" -d @- >/dev/null
 }
 trap 'cleanup' EXIT
@@ -68,7 +62,7 @@ trap 'exit $?' INT # ^C always terminate
 
 # Disable ES flushing and force a flush right now
 ghe_verbose "* Disabling ES index flushing ..."
-echo '{"index":{"translog.flush_threshold_size":"1PB"}}' |
+echo '{"transient":{"index.translog.flush_threshold_size":"1PB"}}' |
 ghe-ssh "$host" -- curl -s -XPUT  "localhost:9200/_settings" -d @- >/dev/null
 ghe-ssh "$host" -- curl -s -XPOST "localhost:9200/_flush" >/dev/null
 

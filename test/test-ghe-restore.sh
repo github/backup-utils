@@ -308,6 +308,7 @@ begin_test "ghe-restore with encrypted column encryption keying material for ver
 
   # GHES version 3.7.0
   GHE_REMOTE_VERSION=3.7.0
+  export GHE_REMOTE_VERSION
 
   ghe-restore -v -f localhost
   required_secrets=(
@@ -320,6 +321,7 @@ begin_test "ghe-restore with encrypted column encryption keying material for ver
 
   # GHES version 3.8.0
   GHE_REMOTE_VERSION=3.8.0
+  export GHE_REMOTE_VERSION
 
   ghe-restore -v -f localhost
   required_secrets=(
@@ -360,6 +362,7 @@ begin_test "ghe-restore with encrypted column current encryption key for version
 
   # GHES version 3.8.0
   GHE_REMOTE_VERSION=3.8.0
+  export GHE_REMOTE_VERSION
 
   ghe-restore -v -f localhost
   required_secrets=(
@@ -373,6 +376,7 @@ begin_test "ghe-restore with encrypted column current encryption key for version
 
   # GHES version 3.9.0
   GHE_REMOTE_VERSION=3.9.0
+  export GHE_REMOTE_VERSION
 
   ghe-restore -v -f localhost
   required_secrets=(

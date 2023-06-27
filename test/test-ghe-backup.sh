@@ -580,6 +580,7 @@ begin_test "ghe-backup takes backup of encrypted column encryption keying materi
 
   # GHES version 3.7.0
   GHE_REMOTE_VERSION=3.7.0
+  export GHE_REMOTE_VERSION
 
   ghe-backup
 
@@ -593,6 +594,7 @@ begin_test "ghe-backup takes backup of encrypted column encryption keying materi
 
   # GHES version 3.8.0
   GHE_REMOTE_VERSION=3.8.0
+  export GHE_REMOTE_VERSION
 
   ghe-backup
 
@@ -632,6 +634,7 @@ begin_test "ghe-backup takes backup of encrypted column current encryption key f
 
   # GHES version 3.8.0
   GHE_REMOTE_VERSION=3.8.0
+  export GHE_REMOTE_VERSION
 
   ghe-backup
 
@@ -645,6 +648,7 @@ begin_test "ghe-backup takes backup of encrypted column current encryption key f
 
   # GHES version 3.9.0
   GHE_REMOTE_VERSION=3.9.0
+  export GHE_REMOTE_VERSION
 
   ghe-backup
 

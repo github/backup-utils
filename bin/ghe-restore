@@ -609,7 +609,7 @@ if $CLUSTER; then
   bm_end "configure_cluster"
 elif $instance_configured; then
   log_info "Configuring appliance ..."
-  bm_start "configure_appliance"
+  bm_start "$(basename $0) - configure appliance"
   if [ "$GHE_VERSION_MAJOR" -eq "3" ]; then
     ghe-ssh "$GHE_HOSTNAME" -- "ghe-nomad-cleanup" 1>&3 2>&3
   elif [ "$GHE_VERSION_MAJOR" -eq "2" ] && [ "$GHE_VERSION_MINOR" -eq "22" ]; then

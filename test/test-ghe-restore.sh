@@ -284,7 +284,7 @@ end_test
 begin_test "ghe-restore does not restore encrypted column encryption keying material for versions below 3.7.0"
 (
   GHE_REMOTE_VERSION=2.1.10 ghe-restore -v -f localhost | grep -q "encrypted column encryption keying material not set" && exit 1
-  [ ! -f "$GHE_DATA_DIR/current/encrypted-column-keying-material"]
+  [ ! -f "$GHE_DATA_DIR/current/encrypted-column-keying-material" ]
 
   GHE_REMOTE_VERSION=3.6.1 ghe-restore -v -f localhost | grep -q "encrypted column encryption keying material not set" && exit 1
   [ ! -f "$GHE_DATA_DIR/current/encrypted-column-keying-material" ]

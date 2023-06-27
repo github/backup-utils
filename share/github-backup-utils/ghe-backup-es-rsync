@@ -54,7 +54,7 @@ log_rsync "END elasticsearch rsync" 1>&3
 # Set up a trap to re-enable flushing on exit and remove temp file
 cleanup () {
   ghe_verbose "* Enabling ES index flushing ..."
-  echo '{"transient":{"index.translog.flush_threshold_size":null}}' |
+  echo '{"index":{"translog.flush_threshold_size":"512MB"}}' |
   ghe-ssh "$host" -- curl -s -XPUT "localhost:9200/_settings" -d @- >/dev/null
 }
 trap 'cleanup' EXIT
@@ -62,7 +62,7 @@ trap 'exit $?' INT # ^C always terminate
 
 # Disable ES flushing and force a flush right now
 ghe_verbose "* Disabling ES index flushing ..."
-echo '{"transient":{"index.translog.flush_threshold_size":"1PB"}}' |
+echo '{"index":{"translog.flush_threshold_size":"1PB"}}' |
 ghe-ssh "$host" -- curl -s -XPUT  "localhost:9200/_settings" -d @- >/dev/null
 ghe-ssh "$host" -- curl -s -XPOST "localhost:9200/_flush" >/dev/null
 

@@ -437,6 +437,12 @@ if $RESTORE_SETTINGS; then
   ghe-restore-settings "$GHE_HOSTNAME"
 fi
 
+# Always restore column encryption keys
+if [ "$(version $GHE_REMOTE_VERSION)" -ge "$(version 3.7.0)" ]; then
+  log_info "Always restore encrypted column encryption keys on GHES verions 3.7.0+"
+fi
+ghe-restore-column-encryption-keys "$GHE_HOSTNAME"
+
 # Make sure mysql and elasticsearch are prep'd and running before restoring.
 # These services will not have been started on appliances that have not been
 # configured yet.
@@ -606,10 +612,10 @@ if $CLUSTER; then
     ghe-ssh "$GHE_HOSTNAME" -- "ghe-cluster-each -- /usr/local/share/enterprise/ghe-nomad-cleanup" 1>&3 2>&3
   fi
   ghe-ssh "$GHE_HOSTNAME" -- "ghe-cluster-config-apply" 1>&3 2>&3
-  bm_end "configure_cluster"
+  bm_end "$(basename $0) - configure cluster"
 elif $instance_configured; then
   log_info "Configuring appliance ..."
-  bm_start "configure_appliance"
+  bm_start "$(basename $0) - configure appliance"
   if [ "$GHE_VERSION_MAJOR" -eq "3" ]; then
     ghe-ssh "$GHE_HOSTNAME" -- "ghe-nomad-cleanup" 1>&3 2>&3
   elif [ "$GHE_VERSION_MAJOR" -eq "2" ] && [ "$GHE_VERSION_MINOR" -eq "22" ]; then

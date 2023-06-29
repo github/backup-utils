@@ -49,6 +49,7 @@ bm_end() {
   local tend tstart total
   tend=$(date +%s)
   tstart=$(eval "echo \$$(bm_desc_to_varname "$@")_start")
+
   total=$(($tend - $tstart))
 
   echo "$1 took ${total}s" >> $BM_FILE_PATH
@@ -57,4 +58,6 @@ bm_end() {
   if [ -n "$GHE_DEBUG" ]; then
     echo "Debug: $1 took ${total}s (bm_end)"
   fi
+  # track progress
+  progress "$1 took ${total}s"
 }

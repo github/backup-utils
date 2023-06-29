@@ -1,5 +1,14 @@
 github-backup-utils (3.9.0) UNRELEASED; urgency=medium
 
+  * Switch to TMPDIR before initiating SSH multiplexing workaround to prevent locking the destination filesystem #348
+  * Cleanup SSH multiplexing on exit #363
+  * Allow extra rsync options to override default options #370
+  * Retry with the admin ssh port on network unreachable too. #377
+
+ -- Joseph Franks <joefranks1993@github.com>  Thu, 29 Jun 2023 22:36:16 +0000
+
+github-backup-utils (3.9.0) UNRELEASED; urgency=medium
+
   * Set restore status on all cluster nodes #274
   * Fix pages backups and restores in GitHub Enterprise 11.10 #275
   * Backup and restore custom CA certificates #281

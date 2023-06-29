@@ -26,6 +26,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
     libssl-dev \
     git \
     jq \
+    bc \
     curl \
     tar \
     gzip \
@@ -55,7 +56,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
     openssh-client \
     jq \
     moreutils \
-    gawk \ 
+    gawk \
     ca-certificates \
     xxhash \
     && rm -rf /var/lib/apt/lists/*

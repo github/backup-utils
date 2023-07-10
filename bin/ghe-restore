@@ -443,6 +443,12 @@ if [ "$(version $GHE_REMOTE_VERSION)" -ge "$(version 3.7.0)" ]; then
 fi
 ghe-restore-column-encryption-keys "$GHE_HOSTNAME"
 
+# Always restore secret scanning encryption keys
+if [ "$(version $GHE_REMOTE_VERSION)" -ge "$(version 3.8.0)" ]; then
+  log_info "Always restore secret scanning encryption keys on GHES verions 3.8.0+"
+  ghe-restore-secret-scanning-encryption-keys "$GHE_HOSTNAME"
+fi
+
 # Make sure mysql and elasticsearch are prep'd and running before restoring.
 # These services will not have been started on appliances that have not been
 # configured yet.

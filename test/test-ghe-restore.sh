@@ -389,7 +389,7 @@ begin_test "ghe-restore with encrypted column current encryption key for version
 )
 end_test
 
-begin_test "ghe-restore with secret scanning encrypted secrets encryption keys"
+begin_test "ghe-restore with secret scanning encrypted secrets encryption keys for versions below 3.8.0"
 (
   set -e
   rm -rf "$GHE_REMOTE_ROOT_DIR"
@@ -406,7 +406,7 @@ begin_test "ghe-restore with secret scanning encrypted secrets encryption keys"
     echo "foo" >"$GHE_DATA_DIR/current/$file"
   done
 
-  ghe-restore -v -f localhost
+  GHE_REMOTE_VERSION=3.7.0 ghe-restore -v -f localhost
 
   required_secrets=(
     "secrets.secret-scanning.encrypted-secrets-current-storage-key"
@@ -416,7 +416,40 @@ begin_test "ghe-restore with secret scanning encrypted secrets encryption keys"
   )
 
   for secret in "${required_secrets[@]}"; do
-    [ "$(ghe-ssh "$GHE_HOSTNAME" -- ghe-config "$secret")" = "foo" ]
+    [ "$(ghe-ssh "$GHE_HOSTNAME" -- ghe-config "$secret")" = "" ] # expecting these to not be set for versions below 3.8.0
+  done
+)
+end_test
+
+
+begin_test "ghe-restore with secret scanning encrypted secrets encryption keys for versions 3.8.0+"
+(
+  set -e
+  rm -rf "$GHE_REMOTE_ROOT_DIR"
+  setup_remote_metadata
+
+  required_files=(
+    "secret-scanning-encrypted-secrets-current-storage-key"
+    "secret-scanning-encrypted-secrets-delimited-storage-keys"
+    "secret-scanning-encrypted-secrets-current-shared-transit-key"
+    "secret-scanning-encrypted-secrets-delimited-shared-transit-keys"
+  )
+
+  for file in "${required_files[@]}"; do
+    echo "foo" >"$GHE_DATA_DIR/current/$file"
+  done
+
+  GHE_REMOTE_VERSION=3.8.0 ghe-restore -v -f localhost
+
+  required_secrets=(
+    "secrets.secret-scanning.encrypted-secrets-current-storage-key"
+    "secrets.secret-scanning.encrypted-secrets-delimited-storage-keys"
+    "secrets.secret-scanning.encrypted-secrets-current-shared-transit-key"
+    "secrets.secret-scanning.encrypted-secrets-delimited-shared-transit-keys"
+  )
+
+  for secret in "${required_secrets[@]}"; do
+    [ "$(ghe-ssh "$GHE_HOSTNAME" -- ghe-config "$secret")" = "foo" ] # expecting this to have been restored successfully for versions 3.8.0+
   done
 )
 end_test

@@ -1,5 +1,5 @@
 # GitHub Enterprise Server Backup Utilities
-
+`การเก็บข้อมูลของการสำรองข้อมูลนี้ส่งเข้าไปเก็บที่ห้องสมุด ที่เก็บถาวร ในการเก็บรักษาข้อมูลในการปกป้องข้อมูลน้ำแข็งที่ :ดัชนี กระจก e-book `
 This repository includes backup and recovery utilities for
 [GitHub Enterprise Server][1].
 

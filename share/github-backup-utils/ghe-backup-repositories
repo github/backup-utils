@@ -144,6 +144,8 @@ bm_end "$(basename $0) - Processing routes"
 if [ -z "$(find "$tempdir" -maxdepth 1 -name '*.rsync')" ]; then
   log_warn "no routes found, skipping repositories backup ..."
   exit 0
+else
+  increment-progress-total-count 3
 fi
 
 # Transfer repository data from a GitHub instance to the current snapshot
@@ -377,7 +379,7 @@ if [ -z "$GHE_SKIP_ROUTE_VERIFICATION" ]; then
   (cd $backup_dir/ && find * -mindepth 5 -maxdepth 6 -type d -name \*.git | fix_paths_for_ghe_version | uniq | sort | uniq) > $tempdir/destination_routes
 
   git --no-pager diff --unified=0 --no-prefix -- $tempdir/source_routes $tempdir/destination_routes || echo "Warning: One or more repository networks and/or gists were not found on the source appliance. Please contact GitHub Enterprise Support for assistance."
-
+  increment-progress-total-count 1
   bm_end "$(basename $0) - Verifying Routes"
 fi
 

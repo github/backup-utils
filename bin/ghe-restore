@@ -282,7 +282,7 @@ if [ -s "$GHE_RESTORE_SNAPSHOT_PATH/uuid" ] && ! $CLUSTER; then
 fi
 # Restoring Actions + MSSQL
 if ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config --true app.actions.enabled'; then
-  OPTIONAL_STEPS=$((OPTIONAL_STEPS + 1))
+  OPTIONAL_STEPS=$((OPTIONAL_STEPS + 2))
 fi
 # Restoring minio
 if ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config --true app.minio.enabled'; then
@@ -304,7 +304,6 @@ if ! $CLUSTER && $instance_configured; then
 fi
 # Restoring settings + restore-chat-integration + restore-packages
 if $RESTORE_SETTINGS; then
-  echo "add setting"
   OPTIONAL_STEPS=$((OPTIONAL_STEPS + 3))
 fi
 

@@ -47,8 +47,8 @@ if [ -z "$GHE_MSSQL_PRIMARY_HOST" ]; then
 fi
 
 tempdir=$(mktemp -d -t backup-utils-backup-XXXXXX)
-ssh_config_file_opt=
-opts=
+ssh_config_file_opt=()
+opts=()
 
 isHA="$(ghe-ssh "$GHE_HOSTNAME" -- "ghe-config cluster.ha" || true)"
 

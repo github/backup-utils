@@ -337,10 +337,10 @@ end_test
 
 begin_test "ghe-restore does not encrypted column current encryption key for versions below 3.8.0"
 (
- GHE_REMOTE_VERSION=2.1.10 restore -v -f | grep -q "encrypted column current encryption key not set" && exit 1
+ GHE_REMOTE_VERSION=2.1.10 ghe-restore -v -f | grep -q "encrypted column current encryption key not set" && exit 1
   [ ! -f "$GHE_DATA_DIR/current/encrypted-column-current-encryption-key" ]
 
-  GHE_REMOTE_VERSION=3.7.0 restore -v -f | grep -q "encrypted column current encryption key not set" && exit 1
+  GHE_REMOTE_VERSION=3.7.0 ghe-restore -v -f | grep -q "encrypted column current encryption key not set" && exit 1
   [ ! -f "$GHE_DATA_DIR/current/encrypted-column-current-encryption-key" ]
 
 )

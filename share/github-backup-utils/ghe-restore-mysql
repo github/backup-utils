@@ -44,23 +44,18 @@ if is_external_database_snapshot; then
     exit 0
   else
     if is_binary_backup "$GHE_RESTORE_SNAPSHOT_PATH"; then
-      echo "Error: Restore of a binary backup to appliance with an external database configured is not supported."
-      echo "Please provide a custom external database restore script with EXTERNAL_DATABASE_RESTORE_SCRIPT"
+      log_error "Error: Restore of a binary backup to appliance with an external database configured is not supported. Please provide a custom external database restore script with EXTERNAL_DATABASE_RESTORE_SCRIPT"
       exit 1
     fi 
 
     if ! is_default_external_database_snapshot; then
-      echo "Error: Backup was not taken with a GitHub provided backup strategy."
-      echo "You must provide a custom restore script for this backup using EXTERNAL_DATABASE_BACKUP_SCRIPT"
+      log_error "Error: Backup was not taken with a GitHub provided backup strategy. You must provide a custom restore script for this backup using EXTERNAL_DATABASE_BACKUP_SCRIPT"
 
       exit 1
     fi
 
     if is_binary_backup_feature_on; then
-      echo "Warning: Binary backups are configured on the target environment."
-      echo "Binary backup is not supported with an external MySQL database."
-      echo 
-      echo "Please disable binary backups with 'ghe-config mysql.backup.binary false'"
+      log_warn "Warning: Binary backups are configured on the target environment. \nBinary backup is not supported with an external MySQL database. \n\nPlease disable binary backups with 'ghe-config mysql.backup.binary false'"
     fi
   fi
 fi
@@ -75,7 +70,7 @@ if is_binary_backup_feature_on; then
 else
   # We do not allow to restore binary backup without "mysql.backup.binary" set
   if is_binary_backup "$GHE_RESTORE_SNAPSHOT_PATH"; then
-    echo "To restore from a binary backup, you have to set ghe-config \"mysql.backup.binary\" to true" >&2
+    log_error "To restore from a binary backup, you have to set ghe-config \"mysql.backup.binary\" to true" >&2
     exit 2
   else
     if is_default_external_database_snapshot; then

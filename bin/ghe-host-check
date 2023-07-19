@@ -97,7 +97,7 @@ if "$CLUSTER"; then
   distinct_versions=$(echo "$node_version_list" | awk '{split($0, a, ":"); print a[2]}' | awk '{print $4}' | uniq | wc -l)
   if [ "$distinct_versions" -ne 1 ]; then
     echo "$node_version_list" 1>&2
-    echo "Error: Not all nodes are running the same version! Please ensure all nodes are running the same version before using backup-utils." 1>&2
+    echo "Error: Not all nodes are running the same version! Please ensure all nodes are running the same version before using backup-utils." 1>&3
     exit 1
   fi
 fi

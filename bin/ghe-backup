@@ -240,10 +240,15 @@ commands+=("
 echo \"$cmd_title\"
 ghe-backup-repositories || printf %s \"repositories \" >> \"$failures_file\"")
 
-cmd_title=$(log_info "Backing up GitHub Pages artifacts ...")
-commands+=("
-echo \"$cmd_title\"
-ghe-backup-pages || printf %s \"pages \" >> \"$failures_file\"")
+# Pages backups are skipped only if GHE_BACKUP_PAGES is explicitly set to 'no' to guarantee backward compatibility.
+# If a customer upgrades backup-utils but keeps the config file from a previous version, Pages backups still work as expected.
+
+if [ "$GHE_BACKUP_PAGES" != "no" ]; then
+  cmd_title=$(log_info "Backing up GitHub Pages artifacts ...")
+  commands+=("
+  echo \"$cmd_title\"
+  ghe-backup-pages || printf %s \"pages \" >> \"$failures_file\"")
+fi
 
 cmd_title=$(log_info "Backing up storage data ...")
 commands+=("

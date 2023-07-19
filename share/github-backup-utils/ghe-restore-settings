@@ -47,6 +47,9 @@ restore-secret "management console password" "manage-password" "secrets.manage"
 # Restore management console argon2 secret if present.
 restore-secret "management console argon2 secret" "manage-argon-secret" "secrets.manage-auth.argon-secret"
 
+# Restore encrypted column encryption keying material if present
+restore-secret "encrypted column encryption keying material" "encrypted-column-encryption-keying-material" "secrets.github.encrypted-column-keying-material"
+
 # Restore kredz.credz HMAC key if present.
 restore-secret "kredz.credz HMAC key" "kredz-credz-hmac" "secrets.kredz.credz-hmac-secret"
 

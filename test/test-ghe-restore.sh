@@ -281,6 +281,31 @@ begin_test "ghe-restore with no pages backup"
 )
 end_test
 
+begin_test "ghe-restore with encrypted column encryption keying material"
+(
+  set -e
+  rm -rf "$GHE_REMOTE_ROOT_DIR"
+  setup_remote_metadata
+
+  required_files=(
+    "encrypted-column-encryption-keying-material"
+  )
+
+  for file in "${required_files[@]}"; do
+    echo "foo" > "$GHE_DATA_DIR/current/$file"
+  done
+
+  ghe-restore -v -f localhost
+  required_secrets=(
+    "secrets.github.encrypted-column-keying-material"
+  )
+
+  for secret in "${required_secrets[@]}"; do
+    [ "$(ghe-ssh "$GHE_HOSTNAME" -- ghe-config "$secret")" = "foo" ]
+  done
+)
+end_test
+
 begin_test "ghe-restore does not restore encrypted column encryption keying material for versions below 3.7.0"
 (
   GHE_REMOTE_VERSION=2.1.10 ghe-restore -v -f localhost | grep -q "encrypted column encryption keying material not set" && exit 1

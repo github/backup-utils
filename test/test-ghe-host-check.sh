@@ -55,7 +55,17 @@ begin_test "ghe-host-check detects unsupported GitHub Enterprise Server versions
   # shellcheck disable=SC2046 # Word splitting is required to populate the variables
   read -r bu_version_major bu_version_minor _ <<<$(ghe_parse_version $BACKUP_UTILS_VERSION)
   bu_major_minor="$bu_version_major.$bu_version_minor"
-  releases=$(/usr/bin/curl -s https://github-enterprise.s3.amazonaws.com/release/latest.json)
+  #releases=$(/usr/bin/curl -s https://github-enterprise.s3.amazonaws.com/release/latest.json)
+  releases=$(cat <<EOF
+{
+    "3.8": "3.8.3",
+    "3.7": "3.7.10",
+    "3.6": "3.6.13",
+    "3.5": "3.5.17",
+    "3.4": "3.4.3"
+}
+EOF
+)
   supported=$(echo $releases | jq -r 'select(."'${bu_major_minor}'")')
   # shellcheck disable=SC2207 # Command required as alternatives fail
   keys=($(echo $releases | jq -r 'keys[]'))

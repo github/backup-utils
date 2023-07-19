@@ -46,7 +46,7 @@ backup_current="$GHE_DATA_DIR/current/repositories"
 
 # Verify rsync is available.
 if ! rsync --version 1>/dev/null 2>&1; then
-  echo "Error: rsync not found." 1>&2
+  log_error "rsync not found." 1>&2
   exit 1
 fi
 
@@ -142,7 +142,7 @@ ghe_debug "\n$(find "$tempdir" -maxdepth 1 -name '*.rsync')"
 bm_end "$(basename $0) - Processing routes"
 
 if [ -z "$(find "$tempdir" -maxdepth 1 -name '*.rsync')" ]; then
-  echo "Warning: no routes found, skipping repositories backup ..."
+  log_warn "no routes found, skipping repositories backup ..."
   exit 0
 fi
 
@@ -159,6 +159,7 @@ rsync_repository_data () {
     files_list="$2"
     shift
     shift
+    log_rsync "BEGIN: repositories rsync" 1>&3
     ghe-rsync -avr \
       -e "ssh -q $opts -p $port $ssh_config_file_opt -l $user" \
       $link_dest "$@" \
@@ -168,8 +169,10 @@ rsync_repository_data () {
       --ignore-missing-args \
       "$host:$GHE_REMOTE_DATA_USER_DIR/repositories/" \
       "$backup_dir" 1>&3 2>&3
+    log_rsync "END: repositories rsync" 1>&3
   else
     shift
+    log_rsync "BEGIN: repositories rsync" 1>&3
     ghe-rsync -avr \
       -e "ssh -q $opts -p $port $ssh_config_file_opt -l $user" \
       $link_dest "$@" \
@@ -178,6 +181,7 @@ rsync_repository_data () {
       --ignore-missing-args \
       "$host:$GHE_REMOTE_DATA_USER_DIR/repositories/" \
       "$backup_dir" 1>&3 2>&3
+    log_rsync "END: repositories rsync" 1>&3
   fi
 }
 
@@ -187,7 +191,7 @@ sync_data (){
   # should be transferred here.
   echo 1>&3
 
-  echo "* Transferring auxiliary files ..." 1>&3
+  log_info "* Transferring auxiliary files ..." 1>&3
   rsync_repository_data $1:122 $2 -z <<RULES
 - /__*__/
 - /info/
@@ -224,7 +228,7 @@ RULES
     # Sync packed refs files. This is performed before sync'ing loose refs since
     # loose refs trump packed-refs information.
   echo 1>&3
-  echo "* Transferring packed-refs files ..." 1>&3
+  log_info "* Transferring packed-refs files ..." 1>&3
   rsync_repository_data $1:122 $2 -z <<RULES
 - /__*__/
 - /info/
@@ -250,7 +254,7 @@ RULES
     # Sync loose refs and reflogs. This must be performed before object data is
     # transferred to ensure that all referenced objects are included.
   echo 1>&3
-  echo "* Transferring refs and reflogs ..."  1>&3
+  log_info "* Transferring refs and reflogs ..."  1>&3
   rsync_repository_data $1:122 $2 -z <<RULES
 - /__*__/
 - /info/
@@ -286,7 +290,7 @@ RULES
     # Sync git objects and pack files. Compression is disabled during this phase
     # since these files are already well compressed.
   echo 1>&3
-  echo "* Transferring objects and packs ..." 1>&3
+  log_info "* Transferring objects and packs ..." 1>&3
   rsync_repository_data $1:122 $2 -H <<RULES
 - /__*__/
 - /info/
@@ -350,7 +354,7 @@ for h in $hostnames; do
   # /data/repositories. All other special user data directories have been moved under
   # the /data/user directory.
   echo 1>&3
-  echo "* Transferring special data directories from $h..." 1>&3
+  log_info "* Transferring special data directories from $h..." 1>&3
   rsync_repository_data $h:122 -z <<RULES
 - /__nodeload_archives__/
 - /__gitmon__/

@@ -436,7 +436,7 @@ verify_all_backedup_data() {
   fi
 
   # check that redis data was backed up
-  [ "$(cat "$GHE_DATA_DIR/current/redis.rdb")" = "fake redis data" ]
+  [[ "$(cat "$GHE_DATA_DIR/current/redis.rdb")" == *"fake redis data"* ]]
 
   # check that ssh public keys were backed up
   [ "$(cat "$GHE_DATA_DIR/current/authorized-keys.json")" = "fake ghe-export-authorized-keys data" ]

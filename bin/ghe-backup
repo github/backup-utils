@@ -303,6 +303,8 @@ if [ -z "$failures" ]; then
   ln -s "$GHE_SNAPSHOT_TIMESTAMP" "../current"
 
   ghe-prune-snapshots
+else 
+  log_info "Skipping pruning snapshots, since some backups failed..."
 fi
 
 END_TIME=$(date +%s)

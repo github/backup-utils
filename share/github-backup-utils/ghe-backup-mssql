@@ -30,11 +30,11 @@ export_tool_available() {
 }
 
 ghe_ssh_mssql() {
-  ghe-ssh $opts $ssh_config_file_opt "$GHE_MSSQL_PRIMARY_HOST" "$@"
+  ghe-ssh "${opts[@]}" "${ssh_config_file_opt[@]}" "$GHE_MSSQL_PRIMARY_HOST" "$@"
 }
 
 cleanup() {
-  rm -rf $tempdir
+  rm -rf "$tempdir"
 }
 trap 'cleanup' EXIT INT
 
@@ -47,21 +47,21 @@ if [ -z "$GHE_MSSQL_PRIMARY_HOST" ]; then
 fi
 
 tempdir=$(mktemp -d -t backup-utils-backup-XXXXXX)
-ssh_config_file_opt=
-opts=
+ssh_config_file_opt=()
+opts=()
 
 isHA="$(ghe-ssh "$GHE_HOSTNAME" -- "ghe-config cluster.ha" || true)"
 
 # get server hostnames under cluster and HA
 if [ "$GHE_BACKUP_STRATEGY" = "cluster" ] || [ "$isHA" = "true" ]  ; then
   ssh_config_file="$tempdir/ssh_config"
-  ssh_config_file_opt="-F $ssh_config_file"
-  opts="-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no"
+  ssh_config_file_opt=("-F" "$ssh_config_file")
+  opts=("-o" "UserKnownHostsFile=/dev/null" "-o" "StrictHostKeyChecking=no" "-o" "PasswordAuthentication=no")
   ghe-ssh-config "$GHE_HOSTNAME" "$GHE_MSSQL_PRIMARY_HOST" > "$ssh_config_file"
 fi
 
 if ! export_tool_available ; then
-  ghe_verbose "ghe-export-mssql is not available"
+  log_error "ghe-export-mssql is not available" 1>&2
   exit
 fi
 
@@ -69,10 +69,10 @@ add_minute() {
   # Expect date string in the format of yyyymmddTHHMMSS
   # Here parse date differently depending on GNU Linux vs BSD MacOS
   if date -v -1d > /dev/null 2>&1; then
-    echo "$(date -v +$2M -ujf'%Y%m%dT%H%M%S' $1 +%Y%m%dT%H%M%S)"
+    date -v +"$2"M -ujf'%Y%m%dT%H%M%S' "$1" +%Y%m%dT%H%M%S
   else
     dt=$1
-    echo "$(date -u '+%Y%m%dT%H%M%S' -d "${dt:0:8} ${dt:9:2}:${dt:11:2}:${dt:13:2} $2 minutes")"
+    date -u '+%Y%m%dT%H%M%S' -d "${dt:0:8} ${dt:9:2}:${dt:11:2}:${dt:13:2} $2 minutes"
   fi
 }
 
@@ -110,8 +110,8 @@ ensure_same_dbs() {
   done
 
   if [[ "${#locals[@]}" -ne 0 ]]; then
-    ghe_verbose "Warning: Found following ${#locals[@]} backup files that can't be traced back to the specified GHES host."
-    ghe_verbose "Warning: Did you recently reconfigure the GHES host? Move or delete these backup files if no longer needed."
+    log_warn "Warning: Found following ${#locals[@]} backup files that can't be traced back to the specified GHES host."
+    log_warn "Warning: Did you recently reconfigure the GHES host? Move or delete these backup files if no longer needed."
     for local in "${locals[@]}"; do
       ghe_verbose "$1/$local"
     done
@@ -231,28 +231,28 @@ diff expire $diff_expire, tran expire $tran_expire"
       if [ "$backup_type" == 'diff' ]; then
         full_backup_file=$(get_latest_backup_file "$last_mssql" "$db" "bak")
         if [[ "$full_backup_file" == "" ]]; then
-          ghe_verbose "Taking a full backup instead of a diff backup because for $db a full backup file wasn't found"
+          log_warn "Taking a full backup instead of a diff backup because for $db a full backup file wasn't found"
           backup_type="full"
           break
         fi
 
         full_backup_file_checkpoint_lsn=$(get_backup_checkpoint_lsn "$db" "$full_backup_file")
         if [[ "$full_backup_file_checkpoint_lsn" = "NULL" ]] || [[ "$full_backup_file_checkpoint_lsn" == "" ]]; then
-          ghe_verbose "Taking a full backup instead of a diff backup because for $db the checkpoint LSN for $full_backup_file couldn't be determined"
+          log_warn "Taking a full backup instead of a diff backup because for $db the checkpoint LSN for $full_backup_file couldn't be determined"
           backup_type="full"
           break
         fi
 
         next_diff_backup_base_lsn=$(get_next_diff_backup_base_lsn "$db")
         if [[ "$next_diff_backup_base_lsn" = "NULL" ]] || [[ "$next_diff_backup_base_lsn" == "" ]]; then
-          ghe_verbose "Taking a full backup instead of a $backup_type backup because for $db the base LSN for the next diff backup couldn't be determined"
+          log_warn "Taking a full backup instead of a $backup_type backup because for $db the base LSN for the next diff backup couldn't be determined"
           backup_type="full"
           break
         fi
 
         # The base of the diff backup we're about to take must exactly match the checkpoint LSN of the full backup file we have
         if [[ "$next_diff_backup_base_lsn" -ne "$full_backup_file_checkpoint_lsn" ]]; then
-          ghe_verbose "Taking a full backup instead of a $backup_type backup because for $db the diff would have base LSN $next_diff_backup_base_lsn yet our full backup has checkpoint LSN $full_backup_file_checkpoint_lsn"
+          log_warn "Taking a full backup instead of a $backup_type backup because for $db the diff would have base LSN $next_diff_backup_base_lsn yet our full backup has checkpoint LSN $full_backup_file_checkpoint_lsn"
           backup_type="full"
           break
         fi
@@ -261,21 +261,21 @@ diff expire $diff_expire, tran expire $tran_expire"
       # Ensure that a transaction log backup will immediately follow the previous one
       latest_log_backup_file=$(get_latest_backup_file "$last_mssql" "$db" "log")
       if [[ "$latest_log_backup_file" == "" ]]; then
-        ghe_verbose "Taking a full backup instead of a $backup_type backup because for $db a previous transaction log backup wasn't found"
+        log_warn "Taking a full backup instead of a $backup_type backup because for $db a previous transaction log backup wasn't found"
         backup_type="full"
         break
       fi
 
       latest_log_backup_last_lsn=$(get_backup_last_lsn "$db" "$latest_log_backup_file")
       if [[ "$latest_log_backup_last_lsn" = "NULL" ]] || [[ "$latest_log_backup_last_lsn" == "" ]]; then
-        ghe_verbose "Taking a full backup instead of a $backup_type backup because for $db the LSN range for $latest_log_backup_file couldn't be determined"
+        log_warn "Taking a full backup instead of a $backup_type backup because for $db the LSN range for $latest_log_backup_file couldn't be determined"
         backup_type="full"
         break
       fi
 
       next_log_backup_starting_lsn=$(get_next_log_backup_starting_lsn "$db")
       if [[ "$next_log_backup_starting_lsn" = "NULL" ]] || [[ "$next_log_backup_starting_lsn" == "" ]]; then
-        ghe_verbose "Taking a full backup instead of a $backup_type backup because for $db the starting LSN for the next log backup couldn't be determined"
+        log_warn "Taking a full backup instead of a $backup_type backup because for $db the starting LSN for the next log backup couldn't be determined"
         backup_type="full"
         break
       fi
@@ -283,7 +283,7 @@ diff expire $diff_expire, tran expire $tran_expire"
       # The starting LSN of the backup we're about to take must be equal to (or before) the last LSN from the last backup,
       # otherwise there'll be a gap and the logfiles won't be restorable
       if [[ "$next_log_backup_starting_lsn" -gt "$latest_log_backup_last_lsn" ]]; then
-        ghe_verbose "Taking a full backup instead of a $backup_type backup because for $db a gap would exist between the last backup ending at LSN $latest_log_backup_last_lsn and next backup starting at $next_log_backup_starting_lsn"
+        log_warn "Taking a full backup instead of a $backup_type backup because for $db a gap would exist between the last backup ending at LSN $latest_log_backup_last_lsn and next backup starting at $next_log_backup_starting_lsn"
         backup_type="full"
         break
       fi
@@ -337,7 +337,7 @@ if [ -n "$backup_type" ]; then
   fi
   
   bm_start "$(basename "$0")"
-  ghe_ssh_mssql  -- "$backup_command" || failures="$failures mssql"
+  ghe_ssh_mssql  -- "$backup_command"
   bm_end "$(basename "$0")"
 
   # Configure the backup cadence on the appliance, which is used for diagnostics

@@ -11,6 +11,7 @@ mkdir -p "$GHE_DATA_DIR" "$GHE_REMOTE_DATA_USER_DIR"
 
 setup_test_data $GHE_REMOTE_DATA_USER_DIR
 
+
 begin_test "ghe-backup first snapshot"
 (
   set -e
@@ -132,19 +133,18 @@ begin_test "ghe-backup without password pepper"
 )
 end_test
 
-begin_test "ghe-backup without management console argon2 secret for ghes lower than 3.8"
+# before the introduction of multiuser auth
+begin_test "ghe-backup management console does not backup argon secret"
 (
   set -e
 
-  git config -f "$GHE_REMOTE_DATA_USER_DIR/common/secrets.conf" secrets.manage-auth.argon-secret "fake pw"
-  GHE_REMOTE_VERSION=3.7.0 ghe-backup
-
+  GHE_REMOTE_VERSION=3.7.0 ghe-backup -v | grep -q "management console argon2 secret not set" && exit 1
   [ ! -f "$GHE_DATA_DIR/current/manage-argon-secret" ]
 )
 end_test
 
 # multiuser auth introduced in ghes version 3.8
-begin_test "ghe-backup management console argon2 secret"
+begin_test "ghe-backup management console backs up argon secret"
 (
   set -e
 
@@ -543,6 +543,114 @@ begin_test "ghe-backup takes backup of kredz-varz settings"
 )
 end_test
 
+begin_test "ghe-backup does not take backup of encrypted column encryption keying material for versions below 3.7.0"
+(
+  GHE_REMOTE_VERSION=2.1.10 ghe-backup -v | grep -q "encrypted column encryption keying material not set" && exit 1
+  [ ! -f "$GHE_DATA_DIR/current/encrypted-column-keying-material" ]
+
+  GHE_REMOTE_VERSION=3.6.1 ghe-backup -v | grep -q "encrypted column encryption keying material not set" && exit 1
+  [ ! -f "$GHE_DATA_DIR/current/encrypted-column-keying-material" ]
+
+)
+end_test
+
+begin_test "ghe-backup takes backup of encrypted column encryption keying material for versions 3.7.0+"
+(
+  set -e
+
+  required_secrets=(
+    "secrets.github.encrypted-column-keying-material"
+  )
+
+  for secret in "${required_secrets[@]}"; do
+    ghe-ssh "$GHE_HOSTNAME" -- ghe-config "$secret" "foo"
+  done
+
+  # GHES version 3.7.0
+  GHE_REMOTE_VERSION=3.7.0
+  export GHE_REMOTE_VERSION
+
+  ghe-backup
+
+  required_files=(
+    "encrypted-column-encryption-keying-material"
+  )
+
+  for file in "${required_files[@]}"; do
+    [ "$(cat "$GHE_DATA_DIR/current/$file")" = "foo" ]
+  done
+
+  # GHES version 3.8.0
+  GHE_REMOTE_VERSION=3.8.0
+  export GHE_REMOTE_VERSION
+
+  ghe-backup
+
+  required_files=(
+    "encrypted-column-encryption-keying-material"
+  )
+
+  for file in "${required_files[@]}"; do
+    [ "$(cat "$GHE_DATA_DIR/current/$file")" = "foo" ]
+  done
+
+)
+end_test
+
+begin_test "ghe-backup does not take backup of encrypted column current encryption key for versions below 3.8.0"
+(
+  GHE_REMOTE_VERSION=2.1.10 ghe-backup -v | grep -q "encrypted column current encryption key not set" && exit 1
+  [ ! -f "$GHE_DATA_DIR/current/encrypted-column-current-encryption-key" ]
+
+  GHE_REMOTE_VERSION=3.7.0 ghe-backup -v | grep -q "encrypted column current encryption key not set" && exit 1
+  [ ! -f "$GHE_DATA_DIR/current/encrypted-column-current-encryption-key" ]
+
+)
+end_test
+
+begin_test "ghe-backup takes backup of encrypted column current encryption key for versions 3.8.0+"
+(
+  set -e
+
+  required_secrets=(
+    "secrets.github.encrypted-column-current-encryption-key"
+  )
+
+  for secret in "${required_secrets[@]}"; do
+    ghe-ssh "$GHE_HOSTNAME" -- ghe-config "$secret" "foo"
+  done
+
+  # GHES version 3.8.0
+  GHE_REMOTE_VERSION=3.8.0
+  export GHE_REMOTE_VERSION
+
+  ghe-backup
+
+  required_files=(
+    "encrypted-column-current-encryption-key"
+  )
+
+  for file in "${required_files[@]}"; do
+    [ "$(cat "$GHE_DATA_DIR/current/$file")" = "foo" ]
+  done
+
+  # GHES version 3.9.0
+  GHE_REMOTE_VERSION=3.9.0
+  export GHE_REMOTE_VERSION
+
+  ghe-backup
+
+  required_files=(
+    "encrypted-column-current-encryption-key"
+  )
+
+  for file in "${required_files[@]}"; do
+    [ "$(cat "$GHE_DATA_DIR/current/$file")" = "foo" ]
+  done
+
+)
+end_test
+
 begin_test "ghe-backup takes backup of Actions settings"
 (
   set -e
@@ -720,5 +828,18 @@ begin_test "ghe-backup fix_paths_for_ghe_version newer/older"
             echo foo/gist | fix_paths_for_ghe_version
         ")" == "foo" ]
     done
+)
+end_test
+
+# Check that information on system where backup-utils is installed is collected
+begin_test "ghe-backup collects information on system where backup-utils is installed"
+(
+  set -e
+
+  output=$(ghe-backup)
+  echo "$output" | grep "Running on: $(cat /etc/issue.net)"
+  echo "$output" | grep "CPUs: $(nproc)"
+  echo "$output" | grep "Memory total/used/free+share/buff/cache:"
+
 )
 end_test

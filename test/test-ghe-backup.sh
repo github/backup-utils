@@ -470,6 +470,106 @@ begin_test "ghe-backup upgrades transaction backup to full if LSN chain break"
 )
 end_test
 
+begin_test "ghe-backup takes backup of Kredz settings"
+(
+  set -e
+
+  required_secrets=(
+    "secrets.kredz.credz-hmac-secret"
+  )
+
+  for secret in "${required_secrets[@]}"; do
+    ghe-ssh "$GHE_HOSTNAME" -- ghe-config "$secret" "foo"
+  done
+
+  ghe-backup
+
+  required_files=(
+    "kredz-credz-hmac"
+  )
+
+  for file in "${required_files[@]}"; do
+    [ "$(cat "$GHE_DATA_DIR/current/$file")" = "foo" ]
+  done
+
+)
+end_test
+
+begin_test "ghe-backup takes backup of kredz-varz settings"
+(
+  set -e
+
+  required_secrets=(
+    "secrets.kredz.varz-hmac-secret"
+  )
+
+  for secret in "${required_secrets[@]}"; do
+    ghe-ssh "$GHE_HOSTNAME" -- ghe-config "$secret" "foo"
+  done
+
+  ghe-backup
+
+  required_files=(
+    "kredz-varz-hmac"
+  )
+
+  for file in "${required_files[@]}"; do
+    [ "$(cat "$GHE_DATA_DIR/current/$file")" = "foo" ]
+  done
+
+)
+end_test
+
+begin_test "ghe-backup takes backup of encrypted column encryption keying material"
+(
+  set -e
+
+  required_secrets=(
+    "secrets.github.encrypted-column-keying-material"
+  )
+
+  for secret in "${required_secrets[@]}"; do
+    ghe-ssh "$GHE_HOSTNAME" -- ghe-config "$secret" "foo"
+  done
+
+  ghe-backup
+
+  required_files=(
+    "encrypted-column-encryption-keying-material"
+  )
+
+  for file in "${required_files[@]}"; do
+    [ "$(cat "$GHE_DATA_DIR/current/$file")" = "foo" ]
+  done
+
+)
+end_test
+
+begin_test "ghe-backup takes backup of encrypted column current encryption key"
+(
+  set -e
+
+  required_secrets=(
+    "secrets.github.encrypted-column-current-encryption-key"
+  )
+
+  for secret in "${required_secrets[@]}"; do
+    ghe-ssh "$GHE_HOSTNAME" -- ghe-config "$secret" "foo"
+  done
+
+  ghe-backup
+
+  required_files=(
+    "encrypted-column-current-encryption-key"
+  )
+
+  for file in "${required_files[@]}"; do
+    [ "$(cat "$GHE_DATA_DIR/current/$file")" = "foo" ]
+  done
+
+)
+end_test
+
 begin_test "ghe-backup takes backup of Actions settings"
 (
   set -e
@@ -647,5 +747,18 @@ begin_test "ghe-backup fix_paths_for_ghe_version newer/older"
             echo foo/gist | fix_paths_for_ghe_version
         ")" == "foo" ]
     done
+)
+end_test
+
+# Check that information on system where backup-utils is installed is collected
+begin_test "ghe-backup collects information on system where backup-utils is installed"
+(
+  set -e
+
+  output=$(ghe-backup)
+  echo "$output" | grep "Running on: $(cat /etc/issue.net)"
+  echo "$output" | grep "CPUs: $(nproc)"
+  echo "$output" | grep "Memory total/used/free+share/buff/cache:"
+
 )
 end_test

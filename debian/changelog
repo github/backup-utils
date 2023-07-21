@@ -1,3 +1,10 @@
+github-backup-utils (3.6.1) UNRELEASED; urgency=medium
+
+  * Switch to TMPDIR before initiating SSH multiplexing workaround to prevent locking the destination filesystem #348
+  * Disable pager and context when running git-diff #411
+
+ -- Devin Dooley <dooleydevin@github.com>  Fri, 21 Jul 2023 01:05:34 +0000
+
 github-backup-utils (3.6.0) UNRELEASED; urgency=medium
 
 

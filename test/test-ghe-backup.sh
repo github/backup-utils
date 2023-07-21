@@ -555,7 +555,18 @@ begin_test "ghe-backup takes backup of kredz-varz settings"
 )
 end_test
 
-begin_test "ghe-backup takes backup of encrypted column encryption keying material"
+begin_test "ghe-backup does not take backup of encrypted column encryption keying material for versions below 3.7.0"
+(
+  GHE_REMOTE_VERSION=2.1.10 ghe-backup -v | grep -q "encrypted column encryption keying material not set" && exit 1
+  [ ! -f "$GHE_DATA_DIR/current/encrypted-column-keying-material" ]
+
+  GHE_REMOTE_VERSION=3.6.1 ghe-backup -v | grep -q "encrypted column encryption keying material not set" && exit 1
+  [ ! -f "$GHE_DATA_DIR/current/encrypted-column-keying-material" ]
+
+)
+end_test
+
+begin_test "ghe-backup takes backup of encrypted column encryption keying material for versions 3.7.0+"
 (
   set -e
 
@@ -566,6 +577,24 @@ begin_test "ghe-backup takes backup of encrypted column encryption keying materi
   for secret in "${required_secrets[@]}"; do
     ghe-ssh "$GHE_HOSTNAME" -- ghe-config "$secret" "foo"
   done
+
+  # GHES version 3.7.0
+  GHE_REMOTE_VERSION=3.7.0
+  export GHE_REMOTE_VERSION
+
+  ghe-backup
+
+  required_files=(
+    "encrypted-column-encryption-keying-material"
+  )
+
+  for file in "${required_files[@]}"; do
+    [ "$(cat "$GHE_DATA_DIR/current/$file")" = "foo" ]
+  done
+
+  # GHES version 3.8.0
+  GHE_REMOTE_VERSION=3.8.0
+  export GHE_REMOTE_VERSION
 
   ghe-backup
 
@@ -580,7 +609,18 @@ begin_test "ghe-backup takes backup of encrypted column encryption keying materi
 )
 end_test
 
-begin_test "ghe-backup takes backup of encrypted column current encryption key"
+begin_test "ghe-backup does not take backup of encrypted column current encryption key for versions below 3.8.0"
+(
+  GHE_REMOTE_VERSION=2.1.10 ghe-backup -v | grep -q "encrypted column current encryption key not set" && exit 1
+  [ ! -f "$GHE_DATA_DIR/current/encrypted-column-current-encryption-key" ]
+
+  GHE_REMOTE_VERSION=3.7.0 ghe-backup -v | grep -q "encrypted column current encryption key not set" && exit 1
+  [ ! -f "$GHE_DATA_DIR/current/encrypted-column-current-encryption-key" ]
+
+)
+end_test
+
+begin_test "ghe-backup takes backup of encrypted column current encryption key for versions 3.8.0+"
 (
   set -e
 
@@ -591,6 +631,24 @@ begin_test "ghe-backup takes backup of encrypted column current encryption key"
   for secret in "${required_secrets[@]}"; do
     ghe-ssh "$GHE_HOSTNAME" -- ghe-config "$secret" "foo"
   done
+
+  # GHES version 3.8.0
+  GHE_REMOTE_VERSION=3.8.0
+  export GHE_REMOTE_VERSION
+
+  ghe-backup
+
+  required_files=(
+    "encrypted-column-current-encryption-key"
+  )
+
+  for file in "${required_files[@]}"; do
+    [ "$(cat "$GHE_DATA_DIR/current/$file")" = "foo" ]
+  done
+
+  # GHES version 3.9.0
+  GHE_REMOTE_VERSION=3.9.0
+  export GHE_REMOTE_VERSION
 
   ghe-backup
 

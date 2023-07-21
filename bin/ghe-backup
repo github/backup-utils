@@ -151,6 +151,30 @@ if [ -n "$GHE_ALLOW_REPLICA_BACKUP" ]; then
   echo "Warning: backing up a high availability replica may result in inconsistent or unreliable backups."
 fi
 
+# Output system information of the backup host
+
+# If /etc/issue.net exists, use it to get the OS version
+if [ -f /etc/issue.net ]; then
+  echo "Running on: $(cat /etc/issue.net)"
+else
+  echo "Running on: Unknown OS"
+fi
+
+# If nproc command exists, use it to get the number of CPUs
+if command -v nproc >/dev/null 2>&1; then
+  echo "CPUs: $(nproc)"
+else
+  echo "CPUs: Unknown"
+fi
+
+# If the free command exists, use it to get the memory details
+if command -v free >/dev/null 2>&1; then
+  echo "Memory $(free -m  | grep '^Mem:' | awk '{print "total/used/free+share/buff/cache: " $2 "/" $3 "/" $4 "+" $5 "/" $6 "/" $7}')"
+else
+  echo "Memory: Unknown"
+fi
+
+
 # Log backup start message in /var/log/syslog on remote instance
 ghe_remote_logger "Starting backup from $(hostname) with backup-utils v$BACKUP_UTILS_VERSION in snapshot $GHE_SNAPSHOT_TIMESTAMP ..."
 

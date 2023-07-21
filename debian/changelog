@@ -1,3 +1,11 @@
+github-backup-utils (3.7.1) UNRELEASED; urgency=medium
+
+  * Don't fail a backup if the Management Console password isn't set #416
+  * Prevent restoring snapshots to older releases #420
+  * Use old rsync restore method for pages prior to 2.13 #426
+
+ -- Devin Dooley <dooleydevin@github.com>  Fri, 21 Jul 2023 02:08:41 +0000
+
 github-backup-utils (3.7.0) UNRELEASED; urgency=medium
 
 

@@ -663,7 +663,8 @@ begin_test "ghe-backup takes backup of encrypted column encryption keying materi
   )
 
   for secret in "${required_secrets[@]}"; do
-    ghe-ssh "$GHE_HOSTNAME" -- ghe-config "$secret" "foo;bar"
+    echo "ghe-config '$secret' 'foo;bar'" |
+    ghe-ssh "$GHE_HOSTNAME" -- /bin/bash
   done
 
   # GHES version 3.8.0

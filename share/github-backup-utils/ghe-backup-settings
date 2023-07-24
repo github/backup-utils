@@ -83,8 +83,10 @@ backup-secret "kredz.varz HMAC key" "kredz-varz-hmac" "secrets.kredz.varz-hmac-s
 # this is for forwards compatibility with GHES 3.8.0 onwards
 if [ "$(version $GHE_REMOTE_VERSION)" -ge "$(version 3.7.0)" ]; then
   backup-secret "encrypted column encryption keying material" "encrypted-column-encryption-keying-material" "secrets.github.encrypted-column-keying-material"
-  echo "ghe-config 'secrets.github.encrypted-column-keying-material' | sed 's:.*;::' > encrypted-column-current-encryption-key" |
-  ghe-ssh "$host" /bin/bash
+fi
+
+if [ "$(version $GHE_REMOTE_VERSION)" -ge "$(version 3.8.0)" ]; then
+  cat "$GHE_SNAPSHOT_DIR/encrypted-column-encryption-keying-material" | sed 's:.*;::' > "$GHE_SNAPSHOT_DIR/encrypted-column-current-encryption-key"
 fi
 
 backup-secret "secret scanning encrypted secrets current storage key" "secret-scanning-encrypted-secrets-current-storage-key" "secrets.secret-scanning.encrypted-secrets-current-storage-key"

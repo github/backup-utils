@@ -586,7 +586,6 @@ begin_test "ghe-backup takes backup of encrypted column encryption keying materi
 
   required_files=(
     "encrypted-column-encryption-keying-material"
-    "encrypted-column-current-encryption-key"
   )
 
   for file in "${required_files[@]}"; do

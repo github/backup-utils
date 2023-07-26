@@ -46,6 +46,8 @@ export CALLING_SCRIPT="ghe-backup"
 
 # Setup progress tracking
 init-progress
+export PROGRESS_TOTAL=14 # Minimum number of steps in backup is 14
+echo "$PROGRESS_TOTAL" > /tmp/backup-utils-progress-total
 export PROGRESS_TYPE="Backup"
 echo "$PROGRESS_TYPE" > /tmp/backup-utils-progress-type
 export PROGRESS=0 # Used to track progress of backup
@@ -72,7 +74,7 @@ if [ "$GHE_BACKUP_PAGES" != "no" ]; then
   OPTIONAL_STEPS=$((OPTIONAL_STEPS + 1))
 fi
 
-PROGRESS_TOTAL=$((OPTIONAL_STEPS + 14)) # Minimum number of steps in backup is 14
+PROGRESS_TOTAL=$((OPTIONAL_STEPS + PROGRESS_TOTAL)) # Minimum number of steps in backup is 14
 echo "$PROGRESS_TOTAL" > /tmp/backup-utils-progress-total
 # Check to make sure moreutils parallel is installed and working properly
 ghe_parallel_check

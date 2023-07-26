@@ -1,3 +1,14 @@
+github-backup-utils (3.8.1) UNRELEASED; urgency=medium
+
+  * Backup and restore custom CA certificates #281
+  * Switch to TMPDIR before initiating SSH multiplexing workaround to prevent locking the destination filesystem #348
+  * Remove check for git from ghe-ssh #393
+  * Optimise hookshot and audit log backups and restores and MySQL restores #413
+  * Add missing dependencies to debian packaging #418
+  * Restoring to an un-configured appliance fails due to a missing license file #449
+
+ -- Devin Dooley <dooleydevin@github.com>  Wed, 26 Jul 2023 01:30:01 +0000
+
 github-backup-utils (3.8.0) focal; urgency=medium
 
  -- Daniel Johnson <wirecat@github.com>  Tue, 07 Feb 2023 21:43:26 +0000

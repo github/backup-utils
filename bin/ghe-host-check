@@ -219,14 +219,10 @@ DATA_TRANSFER_SIZE
     echo "Please make sure you have the minimum required version of rsync: $min_rsync installed" 1>&2
     exit 1
   elif [[ $rsync_version < 3.2.5 ]] && [[ $RSYNC_WARNING != "no" ]]; then
-  cat << WARN_MSG 1>&2
-**WARNING:** rsync version $rsync_version on backup host is less than 3.2.5, which could result in performance degradation.
-
-For more details, please read documentation at https://github.com/github/backup-utils/blob/master/docs/requirements.md#april-2023-update-of-rsync-requirements
-
-You can disable this warning by changing RSYNC_WARNING to 'no' in your backup.config file.
-   
-WARN_MSG
+    printf "\n  **WARNING:** rsync version %s on backup host is less than 3.2.5, which could result in performance degradation.
+  For more details, please read documentation at https://gh.io/april-2023-update-of-rsync-requirements
+  You can disable this warning by changing RSYNC_WARNING to 'no' in your backup.config file.\n\n" \
+    "$rsync_version" 1>&2
   fi
   echo " - rsync ${rsync_version} >= required ($min_rsync)" 1>&2
 

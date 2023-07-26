@@ -1,3 +1,12 @@
+github-backup-utils (3.9.1) UNRELEASED; urgency=medium
+
+  * Make it clear the settings need to be applied after restoring to an unconfigured instance  #381
+  * Remove check for git from ghe-ssh #393
+  * Use remote's mktemp to create temp dir on remote host #395
+  * Enabling concurrent `ghe-backup` tasks from separate backup hosts #441
+
+ -- Devin Dooley <dooleydevin@github.com>  Wed, 26 Jul 2023 01:46:33 +0000
+
 github-backup-utils (3.9.0) UNRELEASED; urgency=medium
 
   * Switch to TMPDIR before initiating SSH multiplexing workaround to prevent locking the destination filesystem #348

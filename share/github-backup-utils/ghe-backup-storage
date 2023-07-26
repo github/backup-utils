@@ -113,6 +113,8 @@ bm_end "$(basename $0) - Processing routes"
 if [ -z "$(find "$tempdir" -maxdepth 1 -name '*.rsync')" ]; then
   log_warn "no routes found, skipping storage backup ..."
   exit 0
+else
+  increment-progress-total-count 2
 fi
 
 # rsync all the storage objects
@@ -149,6 +151,7 @@ if [ -z "$GHE_SKIP_ROUTE_VERIFICATION" ]; then
 
   git --no-pager diff --unified=0 --no-prefix -- $tempdir/source_routes $tempdir/destination_routes || echo "Warning: One or more storage objects were not found on the source appliance. Please contact GitHub Enterprise Support for assistance."
 
+  increment-progress-total-count 1
   bm_end "$(basename $0) - Verifying Routes"
 fi
 

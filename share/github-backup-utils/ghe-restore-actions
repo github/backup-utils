@@ -68,6 +68,7 @@ restore-secret "Actions S2S encryption cert" "actions-s2s-encryption-cert" "secr
 restore-secret "Actions secondary encryption cert thumbprint" "actions-secondary-encryption-cert-thumbprint" "secrets.actions.SecondaryEncryptionCertificateThumbprint"
 restore-secret "Actions service principal cert" "actions-service-principal-cert" "secrets.actions.ServicePrincipalCertificate"
 restore-secret "Actions SPS validation cert thumbprint" "actions-sps-validation-cert-thumbprint" "secrets.actions.SpsValidationCertThumbprint"
+restore-secret "Actions storage container prefix" "actions-storage-container-prefix" "secrets.actions.storage.container-prefix"
 
 restore-secret "Actions Launch secrets encryption/decryption" "actions-launch-secrets-private-key" "secrets.launch.actions-secrets-private-key"
 restore-secret "Actions Launch deployer HMAC key" "actions-launch-deployer-hmac" "secrets.launch.deployer-hmac-secret"

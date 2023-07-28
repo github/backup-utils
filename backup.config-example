@@ -16,6 +16,10 @@ GHE_DATA_DIR="data"
 # be available for the past N days ...
 GHE_NUM_SNAPSHOTS=10
 
+# Pruning snapshots can be scheduled outside of the backup process. If set to 'yes'
+# ghe-pruning-snapshots will need to be invoked separately via cron
+#GHE_PRUNING_SCHEDULED=yes
+
 # The hostname of the GitHub appliance to restore. If you've set up a separate
 # GitHub appliance to act as a standby for recovery, specify its IP or hostname
 # here. The host to restore to may also be specified directly when running

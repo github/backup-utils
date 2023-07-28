@@ -327,7 +327,11 @@ if [ -z "$failures" ]; then
   rm -f "../current"
   ln -s "$GHE_SNAPSHOT_TIMESTAMP" "../current"
 
-  ghe-prune-snapshots
+  if [[ $GHE_PRUNING_SCHEDULED != "yes" ]]; then
+    ghe-prune-snapshots
+  else
+    log_info "Expired and incomplete snapshots to be pruned separately"
+  fi
 else 
   log_info "Skipping pruning snapshots, since some backups failed..."
 fi

@@ -68,7 +68,6 @@ restore-secret "Actions S2S encryption cert" "actions-s2s-encryption-cert" "secr
 restore-secret "Actions secondary encryption cert thumbprint" "actions-secondary-encryption-cert-thumbprint" "secrets.actions.SecondaryEncryptionCertificateThumbprint"
 restore-secret "Actions service principal cert" "actions-service-principal-cert" "secrets.actions.ServicePrincipalCertificate"
 restore-secret "Actions SPS validation cert thumbprint" "actions-sps-validation-cert-thumbprint" "secrets.actions.SpsValidationCertThumbprint"
-restore-secret "Actions storage container prefix" "actions-storage-container-prefix" "secrets.actions.storage.container-prefix"
 
 restore-secret "Actions Launch secrets encryption/decryption" "actions-launch-secrets-private-key" "secrets.launch.actions-secrets-private-key"
 restore-secret "Actions Launch deployer HMAC key" "actions-launch-deployer-hmac" "secrets.launch.deployer-hmac-secret"
@@ -86,6 +85,13 @@ restore-secret "Actions Launch service private key" "actions-launch-app-app-priv
 restore-secret "Actions Launch token oauth key" "actions-oauth-s2s-signing-key" "secrets.launch.token-oauth-key"
 restore-secret "Actions Launch token oauth cert" "actions-oauth-s2s-signing-cert" "secrets.launch.token-oauth-cert"
 
+# Restore storage container prefix, but only if the `-c` option is used with ghe-restore
+# `-c` should be used if restoring to an unconfigured appliance or when sif restoring to an unconfigured appliance or when
+# specified manually. 
+# This is to avoid a staging instance using the same bucket prefix settings as production in the case of a staging instance restored from production
+if $RESTORE_SETTINGS; then
+  restore-secret "Actions storage container prefix" "actions-storage-container-prefix" "secrets.actions.storage.container-prefix"
+fi
 
 # Setup the database logins.
 ghe_verbose "* Restoring database logins and users to $host ..."

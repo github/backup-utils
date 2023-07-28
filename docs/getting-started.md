@@ -4,10 +4,6 @@
 
     `tar -xzvf /path/to/github-backup-utils-vMAJOR.MINOR.PATCH.tar.gz`
 
-    *or* clone the repository using Git:
-
-    `git clone -b stable https://github.com/github/backup-utils.git`
-
     **Note**: you will need to use [Backup Utilities v2.11.x][2] or the `legacy` branch to
     backup and restore GitHub Enterprise Server 2.10 and earlier.
 

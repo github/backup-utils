@@ -555,7 +555,7 @@ begin_test "ghe-backup takes backup of kredz-varz settings"
 )
 end_test
 
-begin_test "ghe-backup takes backup of encrypted column encryption keying material"
+begin_test "ghe-backup takes backup of encrypted column encryption keying material and create encrypted column current encryption key for versions 3.7.0+"
 (
   set -e
 
@@ -567,30 +567,39 @@ begin_test "ghe-backup takes backup of encrypted column encryption keying materi
     ghe-ssh "$GHE_HOSTNAME" -- ghe-config "$secret" "foo"
   done
 
+  # GHES version 3.7.0
+  GHE_REMOTE_VERSION=3.7.0
+  export GHE_REMOTE_VERSION
+
   ghe-backup
 
   required_files=(
     "encrypted-column-encryption-keying-material"
+    "encrypted-column-current-encryption-key"
   )
 
   for file in "${required_files[@]}"; do
     [ "$(cat "$GHE_DATA_DIR/current/$file")" = "foo" ]
   done
 
-)
-end_test
+  # GHES version 3.8.0
+  GHE_REMOTE_VERSION=3.8.0
+  export GHE_REMOTE_VERSION
 
-begin_test "ghe-backup takes backup of encrypted column current encryption key"
-(
-  set -e
+  ghe-backup
 
-  required_secrets=(
-    "secrets.github.encrypted-column-current-encryption-key"
+  required_files=(
+    "encrypted-column-encryption-keying-material"
+    "encrypted-column-current-encryption-key"
   )
 
-  for secret in "${required_secrets[@]}"; do
-    ghe-ssh "$GHE_HOSTNAME" -- ghe-config "$secret" "foo"
+  for file in "${required_files[@]}"; do
+    [ "$(cat "$GHE_DATA_DIR/current/$file")" = "foo" ]
   done
+
+  # GHES version 3.9.0
+  GHE_REMOTE_VERSION=3.9.0
+  export GHE_REMOTE_VERSION
 
   ghe-backup
 
@@ -602,6 +611,120 @@ begin_test "ghe-backup takes backup of encrypted column current encryption key"
     [ "$(cat "$GHE_DATA_DIR/current/$file")" = "foo" ]
   done
 
+)
+end_test
+
+begin_test "ghe-backup takes backup of encrypted column encryption keying material and encrypted column current encryption key accounting for multiple encryption keying materials for versions 3.7.0+"
+(
+  set -e
+
+  required_secrets=(
+    "secrets.github.encrypted-column-keying-material"
+  )
+
+  for secret in "${required_secrets[@]}"; do
+    echo "ghe-config '$secret' 'foo;bar'" |
+    ghe-ssh "$GHE_HOSTNAME" -- /bin/bash
+  done
+
+  # GHES version 3.7.0
+  GHE_REMOTE_VERSION=3.7.0
+  export GHE_REMOTE_VERSION
+
+  ghe-backup
+
+  required_files=(
+    "encrypted-column-encryption-keying-material"
+  )
+
+  for file in "${required_files[@]}"; do
+    [ "$(cat "$GHE_DATA_DIR/current/$file")" = "foo;bar" ]
+  done
+
+  required_files_current_encryption_key=(
+    "encrypted-column-current-encryption-key"
+  )
+
+  for file in "${required_files_current_encryption_key[@]}"; do
+    [ "$(cat "$GHE_DATA_DIR/current/$file")" = "bar" ]
+  done
+
+
+ # GHES version 3.8.0
+  GHE_REMOTE_VERSION=3.8.0
+  export GHE_REMOTE_VERSION
+
+  ghe-backup
+
+  required_files=(
+    "encrypted-column-encryption-keying-material"
+  )
+
+  for file in "${required_files[@]}"; do
+    [ "$(cat "$GHE_DATA_DIR/current/$file")" = "foo;bar" ]
+  done
+
+  required_files_current_encryption_key=(
+    "encrypted-column-current-encryption-key"
+  )
+
+  for file in "${required_files_current_encryption_key[@]}"; do
+    [ "$(cat "$GHE_DATA_DIR/current/$file")" = "bar" ]
+  done
+
+
+  # GHES version 3.9.0
+  GHE_REMOTE_VERSION=3.9.0
+  export GHE_REMOTE_VERSION
+
+  ghe-backup
+
+  required_files=(
+    "encrypted-column-encryption-keying-material"
+  )
+
+  for file in "${required_files[@]}"; do
+    [ "$(cat "$GHE_DATA_DIR/current/$file")" = "foo;bar" ]
+  done
+
+  required_files_current_encryption_key=(
+    "encrypted-column-current-encryption-key"
+  )
+
+  for file in "${required_files_current_encryption_key[@]}"; do
+    [ "$(cat "$GHE_DATA_DIR/current/$file")" = "bar" ]
+  done
+
+)
+end_test
+
+begin_test "ghe-backup takes backup of secret scanning encrypted secrets encryption keys"
+(
+  set -e
+
+  required_secrets=(
+    "secrets.secret-scanning.encrypted-secrets-current-storage-key"
+    "secrets.secret-scanning.encrypted-secrets-delimited-storage-keys"
+    "secrets.secret-scanning.encrypted-secrets-current-shared-transit-key"
+    "secrets.secret-scanning.encrypted-secrets-delimited-shared-transit-keys"
+  )
+
+  for secret in "${required_secrets[@]}"; do
+    ghe-ssh "$GHE_HOSTNAME" -- ghe-config "$secret" "foo"
+  done
+
+  ghe-backup
+
+  required_files=(
+    "secret-scanning-encrypted-secrets-current-storage-key"
+    "secret-scanning-encrypted-secrets-delimited-storage-keys"
+    "secret-scanning-encrypted-secrets-current-shared-transit-key"
+    "secret-scanning-encrypted-secrets-delimited-shared-transit-keys"
+  )
+
+  for file in "${required_files[@]}"; do
+    [ "$(cat "$GHE_DATA_DIR/current/$file")" = "foo" ]
+  done
 )
 end_test
 

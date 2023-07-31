@@ -30,7 +30,7 @@ host=$(ssh_host_part "$GHE_HOSTNAME")
 
 # No need to restore anything, early exit
 if [ ! -d "$GHE_RESTORE_SNAPSHOT_PATH/actions" ]; then
-  echo "Warning: Actions backup missing. Skipping ..."
+  log_warn "Warning: Actions backup missing. Skipping ..."
   exit 0
 fi
 
@@ -42,13 +42,13 @@ ghe_verbose "* Transferring Actions files to $host ..."
 
 ghe-ssh -p "$port" "$host" -- sudo mkdir -p "$GHE_REMOTE_DATA_USER_DIR/actions"
 ghe-ssh -p "$port" "$host" -- sudo chown -R actions:actions "$GHE_REMOTE_DATA_USER_DIR/actions"
-
+log_rsync "BEGIN: actions rsync" 1>&3
 ghe-rsync -arvHR --delete \
   -e "ghe-ssh -p $port" \
   --rsync-path='sudo -u actions rsync' \
   "$GHE_RESTORE_SNAPSHOT_PATH/actions/./" \
   "$host:$GHE_REMOTE_DATA_USER_DIR/actions/" 1>&3
-
+log_rsync "END: actions rsync" 1>&3
 # Restore Actions settings.
 ghe_verbose "* Restoring Actions settings to $host ..."
 
@@ -96,7 +96,7 @@ ghe-ssh -p "$port" "$host" -- ghe-actions-console -s actions -c "Repair-Database
 if [ ! -z "$(find "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/mssql/" -maxdepth 1 -name 'ArtifactCache_Configuration*.bak')" ]; then
   ghe-ssh -p "$port" "$host" -- ghe-actions-console -s artifactcache -c "Repair-DatabaseLogins"
   else
-   echo "ArtifactCache is not present in mssql backup. Skipping Repair-DatabaseLogins for it."
+   log_info "ArtifactCache is not present in mssql backup. Skipping Repair-DatabaseLogins for it."
 fi
 
 bm_end "$(basename $0)"

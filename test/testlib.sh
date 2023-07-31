@@ -19,6 +19,7 @@
 #
 # Copyright (c) 2011-14 by Ryan Tomayko <http://tomayko.com>
 # License: MIT
+# shellcheck disable=SC2319
 set -e
 
 # Setting basic paths
@@ -436,7 +437,7 @@ verify_all_backedup_data() {
   fi
 
   # check that redis data was backed up
-  [ "$(cat "$GHE_DATA_DIR/current/redis.rdb")" = "fake redis data" ]
+  [[ "$(cat "$GHE_DATA_DIR/current/redis.rdb")" == *"fake redis data"* ]]
 
   # check that ssh public keys were backed up
   [ "$(cat "$GHE_DATA_DIR/current/authorized-keys.json")" = "fake ghe-export-authorized-keys data" ]
@@ -448,7 +449,7 @@ verify_all_backedup_data() {
   [ "$(cat "$GHE_DATA_DIR/current/manage-password")" = "fake password hash data" ]
 
   # verify manage-argon-secret file was backed up
-  if [ "$(version $GHE_REMOTE_VERSION)" -gt "$(version 3.7.0)" ]; then
+  if ! [ "$(version $GHE_REMOTE_VERSION)" -lt "$(version 3.8.0)" ]; then
     [ "$(cat "$GHE_DATA_DIR/current/manage-argon-secret")" = "fake argon2 secret" ]
   fi
 

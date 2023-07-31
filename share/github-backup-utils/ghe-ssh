@@ -38,7 +38,7 @@ while true; do
 done
 
 if [ -n "$cleanup_mux" ]; then
-  find $TMPDIR -name ".ghe-sshmux-*" -type s -exec ssh -O stop -S {} - \; >/dev/null 2>&1 || true
+  find "${TMPDIR}" -name ".ghe-sshmux-*" -type s -exec ssh -O stop -S {} - \; >/dev/null 2>&1 || true
   exit
 fi
 
@@ -72,7 +72,7 @@ if [ -z "$GHE_DISABLE_SSH_MUX" ]; then
   # shellcheck disable=SC2089 # We don't use bash arrays
   opts="-o ControlMaster=auto -o ControlPath=\"$controlpath\" -o ControlPersist=10m -o ServerAliveInterval=10 $opts"
   # Workaround for https://bugzilla.mindrot.org/show_bug.cgi?id=1988
-  if ! [ -S $controlpath ]; then
+  if ! [ -S "$controlpath" ]; then
     # shellcheck disable=SC2090 # We don't need the quote/backslashes respected
     ( cd "$TMPDIR" && ssh -f $opts -p $port -o BatchMode=yes "$host" -- /bin/true 1>/dev/null 2>&1 || true )
   fi

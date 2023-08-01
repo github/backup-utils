@@ -327,6 +327,14 @@ setup_test_data () {
   setup_minio_test_data "$GHE_DATA_DIR"
 }
 
+setup_incremental_backup_config() {
+  ghe-ssh "$GHE_HOSTNAME" -- 'mkdir -p /tmp/lsndir'
+  ghe-ssh "$GHE_HOSTNAME" -- 'echo "fake xtrabackup checkpoint" > /tmp/lsndir/xtrabackup_checkpoints'
+
+  enable_binary_backup
+  export GHE_INCREMENTAL_MAX_BACKUPS=10
+}
+
 setup_actions_test_data() {
   local loc=$1
 
@@ -581,6 +589,10 @@ enable_minio() {
 
 is_minio_enabled() {
   ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config --true app.minio.enabled'
+}
+
+enable_binary_backup() {
+  ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config mysql.backup.binary true'
 }
 
 setup_moreutils_parallel() {

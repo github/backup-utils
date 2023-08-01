@@ -50,6 +50,67 @@ begin_test "ghe-backup subsequent snapshot"
 )
 end_test
 
+begin_test "ghe-backup incremental"
+(
+  set -e
+  sleep 1
+
+  setup_incremental_backup_config
+
+  # check that no current symlink exists yet
+  [ -d "$GHE_DATA_DIR/current" ]
+ 
+  # run it
+  # this time expect full backup
+  ghe-backup -i
+
+  # check metadata files are created
+  [ -e "$GHE_DATA_DIR/inc_full_backup" ]
+  [ -e "$GHE_DATA_DIR/inc_snapshot_data" ]
+
+  # check the metadata
+  expected_full_backup=$(wc -l < "$GHE_DATA_DIR/inc_full_backup")
+  expected_incremental_backup=$(wc -l < "$GHE_DATA_DIR/inc_snapshot_data")
+  # should have 1 full backup and 0 incremental backup
+  [ $expected_full_backup -eq 1 ]
+  [ $expected_incremental_backup -eq 0 ]
+
+  # re-run
+  # this time expect incremental backup
+  ghe-backup -i
+
+  expected_full_backup=$(wc -l < "$GHE_DATA_DIR/inc_full_backup")
+  expected_incremental_backup=$(wc -l < "$GHE_DATA_DIR/inc_snapshot_data")
+  # should have 1 full backup and 1 incremental backup
+  [ $expected_full_backup -eq 1 ]
+  [ $expected_incremental_backup -eq 1 ]
+
+  # re-run
+  # this time expect yet another incremental backup
+  ghe-backup -i
+
+  expected_full_backup=$(wc -l < "$GHE_DATA_DIR/inc_full_backup")
+  expected_incremental_backup=$(wc -l < "$GHE_DATA_DIR/inc_snapshot_data")
+  # should have 1 full backup and 2 incremental backup
+  [ $expected_full_backup -eq 1 ]
+  [ $expected_incremental_backup -eq 2 ]
+)
+end_test
+
+begin_test "ghe-backup incremental without config"
+(
+  set -e
+  sleep 1
+
+  # set incorrect config for incremental backup
+  ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config mysql.backup.binary false'
+  export GHE_INCREMENTAL_MAX_BACKUPS=1
+
+  # check ghe-backup fails
+  ! ghe-backup -i
+)
+end_test
+
 begin_test "ghe-backup logs the benchmark"
 (
   set -e

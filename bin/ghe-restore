@@ -71,6 +71,10 @@ while true; do
       export GHE_VERBOSE=true
       shift
       ;;
+     -i|--incremental)
+      export GHE_INCREMENTAL=true
+      shift
+      ;;
     -*)
       echo "Error: invalid argument: '$1'" 1>&2
       exit 1
@@ -321,6 +325,21 @@ echo "$PROGRESS" > /tmp/backup-utils-progress
 START_TIME=$(date +%s)
 log_info "Starting restore of $GHE_HOSTNAME with backup-utils v$BACKUP_UTILS_VERSION from snapshot $GHE_RESTORE_SNAPSHOT"
 
+if [ "$GHE_INCREMENTAL" ]; then
+  log_info "Incremental restore from snapshot $GHE_RESTORE_SNAPSHOT"
+  # If we see 'inc_previous' prepended to the snapshot name, then
+  # we set $INC_FULL_BACKUP and $INC_SNAPSHOT_DATA to $INC_PREVIOUS_FULL_BACKUP and
+  # $INC_PREVIOUS_SNAPSHOT_DATA respectively. Otherwise, leave them at default setting
+  # so that incremental restore is from current cycle
+  if [[ "$GHE_RESTORE_SNAPSHOT" =~ ^inc_previous ]]; then
+    INC_FULL_BACKUP=$INC_PREVIOUS_FULL_BACKUP
+    INC_SNAPSHOT_DATA=$INC_PREVIOUS_SNAPSHOT_DATA
+    log_info "Incremental restore from previous cycle snapshot. Using $INC_FULL_BACKUP"
+    log_info "Incremental restore from previous cycle snapshot. Using $INC_SNAPSHOT_DATA"
+  fi 
+  log_info "Validating snapshot $GHE_RESTORE_SNAPSHOT"
+  validate_inc_snapshot_data "$GHE_RESTORE_SNAPSHOT"
+fi
 ghe_remote_logger "Starting restore from $(hostname) with backup-utils v$BACKUP_UTILS_VERSION / snapshot $GHE_RESTORE_SNAPSHOT ..."
 # Create an in-progress-restore file to prevent simultaneous backup or restore runs
 echo "${START_TIME} $$" > "${GHE_DATA_DIR}/in-progress-restore"
@@ -498,6 +517,8 @@ else
   ghe-restore-mysql "$GHE_HOSTNAME" 1>&3
 fi
 
+
+
 if ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config --true app.actions.enabled'; then
   log_info "Stopping Actions before restoring databases ..."
   # We mark Actions as stopped even if the `ghe-actions-stop`
@@ -601,7 +622,7 @@ fi
 log_info  "Restarting memcached ..." 1>&3
 bm_start "$(basename $0) - Restarting memcached"
 echo "sudo restart -q memcached 2>/dev/null || true" |
-  ghe-ssh "$GHE_HOSTNAME" -- /bin/sh
+ghe-ssh "$GHE_HOSTNAME" -- /bin/sh
 bm_end "$(basename $0) - Restarting memcached"
 
 # Prevent GitHub Connect jobs running before we've had a chance to reset

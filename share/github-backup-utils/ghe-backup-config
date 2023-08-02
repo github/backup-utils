@@ -374,13 +374,13 @@ export GHE_DATA_DIR
 : "${GHE_RELEASE_FILE:="/etc/github/enterprise-release"}"
 
 # Check that utils are not being run directly on GHE appliance.
-# if [ -f "$GHE_RELEASE_FILE" ]; then
-#   echo "Error: Backup Utils cannot be run on the GitHub Enterprise host." 1>&2
-#   echo "       The backup utilities should be run on a host dedicated to" 1>&2
-#   echo "       long-term permanent storage and must have network connectivity" 1>&2
-#   echo "       with the GitHub Enterprise appliance." 1>&2
-#   exit 1
-# fi
+if [ -f "$GHE_RELEASE_FILE" ]; then
+  echo "Error: Backup Utils cannot be run on the GitHub Enterprise host." 1>&2
+  echo "       The backup utilities should be run on a host dedicated to" 1>&2
+  echo "       long-term permanent storage and must have network connectivity" 1>&2
+  echo "       with the GitHub Enterprise appliance." 1>&2
+  exit 1
+fi
 
 GHE_CREATE_DATA_DIR=${GHE_CREATE_DATA_DIR:-yes}
 

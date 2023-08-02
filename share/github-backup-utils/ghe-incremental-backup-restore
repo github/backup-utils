@@ -311,23 +311,6 @@ get_cluster_lsn(){
   fi
 }
 
-# Change our ssh command based on if we are in a cluster or not
-# cluster_restore_ssh_cmd(){
-# local GHE_HOSTNAME
-#   GHE_HOSTNAME=$1
-
-#   ghe-ssh "$GHE_HOSTNAME" "[ -f /etc/github/cluster ] && [ -z \"$LOCAL_MYSQL\" ]"
-
-#   if [ $? -eq 0 ]; then
-#     local_host=$(ghe-ssh "$GHE_HOSTNAME" "cat /etc/github/cluster")
-#     mysql_master=$(ghe-ssh "$GHE_HOSTNAME" "ghe-config cluster.mysql-master")
-
-#     if [ "$local_host" != "$mysql_master" ]; then
-#       echo "ssh -p 122 admin@$mysql_master"
-#     else
-#       echo ""
-#     fi
-# }
 
 # used to set the previous incremental backups.
 # takes every directory in $GHE_DATA_DIR/$INC_FULL_BACKUP and

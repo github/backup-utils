@@ -88,10 +88,10 @@ restore-secret "Actions Launch token oauth cert" "actions-oauth-s2s-signing-cert
 # Restore storage container prefix, but only if the `-c` option is used with ghe-restore to avoid staging instances using production bucket settings
 # This value will only be present in backups from versions >= 3.10 so needs to be wrapped in version checks.
 if [ -n "$GHE_RESTORE_SNAPSHOT_PATH" ]; then
-  snapshot_version=$(cat $GHE_RESTORE_SNAPSHOT_PATH/version)
+  snapshot_version=$(cat "$GHE_RESTORE_SNAPSHOT_PATH/version")
   # shellcheck disable=SC2046 # Word splitting is required to populate the variables
-  read -r snapshot_version_major snapshot_version_minor _ <<<$(ghe_parse_version $snapshot_version)
-  if [ "$snapshot_version_major" -eq "3" -a "$snapshot_version_minor" -ge "10" -a $RESTORE_SETTINGS ]; then
+  read -r snapshot_version_major snapshot_version_minor _ <<<$(ghe_parse_version "$snapshot_version")
+  if [[ "$snapshot_version_major" -eq "3" && "$snapshot_version_minor" -ge "10" && $RESTORE_SETTINGS ]]; then
     restore-secret "Actions storage container prefix" "actions-storage-container-prefix" "secrets.actions.storage.container-prefix"
   fi
 fi

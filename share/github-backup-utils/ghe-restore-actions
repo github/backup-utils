@@ -85,23 +85,16 @@ restore-secret "Actions Launch service private key" "actions-launch-app-app-priv
 restore-secret "Actions Launch token oauth key" "actions-oauth-s2s-signing-key" "secrets.launch.token-oauth-key"
 restore-secret "Actions Launch token oauth cert" "actions-oauth-s2s-signing-cert" "secrets.launch.token-oauth-cert"
 
-# Restore storage container prefix, but only if the `-c` option is used with ghe-restore
-# `-c` should be used if restoring to an unconfigured appliance or when sif restoring to an unconfigured appliance or when
-# specified manually. 
-# This is to avoid a staging instance using the same bucket prefix settings as production in the case of a staging instance restored from production
-if $RESTORE_SETTINGS; then
-  restore-secret "Actions storage container prefix" "actions-storage-container-prefix" "secrets.actions.storage.container-prefix"
-fi
 # Restore storage container prefix, but only if the `-c` option is used with ghe-restore to avoid staging instances using production bucket settings
 # This value will only be present in backups from versions >= 3.10 so needs to be wrapped in version checks.
-# if [ -n "$GHE_RESTORE_SNAPSHOT_PATH" ]; then
-#   snapshot_version=$(cat $GHE_RESTORE_SNAPSHOT_PATH/version)
-#   # shellcheck disable=SC2046 # Word splitting is required to populate the variables
-#   read -r snapshot_version_major snapshot_version_minor _ <<<$(ghe_parse_version $snapshot_version)
-#   if [ "$(version $snapshot_version_major.$snapshot_version_minor.0)" -a $RESTORE_SETTINGS ]; then
-#     restore-secret "Actions storage container prefix" "actions-storage-container-prefix" "secrets.actions.storage.container-prefix"
-#   fi
-# fi
+if [ -n "$GHE_RESTORE_SNAPSHOT_PATH" ]; then
+  snapshot_version=$(cat $GHE_RESTORE_SNAPSHOT_PATH/version)
+  # shellcheck disable=SC2046 # Word splitting is required to populate the variables
+  read -r snapshot_version_major snapshot_version_minor _ <<<$(ghe_parse_version $snapshot_version)
+  if [ "$snapshot_version_major" -eq "3" -a "$snapshot_version_minor" -ge "9" -a $RESTORE_SETTINGS ]; then
+    restore-secret "Actions storage container prefix" "actions-storage-container-prefix" "secrets.actions.storage.container-prefix"
+  fi
+fi
 
 # Setup the database logins.
 ghe_verbose "* Restoring database logins and users to $host ..."

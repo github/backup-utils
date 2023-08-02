@@ -50,6 +50,67 @@ begin_test "ghe-backup subsequent snapshot"
 )
 end_test
 
+begin_test "ghe-backup incremental"
+(
+  set -e
+  sleep 1
+
+  setup_incremental_backup_config
+
+  # check that no current symlink exists yet
+  [ -d "$GHE_DATA_DIR/current" ]
+ 
+  # run it
+  # this time expect full backup
+  ghe-backup -i
+
+  # check metadata files are created
+  [ -e "$GHE_DATA_DIR/inc_full_backup" ]
+  [ -e "$GHE_DATA_DIR/inc_snapshot_data" ]
+
+  # check the metadata
+  expected_full_backup=$(wc -l < "$GHE_DATA_DIR/inc_full_backup")
+  expected_incremental_backup=$(wc -l < "$GHE_DATA_DIR/inc_snapshot_data")
+  # should have 1 full backup and 0 incremental backup
+  [ $expected_full_backup -eq 1 ]
+  [ $expected_incremental_backup -eq 0 ]
+
+  # re-run
+  # this time expect incremental backup
+  ghe-backup -i
+
+  expected_full_backup=$(wc -l < "$GHE_DATA_DIR/inc_full_backup")
+  expected_incremental_backup=$(wc -l < "$GHE_DATA_DIR/inc_snapshot_data")
+  # should have 1 full backup and 1 incremental backup
+  [ $expected_full_backup -eq 1 ]
+  [ $expected_incremental_backup -eq 1 ]
+
+  # re-run
+  # this time expect yet another incremental backup
+  ghe-backup -i
+
+  expected_full_backup=$(wc -l < "$GHE_DATA_DIR/inc_full_backup")
+  expected_incremental_backup=$(wc -l < "$GHE_DATA_DIR/inc_snapshot_data")
+  # should have 1 full backup and 2 incremental backup
+  [ $expected_full_backup -eq 1 ]
+  [ $expected_incremental_backup -eq 2 ]
+)
+end_test
+
+begin_test "ghe-backup incremental without config"
+(
+  set -e
+  sleep 1
+
+  # set incorrect config for incremental backup
+  ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config mysql.backup.binary false'
+  export GHE_INCREMENTAL_MAX_BACKUPS=1
+
+  # check ghe-backup fails
+  ! ghe-backup -i
+)
+end_test
+
 begin_test "ghe-backup logs the benchmark"
 (
   set -e
@@ -555,17 +616,6 @@ begin_test "ghe-backup takes backup of kredz-varz settings"
 )
 end_test
 
-begin_test "ghe-backup does not take backup of encrypted column encryption keying material for versions below 3.7.0"
-(
-  GHE_REMOTE_VERSION=2.1.10 ghe-backup -v | grep -q "encrypted column encryption keying material not set" && exit 1
-  [ ! -f "$GHE_DATA_DIR/current/encrypted-column-keying-material" ]
-
-  GHE_REMOTE_VERSION=3.6.1 ghe-backup -v | grep -q "encrypted column encryption keying material not set" && exit 1
-  [ ! -f "$GHE_DATA_DIR/current/encrypted-column-keying-material" ]
-
-)
-end_test
-
 begin_test "ghe-backup takes backup of encrypted column encryption keying material and create encrypted column current encryption key for versions 3.7.0+"
 (
   set -e
@@ -586,39 +636,11 @@ begin_test "ghe-backup takes backup of encrypted column encryption keying materi
 
   required_files=(
     "encrypted-column-encryption-keying-material"
+    "encrypted-column-current-encryption-key"
   )
 
   for file in "${required_files[@]}"; do
     [ "$(cat "$GHE_DATA_DIR/current/$file")" = "foo" ]
-  done
-
-  # GHES version 3.8.0
-  GHE_REMOTE_VERSION=3.8.0
-  export GHE_REMOTE_VERSION
-
-  ghe-backup
-
-  required_files=(
-    "encrypted-column-encryption-keying-material"
-  )
-
-  for file in "${required_files[@]}"; do
-    [ "$(cat "$GHE_DATA_DIR/current/$file")" = "foo" ]
-  done
-
-)
-end_test
-
-begin_test "ghe-backup takes backup of encrypted column encryption keying material and encrypted column current encryption key for versions 3.8.0+"
-(
-  set -e
-
-  required_secrets=(
-    "secrets.github.encrypted-column-keying-material"
-  )
-
-  for secret in "${required_secrets[@]}"; do
-    ghe-ssh "$GHE_HOSTNAME" -- ghe-config "$secret" "foo"
   done
 
   # GHES version 3.8.0
@@ -666,7 +688,30 @@ begin_test "ghe-backup takes backup of encrypted column encryption keying materi
     ghe-ssh "$GHE_HOSTNAME" -- /bin/bash
   done
 
-  # GHES version 3.8.0
+  # GHES version 3.7.0
+  GHE_REMOTE_VERSION=3.7.0
+  export GHE_REMOTE_VERSION
+
+  ghe-backup
+
+  required_files=(
+    "encrypted-column-encryption-keying-material"
+  )
+
+  for file in "${required_files[@]}"; do
+    [ "$(cat "$GHE_DATA_DIR/current/$file")" = "foo;bar" ]
+  done
+
+  required_files_current_encryption_key=(
+    "encrypted-column-current-encryption-key"
+  )
+
+  for file in "${required_files_current_encryption_key[@]}"; do
+    [ "$(cat "$GHE_DATA_DIR/current/$file")" = "bar" ]
+  done
+
+
+ # GHES version 3.8.0
   GHE_REMOTE_VERSION=3.8.0
   export GHE_REMOTE_VERSION
 

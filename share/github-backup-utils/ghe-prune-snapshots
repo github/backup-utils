@@ -17,9 +17,20 @@ prune_snapshot() {
   # ignore any directory that is included in inc_full_backup or inc_snapshot_data
   # the files should be filtered out earlier, but this is a safeguard to make sure.
   # inc_previous_* and prune_inc_previous are ignored by default
-  if grep -q "$prune_dir" "$GHE_DATA_DIR/inc_full_backup" || grep "$prune_dir" "$GHE_DATA_DIR/inc_snapshot_data"; then
-    continue
+  if [ -f "$GHE_DATA_DIR/inc_full_backup" ]; then
+    if grep -q "$prune_dir" "$GHE_DATA_DIR"/inc_full_backup; then
+      log_info "Skipping incremental backup directory: $prune_dir" 1>&3
+      continue
+    fi
   fi
+
+  if [ -f "$GHE_DATA_DIR/inc_snapshot_data" ]; then
+    if grep -q "$prune_dir" "$GHE_DATA_DIR"/inc_snapshot_data; then
+      log_info "Skipping incremental backup directory: $prune_dir" 1>&3
+      continue
+    fi
+  fi
+  
   # skip if the directory is not a directory or blank
   if [ ! -d "$prune_dir" ] || [ -z "$prune_dir" ]; then
     log_info "Skipping blank or non-directory: $prune_dir" 1>&3

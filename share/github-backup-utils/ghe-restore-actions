@@ -90,7 +90,7 @@ restore-secret "Actions Launch token oauth cert" "actions-oauth-s2s-signing-cert
 snapshot_version=$(cat "$GHE_RESTORE_SNAPSHOT_PATH/version")
 # shellcheck disable=SC2046 # Word splitting is required to populate the variables
 read -r snapshot_version_major snapshot_version_minor _ <<<$(ghe_parse_version "$snapshot_version")
-if [[ $RESTORE_SETTINGS && "$snapshot_version_major" -eq "3" && "$snapshot_version_minor" -ge "10"]]; then  
+if [[ $RESTORE_SETTINGS && "$snapshot_version_major" -eq "3" && "$snapshot_version_minor" -ge "10" ]]; then  
   restore-secret "Actions storage container prefix" "actions-storage-container-prefix" "secrets.actions.storage.container-prefix"
 fi
 

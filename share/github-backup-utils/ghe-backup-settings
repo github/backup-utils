@@ -87,7 +87,7 @@ if [ "$(version $GHE_REMOTE_VERSION)" -ge "$(version 3.7.0)" ]; then
 fi
 
 # Backup argon secrets for multiuser from ghes version 3.8 onwards
-if ! [ "$(version $GHE_REMOTE_VERSION)" -lt "$(version 3.8.0)" ]; then
+if [ "$(version $GHE_REMOTE_VERSION)" -ge "$(version 3.8.0)" ]; then
   backup-secret "management console argon2 secret" "manage-argon-secret" "secrets.manage-auth.argon-secret"
 fi
 

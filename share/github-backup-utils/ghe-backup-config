@@ -712,6 +712,12 @@ init-progress() {
   rm -f /tmp/backup-utils-progress*
 }
 
+#increase total count of progress
+increment-progress-total-count() {
+  ((PROGRESS_TOTAL += $1))
+  echo "$PROGRESS_TOTAL" > /tmp/backup-utils-progress-total
+}
+
 
 
 

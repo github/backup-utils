@@ -79,14 +79,11 @@ backup-secret "password pepper" "password-pepper" "secrets.github.user-password-
 backup-secret "kredz.credz HMAC key" "kredz-credz-hmac" "secrets.kredz.credz-hmac-secret"
 backup-secret "kredz.varz HMAC key" "kredz-varz-hmac" "secrets.kredz.varz-hmac-secret"
 
-# backup encryption keying material for GHES 3.7.0 onwards
+# backup encryption keying material and create backup value current encryption for GHES 3.7.0 onwards
+# this is for forwards compatibility with GHES 3.8.0 onwards
 if [ "$(version $GHE_REMOTE_VERSION)" -ge "$(version 3.7.0)" ]; then
   backup-secret "encrypted column encryption keying material" "encrypted-column-encryption-keying-material" "secrets.github.encrypted-column-keying-material"
-fi
-
-# backup current encryption key for GHES 3.8.0 onwards
-if [ "$(version $GHE_REMOTE_VERSION)" -ge "$(version 3.8.0)" ]; then
-  backup-secret "encrypted column current encryption key" "encrypted-column-current-encryption-key" "secrets.github.encrypted-column-current-encryption-key"
+  cat "$GHE_SNAPSHOT_DIR/encrypted-column-encryption-keying-material" | sed 's:.*;::' > "$GHE_SNAPSHOT_DIR/encrypted-column-current-encryption-key"
 fi
 
 backup-secret "secret scanning encrypted secrets current storage key" "secret-scanning-encrypted-secrets-current-storage-key" "secrets.secret-scanning.encrypted-secrets-current-storage-key"

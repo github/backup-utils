@@ -275,17 +275,14 @@ fi
 # taking into account the options passed to the script and the appliance configuration
 # calculate restore steps
 OPTIONAL_STEPS=0
-# Cluster restores add an additional step
-if $CLUSTER ; then
-  OPTIONAL_STEPS=$((OPTIONAL_STEPS + 1))
-fi
+
 # Restoring UUID
 if [ -s "$GHE_RESTORE_SNAPSHOT_PATH/uuid" ] && ! $CLUSTER; then
   OPTIONAL_STEPS=$((OPTIONAL_STEPS + 1))
 fi
-# Restoring Actions
+# Restoring Actions + MSSQL
 if ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config --true app.actions.enabled'; then
-  OPTIONAL_STEPS=$((OPTIONAL_STEPS + 1))
+  OPTIONAL_STEPS=$((OPTIONAL_STEPS + 2))
 fi
 # Restoring minio
 if ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config --true app.minio.enabled'; then
@@ -305,10 +302,16 @@ fi
 if ! $CLUSTER && $instance_configured; then
   OPTIONAL_STEPS=$((OPTIONAL_STEPS + 1))
 fi
-# Maximum restore steps
-export PROGRESS_TOTAL=$((OPTIONAL_STEPS + 6))
+# Restoring settings + restore-chat-integration + restore-packages
+if $RESTORE_SETTINGS; then
+  OPTIONAL_STEPS=$((OPTIONAL_STEPS + 3))
+fi
+
+# Minimum number of steps is 7
+export PROGRESS_TOTAL=$((OPTIONAL_STEPS + 7))
 
 init-progress
+echo "$PROGRESS_TOTAL" > /tmp/backup-utils-progress-total
 export PROGRESS_TYPE="Restore"
 echo "$PROGRESS_TYPE" > /tmp/backup-utils-progress-type
 export PROGRESS=0 # Used to track progress of restore
@@ -490,6 +493,7 @@ if is_external_database_target_or_snapshot && $SKIP_MYSQL; then
   log_info "Skipping MySQL restore."
 else
   log_info "Restoring MySQL database from ${backup_snapshot_strategy} backup snapshot on an appliance configured for ${appliance_strategy} backups ..."
+  increment-progress-total-count 2
   ghe-restore-mysql "$GHE_HOSTNAME" 1>&3
 fi
 
@@ -618,10 +622,10 @@ if $CLUSTER; then
     ghe-ssh "$GHE_HOSTNAME" -- "ghe-cluster-each -- /usr/local/share/enterprise/ghe-nomad-cleanup" 1>&3 2>&3
   fi
   ghe-ssh "$GHE_HOSTNAME" -- "ghe-cluster-config-apply" 1>&3 2>&3
-  bm_end "configure_cluster"
+  bm_end "$(basename $0) - configure cluster"
 elif $instance_configured; then
   log_info "Configuring appliance ..."
-  bm_start "configure_appliance"
+  bm_start "$(basename $0) - configure appliance"
   if [ "$GHE_VERSION_MAJOR" -eq "3" ]; then
     ghe-ssh "$GHE_HOSTNAME" -- "ghe-nomad-cleanup" 1>&3 2>&3
   elif [ "$GHE_VERSION_MAJOR" -eq "2" ] && [ "$GHE_VERSION_MINOR" -eq "22" ]; then

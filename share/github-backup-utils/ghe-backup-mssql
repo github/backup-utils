@@ -62,7 +62,7 @@ fi
 
 if ! export_tool_available ; then
   log_error "ghe-export-mssql is not available" 1>&2
-  exit
+  exit 1
 fi
 
 add_minute() {

@@ -73,7 +73,7 @@ appliance at IP "5.5.5.5":
     Restore of 5.5.5.5:122 from snapshot 20180326T020444 finished.
     To complete the restore process, please visit https://5.5.5.5/setup/settings to review and save the appliance configuration.
 
-A different backup snapshot may be selected by passing the `-s` argument to `ghe-restore` and specifcying the
+A different backup snapshot may be selected by passing the `-s` argument to `ghe-restore` and specifying the
 datestamp-named directory from the backup location as the value.
 
 The `ghe-backup` and `ghe-restore` commands also have a verbose output mode

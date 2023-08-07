@@ -326,6 +326,14 @@ START_TIME=$(date +%s)
 log_info "Starting restore of $GHE_HOSTNAME with backup-utils v$BACKUP_UTILS_VERSION from snapshot $GHE_RESTORE_SNAPSHOT"
 
 if [ "$GHE_INCREMENTAL" ]; then
+  if [ "$GHE_VERSION_MAJOR" -lt 3 ]; then
+  log_error "Can only perform incremental restores on enterprise version 3.10 or higher"
+  exit 1
+fi
+if [ "$GHE_VERSION_MINOR" -lt 10 ]; then
+  log_error "Can only perform incremental restores on enterprise version 3.10 or higher"
+  exit 1
+fi
   log_info "Incremental restore from snapshot $GHE_RESTORE_SNAPSHOT"
   # If we see 'inc_previous' prepended to the snapshot name, then
   # we set $INC_FULL_BACKUP and $INC_SNAPSHOT_DATA to $INC_PREVIOUS_FULL_BACKUP and

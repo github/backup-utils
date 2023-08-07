@@ -187,10 +187,15 @@ echo "$GHE_REMOTE_VERSION" > version
 is_inc=$(is_incremental_backup_feature_on)
 
 if [ "$is_inc" = true ]; then
-if [ "$GHE_VERSION_MAJOR" -lt 3 ] && [ "$GHE_VERSION_MINOR" -lt 10 ]; then
-  log_error "Cannot only perform incremental backups on enterprise version 3.10 or higher"
+if [ "$GHE_VERSION_MAJOR" -lt 3 ]; then
+  log_error "Can only perform incremental backups on enterprise version 3.10 or higher"
   exit 1
 fi
+if [ "$GHE_VERSION_MINOR" -lt 10 ]; then
+  log_error "Can only perform incremental backups on enterprise version 3.10 or higher"
+  exit 1
+fi
+
   incremental_backup_check
   # If everything is ok, check if we have hit GHE_MAX_INCREMENTAL_BACKUPS, performing pruning actions if necessary
   check_for_incremental_max_backups

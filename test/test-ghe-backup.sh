@@ -62,7 +62,7 @@ begin_test "ghe-backup incremental"
  
   # run it
   # this time expect full backup
-  ghe-backup -i
+  GHE_TEST_REMOTE_VERSION=3.10.0 ghe-backup -i
 
   # check metadata files are created
   [ -e "$GHE_DATA_DIR/inc_full_backup" ]
@@ -77,7 +77,7 @@ begin_test "ghe-backup incremental"
 
   # re-run
   # this time expect incremental backup
-  ghe-backup -i
+  GHE_TEST_REMOTE_VERSION=3.10.0 ghe-backup -i
 
   expected_full_backup=$(wc -l < "$GHE_DATA_DIR/inc_full_backup")
   expected_incremental_backup=$(wc -l < "$GHE_DATA_DIR/inc_snapshot_data")
@@ -87,7 +87,7 @@ begin_test "ghe-backup incremental"
 
   # re-run
   # this time expect yet another incremental backup
-  ghe-backup -i
+  GHE_TEST_REMOTE_VERSION=3.10.0 ghe-backup -i
 
   expected_full_backup=$(wc -l < "$GHE_DATA_DIR/inc_full_backup")
   expected_incremental_backup=$(wc -l < "$GHE_DATA_DIR/inc_snapshot_data")
@@ -107,9 +107,22 @@ begin_test "ghe-backup incremental without config"
   export GHE_INCREMENTAL_MAX_BACKUPS=1
 
   # check ghe-backup fails
-  ! ghe-backup -i
+  ! GHE_TEST_REMOTE_VERSION=3.10.0 ghe-backup -i
 )
 end_test
+
+begin_test "ghe-backup performs proper version check"
+(
+  set -e
+  sleep 1
+
+  setup_incremental_backup_config
+
+  #check ghe-backup fails
+  ! GHE_TEST_REMOTE_VERSION=3.9.0 ghe-backup -i
+  ! GHE_TEST_REMOTE_VERSION=3.8.0 ghe-backup -i
+  ! GHE_TEST_REMOTE_VERSION=2.2.0 ghe_backup -i
+)
 
 begin_test "ghe-backup logs the benchmark"
 (

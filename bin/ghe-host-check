@@ -146,7 +146,8 @@ fi
 
 if [[ "$CALLING_SCRIPT" == "ghe-backup" && "$GHE_SKIP_CHECKS" != "true" ]]; then
   cat << SKIP_MSG 1>&2
-**You can disable the following storage & version checks by updating GHE_SKIP_CHECKS to 'true' in your backup.config file.
+**You can disable the following storage & version checks by running ghe-backup with option "--skip-checks"
+OR updating GHE_SKIP_CHECKS to 'true' in your backup.config file.
 
 SKIP_MSG
 

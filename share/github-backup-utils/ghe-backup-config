@@ -183,37 +183,14 @@ fi
 PATH="$GHE_BACKUP_ROOT/bin:$GHE_BACKUP_ROOT/share/github-backup-utils:$PATH"
 # shellcheck source=share/github-backup-utils/bm.sh
 . "$GHE_BACKUP_ROOT/share/github-backup-utils/bm.sh"
+# shellcheck source=share/github-backup-utils/ghe-incremental-backup-restore
+. "$GHE_BACKUP_ROOT/share/github-backup-utils/ghe-incremental-backup-restore"
 # shellcheck source=share/github-backup-utils/track-progress
 . "$GHE_BACKUP_ROOT/share/github-backup-utils/track-progress"
 # Save off GHE_HOSTNAME from the environment since we want it to override the
 # backup.config value when set.
 GHE_HOSTNAME_PRESERVE="$GHE_HOSTNAME"
 
-# Source in the backup config file from the copy specified in the environment
-# first and then fall back to the backup-utils root, home directory and system.
-config_found=false
-for f in "$GHE_BACKUP_CONFIG" "$GHE_BACKUP_ROOT/backup.config" \
-  "$HOME/.github-backup-utils/backup.config" "/etc/github-backup-utils/backup.config"; do
-  if [ -f "$f" ]; then
-    GHE_BACKUP_CONFIG="$f"
-    # shellcheck disable=SC1090 # This is a user-supplied value that can't be predicted
-    . "$GHE_BACKUP_CONFIG"
-    config_found=true
-    break
-  fi
-done
-
-# If we don't have a readlink command, error out
-! type readlink 1>/dev/null 2>&1 && {
-    echo "Error: readlink not found. Please install readlink and ensure it is in your PATH." 1>&2
-    exit 1
-}
-
-GHE_RESTORE_IN_PROGRESS=$(readlink -fm "${GHE_DATA_DIR}/in-progress-restore")
-GHE_BACKUP_IN_PROGRESS=$(readlink -fm "${GHE_DATA_DIR}/in-progress-backup")
-
-export GHE_RESTORE_IN_PROGRESS
-export GHE_BACKUP_IN_PROGRESS
 
 ghe_restore_check() {
   if [ -h "$GHE_RESTORE_IN_PROGRESS" ]; then
@@ -713,5 +690,8 @@ init-progress() {
 }
 
 
-
-
+#increase total count of progress
+increment-progress-total-count() {
+  ((PROGRESS_TOTAL += $1))
+  echo "$PROGRESS_TOTAL" > /tmp/backup-utils-progress-total
+}

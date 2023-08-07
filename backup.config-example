@@ -20,7 +20,7 @@ GHE_NUM_SNAPSHOTS=10
 # ghe-pruning-snapshots will need to be invoked separately via cron
 #GHE_PRUNING_SCHEDULED=yes
 
-# If set to true or when backup is run with `--skip-checks` ghe-host-check 
+# If GHE_SKIP_CHECKS is set to true (or if --skip-checks is used with ghe-backup) then ghe-host-check
 # disk space validation and software version checks on the backup-host will be disabled.
 #GHE_SKIP_CHECKS=false
 

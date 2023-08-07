@@ -144,7 +144,13 @@ if [ -z "$supported" ]; then
   exit 1
 fi
 
-if [[ "$CALLING_SCRIPT" == "ghe-backup" ]]; then
+if [[ "$CALLING_SCRIPT" == "ghe-backup" && "$GHE_SKIP_CHECKS" != "true" ]]; then
+  cat << SKIP_MSG 1>&2
+**You can disable the following storage & version checks by running ghe-backup with option "--skip-checks"
+OR updating GHE_SKIP_CHECKS to 'true' in your backup.config file.
+
+SKIP_MSG
+
   # Bring in the requirements file
   min_rsync=""
   min_openssh=""
@@ -184,6 +190,7 @@ minio: $minio_disk_size MB
 mysql: $mysql_disk_size MB
 actions: $actions_disk_size MB
 mssql: $mssql_disk_size MB
+
 DATA_TRANSFER_SIZE
 
   if [[ $((available_space / (1024 * 1024))) -lt $min_disk_req ]]; then

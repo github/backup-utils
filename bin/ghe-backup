@@ -9,7 +9,7 @@
 #/   -h | --help          Show this message.
 #/        --version       Display version information.
 #/   -i | --incremental   Incremental backup
-#/   -s | --skip-checks   Skip storage/sw version checks
+#/        --skip-checks   Skip storage/sw version checks
 #/
 
 set -e
@@ -33,7 +33,7 @@ while true; do
       export GHE_INCREMENTAL=true
       shift
       ;;
-    -s|--skip-checks)
+    --skip-checks)
       export GHE_SKIP_CHECKS=true
       shift
       ;;

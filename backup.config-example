@@ -20,9 +20,9 @@ GHE_NUM_SNAPSHOTS=10
 # ghe-pruning-snapshots will need to be invoked separately via cron
 #GHE_PRUNING_SCHEDULED=yes
 
-# If set to true or when backup is run with `-s` or `--skip-checks` ghe-host-check 
+# If set to true or when backup is run with `--skip-checks` ghe-host-check 
 # disk space validation and s/w version checks on the backup-host will be disabled.
-# GHE_SKIP_CHECKS=false
+#GHE_SKIP_CHECKS=false
 
 # The hostname of the GitHub appliance to restore. If you've set up a separate
 # GitHub appliance to act as a standby for recovery, specify its IP or hostname

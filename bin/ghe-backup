@@ -8,7 +8,6 @@
 #/   -v | --verbose       Enable verbose output.
 #/   -h | --help          Show this message.
 #/        --version       Display version information.
-#/   -i | --incremental   Incremental backup
 #/        --skip-checks   Skip storage/sw version checks
 #/
 

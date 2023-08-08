@@ -111,5 +111,9 @@ GitHub Actions enabled, the following steps are required:
 
 Please refer to [GHES Documentation](https://docs.github.com/en/enterprise-server/admin/github-actions/advanced-configuration-and-troubleshooting/backing-up-and-restoring-github-enterprise-server-with-github-actions-enabled) for more details.
 
+## Incremental MySQL Backups and Restores
+
+If you are interested in performing incremental backups of the MySQL data in your GitHub Enterprise Server instance, see [Incremental MySQL Backups and Restores](incremental-mysql-backups-and-restores.md) for details.
+
 [1]: https://github.com/github/backup-utils/blob/master/docs/getting-started.md
 [2]: requirements.md

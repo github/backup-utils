@@ -5,9 +5,10 @@
 #/ the MySQL database, instance settings, GitHub Pages data, etc.
 #/
 #/ OPTIONS:
-#/   -v | --verbose    Enable verbose output.
-#/   -h | --help       Show this message.
-#/        --version    Display version information.
+#/   -v | --verbose       Enable verbose output.
+#/   -h | --help          Show this message.
+#/        --version       Display version information.
+#/        --skip-checks   Skip storage/sw version checks
 #/
 
 set -e
@@ -25,6 +26,10 @@ while true; do
       ;;
     -v|--verbose)
       export GHE_VERBOSE=true
+      shift
+      ;;
+    --skip-checks)
+      export GHE_SKIP_CHECKS=true
       shift
       ;;
     -*)

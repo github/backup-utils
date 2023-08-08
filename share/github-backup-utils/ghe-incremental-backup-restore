@@ -1,0 +1,380 @@
+#!/bin/bash
+# ghe-incremental-backup-restore
+# contains functions used for incremental backups and restores. 
+# Not called directly, but rather sourced from other scripts.
+# Incremental backups are only supported on backup-utils 3.10 and greater.
+
+# INC_FULL_BACKUP is a file that tracks the last full backup that we have done for the current incremental backup cycle.
+export INC_FULL_BACKUP="inc_full_backup"
+# INC_PREVIOUS_FULL_BACKUP is a file that tracks the last full backup that we have done for the previous incremental backup cycle.
+# Kept around for a cycle to ensure that we have a rolling window of incremental backups.
+export INC_PREVIOUS_FULL_BACKUP="inc_previous_full_backup"
+# PRUNE_FULL_BACKUP is a file that tracks the full backups that need to be pruned.
+export PRUNE_FULL_BACKUP="prune_inc_previous_full_backup"
+# INC_SNAPSHOT_DATA is a file that tracks the incremental backups that we have done for the current incremental backup cycle.
+export INC_SNAPSHOT_DATA="inc_snapshot_data"
+# INC_PREVIOUS_SNAPSHOT_DATA is a file that tracks the incremental backups that we have done for the previous incremental backup cycle.
+export INC_PREVIOUS_SNAPSHOT_DATA="inc_previous_snapshot_data"
+# PRUNE_SNAPSHOT_DATA is a file that tracks the incremental backups that need to be pruned.
+export PRUNE_SNAPSHOT_DATA="prune_inc_previous_snapshot_data"
+
+# Check if incremental backups are enabled.
+is_incremental_backup_feature_on() {
+  if [ "$GHE_INCREMENTAL" ]; then
+    echo "true"
+  else
+    echo "false"
+  fi
+}
+
+# Do sanity checks on incremental backups.
+incremental_backup_check() {
+  if $GHE_INCREMENTAL; then
+  if [ -z "$GHE_INCREMENTAL_MAX_BACKUPS" ]; then
+    log_error "incremental backups require GHE_INCREMENTAL_MAX_BACKUPS to be set" 1>&2
+    exit 1
+  fi
+  if [ "$GHE_INCREMENTAL_MAX_BACKUPS" -lt 1 ]; then
+    log_error "GHE_INCREMENTAL_MAX_BACKUPS must be greater than 0" 1>&3
+    exit 1
+  fi
+ fi 
+}
+
+# initialize incremental backup. We create a file 'inc_snapshot_data' 
+# in $GHE_DATA_DIR to track the incremental backups that we have done. 
+# We also create a file called 'inc_full_backup' that tracks the last
+# full backup that we have done that the incremental backups are based on.
+# If the file does not exist, we create it and leave it blank.
+incremental_backup_init() {
+  if $GHE_INCREMENTAL; then
+    if [ ! -f "$GHE_DATA_DIR/$INC_SNAPSHOT_DATA" ]; then
+      touch "$GHE_DATA_DIR/$INC_SNAPSHOT_DATA"
+    fi
+    if [ ! -f "$GHE_DATA_DIR/$INC_FULL_BACKUP" ]; then
+      touch "$GHE_DATA_DIR/$INC_FULL_BACKUP"
+    fi
+  fi
+}
+
+# if incremental backups are enabled, we check if we have up to max incremental backups
+# if we do, if there are no folders with 'inc_previous', we move the current list of 
+# incremental backups to 'inc_previous_snapshot_data' and 'inc_previous_full_backup'
+# using set_previous_incremental_backup. If there are folders with 'inc_previous', we
+# prune them using set_prune_incremental_backup.
+check_for_incremental_max_backups(){
+  if $GHE_INCREMENTAL; then
+    # decrement the number of snapshots by 1 to account for the full backup
+    if [ "$(cat "$GHE_DATA_DIR/$INC_SNAPSHOT_DATA" | wc -l)" -ge "$((GHE_INCREMENTAL_MAX_BACKUPS-1))" ]; then
+      if [ -z "$(ls -d "$GHE_DATA_DIR"/inc_previous* 2>/dev/null)" ]; then
+        set_to_inc_previous
+      else
+        set_to_prune
+        set_to_inc_previous
+      fi
+    fi
+  fi
+}
+# retrieve the lsn of the snapshot directory passed in as an argument
+# from xtrabackup_checkpoint which would be in $GHE_DATA_DIR/<supplied_snapshot_dir>
+retrieve_lsn(){
+  local lsn
+  if $GHE_INCREMENTAL; then
+    if [ -z "$1" ]; then
+      log_error "retrieve_lsn requires a snapshot directory to be passed in" 1>&3
+      exit 1
+    fi
+    if [ ! -d "$1" ]; then
+      log_error "retrieve_lsn requires a valid snapshot directory to be passed in" 1>&3
+      exit 1
+    fi
+    if [ ! -f "$1/xtrabackup_checkpoints" ]; then
+      log_error "retrieve_lsn requires a valid xtrabackup_checkpoints file in $1" 1>&3
+      exit 1
+    fi
+    lsn=$(grep 'to_lsn' < "$1/xtrabackup_checkpoints"  | cut -d' ' -f3)
+    echo "$lsn"
+  fi
+}
+# retrieve the lsn of the last snapshot directory in the file 'inc_snapshot_data'
+# use that directory to call the retrieve_lsn function to get the lsn
+# if inc_snapshot_data is empty, use the full backup directory to get the lsn
+
+retrieve_last_lsn(){
+  local lsn backup_data last_snapshot_dir
+  if $GHE_INCREMENTAL; then
+    if [ ! -f "$GHE_DATA_DIR/$INC_SNAPSHOT_DATA" ]; then
+      log_error "retrieve_last_lsn requires a valid inc_snapshot_data file in $GHE_DATA_DIR" 1>&3
+      exit 1
+    fi
+    if [ -z "$(cat "$GHE_DATA_DIR/$INC_SNAPSHOT_DATA")" ]; then
+      backup_data=$(cat "$GHE_DATA_DIR/$INC_FULL_BACKUP")
+      lsn=$(retrieve_lsn "$backup_data")
+      log_info "No incremental backups have been done yet. Using full backup directory $backup_data to get previous lsn ($lsn)" 1>&3
+    else
+      last_snapshot_dir=$(tail -n 1 "$GHE_DATA_DIR/$INC_SNAPSHOT_DATA")
+      log_info "Using incremental directory $last_snapshot_dir to get previous lsn" 1>&3
+      lsn=$(retrieve_lsn "$last_snapshot_dir")
+    fi
+    echo "$lsn"
+  fi
+}
+
+# determine if we need to do a full backup or an incremental backup
+# based on the number of snapshots we have and the number of incremental
+# backups we have done. If we have done GHE_INCREMENTAL_MAX_BACKUPS
+# incremental backups, we do a full backup. Otherwise, we do an incremental
+# backup. We also do a full backup if we have not done any backups yet.
+# We determine that by checking the value of the file 'inc_full_backup'
+# in $GHE_DATA_DIR. If the file is blank, we need to do a full backup.
+# If the file exists and points to a directory, then we are doing an incremental.
+full_or_incremental_backup(){
+  if $GHE_INCREMENTAL; then
+    if [ ! -f "$GHE_DATA_DIR/$INC_FULL_BACKUP" ]; then
+      echo "full"
+    elif [ -z "$(cat "$GHE_DATA_DIR/$INC_FULL_BACKUP")" ]; then
+      echo "full"
+    elif [ "$(cat "$GHE_DATA_DIR/$INC_SNAPSHOT_DATA" | wc -l)" == "$GHE_INCREMENTAL_MAX_BACKUPS" ]; then
+      echo "full"
+    else
+      echo "incremental"
+    fi
+  fi
+}
+
+# add snapshot directory to the list of incremental backups we have done
+# in the file 'inc_snapshot_data' in $GHE_DATA_DIR.
+update_inc_snapshot_data(){
+  if $GHE_INCREMENTAL; then
+    if [ -z "$1" ]; then
+      log_error "update_snapshot_data requires a snapshot directory to be passed in" 1>&3
+      exit 1
+    fi
+    INC_DATA_DIR="$GHE_DATA_DIR/$(basename $1)"
+    if [ ! -d "$INC_DATA_DIR" ]; then
+      log_error "update_snapshot_data requires a valid snapshot directory to be passed in" 1>&3
+      exit 1
+    fi
+    echo "$1" >> "$GHE_DATA_DIR/$INC_SNAPSHOT_DATA"
+  fi
+}
+
+# update the file 'inc_full_backup' in $GHE_DATA_DIR to point to the passed in 
+# snapshot directory. This is the snapshot directory that the incremental backups
+# will be based on.
+update_inc_full_backup(){
+  if $GHE_INCREMENTAL; then
+    if [ -z "$1" ]; then
+      log_error "update_inc_full_backup requires a snapshot directory to be passed in" 1>&3
+      exit 1
+    fi
+    DIR="$GHE_DATA_DIR/$(basename "$1")"
+    if [ ! -d "$DIR" ]; then
+      log_error "update_inc_full_backup requires a valid snapshot directory to be passed in" 1>&3
+      exit 1
+    fi
+    echo "$1" > "$GHE_DATA_DIR/$INC_FULL_BACKUP"
+  fi
+}
+
+# validate that inc_snapshot_data file. For each snapshot directory in the file,
+# the directory should exist and its lsn retrieved from xtrabackups_checkpoint
+# should be lower than the next snapshot directory in the file. If the lsn is
+# not lower, then we have a problem and we warn the user and tell them to perform
+# a full backup.
+validate_inc_snapshot_data(){
+  if $GHE_INCREMENTAL; then
+    local snapshot_data full_data lines snapshot_data_array snapshot_data_array_length i
+
+    snapshot_data=$(cat "$GHE_DATA_DIR/$INC_SNAPSHOT_DATA")
+    if [ -z "$snapshot_data" ]; then
+      log_info "no incremental snapshots yet, will make first incremental from full backup" 1>&3
+      full_data=$(cat "$GHE_DATA_DIR/$INC_FULL_BACKUP")
+      log_info "validating full backup $full_data" 1>&3
+      snapshot_data="$full_data"  
+    fi
+      readarray -t snapshot_data_array <<< "$snapshot_data"
+    snapshot_data_array_length=${#snapshot_data_array[@]}
+    log_info "$snapshot_data_array_length snapshot directories found in inc_snapshot_data" 
+    i=0
+    # I would normally use a for loop here, but I need to utilize before
+    # and after values of the array index to compare the lsn values
+    while [ $i -lt "$snapshot_data_array_length" ]; do
+    # if this is the first snapshot directory, we don't need to compare
+    # it to the previous snapshot directory
+      if [ "$snapshot_data_array_length" -gt 0 ]; then
+      local snapshot_dir
+    
+
+      snapshot_dir=${snapshot_data_array[$i]}
+      if [ ! -d "$snapshot_dir" ]; then
+        log_error "snapshot directory $snapshot_dir does not exist" 1>&3
+        exit 1
+      fi
+      local lsn next_lsn
+      log_info "retrieving lsn for snapshot directory $snapshot_dir" 1>&3
+      lsn=$(retrieve_lsn "$snapshot_dir")
+      if [ $i -lt $((snapshot_data_array_length-1)) ]; then
+        local next_snapshot_dir
+        next_snapshot_dir=${snapshot_data_array[$((i+1))]}
+        next_lsn=$(retrieve_lsn "$next_snapshot_dir")
+        if [ "$lsn" -ge "$next_lsn" ]; then
+          log_error "snapshot directory $snapshot_dir has an lsn of $lsn which is greater than or equal to the next snapshot directory $next_snapshot_dir with an lsn of $next_lsn" 1>&2
+          log_error "incremental backups are invalid. Please perform a full backup" 1>&3
+          exit 1
+        fi
+        log_info "$snapshot_dir lsn = $lsn, $next_snapshot_dir lsn = $next_lsn" 1>&3
+      fi
+      i=$((i+1))
+      else
+      log_info "retrieving lsn for snapshot directory $snapshot_data" 1>&3
+      lsn=$(retrieve_lsn "$snapshot_data")
+      log_info "$snapshot_data is the only incremental snapshot, lsn=$lsn" 1>&3
+      fi
+    done
+  fi
+}
+
+# returns whether the supplied directory is in inc_full_backup or not.
+# if the directory is in inc_full_backup, then we return true, otherwise
+# we return false.
+is_full_backup(){
+  if [ -z "$1" ]; then
+    log_error "is_full_backup requires a snapshot directory to be passed in, received $1" 1>&3
+    exit 1
+  fi
+  BACKUP_DIR="$GHE_DATA_DIR/$(basename "$1")"
+  if [ ! -d "$BACKUP_DIR" ]; then
+    log_error "is_full_backup requires a valid snapshot directory to be passed in, received $1" 1>&3
+    exit 1
+  fi
+  if [ "$1" = "$(cat "$GHE_DATA_DIR/$INC_FULL_BACKUP")" ]; then
+    echo "true"
+  else
+    echo "false"
+  fi
+}
+
+# returns the full backup directory from the inc_full_backup file
+# should ever only be one line in the file
+get_full_backup(){
+  if $GHE_INCREMENTAL; then
+    backup_dir=$(cat "$GHE_DATA_DIR/$INC_FULL_BACKUP")
+    basename "$backup_dir"
+  fi
+}
+
+# retrieve the incremental backups in the list up to and including the passed in
+# snapshot directory. If the snapshot directory is not in the list, then we
+# return a blank string.
+get_incremental_backups(){
+  if $GHE_INCREMENTAL; then
+    if [ -z "$1" ]; then
+      log_error "get_incremental_backups requires a snapshot directory to be passed in" 1>&3
+      exit 1
+    fi
+    if [ ! -d "$1" ]; then
+      log_error "get_incremental_backups requires a valid snapshot directory to be passed in" 1>&3
+      exit 1
+    fi
+    local incremental_backups 
+    incremental_backups=""
+    snapshot_data=$(cat "$GHE_DATA_DIR/$INC_SNAPSHOT_DATA")
+    while IFS= read -r line; do
+    if [[ "$line" == "$1" ]]; then
+      incremental_backups="$incremental_backups $(basename "$line")"
+      break
+    fi
+    incremental_backups="$incremental_backups $(basename "$line")"
+    done <<< "$snapshot_data"
+    echo "$incremental_backups"
+  fi
+}
+
+get_cluster_lsn(){
+  local GHE_HOSTNAME
+  GHE_HOSTNAME=$1
+
+  ghe-ssh "$GHE_HOSTNAME" "[ -f /etc/github/cluster ] && [ -z \"$LOCAL_MYSQL\" ]"
+
+  if [ $? -eq 0 ]; then
+    local_host=$(ghe-ssh "$GHE_HOSTNAME" "cat /etc/github/cluster")
+    mysql_master=$(ghe-ssh "$GHE_HOSTNAME" "ghe-config cluster.mysql-master")
+
+    if [ "$local_host" != "$mysql_master" ]; then
+      echo "ssh -p 122 admin@$mysql_master -- sudo cat /tmp/lsndir/xtrabackup_checkpoints"
+    else
+      echo "sudo cat /tmp/lsndir/xtrabackup_checkpoints"
+    fi
+  else 
+    echo "sudo cat /tmp/lsndir/xtrabackup_checkpoints"
+  fi
+}
+
+
+# used to set the previous incremental backups.
+# takes every directory in $GHE_DATA_DIR/$INC_FULL_BACKUP and
+# $GHE_DATA_DIR/$INC_SNAPSHOT_DATA and renames them by prepending
+# inc_previous to the beginning. We also change inc_full_backup and
+# inc_snapshot_data to inc_previous_full_backup and inc_previous_snapshot_data
+set_to_inc_previous(){
+  log_info "setting previous incremental backups" 1>&3
+  full_backup=$(cat "$GHE_DATA_DIR/$INC_FULL_BACKUP")
+  snapshot_data=$(cat "$GHE_DATA_DIR/$INC_SNAPSHOT_DATA")
+  if [ -n "$full_backup" ]; then
+    inc_previous_full_backup_dir="inc_previous_$(basename "$full_backup")"
+    log_info "moving $full_backup to $GHE_DATA_DIR/$inc_previous_full_backup_dir" 1>&3
+    mv "$full_backup" "$GHE_DATA_DIR/$inc_previous_full_backup_dir"
+    echo "$GHE_DATA_DIR/$inc_previous_full_backup_dir" > "$GHE_DATA_DIR/$INC_PREVIOUS_FULL_BACKUP"
+    log_info "removing $GHE_DATA_DIR/$INC_FULL_BACKUP" 1>&3
+    rm -f "$GHE_DATA_DIR/$INC_FULL_BACKUP"
+  fi
+  if [ -n "$snapshot_data" ]; then
+    while IFS= read -r line; do
+      local inc_previous_snapshot_dir
+      inc_previous_snapshot_dir="inc_previous_$(basename "$line")"
+      log_info "moving $GHE_DATA_DIR/$line to $GHE_DATA_DIR/$inc_previous_snapshot_dir" 1>&3
+      mv "$line" "$GHE_DATA_DIR/$inc_previous_snapshot_dir"
+      echo "$GHE_DATA_DIR/$inc_previous_snapshot_dir" >> "$GHE_DATA_DIR/$INC_PREVIOUS_SNAPSHOT_DATA"
+    done <<< "$snapshot_data"
+    log_info "removing $GHE_DATA_DIR/$INC_SNAPSHOT_DATA" 1>&3
+    rm -f "$GHE_DATA_DIR/$INC_SNAPSHOT_DATA"
+  fi
+
+}
+
+# set directories prepended with "inc_previous" to be prepended with prune
+# this enables the directories to be pruned by ghe-snapshot.
+# Will prepend prune to each inc_previous folder in $GHE_DATA_DIR
+# and will remove $GHE_DATA_DIR/inc_previous_full_backup and 
+# will remove $GHE_DATA_DIR/inc_previous_snapshot_data
+set_to_prune(){
+  log_info "setting previous incremental backups to be pruned" 1>&3
+  previous_full_backup=$(cat "$GHE_DATA_DIR/$INC_PREVIOUS_FULL_BACKUP")
+  previous_snapshot_data=$(cat "$GHE_DATA_DIR/$INC_PREVIOUS_SNAPSHOT_DATA")
+  if [ -n "$previous_full_backup" ]; then
+    prune_full_backup_dir="prune_$(basename "$previous_full_backup")"
+    log_info "moving $GHE_DATA_DIR/$previous_full_backup to $GHE_DATA_DIR/$prune_full_backup_dir" 1>&3
+    mv "$previous_full_backup" "$GHE_DATA_DIR/$prune_full_backup_dir"
+    mv "$GHE_DATA_DIR/$INC_PREVIOUS_FULL_BACKUP" "$GHE_DATA_DIR/$PRUNE_FULL_BACKUP"
+    log_info "removing $GHE_DATA_DIR/inc_previous_full_backup" 1>&3
+    echo "$GHE_DATA_DIR/$prune_full_backup_dir" >> "$GHE_DATA_DIR/$PRUNE_FULL_BACKUP"
+  fi
+  if [ -n "$previous_snapshot_data" ]; then
+    while IFS= read -r line; do
+      local prune_snapshot_dir
+      prune_snapshot_dir="prune_$(basename "$line")"
+      log_info "moving $GHE_DATA_DIR/$line to $GHE_DATA_DIR/prune_$line" 1>&3
+      mv "$line" "$GHE_DATA_DIR/$prune_snapshot_dir"
+      echo "$GHE_DATA_DIR/$prune_snapshot_dir" >> "$GHE_DATA_DIR/$PRUNE_SNAPSHOT_DATA"
+    done <<< "$previous_snapshot_data"
+    log_info "removing $GHE_DATA_DIR/$INC_PREVIOUS_SNAPSHOT_DATA" 1>&3
+    rm -f "$GHE_DATA_DIR/$INC_PREVIOUS_SNAPSHOT_DATA"
+  fi
+  
+}
+
+test_restore_output(){
+  log_info "$INC_FULL_BACKUP"
+  log_info "$INC_SNAPSHOT_DATA"
+}

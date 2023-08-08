@@ -469,10 +469,12 @@ commands+=("
 echo \"$cmd_title\"
 ghe-restore-repositories-gist \"$GHE_HOSTNAME\"")
 
-cmd_title=$(log_info "Restoring Pages ...")
-commands+=("
-echo \"$cmd_title\"
-ghe-restore-pages \"$GHE_HOSTNAME\" 1>&3")
+if [ "$GHE_BACKUP_PAGES" != "no" ]; then
+  cmd_title=$(log_info "Restoring Pages ...")
+  commands+=("
+  echo \"$cmd_title\"
+  ghe-restore-pages \"$GHE_HOSTNAME\" 1>&3")
+fi
 
 cmd_title=$(log_info "Restoring SSH authorized keys ...")
 commands+=("

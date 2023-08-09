@@ -17,6 +17,13 @@ bm_start "$(basename $0)"
 
 # Grab host arg
 GHE_HOSTNAME="$1"
+if [ "$GHE_INCREMENTAL" ]; then
+echo "Incremental backup is configured."
+else
+echo "I don't see that incremental backup is configured. $GHE_INCREMENTAL"
+fi
+
+#exit 0
 
 # Perform a host-check and establish the remote version in GHE_REMOTE_VERSION.
 ghe_remote_version_required "$GHE_HOSTNAME"
@@ -57,17 +64,62 @@ else
 fi
 
 cleanup() {
-  ghe-ssh $ssh_config_file_opt "$GHE_RESTORE_HOST" -- "sudo rm -rf $GHE_REMOTE_DATA_USER_DIR/tmp/mysql.sql.gz"
+  ghe-ssh $ssh_config_file_opt "$GHE_RESTORE_HOST" -- "sudo rm -rf $GHE_REMOTE_DATA_USER_DIR/tmp/*"
+  ghe-ssh $ssh_config_file_opt "$GHE_RESTORE_HOST" -- "sudo rm -rf /tmp/incremental-backup-files.txt"
 }
 trap 'cleanup' INT TERM EXIT
-
+log_info "Creating temporary directory on remote host at $GHE_REMOTE_DATA_USER_DIR/tmp ..." 1>&3
 ghe-ssh $ssh_config_file_opt "$GHE_RESTORE_HOST" -- "sudo mkdir -p '$GHE_REMOTE_DATA_USER_DIR/tmp'" 1>&3
 
-# Transfer MySQL data from the snapshot to the GitHub instance.
-cat $snapshot_dir/mysql.sql.gz | ghe-ssh $ssh_config_file_opt "$GHE_RESTORE_HOST" -- "sudo dd of=$GHE_REMOTE_DATA_USER_DIR/tmp/mysql.sql.gz >/dev/null 2>&1"
+# If incremental restore is enabled, we need to upload the incremental backup file to the remote host
+# We get a list of all the incremental backup files up to the snapshot we want to restore
+# If the snapshot happens to be a full backup, we don't need to upload any incremental backup files
+# Otherwise we follow this procedure:
+# - for each incremental backup, create a directory in the format:
+#  $GHE_REMOTE_DATA_USER_DIR/tmp/incremental-restore-snapshot-dir/mysql.sql.gz
+# - upload the incremental backup file to the directory
+is_full=true
+is_inc=false
 
-log_info "Restore MySQL database ..."
-# Import the database
-echo "cat $GHE_REMOTE_DATA_USER_DIR/tmp/mysql.sql.gz | $IMPORT_MYSQL" | ghe-ssh $ssh_config_file_opt "$GHE_RESTORE_HOST" -- /bin/bash 1>&3
+if [ "$GHE_INCREMENTAL" ]; then
+  is_full=$(is_full_backup "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT")
+  is_inc=$(is_incremental_backup_feature_on)
+fi
+if [ "$is_inc" = true ] &&  [ "$is_full" = false ]; then
+  log_info "Uploading incremental backup directories to the remote host ..." 1>&3
+  full_backup_dir=$(get_full_backup)
+  log_info "Full backup directory: $full_backup_dir" 1>&3
+  #recreate the incremental-backup-files.txt file
+  if [ -f "/tmp/incremental-backup-files.txt" ]; then
+    rm "/tmp/incremental-backup-files.txt"
+  fi
+  touch "/tmp/incremental-backup-files.txt"
+  for incremental_backup in $(get_incremental_backups "$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT"); do
+    echo "$incremental_backup" >> "/tmp/incremental-backup-files.txt"
+    log_info "Incremental files to upload: $incremental_backup" 1>&3
+    log_info "Creating directory $GHE_REMOTE_DATA_USER_DIR/tmp/$incremental_backup on remote host..." 1>&3
+    ghe-ssh $ssh_config_file_opt "$GHE_RESTORE_HOST" -- " sudo mkdir -p '$GHE_REMOTE_DATA_USER_DIR/tmp/$incremental_backup'"
+    log_info "Uploading incremental backup file $GHE_DATA_DIR/$incremental_backup to the remote host ..."  1>&3
+    cat "$GHE_DATA_DIR/$incremental_backup/mysql.sql.gz" | ghe-ssh $ssh_config_file_opt "$GHE_RESTORE_HOST" -- " sudo dd of=$GHE_REMOTE_DATA_USER_DIR/tmp/$incremental_backup/mysql.sql.gz >/dev/null 2>&1"
+  done
+  
+  # Transfer the full backup to the remote host
+  log_info "Uploading full backup file $GHE_DATA_DIR/$full_backup_dir/mysql.sql.gz to the remote host ..." 1>&3
+  cat $GHE_DATA_DIR/$full_backup_dir/mysql.sql.gz | ghe-ssh $ssh_config_file_opt "$GHE_RESTORE_HOST" -- "sudo dd of=$GHE_REMOTE_DATA_USER_DIR/tmp/mysql.sql.gz >/dev/null 2>&1"
+  # Pass the list of incremental backup files 
+  ghe-ssh $ssh_config_file_opt "$GHE_RESTORE_HOST" -- " sudo dd of=/tmp/incremental-backup-files.txt >/dev/null 2>&1" < "/tmp/incremental-backup-files.txt"
+  # Restore the full backup and the incremental backup files  
+  log_info "Restoring full backup from $GHE_REMOTE_DATA_USER_DIR/tmp/full/mysql.sql.gz ..." 1>&3
+  echo "cat $GHE_REMOTE_DATA_USER_DIR/tmp/mysql.sql.gz | $IMPORT_MYSQL" | ghe-ssh $ssh_config_file_opt "$GHE_RESTORE_HOST" -- /bin/bash 1>&3
+
+
+
+else
+  log_info "Uploading $GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/mysql.sql.gz MySQL data to the remote host $GHE_RESTORE_HOST in $GHE_REMOTE_DATA_USER_DIR/tmp/mysql.sql.gz ..." 1>&3
+  cat $snapshot_dir/mysql.sql.gz | ghe-ssh $ssh_config_file_opt "$GHE_RESTORE_HOST" -- "sudo dd of=$GHE_REMOTE_DATA_USER_DIR/tmp/mysql.sql.gz >/dev/null 2>&1"
+  log_info "Restore MySQL database ..." 
+  # Import the database
+  echo "cat $GHE_REMOTE_DATA_USER_DIR/tmp/mysql.sql.gz | $IMPORT_MYSQL" | ghe-ssh $ssh_config_file_opt "$GHE_RESTORE_HOST" -- /bin/bash 1>&3
+fi
 
 bm_end "$(basename $0)"

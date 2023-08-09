@@ -1,6 +1,7 @@
 SHELL = /bin/sh
 
 test: info
+	@echo Running tests
 	@script/cibuild --no-package
 
 info:

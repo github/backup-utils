@@ -1,3 +1,14 @@
+github-backup-utils (3.10.0) UNRELEASED; urgency=medium
+
+  * Remove -o option from ps use #341
+  * Switch to TMPDIR before initiating SSH multiplexing workaround to prevent locking the destination filesystem #348
+  * Move check for git for ssh muxing into ghe-ssh #378
+  * Check filesystem supports hardlinks #388
+  * Remove check for git from ghe-ssh #393
+  * Clean up stale HA nodes on restore #396
+
+ -- Balwinder Sohi <bonsohi@github.com>  Wed, 09 Aug 2023 19:37:10 +0000
+
 github-backup-utils (3.9.0) UNRELEASED; urgency=medium
 
   * Set restore status on all cluster nodes #274

@@ -43,7 +43,7 @@ export GHE_BACKUP_CONFIG GHE_DATA_DIR GHE_REMOTE_DATA_DIR GHE_REMOTE_ROOT_DIR
 
 # The default remote appliance version. This may be set in the environment prior
 # to invoking tests to emulate a different remote vm version.
-: ${GHE_TEST_REMOTE_VERSION:=3.9.0.rc1}
+: ${GHE_TEST_REMOTE_VERSION:=3.10.0.rc1}
 export GHE_TEST_REMOTE_VERSION
 
 # Source in the backup config and set GHE_REMOTE_XXX variables based on the
@@ -327,6 +327,14 @@ setup_test_data () {
   setup_minio_test_data "$GHE_DATA_DIR"
 }
 
+setup_incremental_backup_config() {
+  ghe-ssh "$GHE_HOSTNAME" -- 'mkdir -p /tmp/lsndir'
+  ghe-ssh "$GHE_HOSTNAME" -- 'echo "fake xtrabackup checkpoint" > /tmp/lsndir/xtrabackup_checkpoints'
+
+  enable_binary_backup
+  export GHE_INCREMENTAL_MAX_BACKUPS=10
+}
+
 setup_actions_test_data() {
   local loc=$1
 
@@ -581,6 +589,10 @@ enable_minio() {
 
 is_minio_enabled() {
   ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config --true app.minio.enabled'
+}
+
+enable_binary_backup() {
+  ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config mysql.backup.binary true'
 }
 
 setup_moreutils_parallel() {

@@ -16,9 +16,45 @@ bm_start "$(basename $0)"
 ghe_remote_version_required "$GHE_HOSTNAME"
 
 log_verbose "Backing up MySQL database using binary backup strategy ..."
-
-echo "set -o pipefail; ghe-export-mysql" |
-ghe-ssh "$GHE_HOSTNAME" -- /bin/bash > "$GHE_SNAPSHOT_DIR/mysql.sql.gz"
-echo "NO_ADDITIONAL_COMPRESSION" > "$GHE_SNAPSHOT_DIR/mysql-binary-backup-sentinel"
-
+is_inc=$(is_incremental_backup_feature_on)
+if [ $is_inc = true ]; then
+    log_verbose "Incremental backups are configured on the target environment."
+    log_info "Performing incremental backup of MySQL database ..." 1>&3
+    INC_TYPE=$(full_or_incremental_backup)
+    INC_LSN=""
+    if [ "$INC_TYPE" == "full" ]; then
+        log_info "Incremental backup type: $INC_TYPE"  1>&3
+        INC_LSN=0 # 0 means full backup
+    else
+        validate_inc_snapshot_data
+        log_info "Incremental backup type: $INC_TYPE" 1>&3
+        INC_LSN=$(retrieve_last_lsn)
+    fi
+    echo "set -o pipefail; env INC_BACKUP=$INC_LSN ghe-export-mysql" |
+    ghe-ssh "$GHE_HOSTNAME" -- /bin/bash > "$GHE_SNAPSHOT_DIR/mysql.sql.gz"
+    echo "NO_ADDITIONAL_COMPRESSION" > "$GHE_SNAPSHOT_DIR/mysql-binary-backup-sentinel"
+    # Ensure that we capture the xtrabackup_checkpoints file from the remote host
+    log_info "Checking if incremental backup is part of a cluster"
+    GET_LSN=$(get_cluster_lsn "$GHE_HOSTNAME")
+    ghe-ssh "$GHE_HOSTNAME" "$GET_LSN" > "$GHE_SNAPSHOT_DIR/xtrabackup_checkpoints"
+    if [ "$INC_TYPE" == "full" ]; then
+        log_info "Adding $GHE_SNAPSHOT_DIR to the list of full backups" 1>&3
+        update_inc_full_backup "$GHE_SNAPSHOT_DIR"
+    else
+        log_info "Adding $GHE_SNAPSHOT_DIR to the list of incremental backups" 1>&3
+        update_inc_snapshot_data "$GHE_SNAPSHOT_DIR"
+    fi
+    bm_end "$(basename $0)"
+    exit 0
+fi
+# if incremental backup isn't enabled, or we are performing a full backup as part of the process,
+# fall through and do a full backup
+    echo "set -o pipefail; ghe-export-mysql" |
+    ghe-ssh "$GHE_HOSTNAME" -- /bin/bash > "$GHE_SNAPSHOT_DIR/mysql.sql.gz"
+    echo "NO_ADDITIONAL_COMPRESSION" > "$GHE_SNAPSHOT_DIR/mysql-binary-backup-sentinel"
+    is_inc=$(is_incremental_backup_feature_on)
+    if [ $is_inc = true ]; then
+        update_inc_full_backup "$GHE_SNAPSHOT_DIR"
+    fi
 bm_end "$(basename $0)"
+

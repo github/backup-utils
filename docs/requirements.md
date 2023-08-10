@@ -82,6 +82,10 @@ snapshot of GitHub Enterprise Server 2.11, the target GitHub Enterprise Server a
 be running GitHub Enterprise Server 2.12.x or 2.13.x. You can't restore a snapshot from
 2.10 to 2.13, because that's three releases ahead.
 
+**Note**: An exception to this is backing up from and/or restoring to GitHub Enterprise Server
+3.9.0 or greater, which requires Backup Utilities v3.9.0 or greater due to a [known issue and
+adjusted upgrade path][13].
+
 **Note**: You _cannot_ restore a backup created from a newer version of GitHub Enterprise Server to an older version. For example, an attempt to restore a snapshot of GitHub Enterprise Server 2.21 to a GitHub Enterprise Server 2.20 environment will fail with an error of `Error: Snapshot can not be restored to an older release of GitHub Enterprise Server.`.
 
 ## Multiple backup hosts
@@ -102,3 +106,4 @@ Due to how some components of Backup Utilities (e.g. MSSQL) take incremental bac
 [10]: https://www.gnu.org/software/gawk
 [11]: https://stedolan.github.io/jq/
 [12]: https://www.gnu.org/software/bc/
+[13]: https://docs.github.com/en/enterprise-server@3.9/admin/release-notes#3.9.0-known-issues

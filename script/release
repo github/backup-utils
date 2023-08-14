@@ -35,7 +35,7 @@ GH_BASE_BRANCH = ENV['GH_BASE_BRANCH'] || 'master' # TODO: should we even allow 
 GH_STABLE_BRANCH = ""
 
 # If PUBLISH is false, we leave the release in a draft state to be manually published later through the UI
-+PUBLISH = ENV['PUBLISH'] == 'true' || false
+PUBLISH = ENV['PUBLISH'] == 'true' || false
 
 CHANGELOG_TMPL = '''<%= package_name %> (<%= package_version %>) UNRELEASED; urgency=medium
 

@@ -483,7 +483,7 @@ if $PROGRAM_NAME == __FILE__
     attach_assets_to_release res['upload_url'], res['id'], ["#{base_dir}/dist/#{DEB_PKG_NAME}-v#{version}.tar.gz"]
     attach_assets_to_release res['upload_url'], res['id'], ["#{base_dir}/dist/#{DEB_PKG_NAME}_#{version}_all.deb"]
 
-    if PUBLISH do
+    if PUBLISH
       puts 'Publishing release...'
       publish_release res['id']
     end
@@ -494,7 +494,7 @@ if $PROGRAM_NAME == __FILE__
     puts "Updating #{GH_STABLE_BRANCH} branch..."
     update_stable_branch
 
-    if !PUBLISH do
+    if !PUBLISH
       puts 'Release left in a "Draft" state. Go to the https://github.com/github/backup-utils/releases and publish when ready.'
     end
 

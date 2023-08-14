@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 #/ track-progress: track progress of backup or restore tasks
-set -e
 
 # Current version is working solely with backups
 progress(){

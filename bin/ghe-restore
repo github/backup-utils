@@ -441,9 +441,11 @@ commands+=("
 echo \"Restoring Gists ...\"
 ghe-restore-repositories-gist \"$GHE_HOSTNAME\"")
 
-commands+=("
-echo \"Restoring GitHub Pages artifacts ...\"
-ghe-restore-pages \"$GHE_HOSTNAME\" 1>&3")
+if [ "$GHE_BACKUP_PAGES" != "no" ]; then
+  commands+=("
+  echo \"Restoring GitHub Pages artifacts ...\"
+  ghe-restore-pages \"$GHE_HOSTNAME\" 1>&3")
+fi
 
 commands+=("
 echo \"Restoring SSH authorized keys ...\"

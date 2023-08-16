@@ -11,8 +11,8 @@ begin_test "shellcheck: reports no errors or warnings"
   set -e
   # We manually install the latest Shellcheck on Linux builds as other options
   # are too old.
-  if [ -x "$BASE_PATH/shellcheck-latest/shellcheck" ]; then
-    shellcheck() { "$BASE_PATH/shellcheck-latest/shellcheck" "$@"; }
+  if [ -x "$BASE_PATH/shellcheck-stable/shellcheck" ]; then
+    shellcheck() { "$BASE_PATH/shellcheck-stable/shellcheck" "$@"; }
   fi
 
   if ! type shellcheck 1>/dev/null 2>&1; then

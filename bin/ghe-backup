@@ -5,9 +5,10 @@
 #/ the MySQL database, instance settings, GitHub Pages data, etc.
 #/
 #/ OPTIONS:
-#/   -v | --verbose    Enable verbose output.
-#/   -h | --help       Show this message.
-#/        --version    Display version information.
+#/   -v | --verbose       Enable verbose output.
+#/   -h | --help          Show this message.
+#/        --version       Display version information.
+#/        --skip-checks   Skip storage/sw version checks
 #/
 
 set -e
@@ -25,6 +26,10 @@ while true; do
       ;;
     -v|--verbose)
       export GHE_VERBOSE=true
+      shift
+      ;;
+    --skip-checks)
+      export GHE_SKIP_CHECKS=true
       shift
       ;;
     -*)
@@ -46,12 +51,36 @@ export CALLING_SCRIPT="ghe-backup"
 
 # Setup progress tracking
 init-progress
+export PROGRESS_TOTAL=14 # Minimum number of steps in backup is 14
+echo "$PROGRESS_TOTAL" > /tmp/backup-utils-progress-total
 export PROGRESS_TYPE="Backup"
 echo "$PROGRESS_TYPE" > /tmp/backup-utils-progress-type
 export PROGRESS=0 # Used to track progress of backup
 echo "$PROGRESS" > /tmp/backup-utils-progress
-export PROGRESS_TOTAL=18 # Maximum number of steps in backup
 
+OPTIONAL_STEPS=0
+# Backup actions+mssql
+if ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config --true app.actions.enabled'; then
+  OPTIONAL_STEPS=$((OPTIONAL_STEPS + 2))
+fi
+
+# Backup fsck
+if [ "$GHE_BACKUP_FSCK" = "yes" ]; then
+  OPTIONAL_STEPS=$((OPTIONAL_STEPS + 1))
+fi
+
+# Backup minio
+if ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config --true app.minio.enabled'; then
+  OPTIONAL_STEPS=$((OPTIONAL_STEPS + 1))
+fi
+
+# Backup pages
+if [ "$GHE_BACKUP_PAGES" != "no" ]; then
+  OPTIONAL_STEPS=$((OPTIONAL_STEPS + 1))
+fi
+
+PROGRESS_TOTAL=$((OPTIONAL_STEPS + PROGRESS_TOTAL)) # Minimum number of steps in backup is 14
+echo "$PROGRESS_TOTAL" > /tmp/backup-utils-progress-total
 # Check to make sure moreutils parallel is installed and working properly
 ghe_parallel_check
 
@@ -269,6 +298,7 @@ echo \"$cmd_title\"
 ghe-backup-git-hooks || printf %s \"git-hooks \" >> \"$failures_file\"")
 
 if [ "$GHE_BACKUP_STRATEGY" = "rsync" ]; then
+  increment-progress-total-count 1
   cmd_title=$(log_info "Backing up Elasticsearch indices ...")
   commands+=("
   echo \"$cmd_title\"
@@ -303,6 +333,8 @@ if [ -z "$failures" ]; then
   ln -s "$GHE_SNAPSHOT_TIMESTAMP" "../current"
 
   ghe-prune-snapshots
+else 
+  log_info "Skipping pruning snapshots, since some backups failed..."
 fi
 
 END_TIME=$(date +%s)

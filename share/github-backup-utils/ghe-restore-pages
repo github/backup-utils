@@ -29,6 +29,8 @@ pages_paths=$(cd $GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/ && find pages -mindepth 5 
 if [ -z "$pages_paths" ]; then
   log_warn "Warning: Pages backup missing. Skipping ..."
   exit 0
+else
+  increment-progress-total-count 5
 fi
 
 # Perform a host-check and establish GHE_REMOTE_XXX variables.
@@ -125,6 +127,8 @@ bm_end "$(basename $0) - Processing routes"
 if [ -z "$(find "$tempdir" -maxdepth 1 -name '*.rsync')" ]; then
   log_warn "Warning: no routes found, skipping pages restore ..."
   exit 0
+else
+  increment-progress-total-count 2
 fi
 
 bm_start "$(basename $0) - Restoring pages"
@@ -154,6 +158,7 @@ if $CLUSTER; then
     chunks=\$(find $remote_tempdir/ -name chunk\*)
     parallel -i /bin/sh -c "cat {} | github-env ./bin/dpages-cluster-restore-finalize" -- \$chunks
 EOF
+  increment-progress-total-count 1
   bm_end "$(basename $0) - Finalizing routes"
 fi
 

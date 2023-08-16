@@ -138,7 +138,13 @@ begin_test "ghe-backup management console does not backup argon secret"
 (
   set -e
 
-  GHE_REMOTE_VERSION=3.7.0 ghe-backup -v | grep -q "management console argon2 secret not set" && exit 1
+  GHE_REMOTE_VERSION=2.1.10 ghe-backup -v | grep -q "management console argon2 secret not set" && exit 1
+  [ ! -f "$GHE_DATA_DIR/current/manage-argon-secret" ]
+
+  GHE_REMOTE_VERSION=3.6.1 ghe-backup -v | grep -q "management console argon2 secret not set" && exit 1
+  [ ! -f "$GHE_DATA_DIR/current/manage-argon-secret" ]
+
+  GHE_REMOTE_VERSION=3.7.10 ghe-backup -v | grep -q "management console argon2 secret not set" && exit 1
   [ ! -f "$GHE_DATA_DIR/current/manage-argon-secret" ]
 )
 end_test
@@ -150,6 +156,12 @@ begin_test "ghe-backup management console backs up argon secret"
 
   git config -f "$GHE_REMOTE_DATA_USER_DIR/common/secrets.conf" secrets.manage-auth.argon-secret "fake pw"
   GHE_REMOTE_VERSION=3.8.0 ghe-backup
+
+  [ "$(cat "$GHE_DATA_DIR/current/manage-argon-secret")" = "fake pw" ]
+
+  rm -rf "$GHE_DATA_DIR/current"
+
+  GHE_REMOTE_VERSION=4.1.0 ghe-backup
 
   [ "$(cat "$GHE_DATA_DIR/current/manage-argon-secret")" = "fake pw" ]
 )
@@ -683,6 +695,36 @@ begin_test "ghe-backup takes backup of encrypted column encryption keying materi
     [ "$(cat "$GHE_DATA_DIR/current/$file")" = "bar" ]
   done
 
+)
+end_test
+
+begin_test "ghe-backup takes backup of secret scanning encrypted secrets encryption keys"
+(
+  set -e
+
+  required_secrets=(
+    "secrets.secret-scanning.encrypted-secrets-current-storage-key"
+    "secrets.secret-scanning.encrypted-secrets-delimited-storage-keys"
+    "secrets.secret-scanning.encrypted-secrets-current-shared-transit-key"
+    "secrets.secret-scanning.encrypted-secrets-delimited-shared-transit-keys"
+  )
+
+  for secret in "${required_secrets[@]}"; do
+    ghe-ssh "$GHE_HOSTNAME" -- ghe-config "$secret" "foo"
+  done
+
+  ghe-backup
+
+  required_files=(
+    "secret-scanning-encrypted-secrets-current-storage-key"
+    "secret-scanning-encrypted-secrets-delimited-storage-keys"
+    "secret-scanning-encrypted-secrets-current-shared-transit-key"
+    "secret-scanning-encrypted-secrets-delimited-shared-transit-keys"
+  )
+
+  for file in "${required_files[@]}"; do
+    [ "$(cat "$GHE_DATA_DIR/current/$file")" = "foo" ]
+  done
 )
 end_test
 

@@ -1,3 +1,10 @@
+github-backup-utils (3.6.2) UNRELEASED; urgency=medium
+
+  * Move check for git for ssh muxing into ghe-ssh #378
+  * add option to generate a persistent rsync log #494
+
+ -- Devin Dooley <dooleydevin@github.com>  Wed, 16 Aug 2023 23:09:56 +0000
+
 github-backup-utils (3.6.1) UNRELEASED; urgency=medium
 
   * Switch to TMPDIR before initiating SSH multiplexing workaround to prevent locking the destination filesystem #348

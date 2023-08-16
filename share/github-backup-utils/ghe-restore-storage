@@ -33,6 +33,8 @@ storage_paths=$(cd $GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT/ && find storage -mindept
 if [ -z "$storage_paths" ]; then
   log_warn "Warning: Storage backup missing. Skipping ..."
   exit 0
+else
+  increment-progress-total-count 5
 fi
 
 # Perform a host-check and establish GHE_REMOTE_XXX variables.
@@ -120,6 +122,8 @@ bm_end "$(basename $0) - Processing routes"
 if [ -z "$(find "$tempdir" -maxdepth 1 -name '*.rsync')" ]; then
   log_warn "Warning: no routes found, skipping storage restore ..."
   exit 0
+else
+  increment-progress-total-count 2
 fi
 
 # rsync all the objects to the storage server where they belong.
@@ -169,6 +173,7 @@ if $CLUSTER; then
     chunks=\$(find $remote_tempdir/ -name chunk\*)
     parallel -i /bin/sh -c "cat {} | github-env ./bin/storage-cluster-restore-finalize" -- \$chunks
 EOF
+  increment-progress-total-count 1
   bm_end "$(basename $0) - Finalizing routes"
 fi
 

@@ -1,3 +1,11 @@
+github-backup-utils (3.8.2) UNRELEASED; urgency=medium
+
+  * Use calculated routes when backing up storage data from a cluster #318
+  * Move check for git for ssh muxing into ghe-ssh #378
+  * Improve multi-platform detection of simultaneous ghe-backup runs #435
+
+ -- Devin Dooley <dooleydevin@github.com>  Wed, 16 Aug 2023 23:13:39 +0000
+
 github-backup-utils (3.8.1) UNRELEASED; urgency=medium
 
   * Backup and restore custom CA certificates #281

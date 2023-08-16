@@ -275,17 +275,14 @@ fi
 # taking into account the options passed to the script and the appliance configuration
 # calculate restore steps
 OPTIONAL_STEPS=0
-# Cluster restores add an additional step
-if $CLUSTER ; then
-  OPTIONAL_STEPS=$((OPTIONAL_STEPS + 1))
-fi
+
 # Restoring UUID
 if [ -s "$GHE_RESTORE_SNAPSHOT_PATH/uuid" ] && ! $CLUSTER; then
   OPTIONAL_STEPS=$((OPTIONAL_STEPS + 1))
 fi
-# Restoring Actions
+# Restoring Actions + MSSQL
 if ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config --true app.actions.enabled'; then
-  OPTIONAL_STEPS=$((OPTIONAL_STEPS + 1))
+  OPTIONAL_STEPS=$((OPTIONAL_STEPS + 2))
 fi
 # Restoring minio
 if ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config --true app.minio.enabled'; then
@@ -305,10 +302,16 @@ fi
 if ! $CLUSTER && $instance_configured; then
   OPTIONAL_STEPS=$((OPTIONAL_STEPS + 1))
 fi
-# Maximum restore steps
-export PROGRESS_TOTAL=$((OPTIONAL_STEPS + 6))
+# Restoring settings + restore-chat-integration + restore-packages
+if $RESTORE_SETTINGS; then
+  OPTIONAL_STEPS=$((OPTIONAL_STEPS + 3))
+fi
+
+# Minimum number of steps is 7
+export PROGRESS_TOTAL=$((OPTIONAL_STEPS + 7))
 
 init-progress
+echo "$PROGRESS_TOTAL" > /tmp/backup-utils-progress-total
 export PROGRESS_TYPE="Restore"
 echo "$PROGRESS_TYPE" > /tmp/backup-utils-progress-type
 export PROGRESS=0 # Used to track progress of restore
@@ -443,6 +446,12 @@ if [ "$(version $GHE_REMOTE_VERSION)" -ge "$(version 3.7.0)" ]; then
 fi
 ghe-restore-column-encryption-keys "$GHE_HOSTNAME"
 
+# Always restore secret scanning encryption keys
+if [ "$(version $GHE_REMOTE_VERSION)" -ge "$(version 3.8.0)" ]; then
+  log_info "Always restore secret scanning encryption keys on GHES verions 3.8.0+"
+  ghe-restore-secret-scanning-encryption-keys "$GHE_HOSTNAME"
+fi
+
 # Make sure mysql and elasticsearch are prep'd and running before restoring.
 # These services will not have been started on appliances that have not been
 # configured yet.
@@ -484,6 +493,7 @@ if is_external_database_target_or_snapshot && $SKIP_MYSQL; then
   log_info "Skipping MySQL restore."
 else
   log_info "Restoring MySQL database from ${backup_snapshot_strategy} backup snapshot on an appliance configured for ${appliance_strategy} backups ..."
+  increment-progress-total-count 2
   ghe-restore-mysql "$GHE_HOSTNAME" 1>&3
 fi
 

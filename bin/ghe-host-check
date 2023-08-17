@@ -91,13 +91,19 @@ if ghe-ssh "$host" -- \
   CLUSTER=true
 fi
 
-# ensure all nodes in the cluster are running the same version
+# ensure all nodes in the cluster are online/reachable and running the same version
 if "$CLUSTER"; then
+  online_status=$(ghe-ssh "$host" ghe-cluster-host-check)
+  if [ "$online_status" != "Cluster is ready to configure." ]; then
+    echo "Error: Not all nodes are online! Please ensure cluster is in a healthy state before using backup-utils." 1>&2
+    exit 1
+  fi
+
   node_version_list=$(ghe-ssh "$host" ghe-cluster-each -- ghe-version)
   distinct_versions=$(echo "$node_version_list" | awk '{split($0, a, ":"); print a[2]}' | awk '{print $4}' | uniq | wc -l)
   if [ "$distinct_versions" -ne 1 ]; then
-    echo "$node_version_list" 1>&2
-    echo "Error: Not all nodes are running the same version! Please ensure all nodes are running the same version before using backup-utils." 1>&3
+    echo "Version mismatch: $node_version_list" 1>&2
+    echo "Error: Not all nodes are running the same version! Please ensure all nodes are running the same version before using backup-utils." 1>&2
     exit 1
   fi
 fi

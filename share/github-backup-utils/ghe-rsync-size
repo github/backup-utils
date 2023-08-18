@@ -21,6 +21,7 @@ fi
 
 transfer_size()
 {
+  local host=$GHE_HOSTNAME
   local backup_data=$1
   if [[ "$1" == "mssql" ]]; then
     data_user_dir="/data/user/$1/backups"
@@ -58,20 +59,36 @@ transfer_size()
     ;;
   esac
 
+  ghe-ssh "$host" "[ -f /etc/github/cluster ]"
+  cluster_status=$?
+
+  if [[ $cluster_status -eq 0 ]]; then
+    cluster_conf_out=$(ghe-ssh "$host" "cat /data/user/common/cluster.conf")
+    cluster_nodes_output=$(ghe-ssh "$host" "ghe-cluster-nodes -i")
+      if [[ ( "$1" == "elasticsearch" || "$1" == "storage" || "$1" == "pages" ) ]]; then
+        host_server=$(echo "$cluster_conf_out" | awk -v srv="$backup_data-server = true" '/cluster/ { prevA = $0 } $0 ~ srv { print prevA }' | head -1 | awk -F '"' '{print $2}')
+      elif [[ "$1" == "mysql" ]]; then
+        host_server=$(ghe-ssh "$host" "ghe-config cluster.mysql-master")
+      elif [[ "$1" == "repositories" ]]; then
+	host_server=$(echo "$cluster_conf_out" | awk '/git-server = true/ { print prevA } /cluster/ { prevA = $0 }' | head -1 | awk -F '"' '{print $2}')
+      fi
+    host=$(echo "$cluster_nodes_output" | grep "$host_server" | awk '{print $2}' | head -1)
+  fi
+
   if [ -d "${GHE_DATA_DIR}/current/$1" ]; then
     total_file_size=$(ghe-rsync -arn --stats \
       -e "ssh -q $GHE_EXTRA_SSH_OPTS -p 122 -l admin" \
       --rsync-path="sudo -u $user rsync" \
       "$link_dest"/"$1" \
       --ignore-missing-args \
-      "$GHE_HOSTNAME:$data_user_dir/" \
+      "$host:$data_user_dir/" \
       "$dest_dir/" | grep "Total transferred file size" | sed 's/.*size: //; s/,//g')
   else
     total_file_size=$(ghe-rsync -arn --stats \
       -e "ssh -q $GHE_EXTRA_SSH_OPTS -p 122 -l admin" \
       --rsync-path="sudo -u $user rsync" \
       --ignore-missing-args \
-      "$GHE_HOSTNAME:$data_user_dir/" \
+      "$host:$data_user_dir/" \
       "$dest_dir/" | grep "Total transferred file size" | sed 's/.*size: //; s/,//g')
   fi
 

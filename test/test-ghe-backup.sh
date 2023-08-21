@@ -802,6 +802,30 @@ begin_test "ghe-backup takes backup of secret scanning encrypted secrets encrypt
 )
 end_test
 
+begin_test "ghe-backup takes backup of secret scanning encrypted content encryption keys"
+(
+  set -e
+
+  required_secrets=(
+    "secrets.secret-scanning.secret-scanning-user-content-delimited-encryption-root-keys"
+  )
+
+  for secret in "${required_secrets[@]}"; do
+    ghe-ssh "$GHE_HOSTNAME" -- ghe-config "$secret" "foo"
+  done
+
+  ghe-backup
+
+  required_files=(
+    "secret-scanning-user-content-delimited-encryption-root-keys"
+  )
+
+  for file in "${required_files[@]}"; do
+    [ "$(cat "$GHE_DATA_DIR/current/$file")" = "foo" ]
+  done
+)
+end_test
+
 begin_test "ghe-backup takes backup of Actions settings"
 (
   set -e

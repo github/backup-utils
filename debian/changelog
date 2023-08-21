@@ -1,13 +1,3 @@
-github-backup-utils (3.9.2) UNRELEASED; urgency=medium
-
-  * Move check for git for ssh muxing into ghe-ssh #378
-  * Optionally log verbose output to a file instead of stdout #391
-  * Raise an error if the current symlink doesn't exist when attempting to restore it #404
-  * Capture and display repository/gist warnings during cluster restore #423
-  * Redirect ghe-export-audit-logs stderr output unless using verbose output #497
-
- -- Devin Dooley <dooleydevin@github.com>  Wed, 16 Aug 2023 23:15:04 +0000
-
 github-backup-utils (3.9.1) UNRELEASED; urgency=medium
 
   * Make it clear the settings need to be applied after restoring to an unconfigured instance  #381

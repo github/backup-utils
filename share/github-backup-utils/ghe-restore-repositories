@@ -102,6 +102,11 @@ done > $tmp_list
 IFS=$OLDIFS
 bm_end "$(basename $0) - Building network list"
 
+# In cluster environments, we need to ensure that all repository networks are replicated back to the
+# same Spokes nodes that they were present on when the backup was taken. For this, the list of
+# routes of each repository network is first obtained. Afterward, an rsync file list is created for
+# each Spokes node including only those repository networks for which there was a route to the
+# respective Spokes node.
 if $CLUSTER; then
   # The server returns a list of routes:
   #
@@ -140,9 +145,11 @@ if $CLUSTER; then
   cat $routes_list | awk '{ n = split($1, p, "/"); printf p[n] " /data/repositories/" $1; $1=""; print $0}' > $to_restore
   ghe_debug "\n$(find "$tempdir" -maxdepth 1 -name '*.rsync')"
   bm_end "$(basename $0) - Processing routes"
+# There is no need to collect routes and split them by Spokes server in noncluster setups because
+# we need to transfer all repository networks to the primary instance unconditionally, regardless of
+# the Spokes route list captured during the backup. As we already have the list of all repository
+# network paths, we can simply use that as the rsync file list in noncluster environments.
 else
-  # In noncluster setups, the primary instance owns all repository networks, so all network paths
-  # are to be synchronized to the primary instance.
   cp "$tmp_list" "$tempdir/git-server-primary.rsync"
 fi
 

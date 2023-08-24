@@ -99,3 +99,4 @@ Due to how some components of Backup Utilities (e.g. MSSQL) take incremental bac
 [9]: https://joeyh.name/code/moreutils
 [10]: https://www.gnu.org/software/gawk
 [11]: https://stedolan.github.io/jq/
+[12]: https://www.gnu.org/software/bc/

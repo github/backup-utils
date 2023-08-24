@@ -281,6 +281,179 @@ begin_test "ghe-restore with no pages backup"
 )
 end_test
 
+begin_test "ghe-restore does not restore encrypted column encryption keying material for versions below 3.7.0"
+(
+  GHE_REMOTE_VERSION=2.1.10 ghe-restore -v -f localhost | grep -q "encrypted column encryption keying material not set" && exit 1
+  [ ! -f "$GHE_DATA_DIR/current/encrypted-column-keying-material" ]
+
+  GHE_REMOTE_VERSION=3.6.1 ghe-restore -v -f localhost | grep -q "encrypted column encryption keying material not set" && exit 1
+  [ ! -f "$GHE_DATA_DIR/current/encrypted-column-keying-material" ]
+
+)
+end_test
+
+begin_test "ghe-restore with encrypted column encryption keying material for versions 3.7.0+"
+(
+  set -e
+  rm -rf "$GHE_REMOTE_ROOT_DIR"
+  setup_remote_metadata
+
+  required_files=(
+    "encrypted-column-encryption-keying-material"
+  )
+
+  for file in "${required_files[@]}"; do
+    echo "foo" > "$GHE_DATA_DIR/current/$file"
+  done
+
+  # GHES version 3.7.0
+  GHE_REMOTE_VERSION=3.7.0
+  export GHE_REMOTE_VERSION
+
+  ghe-restore -v -f localhost
+  required_secrets=(
+    "secrets.github.encrypted-column-keying-material"
+  )
+
+  for secret in "${required_secrets[@]}"; do
+    [ "$(ghe-ssh "$GHE_HOSTNAME" -- ghe-config "$secret")" = "foo" ]
+  done
+
+  # GHES version 3.8.0
+  GHE_REMOTE_VERSION=3.8.0
+  export GHE_REMOTE_VERSION
+
+  ghe-restore -v -f localhost
+  required_secrets=(
+    "secrets.github.encrypted-column-keying-material"
+  )
+
+  for secret in "${required_secrets[@]}"; do
+    [ "$(ghe-ssh "$GHE_HOSTNAME" -- ghe-config "$secret")" = "foo" ]
+  done
+)
+end_test
+
+
+begin_test "ghe-restore does not encrypted column current encryption key for versions below 3.8.0"
+(
+ GHE_REMOTE_VERSION=2.1.10 restore -v -f | grep -q "encrypted column current encryption key not set" && exit 1
+  [ ! -f "$GHE_DATA_DIR/current/encrypted-column-current-encryption-key" ]
+
+  GHE_REMOTE_VERSION=3.7.0 restore -v -f | grep -q "encrypted column current encryption key not set" && exit 1
+  [ ! -f "$GHE_DATA_DIR/current/encrypted-column-current-encryption-key" ]
+
+)
+end_test
+
+begin_test "ghe-restore with encrypted column current encryption key for versions 3.8.0+"
+(
+  set -e
+  rm -rf "$GHE_REMOTE_ROOT_DIR"
+  setup_remote_metadata
+
+  required_files=(
+    "encrypted-column-current-encryption-key"
+  )
+
+  for file in "${required_files[@]}"; do
+    echo "foo" > "$GHE_DATA_DIR/current/$file"
+  done
+
+  # GHES version 3.8.0
+  GHE_REMOTE_VERSION=3.8.0
+  export GHE_REMOTE_VERSION
+
+  ghe-restore -v -f localhost
+  required_secrets=(
+    "secrets.github.encrypted-column-current-encryption-key"
+  )
+
+  for secret in "${required_secrets[@]}"; do
+    [ "$(ghe-ssh "$GHE_HOSTNAME" -- ghe-config "$secret")" = "foo" ]
+  done
+
+
+  # GHES version 3.9.0
+  GHE_REMOTE_VERSION=3.9.0
+  export GHE_REMOTE_VERSION
+
+  ghe-restore -v -f localhost
+  required_secrets=(
+    "secrets.github.encrypted-column-current-encryption-key"
+  )
+
+  for secret in "${required_secrets[@]}"; do
+    [ "$(ghe-ssh "$GHE_HOSTNAME" -- ghe-config "$secret")" = "foo" ]
+  done
+)
+end_test
+
+begin_test "ghe-restore with secret scanning encrypted secrets encryption keys for versions below 3.8.0"
+(
+  set -e
+  rm -rf "$GHE_REMOTE_ROOT_DIR"
+  setup_remote_metadata
+
+  required_files=(
+    "secret-scanning-encrypted-secrets-current-storage-key"
+    "secret-scanning-encrypted-secrets-delimited-storage-keys"
+    "secret-scanning-encrypted-secrets-current-shared-transit-key"
+    "secret-scanning-encrypted-secrets-delimited-shared-transit-keys"
+  )
+
+  for file in "${required_files[@]}"; do
+    echo "foo" >"$GHE_DATA_DIR/current/$file"
+  done
+
+  GHE_REMOTE_VERSION=3.7.0 ghe-restore -v -f localhost
+
+  required_secrets=(
+    "secrets.secret-scanning.encrypted-secrets-current-storage-key"
+    "secrets.secret-scanning.encrypted-secrets-delimited-storage-keys"
+    "secrets.secret-scanning.encrypted-secrets-current-shared-transit-key"
+    "secrets.secret-scanning.encrypted-secrets-delimited-shared-transit-keys"
+  )
+
+  for secret in "${required_secrets[@]}"; do
+    [ "$(ghe-ssh "$GHE_HOSTNAME" -- ghe-config "$secret")" = "" ] # expecting these to not be set for versions below 3.8.0
+  done
+)
+end_test
+
+
+begin_test "ghe-restore with secret scanning encrypted secrets encryption keys for versions 3.8.0+"
+(
+  set -e
+  rm -rf "$GHE_REMOTE_ROOT_DIR"
+  setup_remote_metadata
+
+  required_files=(
+    "secret-scanning-encrypted-secrets-current-storage-key"
+    "secret-scanning-encrypted-secrets-delimited-storage-keys"
+    "secret-scanning-encrypted-secrets-current-shared-transit-key"
+    "secret-scanning-encrypted-secrets-delimited-shared-transit-keys"
+  )
+
+  for file in "${required_files[@]}"; do
+    echo "foo" >"$GHE_DATA_DIR/current/$file"
+  done
+
+  GHE_REMOTE_VERSION=3.8.0 ghe-restore -v -f localhost
+
+  required_secrets=(
+    "secrets.secret-scanning.encrypted-secrets-current-storage-key"
+    "secrets.secret-scanning.encrypted-secrets-delimited-storage-keys"
+    "secrets.secret-scanning.encrypted-secrets-current-shared-transit-key"
+    "secrets.secret-scanning.encrypted-secrets-delimited-shared-transit-keys"
+  )
+
+  for secret in "${required_secrets[@]}"; do
+    [ "$(ghe-ssh "$GHE_HOSTNAME" -- ghe-config "$secret")" = "foo" ] # expecting this to have been restored successfully for versions 3.8.0+
+  done
+)
+end_test
+
 # Setup Actions data for the subsequent tests
 setup_actions_test_data "$GHE_DATA_DIR/1"
 
@@ -329,7 +502,7 @@ begin_test "ghe-restore with Kredz settings"
   required_secrets=(
     "secrets.kredz.credz-hmac-secret"
   )
-  
+
   for secret in "${required_secrets[@]}"; do
     [ "$(ghe-ssh "$GHE_HOSTNAME" -- ghe-config "$secret")" = "foo" ]
   done
@@ -355,7 +528,7 @@ begin_test "ghe-restore with kredz-varz settings"
   required_secrets=(
     "secrets.kredz.varz-hmac-secret"
   )
-  
+
   for secret in "${required_secrets[@]}"; do
     [ "$(ghe-ssh "$GHE_HOSTNAME" -- ghe-config "$secret")" = "foo" ]
   done

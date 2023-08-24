@@ -79,6 +79,21 @@ backup-secret "password pepper" "password-pepper" "secrets.github.user-password-
 backup-secret "kredz.credz HMAC key" "kredz-credz-hmac" "secrets.kredz.credz-hmac-secret"
 backup-secret "kredz.varz HMAC key" "kredz-varz-hmac" "secrets.kredz.varz-hmac-secret"
 
+# backup encryption keying material and create backup value current encryption for GHES 3.7.0 onwards
+# this is for forwards compatibility with GHES 3.8.0 onwards
+if [ "$(version $GHE_REMOTE_VERSION)" -ge "$(version 3.7.0)" ]; then
+  backup-secret "encrypted column encryption keying material" "encrypted-column-encryption-keying-material" "secrets.github.encrypted-column-keying-material"
+  cat "$GHE_SNAPSHOT_DIR/encrypted-column-encryption-keying-material" | sed 's:.*;::' > "$GHE_SNAPSHOT_DIR/encrypted-column-current-encryption-key"
+fi
+
+# secret scanning encrypted secrets keys were added in GHES 3.8.0
+if [ "$(version $GHE_REMOTE_VERSION)" -ge "$(version 3.8.0)" ]; then
+    backup-secret "secret scanning encrypted secrets current storage key" "secret-scanning-encrypted-secrets-current-storage-key" "secrets.secret-scanning.encrypted-secrets-current-storage-key"
+    backup-secret "secret scanning encrypted secrets delimited storage keys" "secret-scanning-encrypted-secrets-delimited-storage-keys" "secrets.secret-scanning.encrypted-secrets-delimited-storage-keys"
+    backup-secret "secret scanning encrypted secrets current shared transit key" "secret-scanning-encrypted-secrets-current-shared-transit-key" "secrets.secret-scanning.encrypted-secrets-current-shared-transit-key"
+    backup-secret "secret scanning encrypted secrets delimited shared transit keys" "secret-scanning-encrypted-secrets-delimited-shared-transit-keys" "secrets.secret-scanning.encrypted-secrets-delimited-shared-transit-keys"
+fi
+
 # Backup argon secrets for multiuser from ghes version 3.8 onwards
 if [[ "$(version $GHE_REMOTE_VERSION)" -ge "$(version 3.8.0)" && "$(version $GHE_REMOTE_VERSION)" -lt "$(version 3.8.2)" ]]; then
   backup-secret "management console argon2 secret" "manage-argon-secret" "secrets.manage-auth.argon-secret"

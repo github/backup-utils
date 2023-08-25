@@ -1,0 +1,29 @@
+---
+version: 1
+ownership:
+- name: ghes-backup-utilities
+  long_name: GHES Backup Utilities
+  description: GitHub Enterprise Disaster Recover Solution
+  kind: logical
+  repo: https://github.com/github/backup-utils-private
+  qos: best_effort
+  team_slack: ghes-lifecycle-aor
+  team: github/ghes-lifecycle
+  maintainer: whitneyimura
+  exec_sponsor: jakuboleksy
+  tier: 3
+  product_manager: davidjarzebowski
+  sev1:
+    slack: ghes-on-call
+    alert_slack: ghes-backup-utils
+    pagerduty: https://github.pagerduty.com/escalation_policies#PBQWK20
+    tta: 30 minutes
+  sev2:
+    issue: https://github.com/github/ghes/issues/new
+    tta: 1 business day
+  sev3:
+    issue: https://github.com/github/ghes/issues
+    tta: 1 week
+  support_squad:
+    slack: support-squad-infrastructure
+    issue: https://github.com/github/support-squad-infrastructure/issues

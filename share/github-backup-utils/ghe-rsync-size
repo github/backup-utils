@@ -65,14 +65,22 @@ transfer_size()
   if [[ $cluster_status -eq 0 ]]; then
     cluster_conf_out=$(ghe-ssh "$host" "cat /data/user/common/cluster.conf")
     cluster_nodes_output=$(ghe-ssh "$host" "ghe-cluster-nodes -i")
-      if [[ ( "$1" == "elasticsearch" || "$1" == "storage" || "$1" == "pages" ) ]]; then
-        host_server=$(echo "$cluster_conf_out" | awk -v srv="$backup_data-server = true" '/cluster/ { prevA = $0 } $0 ~ srv { print prevA }' | head -1 | awk -F '"' '{print $2}')
-      elif [[ "$1" == "mysql" ]]; then
-        host_server=$(ghe-ssh "$host" "ghe-config cluster.mysql-master")
-      elif [[ "$1" == "repositories" ]]; then
-	host_server=$(echo "$cluster_conf_out" | awk '/git-server = true/ { print prevA } /cluster/ { prevA = $0 }' | head -1 | awk -F '"' '{print $2}')
-      fi
-    host=$(echo "$cluster_nodes_output" | grep "$host_server" | awk '{print $2}' | head -1)
+      case $1 in
+        elasticsearch | storage | pages)
+          cluster_host=$(echo "$cluster_conf_out" | awk -v srv="$backup_data-server = true" '/cluster/ { prevA = $0 } $0 ~ srv { print prevA }' | head -1 | awk -F '"' '{print $2}')
+          ;;
+        mysql)
+          cluster_host=$(ghe-ssh "$host" "ghe-config cluster.mysql-master")
+          ;;
+        repositories)
+          cluster_host=$(echo "$cluster_conf_out" | awk '/git-server = true/ { print prevA } /cluster/ { prevA = $0 }' | head -1 | awk -F '"' '{print $2}')
+          ;;
+        *)
+          echo "Unknown backup data: $1"
+          exit 1
+          ;;
+      esac
+    host=$(echo "$cluster_nodes_output" | grep "$cluster_host" | awk '{print $2}' | head -1)
   fi
 
   if [ -d "${GHE_DATA_DIR}/current/$1" ]; then

@@ -475,7 +475,7 @@ begin_test "ghe-restore with secret scanning encrypted content encryption keys f
   )
 
   for secret in "${required_secrets[@]}"; do
-    [ "$(ghe-ssh "$GHE_HOSTNAME" -- ghe-config "$secret")" = "foo" ] # if this fails, it should fail silently for versions below 3.10
+    [ "$(ghe-ssh "$GHE_HOSTNAME" -- ghe-config "$secret")" = "" ] # expecting that this secret was not backed up on versions below 3.11.0, this secret was not present in earlier versions
   done
 )
 end_test

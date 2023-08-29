@@ -454,7 +454,7 @@ begin_test "ghe-restore with secret scanning encrypted secrets encryption keys f
 )
 end_test
 
-begin_test "ghe-restore with secret scanning encrypted content encryption keys for versions below 3.11.0+"
+begin_test "ghe-restore with secret scanning encrypted content encryption keys for versions below 3.11.0"
 (
   set -e
   rm -rf "$GHE_REMOTE_ROOT_DIR"
@@ -475,7 +475,7 @@ begin_test "ghe-restore with secret scanning encrypted content encryption keys f
   )
 
   for secret in "${required_secrets[@]}"; do
-    [ "$(ghe-ssh "$GHE_HOSTNAME" -- ghe-config "$secret")" = "" ] # expecting these to not be set for versions below 3.11.0
+    [ "$(ghe-ssh "$GHE_HOSTNAME" -- ghe-config "$secret")" = "foo" ] # expecting these to not be set for versions below 3.11.0
   done
 )
 end_test

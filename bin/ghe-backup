@@ -198,11 +198,11 @@ is_inc=$(is_incremental_backup_feature_on)
 
 if [ "$is_inc" = true ]; then
 if [ "$GHE_VERSION_MAJOR" -lt 3 ]; then
-  log_error "Can only perform incremental backups on enterprise version 3.11 or higher"
+  log_error "Can only perform incremental backups on enterprise version 3.10 or higher"
   exit 1
 fi
-if [ "$GHE_VERSION_MINOR" -lt 11 ]; then
-  log_error "Can only perform incremental backups on enterprise version 3.11 or higher"
+if [ "$GHE_VERSION_MINOR" -lt 10 ]; then
+  log_error "Can only perform incremental backups on enterprise version 3.10 or higher"
   exit 1
 fi
 

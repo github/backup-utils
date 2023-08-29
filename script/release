@@ -34,6 +34,9 @@ DEB_PKG_NAME = 'github-backup-utils'
 GH_BASE_BRANCH = ENV['GH_BASE_BRANCH'] || 'master' # TODO: should we even allow a default or require all params get set explicitly?
 GH_STABLE_BRANCH = ""
 
+# If PUBLISH is false, we leave the release in a draft state to be manually published later through the UI
+PUBLISH = ENV['PUBLISH'] == 'true' || false
+
 CHANGELOG_TMPL = '''<%= package_name %> (<%= package_version %>) UNRELEASED; urgency=medium
 
 <%- changes.each do |ch| -%>
@@ -480,14 +483,20 @@ if $PROGRAM_NAME == __FILE__
     attach_assets_to_release res['upload_url'], res['id'], ["#{base_dir}/dist/#{DEB_PKG_NAME}-v#{version}.tar.gz"]
     attach_assets_to_release res['upload_url'], res['id'], ["#{base_dir}/dist/#{DEB_PKG_NAME}_#{version}_all.deb"]
 
-    puts 'Publishing release...'
-    publish_release res['id']
+    if PUBLISH
+      puts 'Publishing release...'
+      publish_release res['id']
+    end
 
     puts 'Cleaning up...'
     clean_up version
 
     puts "Updating #{GH_STABLE_BRANCH} branch..."
     update_stable_branch
+
+    if !PUBLISH
+      puts 'Release left in a "Draft" state. Go to the https://github.com/github/backup-utils/releases and publish when ready.'
+    end
 
     puts 'Released!'
   rescue RuntimeError => e

@@ -59,6 +59,7 @@ transfer_size()
     ;;
   esac
 
+  # Check if instance is cluster and fetch appropriate primary host for the different components
   ghe-ssh "$host" "[ -f /etc/github/cluster ]"
   cluster_status=$?
 
@@ -83,6 +84,7 @@ transfer_size()
     host=$(echo "$cluster_nodes_output" | grep "$cluster_host" | awk '{print $2}' | head -1)
   fi
 
+  # Get file transfer size estimates
   if [ -d "${GHE_DATA_DIR}/current/$1" ]; then
     total_file_size=$(ghe-rsync -arn --stats \
       -e "ssh -q $GHE_EXTRA_SSH_OPTS -p 122 -l admin" \

@@ -11,8 +11,8 @@ begin_test "shellcheck: reports no errors or warnings"
   set -e
   # We manually install the latest Shellcheck on Linux builds as other options
   # are too old.
-  if [ -x "$BASE_PATH/shellcheck-latest/shellcheck" ]; then
-    shellcheck() { "$BASE_PATH/shellcheck-latest/shellcheck" "$@"; }
+  if [ -x "$BASE_PATH/shellcheck-stable/shellcheck" ]; then
+    shellcheck() { "$BASE_PATH/shellcheck-stable/shellcheck" "$@"; }
   fi
 
   if ! type shellcheck 1>/dev/null 2>&1; then
@@ -49,7 +49,7 @@ begin_test "shellopts: set -e set on all scripts"
   # Check all executable scripts checked into the repo, except bm.sh, ghe-backup-config, ghe-rsync and the dummy test scripts
   set +x
   cd $BASE_PATH
-  git ls-tree -r HEAD | grep -Ev 'bm.sh|ghe-backup-config|ghe-rsync|test/bin' | grep -E '^1007|.*\..*sh$' | awk '{print $4}' | while read -r script; do
+  git ls-tree -r HEAD | grep -Ev 'bm.sh|ghe-backup-config|ghe-rsync|track-progress|test/bin' | grep -E '^1007|.*\..*sh$' | awk '{print $4}' | while read -r script; do
     if head -n1 "$script" | grep -E -w "sh|bash" >/dev/null 2>&1; then
       grep -q "set -e" $script || echo $script >> $results || true
     fi

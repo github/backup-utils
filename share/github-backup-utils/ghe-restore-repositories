@@ -108,6 +108,8 @@ bm_end "$(basename $0) - Building network list"
 # each Spokes node including only those repository networks for which there was a route to the
 # respective Spokes node.
 if $CLUSTER; then
+  log_info "* Restoring repository networks to cluster nodes according to Spokes routes" 1>&3
+
   # The server returns a list of routes:
   #
   # a/nw/a8/3f/02/100000855 dgit-node1 dgit-node2 dgit-node3
@@ -150,6 +152,8 @@ if $CLUSTER; then
 # the Spokes route list captured during the backup. As we already have the list of all repository
 # network paths, we can simply use that as the rsync file list in noncluster environments.
 else
+  log_info "* Restoring all repository networks to target host unconditionally" 1>&3
+
   cp "$tmp_list" "$tempdir/git-server-primary.rsync"
 fi
 

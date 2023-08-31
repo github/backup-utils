@@ -588,8 +588,10 @@ setup_moreutils_parallel() {
   # We need moreutils parallel
   local x
   for x in \
+      /usr/bin/parallel-moreutils \
       /usr/bin/parallel.moreutils \
       /usr/bin/parallel_moreutils \
+      /usr/bin/moreutils-parallel \
       /usr/bin/moreutils.parallel \
       /usr/bin/moreutils_parallel \
       ; do

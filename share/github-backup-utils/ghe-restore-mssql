@@ -57,7 +57,7 @@ fi
 
 if ! import_tool_available; then
   ghe_verbose "ghe-import-mssql is not available"
-  exit
+  exit 1
 fi
 
 # Perform a host-check and establish the remote version in GHE_REMOTE_VERSION.

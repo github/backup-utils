@@ -454,6 +454,58 @@ begin_test "ghe-restore with secret scanning encrypted secrets encryption keys f
 )
 end_test
 
+begin_test "ghe-restore with secret scanning encrypted content encryption keys for versions below 3.11.0"
+(
+  set -e
+  rm -rf "$GHE_REMOTE_ROOT_DIR"
+  setup_remote_metadata
+
+  required_files=(
+    "secret-scanning-user-content-delimited-encryption-root-keys"
+  )
+
+  for file in "${required_files[@]}"; do
+    echo "foo" >"$GHE_DATA_DIR/current/$file"
+  done
+
+  GHE_REMOTE_VERSION=3.10.0 ghe-restore -v -f localhost
+
+  required_secrets=(
+    "secrets.secret-scanning.secret-scanning-user-content-delimited-encryption-root-keys"
+  )
+
+  for secret in "${required_secrets[@]}"; do
+    [ "$(ghe-ssh "$GHE_HOSTNAME" -- ghe-config "$secret")" = "" ] # expecting that this secret was not backed up on versions below 3.11.0, this secret was not present in earlier versions
+  done
+)
+end_test
+
+begin_test "ghe-restore with secret scanning encrypted content encryption keys for versions 3.11.0+"
+(
+  set -e
+  rm -rf "$GHE_REMOTE_ROOT_DIR"
+  setup_remote_metadata
+
+  required_files=(
+    "secret-scanning-user-content-delimited-encryption-root-keys"
+  )
+
+  for file in "${required_files[@]}"; do
+    echo "foo" >"$GHE_DATA_DIR/current/$file"
+  done
+
+  GHE_REMOTE_VERSION=3.11.0 ghe-restore -v -f localhost
+
+  required_secrets=(
+    "secrets.secret-scanning.secret-scanning-user-content-delimited-encryption-root-keys"
+  )
+
+  for secret in "${required_secrets[@]}"; do
+    [ "$(ghe-ssh "$GHE_HOSTNAME" -- ghe-config "$secret")" = "foo" ] # expecting this to have been restored successfully for versions 3.11.0+
+  done
+)
+end_test
+
 # Setup Actions data for the subsequent tests
 setup_actions_test_data "$GHE_DATA_DIR/1"
 

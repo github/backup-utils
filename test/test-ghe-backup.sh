@@ -832,6 +832,54 @@ begin_test "ghe-backup takes backup of secret scanning encrypted secrets encrypt
 )
 end_test
 
+begin_test "ghe-backup does not take backups of secret scanning encrypted content encryption keys on versions below 3.11.0"
+(
+  set -e
+
+  required_secrets=(
+    "secrets.secret-scanning.secret-scanning-user-content-delimited-encryption-root-keys"
+  )
+
+  for secret in "${required_secrets[@]}"; do
+    ghe-ssh "$GHE_HOSTNAME" -- ghe-config "$secret" "foo"
+  done
+
+  GHE_REMOTE_VERSION=3.10.0 ghe-backup -v | grep -q "secret scanning encrypted content" && exit 1
+
+  required_files=(
+    "secret-scanning-user-content-delimited-encryption-root-keys"
+  )
+
+  for file in "${required_files[@]}"; do
+    [ "$(cat "$GHE_DATA_DIR/current/$file")" = "" ]
+  done
+)
+end_test
+
+begin_test "ghe-backup takes backup of secret scanning encrypted content encryption keys on versions 3.11.0+"
+(
+  set -e
+
+  required_secrets=(
+    "secret-scanning.secret-scanning-user-content-delimited-encryption-root-keys"
+  )
+
+  for secret in "${required_secrets[@]}"; do
+    ghe-ssh "$GHE_HOSTNAME" -- ghe-config "$secret" "foo"
+  done
+
+  GHE_REMOTE_VERSION=3.11.0 ghe-backup
+
+  required_files=(
+    "secret-scanning-user-content-delimited-encryption-root-keys"
+  )
+
+  for file in "${required_files[@]}"; do
+    [ "$(cat "$GHE_DATA_DIR/current/$file")" = "foo" ]
+  done
+)
+end_test
+
 begin_test "ghe-backup takes backup of Actions settings"
 (
   set -e

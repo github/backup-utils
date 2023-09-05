@@ -5,7 +5,7 @@ storage and must have network connectivity with the GitHub Enterprise Server app
 
 ## Backup host requirements
 
-Backup host software requirements are modest: Linux or other modern Unix operating system (Ubuntu is highly recommended) with [bash][1], [git][2], [OpenSSH][3] 5.6 or newer, [rsync][4] v2.6.4 or newer* (see [below](april-2023-update-of-rsync-requirements) for exceptions), and [jq][11] v1.5 or newer. See below for an update on rsync.
+Backup host software requirements are modest: Linux or other modern Unix operating system (Ubuntu is highly recommended) with [bash][1], [git][2], [OpenSSH][3] 5.6 or newer, [rsync][4] v2.6.4 or newer* (see [below](#april-2023-update-of-rsync-requirements) for exceptions), [jq][11] v1.5 or newer, and [bc][12] v1.07 or newer.
 
 Ubuntu is the operating system we use to test `backup-utils` and it’s what we recommend you use too. You are welcome to use a different operating system, and we'll do our best to help you if you run into issues. But we can't guarantee that we'll be able to resolve issues that are specific to that operating system.
 
@@ -101,3 +101,4 @@ Due to how some components of Backup Utilities (e.g. MSSQL) take incremental bac
 [9]: https://joeyh.name/code/moreutils
 [10]: https://www.gnu.org/software/gawk
 [11]: https://stedolan.github.io/jq/
+[12]: https://www.gnu.org/software/bc/

@@ -31,9 +31,9 @@ jobs:
         run: |
           sudo apt-get update -y
           sudo apt-get install -y moreutils debhelper help2man devscripts gzip
-      # - name: Create tag
-      #   run: |
-      #     git config --local user.name "release-controller"
+      - name: Create tag
+        run: |
+          git config --local user.name "release-controller"
       #     git tag -a v${{ github.event.inputs.version }} -m "v${{ github.event.inputs.version }}"
       #     git push origin v${{ github.event.inputs.version }}
       - name: Package deb
@@ -48,9 +48,6 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      # - name: Set Up Release
-      #   id: setup_release
-      #   run: echo ::set-output name=token::${{ github.token }}
       - name: Create Release
         uses: ncipollo/release-action@v1
         with:

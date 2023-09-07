@@ -31,11 +31,11 @@ jobs:
         run: |
           sudo apt-get update -y
           sudo apt-get install -y moreutils debhelper help2man devscripts gzip
-      - name: Create tag
-        run: |
-          git config --local user.name "release-controller"
-          git tag -a v${{ github.event.inputs.version }} -m "v${{ github.event.inputs.version }}"
-          git push origin v${{ github.event.inputs.version }}
+      # - name: Create tag
+      #   run: |
+      #     git config --local user.name "release-controller"
+      #     git tag -a v${{ github.event.inputs.version }} -m "v${{ github.event.inputs.version }}"
+      #     git push origin v${{ github.event.inputs.version }}
       - name: Package deb
         run: |
           ./script/package-deb
@@ -48,14 +48,18 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
+      # - name: Set Up Release
+      #   id: setup_release
+      #   run: echo ::set-output name=token::${{ github.token }}
       - name: Create Release
         uses: ncipollo/release-action@v1
         with:
-          repo: github/backup-utils
+          repo: backup-utils
           artifacts: |
             ./dist/github-backup-utils-v${{ github.event.inputs.version }}.tar.gz
             ./dist/github-backup-utils_${{ github.event.inputs.version }}_all.deb
           token: ${{ github.event.inputs.gh-token }} 
+          commit: ${{ github.sha }}
           tag: v${{ github.event.inputs.version }}
           name: v${{ github.event.inputs.version }}
           draft: ${{ github.event.inputs.draft }}

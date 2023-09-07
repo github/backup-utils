@@ -26,11 +26,12 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update -y
-          sudo apt-get install -y moreutils debhelper help2man devscripts
+          sudo apt-get install -y moreutils debhelper help2man devscripts gzip
       - name: Create tag
         run: |
           git config --local user.name "release-controller"
           git tag -a v${{ github.event.inputs.version }} -m "v${{ github.event.inputs.version }}"
+          git push origin v${{ github.event.inputs.version }}
       - name: Package deb
         run: |
           ./script/package-deb

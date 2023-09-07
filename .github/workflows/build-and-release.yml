@@ -33,11 +33,11 @@ jobs:
           git tag -a v${{ github.event.inputs.version }} -m "v${{ github.event.inputs.version }}"
       - name: Package deb
         run: |
-          ./scripts/package-deb
+          ./script/package-deb
         shell: bash
       - name: Package tarball
         run: |
-          ./scripts/package-tarball
+          ./script/package-tarball
         shell: bash
   release:
     needs: build

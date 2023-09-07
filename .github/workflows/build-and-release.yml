@@ -52,6 +52,7 @@ jobs:
             ./dist/github-backup-utils-v${{ github.event.inputs.version }}.tar.gz
             ./dist/github-backup-utils_${{ github.event.inputs.version }}_all.deb
           # token: ${{ secrets.GITHUB_TOKEN }} may need token, but try without first
+          tag: v${{ github.event.inputs.version }}
           name: v${{ github.event.inputs.version }}
           draft: ${{ github.event.inputs.draft }}
           body: ${{ github.event.inputs.release-notes }}

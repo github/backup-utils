@@ -25,7 +25,7 @@ jobs:
         uses: actions/checkout@v2
       - name: Install dependencies
         run: |
-          sudo apt-get update
+          sudo apt-get update -y
           sudo apt-get install -y moreutils debhelper help2man
       - name: Create tag
         run: |
@@ -33,10 +33,12 @@ jobs:
           git tag -a v${{ github.event.inputs.version }} -m "v${{ github.event.inputs.version }}"
       - name: Package deb
         run: |
-          bash scripts/package-deb
+          ./scripts/package-deb
+        shell: bash
       - name: Package tarball
         run: |
-          bash scripts/package-tarball
+          ./scripts/package-tarball
+        shell: bash
   release:
     needs: build
     runs-on: ubuntu-latest

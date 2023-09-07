@@ -1,6 +1,5 @@
 name: Build and Release
 
-# make it callable with required input of release-notes string
 on:
   workflow_dispatch:
     inputs:
@@ -17,15 +16,6 @@ on:
         required: true
         type: boolean
         default: true
-
-# in the first job
-# first, run on ubuntu-latest
-# then, install dependencies: moreutils, debhelper and help2man
-# then, using the input version create a v{input.version} tag at the head of the branch
-# then, checkout this repo
-# then, run the bash scripts: /scripts/package-deb and /scripts/package-tarball
-# in the next job
-# create a release using ncipollo/release-action@v1 to attach release notes and the artifacts and tag from the previous job
 
 jobs:
   build:

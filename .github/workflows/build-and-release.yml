@@ -44,7 +44,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: github-backup-utils_${{ github.event.inputs.version }}_all.deb
-          path: dist/github-backup-utils_${{ github.event.inputs.version }}_all.deb
+          path: ./dist/github-backup-utils_${{ github.event.inputs.version }}_all.deb
       - name: Package tarball
         run: |
           ./script/package-tarball
@@ -53,7 +53,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: github-backup-utils-v${{ github.event.inputs.version }}.tar.gz
-          path: dist/github-backup-utils-v${{ github.event.inputs.version }}.tar.gz
+          path: ./dist/github-backup-utils-v${{ github.event.inputs.version }}.tar.gz
   release:
     needs: build
     runs-on: ubuntu-latest

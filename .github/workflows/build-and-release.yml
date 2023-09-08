@@ -38,7 +38,11 @@ jobs:
           git push origin v${{ github.event.inputs.version }}
       - name: Package deb
         run: |
-          ./script/package-deb && ls -l && ls -l /dist
+          ./script/package-deb
+        shell: bash
+      - name: Find deb artifact
+        run: |
+          find . -name "github-backup-utils_${{ github.event.inputs.version }}_all.deb" | xargs -I {} cp {} /dist
         shell: bash
       - name: Upload deb artifact
         uses: actions/upload-artifact@v3
@@ -47,7 +51,11 @@ jobs:
           path: /dist/github-backup-utils_${{ github.event.inputs.version }}_all.deb
       - name: Package tarball
         run: |
-          ./script/package-tarball ls -l && ls -l /dist
+          ./script/package-tarball
+        shell: bash
+      - name: Find tarball artifact
+        run: |
+          find . -name "github-backup-utils-v${{ github.event.inputs.version }}.tar.gz" | xargs -I {} cp {} /dist
         shell: bash
       - name: Upload tarball artifact
         uses: actions/upload-artifact@v3

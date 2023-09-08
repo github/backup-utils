@@ -57,7 +57,7 @@ Using a [case sensitive][7] file system is also required to avoid conflicts.
 
 Performance of backup and restore operations are also dependent on the backup host's storage. We recommend using a high performance storage system with low latency and high IOPS.
 
-Please avoid using NFS mount for the data directory (where backup data is stored) as this can result in performance issues and timeouts during backups.
+Please avoid using an NFS mount for the data directory (where backup data is stored) as this can cause performance issues and timeouts during backups.
 
 ## GitHub Enterprise Server version requirements
 

@@ -42,7 +42,7 @@ jobs:
         shell: bash
       - name: Find deb artifact
         run: |
-          find . -name "github-backup-utils_${{ github.event.inputs.version }}_all.deb" | xargs -I {} cp {} /dist
+          ls -l && find . -name "github-backup-utils_${{ github.event.inputs.version }}_all.deb"
         shell: bash
       - name: Upload deb artifact
         uses: actions/upload-artifact@v3
@@ -55,7 +55,7 @@ jobs:
         shell: bash
       - name: Find tarball artifact
         run: |
-          find . -name "github-backup-utils-v${{ github.event.inputs.version }}.tar.gz" | xargs -I {} cp {} /dist
+          ls -l && find . -name "github-backup-utils-v${{ github.event.inputs.version }}.tar.gz"
         shell: bash
       - name: Upload tarball artifact
         uses: actions/upload-artifact@v3

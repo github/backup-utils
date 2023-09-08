@@ -59,4 +59,6 @@ jobs:
           commit: master
           body: ${{ github.event.inputs.release-notes }}
           draft: ${{ github.event.inputs.draft }}
-          token: ${{ github.event.inputs.gh-token }} 
+          token: ${{ github.event.inputs.gh-token }}
+          allowUpdates: true
+          artifactContentType: "raw"

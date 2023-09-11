@@ -41,6 +41,7 @@ jobs:
         run: |
           ./script/package-deb
         shell: bash
+      # many need to remove this once release-notes compilation is automated
       - name: Rename deb artifact
         run: |
           mv dist/$(ls dist | grep github-backup-utils_.*_all.deb) dist/github-backup-utils_${{ github.event.inputs.version }}_all.deb
@@ -76,7 +77,7 @@ jobs:
         with:
           repo: backup-utils
           name: "GitHub Enterprise Server Backup Utilities v${{ github.event.inputs.version }}"
-          artifacts: "github-backup-utils-v${{ github.event.inputs.version }}.tar.gz, github-backup-utils_3.8.0_all.deb"
+          artifacts: "github-backup-utils-v${{ github.event.inputs.version }}.tar.gz, github-backup-utils_${{ github.event.inputs.version }}_all.deb"
           # this action will create a tag with this name on the provided commit
           tag: v${{ github.event.inputs.version }}
           # this can be a commit hash or branch name

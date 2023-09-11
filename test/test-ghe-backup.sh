@@ -47,6 +47,8 @@ begin_test "ghe-backup subsequent snapshot"
   [ "$first_snapshot" != "$this_snapshot" ]
 
   verify_all_backedup_data
+
+  verify_progress_cleanup_process
 )
 end_test
 

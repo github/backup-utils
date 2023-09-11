@@ -45,8 +45,8 @@ jobs:
       # many need to remove this once release-notes compilation is automated
       - name: Rename deb artifact
         run: |
-          mv dist/$(ls dist | grep github-backup-utils_.*_all.deb) \
-            dist/github-backup-utils_${{ github.event.inputs.version }}_all.deb
+          "mv dist/$(ls dist | grep 'github-backup-utils_.*_all.deb') \
+            dist/github-backup-utils_${{ github.event.inputs.version }}_all.deb"
         shell: bash
       - name: Upload deb artifact
         uses: actions/upload-artifact@v3

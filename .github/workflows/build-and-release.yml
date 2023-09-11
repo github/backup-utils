@@ -53,8 +53,7 @@ jobs:
       with:
         name: github-backup-utils_${{ github.event.inputs.version }}_all.deb
         path: | 
-          dist/github-backup-utils_${{ github.event.inputs.version }}_\
-          all.deb
+          dist/github-backup-utils_${{ github.event.inputs.version }}_all.deb
     - name: Package tarball
       run: |
         ./script/package-tarball
@@ -64,8 +63,7 @@ jobs:
       with:
         name: github-backup-utils-v${{ github.event.inputs.version }}.tar.gz
         path: | 
-          dist/github-backup-utils-v${{ github.event.inputs.version }}\
-          .tar.gz
+          dist/github-backup-utils-v${{ github.event.inputs.version }}.tar.gz
   release:
     needs: build
     runs-on: ubuntu-latest

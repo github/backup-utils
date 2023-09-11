@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Build the Ubuntu Docker image
       run: docker build . --file Dockerfile --tag backup-utils:${GITHUB_RUN_ID}
     - name: Build the Alpine Docker image

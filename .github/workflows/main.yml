@@ -27,7 +27,7 @@ jobs:
         brew install moreutils gawk
       if: matrix.os == 'macos-latest'
     - name: Get Sources
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Test
       run: |
         export PATH="$PATH:/snap/bin"

@@ -34,6 +34,7 @@ jobs:
       - name: Create tag
         run: |
           git config --local user.name "release-controller"
+          git config --local user.email "release-controller@github.com"
           git tag -a v${{ github.event.inputs.version }} -m "v${{ github.event.inputs.version }}"
           git push origin v${{ github.event.inputs.version }}
       - name: Package deb

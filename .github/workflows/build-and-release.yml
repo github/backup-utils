@@ -65,7 +65,7 @@ jobs:
       - name: Download deb artifact
         uses: actions/download-artifact@v3
         with:
-          name: github-backup-utils_3.8.0_all.deb
+          name: github-backup-utils_${{ github.event.inputs.version }}_all.deb
       - name: Download tarball artifact
         uses: actions/download-artifact@v3
         with:

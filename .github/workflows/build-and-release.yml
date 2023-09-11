@@ -83,7 +83,7 @@ jobs:
         with:
           repo: backup-utils
           name: |
-            GitHub Enterprise Server Backup Utilities 
+            GitHub Enterprise Server Backup Utilities
             v${{ github.event.inputs.version }}
           artifacts: |
             github-backup-utils-v${{ github.event.inputs.version }}.tar.gz, \

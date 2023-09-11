@@ -78,6 +78,9 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: github-backup-utils-v${{ github.event.inputs.version }}.tar.gz
+      - name: See all files
+        run: |
+          ls -R
       - name: Create Release
         uses: ncipollo/release-action@v1
         with:

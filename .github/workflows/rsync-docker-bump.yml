@@ -1,6 +1,7 @@
 name: Update Rsync Tag in Dockerfile
 
 on:
+  workflow_dispatch:
   schedule:
     - cron: '0 0 * * *' # Runs daily at 00:00
 
@@ -14,6 +15,7 @@ jobs:
 
       - name: Get latest rsync tag
         id: latest_tag
+        # shellcheck disable=SC2086
         run: |
           curl --silent "https://api.github.com/repos/WayneD/rsync/tags" | jq -r '.[].name' | grep -m1 -v pre | xargs -I {} echo "name=latest_tag::{}" >> $GITHUB_OUTPUT
 

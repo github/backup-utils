@@ -163,11 +163,11 @@ echo "$GHE_REMOTE_VERSION" > version
 # Setup progress tracking
 init-progress
 export PROGRESS_TOTAL=14 # Minimum number of steps in backup is 14
-echo "$PROGRESS_TOTAL" > /tmp/backup-utils-progress-total
+echo "$PROGRESS_TOTAL" > /tmp/backup-utils-progress/total
 export PROGRESS_TYPE="Backup"
-echo "$PROGRESS_TYPE" > /tmp/backup-utils-progress-type
+echo "$PROGRESS_TYPE" > /tmp/backup-utils-progress/type
 export PROGRESS=0 # Used to track progress of backup
-echo "$PROGRESS" > /tmp/backup-utils-progress
+echo "$PROGRESS" > /tmp/backup-utils-progress/progress
 
 OPTIONAL_STEPS=0
 # Backup actions+mssql
@@ -191,7 +191,7 @@ if [ "$GHE_BACKUP_PAGES" != "no" ]; then
 fi
 
 PROGRESS_TOTAL=$((OPTIONAL_STEPS + PROGRESS_TOTAL)) # Minimum number of steps in backup is 14
-echo "$PROGRESS_TOTAL" > /tmp/backup-utils-progress-total
+echo "$PROGRESS_TOTAL" > /tmp/backup-utils-progress/total
 
 # check that incremental settings are valid if set
 is_inc=$(is_incremental_backup_feature_on)

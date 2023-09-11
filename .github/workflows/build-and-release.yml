@@ -45,7 +45,6 @@ jobs:
       # many need to remove this once release-notes compilation is automated
       - name: Rename deb artifact
         run: |
-          run: |
             for file in dist/github-backup-utils_*_all.deb; do
               if [[ -f "$file" ]]; then
                 mv "$file" "dist/github-backup-utils_${{ github.event.inputs.version }}_all.deb"

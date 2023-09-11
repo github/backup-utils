@@ -70,6 +70,8 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@v2
       - name: Download deb artifact
         uses: actions/download-artifact@v3
         with:
@@ -78,9 +80,6 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: github-backup-utils-v${{ github.event.inputs.version }}.tar.gz
-      - name: See all files
-        run: |
-          ls -R
       - name: Create Release
         uses: ncipollo/release-action@v1
         with:

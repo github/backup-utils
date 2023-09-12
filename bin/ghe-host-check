@@ -168,6 +168,13 @@ SKIP_MSG
   # shellcheck source=share/github-backup-utils/ghe-rsync-size
   . "$(dirname "${BASH_SOURCE[0]}")/../share/github-backup-utils/ghe-rsync-size"
 
+  #Check if GHE_DATA_DIR is NFS mounted
+  fs_info=$(stat -f -c "%T" "$GHE_DATA_DIR") || true
+  if [ "$fs_info" == "nfs" ]; then
+    echo "Warning: NFS (Network File System) detected for $GHE_DATA_DIR" 1>&2
+    echo "Please review https://gh.io/backup-utils-storage-requirements for details." 1>&2
+  fi
+
   #Display dir requirements for repositories and mysql
   echo "" 1>&2
   echo "Checking host for sufficient space for a backup..." 1>&2

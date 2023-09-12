@@ -560,9 +560,18 @@ echo \"$cmd_title\"
 ghe-restore-repositories \"$GHE_HOSTNAME\"")
 
 cmd_title=$(log_info "Restoring Gists ...")
-commands+=("
-echo \"$cmd_title\"
-ghe-restore-repositories-gist \"$GHE_HOSTNAME\"")
+if [ "$GHE_PARALLEL_ENABLED" = "yes" ]; then
+  ## Stagger ghe-restore-repositories-gist with ghe-restore-repositories to avoid
+  ## race condition to operate on same destination directory
+  commands+=("
+  echo \"$cmd_title\"
+  sleep 1
+  ghe-restore-repositories-gist \"$GHE_HOSTNAME\"")
+else
+  commands+=("
+  echo \"$cmd_title\"
+  ghe-restore-repositories-gist \"$GHE_HOSTNAME\"")
+fi
 
 if [ "$GHE_BACKUP_PAGES" != "no" ]; then
   cmd_title=$(log_info "Restoring Pages ...")

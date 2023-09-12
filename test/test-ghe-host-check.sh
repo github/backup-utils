@@ -56,9 +56,14 @@ begin_test "ghe-host-check detects unsupported GitHub Enterprise Server versions
   read -r bu_version_major bu_version_minor _ <<<$(ghe_parse_version $BACKUP_UTILS_VERSION)
   bu_major_minor="$bu_version_major.$bu_version_minor"
   releases=$(/usr/bin/curl -s https://github-enterprise.s3.amazonaws.com/release/latest.json)
-  supported=$(echo $releases | jq -r 'select(."'${bu_major_minor}'")')
+  latest_value=$(echo "$releases" | jq -r '.latest')
+  latest_major_version=$(echo $latest_value | cut -d "." -f 1-2)
+  # Replace "latest" with the derived major version in the releases string
+  releases_with_replacement=$(echo "$releases" | sed 's/"latest"/"'"$latest_major_version"'"/g')
+  # Use the modified releases string as needed
+  supported=$(echo "$releases_with_replacement" | jq -r 'select(."'${bu_major_minor}'")')
   # shellcheck disable=SC2207 # Command required as alternatives fail
-  keys=($(echo $releases | jq -r 'keys[]'))
+  keys=($(echo "$releases_with_replacement" | jq -r 'keys[]'))
 
   if [ -z "$supported" ]
   then

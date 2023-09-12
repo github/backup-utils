@@ -565,7 +565,7 @@ if [ "$GHE_PARALLEL_ENABLED" = "yes" ]; then
   ## race condition to operate on same destination directory
   commands+=("
   echo \"$cmd_title\"
-  sleep 1
+  sleep 2
   ghe-restore-repositories-gist \"$GHE_HOSTNAME\"")
 else
   commands+=("

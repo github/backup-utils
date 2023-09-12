@@ -675,13 +675,22 @@ restore-secret() {
 
 #initialize progress tracking by clearing out the temp files used to track
 init-progress() {
-  rm -f /tmp/backup-utils-progress*
+  if [ -d /tmp/backup-utils-progress ]; then
+    rm -rf /tmp/backup-utils-progress/*
+  else
+    mkdir /tmp/backup-utils-progress
+  fi
+  touch /tmp/backup-utils-progress/total
+  touch /tmp/backup-utils-progress/type
+  touch /tmp/backup-utils-progress/progress
+  touch /tmp/backup-utils-progress/info
+  chmod -R 777 /tmp/backup-utils-progress
 }
 
 #increase total count of progress
 increment-progress-total-count() {
   ((PROGRESS_TOTAL += $1))
-  echo "$PROGRESS_TOTAL" > /tmp/backup-utils-progress-total
+  echo "$PROGRESS_TOTAL" > /tmp/backup-utils-progress/total
 }
 
 

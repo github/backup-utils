@@ -1,15 +1,12 @@
 name: Test and build
 
-on: [pull_request]
+on: [pull_request, workflow_dispatch]
 
 
 jobs:
   build:
     strategy:
       matrix:
-        # macos-latest references are kept here for historical purposes. removed macos-latest from the 
-        #matrix as it is not a typical case for users and causes a lot of friction with other linux-based 
-        # installs. Recommend developing on codespaces or using an ubuntu container. 
         os: ['ubuntu-22.04', 'ubuntu-20.04']
       fail-fast: false
     runs-on: ${{ matrix.os }}
@@ -21,12 +18,6 @@ jobs:
         wget "https://github.com/koalaman/shellcheck/releases/download/stable/shellcheck-stable.linux.x86_64.tar.xz"
         tar --xz -xvf "shellcheck-stable.linux.x86_64.tar.xz"
         sudo cp shellcheck-stable/shellcheck /usr/bin/shellcheck
-      if: matrix.os != 'macos-latest'
-    - name: Install Dependencies (macOS)
-      run: |
-        brew install gnu-tar shellcheck jq pigz coreutils gnu-sed gnu-getopt wget
-        brew install moreutils gawk
-      if: matrix.os == 'macos-latest'
     - name: Get Sources
       uses: actions/checkout@v3
     - name: Test
@@ -36,4 +27,3 @@ jobs:
       shell: bash
     - name: Build (Linux)
       run: DEB_BUILD_OPTIONS=nocheck debuild -us -uc
-      if: matrix.os != 'macos-latest'

@@ -83,7 +83,10 @@ begin_test "ghe-host-check detects unsupported GitHub Enterprise Server versions
        ix=$(( $ix + 1 ))
       done
       GHE_TEST_REMOTE_VERSION="${keys[$ix]}.0" ghe-host-check
-      GHE_TEST_REMOTE_VERSION="${keys[$(( $ix - 1 ))]}.0" ghe-host-check
+      # sometimes when the latest.json is updated during a release this test gets broken.
+      if [ "${keys[$(( $ix - 1 ))]}" != "latest" ]; then
+        GHE_TEST_REMOTE_VERSION="${keys[$(( $ix - 1 ))]}.0" ghe-host-check
+      fi
       GHE_TEST_REMOTE_VERSION="${keys[$(( $ix - 2 ))]}.0" ghe-host-check
 
   fi

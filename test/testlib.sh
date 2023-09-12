@@ -327,6 +327,40 @@ setup_test_data () {
   setup_minio_test_data "$GHE_DATA_DIR"
 }
 
+# Sets up test data for testing incremental restores.
+setup_incremental_restore_data() {
+  local full="$GHE_DATA_DIR/1"
+  local inc_1="$GHE_DATA_DIR/2"
+  local inc_2="$GHE_DATA_DIR/3"
+  # Run the setup_test_data function to create three directories: 1 for full backup and two incremental.
+  # we can use these directories for different types of tests
+  setup_test_data "$full"
+  setup_test_data "$inc_1"
+  setup_test_data "$inc_2" 
+  # Setup the metadata files that track which files are used to track full and incremental files
+  echo "$full" >> "$GHE_DATA_DIR/inc_full_backup"
+  echo -e "$inc_1\n$inc_2" >> "$GHE_DATA_DIR/inc_snapshot_data"
+  # Configure lsn data in xtrabackup_checkpoints for the full backup and the incremental backup
+  setup_incremental_lsn $full 1 100 full
+  setup_incremental_lsn $inc_1 101 200 incremental
+  setup_incremental_lsn $inc_2 201 300 incremental
+}
+
+setup_incremental_lsn() {
+  local loc=$1
+  local start=$2
+  local end=$3
+  local type=$4
+
+cat <<LSN >> "$loc/xtrabackup_checkpoints"
+backup_type = $type
+from_lsn = $start
+to_lsn = $end
+last_lsn = $end
+flushed_lsn = $end
+LSN
+}
+
 setup_incremental_backup_config() {
   ghe-ssh "$GHE_HOSTNAME" -- 'mkdir -p /tmp/lsndir'
   ghe-ssh "$GHE_HOSTNAME" -- 'echo "fake xtrabackup checkpoint" > /tmp/lsndir/xtrabackup_checkpoints'
@@ -494,6 +528,12 @@ verify_all_backedup_data() {
   verify_common_data
 }
 
+# A unified method to make sure post backup, the cleanup process works
+verify_progress_cleanup_process() {
+  set -e
+  sudo -u nobody rm -rf /tmp/backup-utils-progress/*
+}
+
 # A unified method to check everything restored when performing a full restore
 # during testing.
 verify_all_restored_data() {
@@ -600,8 +640,10 @@ setup_moreutils_parallel() {
   # We need moreutils parallel
   local x
   for x in \
+      /usr/bin/parallel-moreutils \
       /usr/bin/parallel.moreutils \
       /usr/bin/parallel_moreutils \
+      /usr/bin/moreutils-parallel \
       /usr/bin/moreutils.parallel \
       /usr/bin/moreutils_parallel \
       ; do

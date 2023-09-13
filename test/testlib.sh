@@ -57,8 +57,23 @@ ghe_remote_version_config "$GHE_TEST_REMOTE_VERSION"
 # ghe-restore process groups
 unset GHE_SNAPSHOT_TIMESTAMP
 
+# Color definitions for log output
+color_reset=$(printf '\e[0m')
+# Display commands (lines starting with + in the output) in purple
+color_command=$(printf '\e[0;35m')
+# Display exit code line in red
+color_error_message=$(printf '\e[0;31m')
+# Display successful tests in bold green
+color_pass=$(printf '\e[1;32m')
+# Display skipped tests in bold gray
+color_skip=$(printf '\e[1;37m')
+# Display failed tests in bold red
+color_fail=$(printf '\e[1;31m')
+
 # keep track of num tests and failures
 tests=0
+successes=0
+skipped=0
 failures=0
 
 # this runs at process exit
@@ -155,8 +170,10 @@ report_failure_output () {
   echo "$(<"$TRASHDIR/out")" \
     | sed '0,/begin_test_truncate_marker/d' \
     | sed -n '/end_test_truncate_marker/q;p' | head -n -2 \
+    | sed "s/^\(+.*\)$/${color_command}\1${color_reset}/" \
     1>&2
-  echo -e "\nTest failed. The last command exited with exit code $test_status." 1>&2
+  echo -e "\n${color_error_message}Test failed. The last command exited with exit code" \
+    "$test_status.${color_reset}" 1>&2
   echo "::endgroup::" 1>&2
 }
 
@@ -173,12 +190,19 @@ end_test () {
   exec 1>&3 2>&4
 
   if [ "$test_status" -eq 0 ]; then
-    printf "test: %-65s OK (%.3fs)\\n" "$test_description ..." "$elapsed_time"
+    successes=$(( successes + 1 ))
+    printf "${color_pass}PASS${color_reset}" 1>&2
   elif [ "$test_status" -eq 254 ]; then
-    printf "test: %-65s SKIPPED\\n" "$test_description ..."
+    skipped=$(( skipped + 1 ))
+    printf "${color_skip}SKIP${color_reset}" 1>&2
   else
     failures=$(( failures + 1 ))
-    printf "test: %-65s FAILED (%.3fs)\\n" "$test_description ..." "$elapsed_time"
+    printf "${color_fail}FAIL${color_reset}" 1>&2
+  fi
+
+  printf " [%8.3f s] $test_description\\n" "$elapsed_time" 1>&2
+
+  if [ "$test_status" -ne 0 ] && [ "$test_status" -ne 254 ]; then
     report_failure_output
   fi
 

@@ -144,20 +144,28 @@ begin_test () {
   # allow the subshell to exit non-zero without exiting this process
   set -x +e
   before_time=$(date '+%s.%3N')
+
+  # Marker to truncate the actual test output later
+  echo "begin_test_truncate_marker" > /dev/null
 }
 
 report_failure_output () {
-  (
-    sed 's/^/    /' <"$TRASHDIR/out" |
-    grep -a -v -e '^\+ end_test' -e '^+ set +x' |
-    sed 's/[+] test_status=/test failed. last command exited with /' |
-    sed 's/^/    /'
-  ) 1>&2
+  # Truncate the test output to exclude testing-related instructions
+  echo "$(<"$TRASHDIR/out")" \
+    | sed '0,/begin_test_truncate_marker/d' \
+    | sed -n '/end_test_truncate_marker/q;p' | head -n -2 \
+    | sed 's/^/    /' \
+    1>&2
+  echo -e "\nTest failed. The last command exited with exit code $test_status." 1>&2
 }
 
 # Mark the end of a test.
 end_test () {
   test_status="${1:-$?}"
+
+  # Marker to truncate the actual test output later
+  echo "end_test_truncate_marker" > /dev/null
+
   after_time=$(date '+%s.%3N')
   elapsed_time=$(echo "scale=3; $after_time - $before_time" | bc)
   set +x -e

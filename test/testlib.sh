@@ -443,7 +443,6 @@ setup_minio_test_data() {
   bucket="packages"
 
   mkdir -p "$bucket"
-  echo "an example blob" "$bucket/91dfa09f-1801-4e00-95ee-6b763d7da3e2"
 }
 
 cleanup_minio_test_data() {

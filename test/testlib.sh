@@ -153,7 +153,7 @@ report_failure () {
   printf "test: %-73s $msg\\n" "$desc ..."
   (
     sed 's/^/    /' <"$TRASHDIR/out" |
-    grep -a -v -e '^\+ end_test' -e '^+ set +x' - "$TRASHDIR/out" |
+    grep -a -v -e '^\+ end_test' -e '^+ set +x' |
     sed 's/[+] test_status=/test failed. last command exited with /' |
     sed 's/^/    /'
   ) 1>&2

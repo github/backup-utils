@@ -31,7 +31,7 @@ TMPDIR="$ROOTDIR/test/tmp"
 TRASHDIR="$TMPDIR/$(basename "$0")-$$"
 
 test_suite_file_name="$(basename "${BASH_SOURCE[1]}")"
-test_suite_name="${test_suite_file_name%.*}"
+test_suite_name="${GHE_TEST_SUITE_NAME:-${test_suite_file_name%.*}}"
 
 # Set GIT_{AUTHOR,COMMITTER}_{NAME,EMAIL}
 # This removes the assumption that a git config that specifies these is present.

@@ -32,6 +32,8 @@ TRASHDIR="$TMPDIR/$(basename "$0")-$$"
 
 test_suite_file_name="$(basename "${BASH_SOURCE[1]}")"
 test_suite_name="${GHE_TEST_SUITE_NAME:-${test_suite_file_name%.*}}"
+results_file="$TMPDIR/results"
+test_suite_before_time=$(date '+%s.%3N')
 
 # Set GIT_{AUTHOR,COMMITTER}_{NAME,EMAIL}
 # This removes the assumption that a git config that specifies these is present.
@@ -84,6 +86,27 @@ failures=0
 # this runs at process exit
 atexit () {
   res=$?
+
+  test_suite_after_time=$(date '+%s.%3N')
+  test_suite_elapsed_time=$(echo "scale=3; $test_suite_after_time - $test_suite_before_time" | bc)
+
+  # Temporarily redirect stdout output to results file
+  exec 3<&1
+  exec 1>>"$results_file"
+
+  # Print test summary for this test suite
+  echo -n "| $test_suite_name | "
+
+  if [ "$failures" -eq "0" ]; then
+    echo -n ":green_circle: passed"
+  else
+    echo -n ":red_circle: failed"
+  fi
+
+  printf " | $successes | $failures | $skipped | %.3f s |\\n" "$test_suite_elapsed_time"
+
+  # Restore stdout
+  exec 1<&3
 
   [ -z "$KEEPTRASH" ] && rm -rf "$TRASHDIR"
   if [ $failures -gt 0 ]; then

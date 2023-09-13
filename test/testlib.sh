@@ -146,11 +146,7 @@ begin_test () {
   before_time=$(date '+%s')
 }
 
-report_failure () {
-  msg=$1
-  desc=$2
-  failures=$(( failures + 1 ))
-  printf "test: %-73s $msg\\n" "$desc ..."
+report_failure_output () {
   (
     sed 's/^/    /' <"$TRASHDIR/out" |
     grep -a -v -e '^\+ end_test' -e '^+ set +x' |
@@ -172,7 +168,9 @@ end_test () {
   elif [ "$test_status" -eq 254 ]; then
     printf "test: %-65s SKIPPED\\n" "$test_description ..."
   else
-    report_failure "FAILED (${elapsed_time}s)" "$test_description ..."
+    failures=$(( failures + 1 ))
+    printf "test: %-65s FAILED (${elapsed_time}s)\\n" "$test_description ..."
+    report_failure_output
   fi
 
   unset test_description

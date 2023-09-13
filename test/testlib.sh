@@ -150,13 +150,14 @@ begin_test () {
 }
 
 report_failure_output () {
+  echo "::group::Output of failed test" 1>&2
   # Truncate the test output to exclude testing-related instructions
   echo "$(<"$TRASHDIR/out")" \
     | sed '0,/begin_test_truncate_marker/d' \
     | sed -n '/end_test_truncate_marker/q;p' | head -n -2 \
-    | sed 's/^/    /' \
     1>&2
   echo -e "\nTest failed. The last command exited with exit code $test_status." 1>&2
+  echo "::endgroup::" 1>&2
 }
 
 # Mark the end of a test.

@@ -30,6 +30,9 @@ PATH="$ROOTDIR/test/bin:$ROOTDIR/bin:$ROOTDIR/share/github-backup-utils:$PATH"
 TMPDIR="$ROOTDIR/test/tmp"
 TRASHDIR="$TMPDIR/$(basename "$0")-$$"
 
+test_suite_file_name="$(basename "${BASH_SOURCE[1]}")"
+test_suite_name="${test_suite_file_name%.*}"
+
 # Set GIT_{AUTHOR,COMMITTER}_{NAME,EMAIL}
 # This removes the assumption that a git config that specifies these is present.
 export GIT_AUTHOR_NAME=make GIT_AUTHOR_EMAIL=make GIT_COMMITTER_NAME=make GIT_COMMITTER_EMAIL=make
@@ -63,6 +66,8 @@ color_reset=$(printf '\e[0m')
 color_command=$(printf '\e[0;35m')
 # Display exit code line in red
 color_error_message=$(printf '\e[0;31m')
+# Display test suite name in blue
+color_test_suite=$(printf '\e[0;34m')
 # Display successful tests in bold green
 color_pass=$(printf '\e[1;32m')
 # Display skipped tests in bold gray
@@ -200,7 +205,8 @@ end_test () {
     printf "${color_fail}FAIL${color_reset}" 1>&2
   fi
 
-  printf " [%8.3f s] $test_description\\n" "$elapsed_time" 1>&2
+  printf " [%8.3f s] ${color_test_suite}$test_suite_name${color_reset} $test_description\\n" \
+    "$elapsed_time" 1>&2
 
   if [ "$test_status" -ne 0 ] && [ "$test_status" -ne 254 ]; then
     report_failure_output

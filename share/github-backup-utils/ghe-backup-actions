@@ -39,7 +39,7 @@ fi
 # Transfer all Actions data from the user data directory using rsync.
 ghe_verbose "* Transferring Actions files from $host ..."
 log_rsync "BEGIN: actions rsync" 1>&3
-ghe-rsync -avz \
+ghe-rsync -av \
   -e "ghe-ssh -p $port" \
   --rsync-path='sudo -u actions rsync' \
   --exclude "mutexes" --exclude "dumps" --exclude "tmp" \

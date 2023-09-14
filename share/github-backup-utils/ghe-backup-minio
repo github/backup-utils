@@ -45,7 +45,6 @@ log_rsync "BEGIN: minio rsync" 1>&3
 ghe-rsync \
   --archive \
   --verbose \
-  --compress \
   --rsh="ghe-ssh -p ${port}" \
   --rsync-path='sudo -u minio rsync' \
   --exclude=".minio.sys" \

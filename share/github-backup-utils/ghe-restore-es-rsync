@@ -37,7 +37,7 @@ else
   ghe-ssh "$GHE_HOSTNAME" -- "sudo mkdir -p '$GHE_REMOTE_DATA_USER_DIR/elasticsearch-restore'" 1>&3
   ghe-ssh "$GHE_HOSTNAME" -- "sudo chown elasticsearch:elasticsearch '$GHE_REMOTE_DATA_USER_DIR/elasticsearch-restore'" 1>&3
   log_rsync "BEGIN: elasticsearch rsync" 1>&3
-  ghe-rsync -avz --delete \
+  ghe-rsync -av --delete \
     -e "ghe-ssh -p $(ssh_port_part "$GHE_HOSTNAME")" \
     --rsync-path="sudo -u elasticsearch rsync" \
     --copy-dest="$GHE_REMOTE_DATA_USER_DIR/elasticsearch" \

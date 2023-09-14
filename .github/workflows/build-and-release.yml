@@ -7,10 +7,6 @@ on:
         description: 'Version - patch version of the release (e.g. x.y.z)'
         required: true
         type: string
-      release-notes:
-        description: 'Release Notes - string of markdown'
-        required: true
-        type: string
       draft:
         description: 'Draft - true if the release should be a draft'
         required: true

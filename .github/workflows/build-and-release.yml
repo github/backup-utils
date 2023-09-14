@@ -3,10 +3,6 @@ name: Build and Release
 on:
   workflow_dispatch:
     inputs:
-      gh-token:
-        description: 'GitHub Token - used to create the release'
-        required: true
-        type: string
       version:
         description: 'Version - patch version of the release (e.g. x.y.z)'
         required: true
@@ -97,6 +93,5 @@ jobs:
           commit: master
           bodyFile: release-notes/${{ github.event.inputs.version }}.md
           draft: ${{ github.event.inputs.draft }}
-          token: ${{ github.event.inputs.gh-token }}
           allowUpdates: true
           artifactContentType: "raw"

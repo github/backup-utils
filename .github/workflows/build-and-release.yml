@@ -37,7 +37,6 @@ jobs:
       - name: Package deb
         run: |
           ./script/package-deb
-        shell: bash
       # many need to remove this once release-notes compilation is automated
       - name: Rename deb artifact
         run: |
@@ -46,7 +45,6 @@ jobs:
                 mv "$file" "dist/github-backup-utils_${{ github.event.inputs.version }}_all.deb"
               fi
             done
-        shell: bash
       - name: Upload deb artifact
         uses: actions/upload-artifact@v3
         with:

@@ -15,7 +15,7 @@ jobs:
 
       - name: Get latest rsync tag
         id: latest_tag
-        run: curl --silent "https://api.github.com/repos/WayneD/rsync/tags" | jq -r '.[].name' | grep -m1 -v pre | xargs -I {} echo "name=latest_tag::{}" >> $GITHUB_OUTPUT
+        run: curl --silent "https://api.github.com/repos/WayneD/rsync/tags" | jq -r '.[].name' | grep -m1 -v pre | xargs -I {} echo "name=latest_tag::{}" >> "$GITHUB_OUTPUT"
 
       - name: Update Dockerfile with latest tag
         run: |

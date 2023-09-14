@@ -30,7 +30,7 @@ jobs:
       - name: Create tag
         run: |
           git config user.name "release-controller"
-          git config user.email "release-controller@github.com"
+          git config user.email "ghes-releases-team@github.com"
           git tag -a v${{ github.event.inputs.version }} \
           -m "v${{ github.event.inputs.version }}"
           git push origin v${{ github.event.inputs.version }}

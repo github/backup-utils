@@ -61,22 +61,21 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     outputs:
-      commit_sha: ${{ steps.release.outputs.commit_sha }}
+      commit-sha: ${{ steps.empty_commit.outputs.commit_sha }}
     steps:
-      # checkout another repo and create an empty commit
-      # this is needed because the release action requires a tag
       - name: Checkout
         uses: actions/checkout@v2
         with:
           repository: github/backup-utils
           ref: master
       - name: Create empty commit
+        id: empty_commit
         run: |
           git config user.name "release-controller"
           git config user.email "ghes-releases-team@github.com"
           git commit --allow-empty -m "${{ github.event.inputs.version }} release"
           git push origin master
-          echo "commit_sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
+          echo "commit-sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
       - name: Checkout
         uses: actions/checkout@v2
       - name: Download deb artifact
@@ -100,7 +99,7 @@ jobs:
           # this action will create a tag with this name on the provided commit
           tag: v${{ github.event.inputs.version }}
           # this can be a commit hash or branch name
-          commit: master
+          commit: ${{ steps.empty_commit.outputs.commit_sha }}
           bodyFile: release-notes/${{ github.event.inputs.version }}.md
           draft: ${{ github.event.inputs.draft }}
           allowUpdates: true

@@ -121,6 +121,8 @@ cleanup () {
 
   # Cleanup SSH multiplexing
   ghe-ssh --clean
+
+  bm_end "$(basename $0)"
 }
 
 # Setup exit traps
@@ -216,6 +218,7 @@ fi
 echo "$GHE_SNAPSHOT_TIMESTAMP $$" > ../in-progress
 echo "$GHE_SNAPSHOT_TIMESTAMP $$" > "${GHE_DATA_DIR}/in-progress-backup"
 
+bm_start "$(basename $0)"
 START_TIME=$(date +%s)
 log_info "Starting backup of $GHE_HOSTNAME with backup-utils v$BACKUP_UTILS_VERSION in snapshot $GHE_SNAPSHOT_TIMESTAMP"
 

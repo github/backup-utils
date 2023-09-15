@@ -43,6 +43,7 @@ func main() {
 	job := flag.String("job", "", "Name of the Janky job")
 	token := flag.String("token", "", "Name of the Janky token")
 	branch := flag.String("branch", "", "Name of the Git branch")
+	force := flag.Bool("force", false, "Force a build even if one is already passed")
 	envVars := flag.String("envVars", "", "Comma separated list of key value pairs to pass to Janky - ex: key1=value1,key2=value2,key3=value3")
 	flag.Parse()
 
@@ -56,12 +57,14 @@ func main() {
 	type buildRequestObject struct {
 		BuildableName string            `json:"buildable_name"`
 		BranchName    string            `json:"branch_name"`
+		Force         bool              `json:"force"`
 		EnvVars       map[string]string `json:"env_vars"`
 	}
 
 	requestBody := buildRequestObject{
 		BuildableName: *job,
 		BranchName:    *branch,
+		Force:         *force,
 	}
 
 	// Parse the envVars flag into a map and add to the request payload

@@ -37,4 +37,5 @@ jobs:
           janky-token: '${{ secrets.API_AUTH_TOKEN }}'
           job-name: '${{ matrix.jankyJobName }}'
           branch-name: '${{ env.TARGET_BRANCH }}'
+          force : 'true'
           envVars: "JANKY_ENV_BACKUP_UTILS_BRANCH=${{ env.SOURCE_BRANCH }}"

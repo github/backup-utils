@@ -10,6 +10,9 @@ inputs:
   branch-name:
     description: 'The name of the branch to use'
     required: true
+  force:
+    description: 'Force the job to run even if it is already passed'
+    required: false
   envVars:
     description: 'Comma separated list of key value pairs to pass to Janky - ex: key1=value1,key2=value2,key3=value3'
     required: false
@@ -24,6 +27,7 @@ runs:
           -token ${{ inputs.janky-token }} \
           -job ${{ inputs.job-name }} \
           -branch ${{ inputs.branch-name }} \
+          -force ${{ inputs.force }} \
           -envVars ${{ inputs.envVars }}
         shell: bash
         working-directory: .github/actions/proxy-janky-build

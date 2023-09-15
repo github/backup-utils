@@ -63,16 +63,21 @@ jobs:
     outputs:
       commit-sha: ${{ steps.empty_commit.outputs.commit_sha }}
     steps:
+      - uses: actions/create-github-app-token@v1
+        id: app-token
+        with:
+          # required
+          app_id: ${{ vars.RELEASE_CONTROLLER_APP_ID }}
+          private_key: ${{ secrets.RELEASE_CONTROLLER_APP_PRIVATE_KEY }}
       - name: Checkout
         uses: actions/checkout@v2
         with:
+          token: ${{ steps.app-token.outputs.token }}
           repository: github/backup-utils
           ref: master
       - name: Create empty commit
         id: empty_commit
         run: |
-          git config user.name "release-controller"
-          git config user.email "ghes-releases-team@github.com"
           git commit --allow-empty -m "${{ github.event.inputs.version }} release"
           git push origin master
           echo "commit-sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
@@ -89,6 +94,7 @@ jobs:
       - name: Create Release
         uses: ncipollo/release-action@v1
         with:
+          token: ${{ steps.app-token.outputs.token }}
           repo: backup-utils
           name: |
             GitHub Enterprise Server Backup Utilities

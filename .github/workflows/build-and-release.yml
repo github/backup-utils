@@ -17,16 +17,22 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/create-github-app-token@v1
+        id: app-token
+        with:
+          # required
+          app_id: ${{ vars.RELEASE_CONTROLLER_APP_ID }}
+          private_key: ${{ secrets.RELEASE_CONTROLLER_APP_PRIVATE_KEY }}
       - name: Checkout
         uses: actions/checkout@v2
+        with:
+          token: ${{ steps.app-token.outputs.token }}
       - name: Install dependencies
         run: |
           sudo apt-get update -y
           sudo apt-get install -y moreutils debhelper help2man devscripts gzip
       - name: Create tag
         run: |
-          git config user.name "release-controller"
-          git config user.email "ghes-releases-team@github.com"
           git tag -a v${{ github.event.inputs.version }} \
           -m "v${{ github.event.inputs.version }}"
           git push origin v${{ github.event.inputs.version }}
@@ -50,7 +56,6 @@ jobs:
       - name: Package tarball
         run: |
           ./script/package-tarball
-        shell: bash
       - name: Upload tarball artifact
         uses: actions/upload-artifact@v3
         with:

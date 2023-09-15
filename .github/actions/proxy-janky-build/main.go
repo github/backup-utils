@@ -91,7 +91,7 @@ func main() {
 	}
 	buildRequest.Header.Set("Content-Type", "application/json")
 	buildRequest.Header.Set("Authorization", "Basic "+authToken)
-	retryClient := retryablehttp.NewClient()
+	retryClient := retryablehttp.NewClient() //nolint:all
 	retryClient.RetryMax = jankyHttpRetryMax
 	retryClient.Logger = nil               // disable debug logging
 	client := retryClient.StandardClient() // uses *http.Client

@@ -13,8 +13,8 @@ jobs:
     strategy:
       matrix:
         jankyJobName:
-        - enterprise2-binary-backup
-        - enterprise2-migration
+        - enterprise2-backup-utils-binary-backup
+        - enterprise2-backup-utils-migration
     steps:
       - uses: actions/checkout@v3
         with:
@@ -24,10 +24,9 @@ jobs:
           ref="${{ github.ref }}"
           merge_branch=${ref#"refs/heads/"}
           backup_utils_branch="${{ env.SOURCE_BRANCH }}"
-          #branch_name="${{ env.TARGET_BRANCH }}"
-          branch_name="janky-backup-utils-branch-test"
+          branch_name="${{ env.TARGET_BRANCH }}"
           curl -v -X POST \
             -u "hubot:${{ secrets.API_AUTH_TOKEN }}" \
             -H "Content-Type: application/json" \
-            -d '{"buildable_name":"${{ matrix.jankyJobName }}","repo":"enterprise2","branch_name": "'"$branch_name"'","env_vars":{"JANKY_ENV_BACKUP_UTILS_BRANCH": "'"$backup_utils_branch"'" },"force":"true","room_id":"#builds"}' \
+            -d '{"buildable_name":"${{ matrix.jankyJobName }}","repo":"${{ github.repository }}","branch_name": "'"$branch_name"'","env_vars":{"JANKY_ENV_BACKUP_UTILS_BRANCH": "'"$backup_utils_branch"'" },"force":"true","room_id":"#builds"}' \
             "https://janky.githubapp.com/api/builds"

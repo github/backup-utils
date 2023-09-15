@@ -1,6 +1,17 @@
 name: Run Integration Tests
 
-on: [pull_request, workflow_dispatch]
+on: 
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches: ['master', 'enterprise-[0-9]*.[0-9]*-release', 'enterprise-[0-9]*.[0-9]*.[0-9]*-release']
+  workflow_dispatch:
+    inputs:
+      target-branch:
+        description: 'Branch that would be merged into'
+        required: true
+      source-branch:
+        description: 'Branch that would be merged'
+        required: true
 
 # Get target and source branch from different variables depending on how it was triggered
 env:
@@ -21,8 +32,6 @@ jobs:
           fetch-depth: 1
       - name: Queue ${{ matrix.jankyJobName }} build
         run: |
-          ref="${{ github.ref }}"
-          merge_branch=${ref#"refs/heads/"}
           backup_utils_branch="${{ env.SOURCE_BRANCH }}"
           branch_name="${{ env.TARGET_BRANCH }}"
           curl -v -X POST \

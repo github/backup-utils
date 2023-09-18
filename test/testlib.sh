@@ -130,6 +130,8 @@ setup_remote_metadata () {
   mkdir -p "$GHE_REMOTE_DATA_DIR" "$GHE_REMOTE_DATA_USER_DIR"
   mkdir -p "$GHE_REMOTE_DATA_USER_DIR/common"
   mkdir -p "$GHE_REMOTE_ROOT_DIR/etc/github"
+  # Create fake remote repositories dir
+  mkdir -p "$GHE_REMOTE_DATA_USER_DIR/repositories"
 }
 setup_remote_metadata
 

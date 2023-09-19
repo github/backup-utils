@@ -86,8 +86,9 @@ jobs:
         run: |
           git config user.name "release-controller"
           git config user.email "ghes-releases-team@github.com"
+          git checkout tims-test-branch
           git commit --allow-empty -m "${{ github.event.inputs.version }} release"
-          git push origin master
+          git push origin tims-test-branch
           echo "commit-sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
       - name: Checkout
         uses: actions/checkout@v2

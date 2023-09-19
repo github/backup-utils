@@ -31,13 +31,12 @@ jobs:
         run: |
           sudo apt-get update -y
           sudo apt-get install -y moreutils debhelper help2man devscripts gzip
-      - name: Create tag
+      - name: Create patch release branch from current sha
         run: |
           git config user.name "release-controller"
           git config user.email "ghes-releases-team@github.com"
-          git tag -a v${{ github.event.inputs.version }} \
-          -m "v${{ github.event.inputs.version }}"
-          git push origin v${{ github.event.inputs.version }}
+          git branch "enterprise-${{ github.event.inputs.version }}-release"
+          git push origin "enterprise-${{ github.event.inputs.version }}-release"
       - name: Package deb
         run: |
           ./script/package-deb

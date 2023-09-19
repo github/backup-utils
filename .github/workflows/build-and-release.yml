@@ -37,6 +37,11 @@ jobs:
           git config user.email "ghes-releases-team@github.com"
           git branch "enterprise-${{ github.event.inputs.version }}-release"
           git push origin "enterprise-${{ github.event.inputs.version }}-release"
+      # create v#{version} tag on current sha
+      - name: Create tag
+        run: |
+          git tag -a "v${{ github.event.inputs.version }}" -m "v${{ github.event.inputs.version }}"
+          git push origin "v${{ github.event.inputs.version }}"
       - name: Package deb
         run: |
           ./script/package-deb

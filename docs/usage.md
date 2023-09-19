@@ -73,12 +73,17 @@ appliance at IP "5.5.5.5":
     Restore of 5.5.5.5:122 from snapshot 20180326T020444 finished.
     To complete the restore process, please visit https://5.5.5.5/setup/settings to review and save the appliance configuration.
 
-A different backup snapshot may be selected by passing the `-s` argument and the
-datestamp-named directory from the backup location.
+A different backup snapshot may be selected by passing the `-s` argument to `ghe-restore` and specifying the
+datestamp-named directory from the backup location as the value.
 
 The `ghe-backup` and `ghe-restore` commands also have a verbose output mode
 (`-v`) that lists files as they're being transferred. It's often useful to
 enable when output is logged to a file.
+
+Every time you execute `ghe-backup` we verify the storage and software setup of the host 
+you [installed][1] Backup Utilities on, to make sure our [requirements][2] for the host are 
+met. You can disable this check using the `--skip-checks` argument or by 
+adding `GHE_SKIP_CHECKS=true` to your configuration file.
 
 ### Restoring settings, TLS certificate, and license 
 
@@ -106,4 +111,9 @@ GitHub Actions enabled, the following steps are required:
 
 Please refer to [GHES Documentation](https://docs.github.com/en/enterprise-server/admin/github-actions/advanced-configuration-and-troubleshooting/backing-up-and-restoring-github-enterprise-server-with-github-actions-enabled) for more details.
 
+## Incremental MySQL Backups and Restores
+
+If you are interested in performing incremental backups of the MySQL data in your GitHub Enterprise Server instance, see [Incremental MySQL Backups and Restores](incremental-mysql-backups-and-restores.md) for details.
+
 [1]: https://github.com/github/backup-utils/blob/master/docs/getting-started.md
+[2]: requirements.md

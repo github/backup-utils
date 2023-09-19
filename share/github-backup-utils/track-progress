@@ -1,14 +1,12 @@
 #!/usr/bin/env bash
 #/ track-progress: track progress of backup or restore tasks
-set -e
 
-# Current version is working solely with backups
 progress(){
     
-    PROGRESS=$(cat /tmp/backup-utils-progress)
-    PROGRESS_TOTAL=$(cat /tmp/backup-utils-progress-total)
-    PROGRESS_TYPE=$(cat /tmp/backup-utils-progress-type)
+    PROGRESS=$(cat /tmp/backup-utils-progress/progress)
+    PROGRESS_TOTAL=$(cat /tmp/backup-utils-progress/total)
+    PROGRESS_TYPE=$(cat /tmp/backup-utils-progress/type)
     PROGRESS_PERCENT=$( echo "scale = 2; ($PROGRESS / $PROGRESS_TOTAL) * 100" | bc)
-    echo $((PROGRESS + 1)) > /tmp/backup-utils-progress
-    echo "${PROGRESS_TYPE} progress: $PROGRESS_PERCENT % ($PROGRESS / $PROGRESS_TOTAL ) $1 " > /tmp/backup-utils-progress-info
+    echo $((PROGRESS + 1)) > /tmp/backup-utils-progress/progress
+    echo "${PROGRESS_TYPE} progress: $PROGRESS_PERCENT % ($PROGRESS / $PROGRESS_TOTAL ) $1 " > /tmp/backup-utils-progress/info
 }

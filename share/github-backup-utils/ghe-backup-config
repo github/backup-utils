@@ -35,7 +35,7 @@ if [ -n "$GHE_SHOW_VERSION" ]; then
 fi
 
 # Check for "--help|-h" in args or GHE_SHOW_HELP=true and show usage
-# shellcheck disable=SC2120 # the script name is always referenced
+# shellcheck disable=SC2120 # Our arguments are optional and not meant to be the owning script's
 print_usage() {
   grep '^#/' <"$0" | cut -c 4-
   exit "${1:-1}"
@@ -51,10 +51,6 @@ else
   done
 fi
 
-# Add the bin and share/github-backup-utils dirs to PATH
-PATH="$GHE_BACKUP_ROOT/bin:$GHE_BACKUP_ROOT/share/github-backup-utils:$PATH"
-# shellcheck source=share/github-backup-utils/bm.sh
-. "$GHE_BACKUP_ROOT/share/github-backup-utils/bm.sh"
 # Save off GHE_HOSTNAME from the environment since we want it to override the
 # backup.config value when set.
 GHE_HOSTNAME_PRESERVE="$GHE_HOSTNAME"
@@ -150,35 +146,6 @@ log_ssh(){
   log_level "ssh" "$1"
 }
 
-# Assume this script lives in share/github-backup-utils/ when setting the root
-GHE_BACKUP_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-
-# Get the version from the version file.
-BACKUP_UTILS_VERSION="$(cat "$GHE_BACKUP_ROOT/share/github-backup-utils/version")"
-
-# If a version check was requested, show the current version and exit
-if [ -n "$GHE_SHOW_VERSION" ]; then
-  echo "GitHub backup-utils v$BACKUP_UTILS_VERSION"
-  exit 0
-fi
-
-# Check for "--help|-h" in args or GHE_SHOW_HELP=true and show usage
-# shellcheck disable=SC2120 # Our arguments are optional and not meant to be the owning script's
-print_usage() {
-  grep '^#/' <"$0" | cut -c 4-
-  exit "${1:-1}"
-}
-
-if [ -n "$GHE_SHOW_HELP" ]; then
-  print_usage
-else
-  for a in "$@"; do
-    if [ "$a" = "--help" ] || [ "$a" = "-h" ]; then
-      print_usage
-    fi
-  done
-fi
-
 # Add the bin and share/github-backup-utils dirs to PATH
 PATH="$GHE_BACKUP_ROOT/bin:$GHE_BACKUP_ROOT/share/github-backup-utils:$PATH"
 # shellcheck source=share/github-backup-utils/bm.sh
@@ -187,35 +154,7 @@ PATH="$GHE_BACKUP_ROOT/bin:$GHE_BACKUP_ROOT/share/github-backup-utils:$PATH"
 . "$GHE_BACKUP_ROOT/share/github-backup-utils/ghe-incremental-backup-restore"
 # shellcheck source=share/github-backup-utils/track-progress
 . "$GHE_BACKUP_ROOT/share/github-backup-utils/track-progress"
-# Save off GHE_HOSTNAME from the environment since we want it to override the
-# backup.config value when set.
-GHE_HOSTNAME_PRESERVE="$GHE_HOSTNAME"
 
-# Source in the backup config file from the copy specified in the environment
-# first and then fall back to the backup-utils root, home directory and system.
-config_found=false
-for f in "$GHE_BACKUP_CONFIG" "$GHE_BACKUP_ROOT/backup.config" \
-  "$HOME/.github-backup-utils/backup.config" "/etc/github-backup-utils/backup.config"; do
-  if [ -f "$f" ]; then
-    GHE_BACKUP_CONFIG="$f"
-    # shellcheck disable=SC1090 # This is a user-supplied value that can't be predicted
-    . "$GHE_BACKUP_CONFIG"
-    config_found=true
-    break
-  fi
-done
-
-# If we don't have a readlink command, error out
-! type readlink 1>/dev/null 2>&1 && {
-    echo "Error: readlink not found. Please install readlink and ensure it is in your PATH." 1>&2
-    exit 1
-}
-
-GHE_RESTORE_IN_PROGRESS=$(readlink -fm "${GHE_DATA_DIR}/in-progress-restore")
-GHE_BACKUP_IN_PROGRESS=$(readlink -fm "${GHE_DATA_DIR}/in-progress-backup")
-
-export GHE_RESTORE_IN_PROGRESS
-export GHE_BACKUP_IN_PROGRESS
 
 ghe_restore_check() {
   if [ -h "$GHE_RESTORE_IN_PROGRESS" ]; then
@@ -278,8 +217,10 @@ ghe_parallel_check() {
   GHE_PARALLEL_COMMAND="parallel"
   local x
   for x in \
+      /usr/bin/parallel-moreutils \
       /usr/bin/parallel.moreutils \
       /usr/bin/parallel_moreutils \
+      /usr/bin/moreutils-parallel \
       /usr/bin/moreutils.parallel \
       /usr/bin/moreutils_parallel \
       ; do
@@ -711,12 +652,21 @@ restore-secret() {
 
 #initialize progress tracking by clearing out the temp files used to track
 init-progress() {
-  rm -f /tmp/backup-utils-progress*
+  if [ -d /tmp/backup-utils-progress ]; then
+    rm -rf /tmp/backup-utils-progress/*
+  else
+    mkdir /tmp/backup-utils-progress
+  fi
+  touch /tmp/backup-utils-progress/total
+  touch /tmp/backup-utils-progress/type
+  touch /tmp/backup-utils-progress/progress
+  touch /tmp/backup-utils-progress/info
+  chmod -R 777 /tmp/backup-utils-progress
 }
 
 
 #increase total count of progress
 increment-progress-total-count() {
   ((PROGRESS_TOTAL += $1))
-  echo "$PROGRESS_TOTAL" > /tmp/backup-utils-progress-total
+  echo "$PROGRESS_TOTAL" > /tmp/backup-utils-progress/total
 }

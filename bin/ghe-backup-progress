@@ -31,7 +31,7 @@ while true; do
 done
 
 check_for_progress_file() {
-    if [ ! -f /tmp/backup-utils-progress-info ]; then
+    if [ ! -f /tmp/backup-utils-progress/info ]; then
         echo "No progress file found. Has a backup or restore been started?"
         exit 1
     fi
@@ -39,18 +39,18 @@ check_for_progress_file() {
 
 if [ -n "$ONCE" ]; then
     check_for_progress_file
-    cat /tmp/backup-utils-progress-info
+    cat /tmp/backup-utils-progress/info
 else
     check_for_progress_file
     clear
-    cat /tmp/backup-utils-progress-info
+    cat /tmp/backup-utils-progress/info
     while true; do
     if read -r -t 1 -n 1; then
 	clear
         exit ;
     else
 	clear
-	cat /tmp/backup-utils-progress-info
+	cat /tmp/backup-utils-progress/info
     fi
     done
 fi

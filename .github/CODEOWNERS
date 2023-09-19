@@ -1,0 +1,7 @@
+# Backup-Utils owned by lifecycle AOR
+* @github/ghes-lifecycle
+# Actions related backups and restores
+# /share/github-backup-utils/*-actions @github/ghes-lifecycle @github/<TBD>
+# Git related backups and restores
+# /share/github-backup-utils/*-repositories @github/ghes-lifecycle @github/<TBD>
+# /share/github-backup-utils/*-git-hooks @github/ghes-lifecycle @github/<TBD>

@@ -8,6 +8,9 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
   exit 0
 fi
 
+# Overwrite default test suite name to distinguish it from test-ghe-restore
+export GHE_TEST_SUITE_NAME="test-ghe-restore-parallel"
+
 export GHE_PARALLEL_ENABLED=yes
 
 # use temp dir to fix rsync file issues in parallel execution:

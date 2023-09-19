@@ -1,0 +1,53 @@
+name: Build and Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version - patch version of the release (e.g. x.y.z)'
+        required: true
+        type: string
+      release-notes:
+        description: 'Release Notes - string of markdown'
+        required: true
+        type: string
+      draft:
+        description: 'Draft - true if the release should be a draft'
+        required: true
+        type: boolean
+        default: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y moreutils debhelper help2man
+      - name: Create tag
+        run: |
+          git tag -a v${{ github.event.inputs.version }} -m "v${{ github.event.inputs.version }}"
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Package deb
+        run: |
+          bash scripts/package-deb
+      - name: Package tarball
+        run: |
+          bash scripts/package-tarball
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create Release
+        uses: ncipollo/release-action@v1
+        with:
+          repo: github/backup-utils
+          artifacts: |
+            ./dist/github-backup-utils-v${{ github.event.inputs.version }}.tar.gz
+            ./dist/github-backup-utils_${{ github.event.inputs.version }}_all.deb
+          # token: ${{ secrets.GITHUB_TOKEN }} may need token, but try without first
+          name: v${{ github.event.inputs.version }}
+          draft: ${{ github.event.inputs.draft }}
+          body: ${{ github.event.inputs.release-notes }}

@@ -422,14 +422,15 @@ ghe_remote_version_required() {
   if [ -z "$GHE_REMOTE_VERSION" ]; then
     _out=$(ghe-host-check "$@")
     echo "$_out"
+    _out_hostname=$(echo "$_out" | tail -n 1)
 
     # override hostname w/ ghe-host-check output because the port could have
     # been autodetected to 122.
-    GHE_HOSTNAME="${_out/Connect /}"
+    GHE_HOSTNAME="${_out_hostname/Connect /}"
     GHE_HOSTNAME="${GHE_HOSTNAME/ OK*/}"
     export GHE_HOSTNAME
 
-    GHE_REMOTE_VERSION="${_out#*\(}"
+    GHE_REMOTE_VERSION="${_out_hostname#*\(}"
     GHE_REMOTE_VERSION="${GHE_REMOTE_VERSION%%\)*}"
     export GHE_REMOTE_VERSION
 

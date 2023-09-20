@@ -176,8 +176,7 @@ SKIP_MSG
   fi
 
   #Display dir requirements for repositories and mysql
-  echo -e "\n"
-  echo "Checking host for sufficient space for a backup..."
+  echo -e "\nChecking host for sufficient space for a backup..."
   available_space=$(df -B 1k $GHE_DATA_DIR | awk 'END{printf "%.0f", $4 * 1024}') 
   echo "  We recommend allocating at least 5x the amount of storage allocated to the primary GitHub appliance for historical snapshots and growth over time."
 
@@ -194,8 +193,7 @@ SKIP_MSG
   recommended_disk_req=$((min_disk_req * 5))
   echo "   - Available space: $((available_space / (1024 ** 2))) MB"
   echo "   - Min Disk required for this backup is at least $min_disk_req MB"
-  echo "   - Recommended Disk requirement is $recommended_disk_req MB"
-  echo -e "\n"
+  echo -e "   - Recommended Disk requirement is $recommended_disk_req MB\n"
 
   printf '### Estimated Data Transfer Sizes
 
@@ -263,5 +261,5 @@ SKIP_MSG
     echo " - jq ${jq_version} >= required ($min_jq)"
   fi
 fi
-echo -e "\n"
-echo "Connect $hostname:$port OK (v$version)"
+
+echo -e "\nConnect $hostname:$port OK (v$version)"

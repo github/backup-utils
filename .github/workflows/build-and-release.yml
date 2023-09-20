@@ -24,20 +24,14 @@ jobs:
           app_id: ${{ vars.RELEASE_CONTROLLER_APP_ID }}
           private_key: ${{ secrets.RELEASE_CONTROLLER_APP_PRIVATE_KEY }}
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           token: ${{ steps.app-token.outputs.token }}
       - name: Install dependencies
         run: |
           sudo apt-get update -y
           sudo apt-get install -y moreutils debhelper help2man devscripts gzip
-      - name: Create patch release branch from current sha
-        run: |
-          git config user.name "release-controller"
-          git config user.email "ghes-releases-team@github.com"
-          git branch "enterprise-${{ github.event.inputs.version }}-release"
-          git push origin "enterprise-${{ github.event.inputs.version }}-release"
-      # create v#{version} tag on current sha
+      # create tags for the build scripts to work
       - name: Create tag
         run: |
           git tag -a "v${{ github.event.inputs.version }}" -m "v${{ github.event.inputs.version }}"
@@ -80,8 +74,8 @@ jobs:
           # required
           app_id: ${{ vars.RELEASE_CONTROLLER_APP_ID }}
           private_key: ${{ secrets.RELEASE_CONTROLLER_APP_PRIVATE_KEY }}
-      - name: Checkout
-        uses: actions/checkout@v2
+      - name: Checkout backup-utils
+        uses: actions/checkout@v4
         with:
           token: ${{ steps.app-token.outputs.token }}
           repository: github/backup-utils
@@ -91,14 +85,13 @@ jobs:
         run: |
           git config user.name "release-controller"
           git config user.email "ghes-releases-team@github.com"
-          # tims-test-branch already exists, so fetch it
           git fetch origin tims-test-branch
           git checkout tims-test-branch
           git commit --allow-empty -m "${{ github.event.inputs.version }} release"
           git push origin tims-test-branch
           echo "commit-sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
-      - name: Checkout
-        uses: actions/checkout@v2
+      - name: Checkout backup-utils-private
+        uses: actions/checkout@v4
       - name: Download deb artifact
         uses: actions/download-artifact@v3
         with:

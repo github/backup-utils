@@ -34,6 +34,8 @@ jobs:
       # create tags for the build scripts to work
       - name: Create tag
         run: |
+          git config user.name "release-controller[bot]"
+          git config user.email "ghes-releases-team@github.com"
           git tag -a "v${{ github.event.inputs.version }}" -m "v${{ github.event.inputs.version }}"
           git push origin "v${{ github.event.inputs.version }}"
       - name: Package deb

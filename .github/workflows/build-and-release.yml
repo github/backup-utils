@@ -82,6 +82,11 @@ jobs:
           token: ${{ steps.app-token.outputs.token }}
           repository: github/backup-utils
           ref: master
+      - name: Try getting issues from backkup-utils
+        run: |
+          curl -H "Authorization: token ${{ steps.app-token.outputs.token }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/github/backup-utils/issues
       - name: Create empty commit
         id: empty_commit
         run: |

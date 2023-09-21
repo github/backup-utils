@@ -58,6 +58,10 @@ GHE_NUM_SNAPSHOTS=10
 #
 #GHE_EXTRA_RSYNC_OPTS=""
 
+# If set to 'yes', rsync will be set to use compression during backups and restores transfers. Defaults to 'no'.
+#
+#GHE_RSYNC_COMPRESSION_ENABLED=yes
+
 # If enabled and set to 'no', rsync warning message during backups will be suppressed.
 #RSYNC_WARNING=no
 

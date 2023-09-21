@@ -29,6 +29,13 @@ if [ "$($( dirname "${BASH_SOURCE[0]}" )/ghe-rsync-feature-checker --trust-sende
   parameters=("--trust-sender" "${parameters[@]}")
 fi
 
+# This adds `--compress` to the parameters if supported by the current version of rsync
+# shellcheck source=share/github-backup-utils/ghe-rsync-feature-checker
+# shellcheck disable=SC2046
+if [ "$($( dirname "${BASH_SOURCE[0]}" )/ghe-rsync-feature-checker --compress)" == "true" ] && [ "$GHE_RSYNC_COMPRESSION_ENABLED" = "yes" ]; then
+  parameters+=("--compress")
+fi
+
 # This loads the $GHE_EXTRA_RSYNC_OPTS from the config file if available then adds them
 # to the parameters and skip adding if already present in the parameters
 # shellcheck source=share/github-backup-utils/ghe-rsync-feature-checker
@@ -41,7 +48,7 @@ if [ -n "$GHE_EXTRA_RSYNC_OPTS" ]; then
   done
 fi
 
-
+echo "Running rsync with parameters: ${parameters[*]}"
 ignore_out='^(file has vanished: |rsync warning: some files vanished before they could be transferred)'
 rsync_version_check=$(rsync --version | grep -E "version 3.[0-9]*.[0-9]*")
 if [ -n "$rsync_version_check" ]; then

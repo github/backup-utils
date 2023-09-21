@@ -15,8 +15,8 @@ on:
 
 # Get target and source branch from different variables depending on how it was triggered
 env:
-  TARGET_BRANCH: '${{ github.event.inputs.target-branch }}${{ github.base_ref || github.ref_name }}'
-  SOURCE_BRANCH: '${{ github.event.inputs.source-branch }}${{ github.head_ref || github.ref_name }}'
+  TARGET_BRANCH: '${{ github.event.inputs.target-branch || github.base_ref }}'
+  SOURCE_BRANCH: '${{ github.event.inputs.source-branch || github.head_ref }}'
 
 jobs:
   integration-tests:

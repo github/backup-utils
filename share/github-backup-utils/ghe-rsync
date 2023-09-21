@@ -48,7 +48,6 @@ if [ -n "$GHE_EXTRA_RSYNC_OPTS" ]; then
   done
 fi
 
-echo "Running rsync with parameters: ${parameters[*]}"
 ignore_out='^(file has vanished: |rsync warning: some files vanished before they could be transferred)'
 rsync_version_check=$(rsync --version | grep -E "version 3.[0-9]*.[0-9]*")
 if [ -n "$rsync_version_check" ]; then

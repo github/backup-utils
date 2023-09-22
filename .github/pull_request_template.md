@@ -12,7 +12,7 @@ Additional notes regarding CI:
 - If you are making changes impacts cluster, please add `cluster` label or `[cluster]` in your PR title so it will trigger optional cluster integration test. Those tests will take about 3 hours so relax and come back later to check the results. ;)
 -->
 
-# PR Details
+## PR Details
 
 ### Description
 <!--

@@ -138,6 +138,8 @@ cleanup () {
   if ! rm -f "${GHE_DATA_DIR}/in-progress-restore"; then
     log_error "Failed to remove in-progress file" 1>&3
   fi
+
+  bm_end "$(basename $0)"
 }
 
 # This function's type definition is being passed to a remote host via `ghe-ssh` but is not used locally.
@@ -322,6 +324,7 @@ export PROGRESS=0 # Used to track progress of restore
 echo "$PROGRESS" > /tmp/backup-utils-progress/progress
 
 # Log restore start message locally and in /var/log/syslog on remote instance
+bm_start "$(basename $0)"
 START_TIME=$(date +%s)
 log_info "Starting restore of $GHE_HOSTNAME with backup-utils v$BACKUP_UTILS_VERSION from snapshot $GHE_RESTORE_SNAPSHOT"
 
@@ -632,6 +635,7 @@ bm_start "$(basename $0) - Restarting memcached"
 echo "sudo restart -q memcached 2>/dev/null || true" |
 ghe-ssh "$GHE_HOSTNAME" -- /bin/sh
 bm_end "$(basename $0) - Restarting memcached"
+
 
 # Prevent GitHub Connect jobs running before we've had a chance to reset
 # the configuration by setting the last run date to now.

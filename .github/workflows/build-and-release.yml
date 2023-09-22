@@ -99,7 +99,7 @@ jobs:
           cp ./backup-utils-private/scripts/create-empty-commit \
           ./create-empty-commit
           cd ./backup-utils
-          ../create-empty-commit
+          ./create-empty-commit
       - name: Download deb artifact
         uses: actions/download-artifact@v3
         with:

@@ -636,24 +636,6 @@ echo "sudo restart -q memcached 2>/dev/null || true" |
 ghe-ssh "$GHE_HOSTNAME" -- /bin/sh
 bm_end "$(basename $0) - Restarting memcached"
 
-# Restart redis before updating keys
-# It's possible that redis hcl is not rendered on an unconfigured system
-# so check first
-if $instance_configured; then
-  log_info "Getting redis status before restart..." 1>&3
-  echo "nomad status redis" |
-    ghe-ssh "$GHE_HOSTNAME" -- /bin/sh 1>&3
-  log_info "Restarting redis" 1>&3
-  echo "nomad stop redis" |
-    ghe-ssh "$GHE_HOSTNAME" -- /bin/sh 1>&3 2>&3
-  ghe-ssh "$GHE_HOSTNAME" -- "/usr/local/share/enterprise/ghe-nomad-jobs queue /etc/nomad-jobs/redis/redis.hcl" 1>&3 2>&3
-  if [ "$?" -gt 0 ]; then 
-    log_error "Unable to restart redis"
-  fi
-  log_info "Getting redis status after restart..." 1>&3
-  echo "nomad status redis" |
-    ghe-ssh "$GHE_HOSTNAME" -- /bin/sh 1>&3
-fi
 
 # Prevent GitHub Connect jobs running before we've had a chance to reset
 # the configuration by setting the last run date to now.

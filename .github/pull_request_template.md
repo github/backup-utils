@@ -12,13 +12,13 @@ Additional notes regarding CI:
 - If you are making changes impacts cluster, please add `cluster` label or `[cluster]` in your PR title so it will trigger optional cluster integration test. Those tests will take about 3 hours so relax and come back later to check the results. ;)
 -->
 
-## PR Details
+# PR Details
 
-### Description
+## Description
 <!--
 [Please fill out a brief description of the change being made]
 -->
-### Testing
+## Testing
 <!--
 [Please add testing done as part of this change.] 
 -->
@@ -31,10 +31,10 @@ Additional notes regarding CI:
 - Please make sure those versions are tested against for this change 
 -->
 
-### Ownership
+## Ownership
 <!-- [Add any relevants owners for this change]
 -->
 
-### Related Links
+## Related Links
 <!-- [Please add any related links/issues to this PR]
 -->

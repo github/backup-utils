@@ -80,22 +80,26 @@ jobs:
           repositories: |
             github/backup-utils
             github/backup-utils-private
+      - name: Checkout backup-utils-private
+        uses: actions/checkout@v4
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          repository: github/backup-utils-private
+          path: backup-utils-private
       - name: Checkout backup-utils
         uses: actions/checkout@v4
         with:
           token: ${{ steps.app-token.outputs.token }}
           repository: github/backup-utils
           ref: master
+          path: backup-utils
       - name: Create empty commit
         id: empty_commit
         run: |
-          ./script/create-empty-commit
-      - name: Checkout backup-utils-private
-        uses: actions/checkout@v4
-        with:
-          token: ${{ steps.app-token.outputs.token }}
-          repository: github/backup-utils-private
-          ref: master
+          cp ./backup-utils-private/scripts/create-empty-commit \
+          ./create-empty-commit
+          cd ./backup-utils
+          ../create-empty-commit
       - name: Download deb artifact
         uses: actions/download-artifact@v3
         with:

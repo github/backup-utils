@@ -17,7 +17,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: timreimherr/create-github-app-token@v1
+      - uses: timreimherr/create-github-app-token
         id: app-token
         with:
           # required
@@ -70,7 +70,7 @@ jobs:
     outputs:
       commit-sha: ${{ steps.empty_commit.outputs.commit_sha }}
     steps:
-      - uses: timreimherr/create-github-app-token@v1
+      - uses: timreimherr/create-github-app-token
         id: app-token
         with:
           # required

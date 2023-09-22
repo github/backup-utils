@@ -90,13 +90,13 @@ jobs:
       - name: Create empty commit
         id: empty_commit
         run: |
-          git config user.name "release-controller"
-          git config user.email "ghes-releases-team@github.com"
-          git fetch origin tims-test-branch
-          git checkout tims-test-branch
-          git commit --allow-empty -m "${{ github.event.inputs.version }} release"
-          git push origin tims-test-branch
-          echo "commit-sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
+          "git config user.name 'release-controller'"
+          "git config user.email 'ghes-releases-team@github.com'"
+          "git fetch origin tims-test-branch"
+          "git checkout tims-test-branch"
+          "git commit --allow-empty -m '${{ github.event.inputs.version }} release'"
+          "git push origin tims-test-branch"
+          "echo 'commit-sha=$(git rev-parse HEAD)' >> $GITHUB_OUTPUT"
       - name: Checkout backup-utils-private
         uses: actions/checkout@v4
         with:

@@ -17,7 +17,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/create-github-app-token@v1
+      - uses: timreimherr/create-github-app-token
         id: app-token
         with:
           # required
@@ -70,23 +70,22 @@ jobs:
     outputs:
       commit-sha: ${{ steps.empty_commit.outputs.commit_sha }}
     steps:
-      - uses: actions/create-github-app-token@v1
+      - uses: timreimherr/create-github-app-token
         id: app-token
         with:
           # required
           app_id: ${{ vars.RELEASE_CONTROLLER_APP_ID }}
           private_key: ${{ secrets.RELEASE_CONTROLLER_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: |
+            github/backup-utils
+            github/backup-utils-private
       - name: Checkout backup-utils
         uses: actions/checkout@v4
         with:
           token: ${{ steps.app-token.outputs.token }}
           repository: github/backup-utils
           ref: master
-      - name: Try getting issues from backkup-utils
-        run: |
-          curl -H "Authorization: token ${{ steps.app-token.outputs.token }}" \
-            -H "Accept: application/vnd.github.v3+json" \
-            https://api.github.com/repos/github/backup-utils/issues
       - name: Create empty commit
         id: empty_commit
         run: |
@@ -99,6 +98,10 @@ jobs:
           echo "commit-sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
       - name: Checkout backup-utils-private
         uses: actions/checkout@v4
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          repository: github/backup-utils-private
+          ref: master
       - name: Download deb artifact
         uses: actions/download-artifact@v3
         with:

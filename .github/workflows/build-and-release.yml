@@ -45,8 +45,7 @@ jobs:
           git checkout tims-test-branch
           git commit --allow-empty -m "${{ github.event.inputs.version }} release"
           # create string of usernma:token for git push
-          username-token="release-controller[bot]:${{ steps.app-token.outputs.token }}"
-          git push origin tims-test-branch https://$username-token@github.com/github/backup-utils.git
+          git push origin tims-test-branch "https://release-controller[bot]:${{ steps.app-token.outputs.token }}@github.com/github/backup-utils.git"
           echo "commit-sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
       - name: Echo Success if commit was created
         if: steps.empty-commit.outputs.commit-sha != ''

@@ -22,18 +22,18 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: timreimherr/create-github-app-token@main
-        id: app-token
-        with:
-          # required
-          app_id: ${{ vars.RELEASE_CONTROLLER_APP_ID }}
-          private_key: ${{ secrets.RELEASE_CONTROLLER_APP_PRIVATE_KEY }}
-          owner: ${{ github.repository_owner }}
-          repositories: backup-utils,backup-utils-private
+      # - uses: timreimherr/create-github-app-token@main
+      #   id: app-token
+      #   with:
+      #     # required
+      #     app_id: ${{ vars.RELEASE_CONTROLLER_APP_ID }}
+      #     private_key: ${{ secrets.RELEASE_CONTROLLER_APP_PRIVATE_KEY }}
+      #     owner: ${{ github.repository_owner }}
+      #     repositories: backup-utils,backup-utils-private
       - name: Checkout backup-utils
         uses: actions/checkout@v4
         with:
-          token: ${{ steps.app-token.outputs.token }}
+          token: ${{ github.event.inputs.gh-token }}
           repository: github/backup-utils
           ref: master
       - name: Create empty commit in backup-utils
@@ -44,7 +44,7 @@ jobs:
           git fetch origin tims-test-branch
           git checkout tims-test-branch
           git commit --allow-empty -m "${{ github.event.inputs.version }} release"
-          git push origin tims-test-branch "https://release-controller%5Bbot%5D:${{ steps.app-token.outputs.token }}@github.com/github/backup-utils.git"
+          git push origin tims-test-branch
           echo "commit-sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
       - name: Echo Success if commit was created
         if: steps.empty-commit.outputs.commit-sha != ''

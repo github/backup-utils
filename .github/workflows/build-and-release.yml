@@ -39,13 +39,12 @@ jobs:
       - name: Create empty commit in backup-utils
         id: empty-commit
         run: |
-          git config user.name "timreimherr"
-          git config user.email "ghes-releases-team@github.com"
+          git config user.name "release-controller[bot]"
+          git config user.email "223695+release-controller[bot]@users.noreply.github.com"
           git fetch origin tims-test-branch
           git checkout tims-test-branch
           git commit --allow-empty -m "${{ github.event.inputs.version }} release"
-          # create string of usernma:token for git push
-          git push origin tims-test-branch "https://release-controller[bot]:${{ steps.app-token.outputs.token }}@github.com/github/backup-utils.git"
+          git push origin tims-test-branch
           echo "commit-sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
       - name: Echo Success if commit was created
         if: steps.empty-commit.outputs.commit-sha != ''

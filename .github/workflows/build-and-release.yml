@@ -41,7 +41,7 @@ jobs:
           branch: tims-test-branch
           commit_message: "${{ github.event.inputs.version }} release"
           commit_options: "--allow-empty"
-          token: ${{ steps.app-token.outputs.token }}
+          skip_dirty_check: true
       # - name: Create empty commit in backup-utils
       #   id: empty-commit
       #   env:

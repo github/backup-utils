@@ -36,8 +36,6 @@ jobs:
         with:
           token: ${{ steps.app-token.outputs.token }}
           repository: github/backup-utils
-          ref: master
-          path: ./backup-utils
       - name: Create empty commit in backup-utils
         id: empty_commit
         run: |

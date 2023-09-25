@@ -44,6 +44,9 @@ jobs:
         run: |
           ls -R
           pwd
+          ls -l
+          cd ..
+          ls -l
       # create tags for the build scripts to work
   #     - name: Create tag
   #       run: |

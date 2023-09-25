@@ -23,63 +23,6 @@ jobs:
           # required
           app_id: ${{ vars.RELEASE_CONTROLLER_APP_ID }}
           private_key: ${{ secrets.RELEASE_CONTROLLER_APP_PRIVATE_KEY }}
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          token: ${{ steps.app-token.outputs.token }}
-      - name: Install dependencies
-        run: |
-          sudo apt-get update -y
-          sudo apt-get install -y moreutils debhelper help2man devscripts gzip
-      # create tags for the build scripts to work
-      - name: Create tag
-        run: |
-          git config user.name "release-controller[bot]"
-          git config user.email "ghes-releases-team@github.com"
-          git tag -a "v${{ github.event.inputs.version }}" -m "v${{ github.event.inputs.version }}"
-          git push origin "v${{ github.event.inputs.version }}"
-      - name: Package deb
-        run: |
-          ./script/package-deb
-      # many need to remove this once release-notes compilation is automated
-      - name: Rename deb artifact
-        run: |
-            for file in dist/github-backup-utils_*_all.deb; do
-              if [[ -f "$file" ]]; then
-                mv "$file" "dist/github-backup-utils_${{ github.event.inputs.version }}_all.deb"
-              fi
-            done
-      - name: Upload deb artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: github-backup-utils_${{ github.event.inputs.version }}_all.deb
-          path: |
-            dist/github-backup-utils_${{ github.event.inputs.version }}_all.deb
-      - name: Package tarball
-        run: |
-          ./script/package-tarball
-      - name: Upload tarball artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: github-backup-utils-v${{ github.event.inputs.version }}.tar.gz
-          path: |
-            dist/github-backup-utils-v${{ github.event.inputs.version }}.tar.gz
-  release:
-    needs: build
-    runs-on: ubuntu-latest
-    outputs:
-      commit-sha: ${{ steps.empty_commit.outputs.commit_sha }}
-    steps:
-      - uses: timreimherr/create-github-app-token@main
-        id: app-token
-        with:
-          # required
-          app_id: ${{ vars.RELEASE_CONTROLLER_APP_ID }}
-          private_key: ${{ secrets.RELEASE_CONTROLLER_APP_PRIVATE_KEY }}
-          owner: ${{ github.repository_owner }}
-          repositories: |
-            github/backup-utils
-            github/backup-utils-private
       - name: Checkout backup-utils-private
         uses: actions/checkout@v4
         with:
@@ -93,37 +36,109 @@ jobs:
           repository: github/backup-utils
           ref: master
           path: backup-utils
-      - name: Create empty commit
-        id: empty_commit
+      # - name: Install dependencies
+      #   run: |
+      #     sudo apt-get update -y
+      #     sudo apt-get install -y moreutils debhelper help2man devscripts gzip
+      - name: Show direcotry structure
         run: |
-          cp ./backup-utils-private/scripts/create-empty-commit \
-          ./create-empty-commit
-          cd ./backup-utils
-          ./create-empty-commit
-      - name: Download deb artifact
-        uses: actions/download-artifact@v3
-        with:
-          name: github-backup-utils_${{ github.event.inputs.version }}_all.deb
-      - name: Download tarball artifact
-        uses: actions/download-artifact@v3
-        with:
-          name: github-backup-utils-v${{ github.event.inputs.version }}.tar.gz
-      - name: Create Release
-        uses: ncipollo/release-action@v1
-        with:
-          token: ${{ steps.app-token.outputs.token }}
-          repo: backup-utils
-          name: |
-            GitHub Enterprise Server Backup Utilities
-            v${{ github.event.inputs.version }}
-          artifacts: |
-            github-backup-utils-v${{ github.event.inputs.version }}.tar.gz, \
-            github-backup-utils_${{ github.event.inputs.version }}_all.deb
-          # this action will create a tag with this name on the provided commit
-          tag: v${{ github.event.inputs.version }}
-          # this can be a commit hash or branch name
-          commit: ${{ steps.empty_commit.outputs.commit_sha }}
-          bodyFile: release-notes/${{ github.event.inputs.version }}.md
-          draft: ${{ github.event.inputs.draft }}
-          allowUpdates: true
-          artifactContentType: "raw"
+          ls -R
+      # create tags for the build scripts to work
+  #     - name: Create tag
+  #       run: |
+  #         git config user.name "release-controller[bot]"
+  #         git config user.email "ghes-releases-team@github.com"
+  #         git tag -a "v${{ github.event.inputs.version }}" -m "v${{ github.event.inputs.version }}"
+  #         git push origin "v${{ github.event.inputs.version }}"
+  #     - name: Package deb
+  #       run: |
+  #         ./script/package-deb
+  #     # many need to remove this once release-notes compilation is automated
+  #     - name: Rename deb artifact
+  #       run: |
+  #           for file in dist/github-backup-utils_*_all.deb; do
+  #             if [[ -f "$file" ]]; then
+  #               mv "$file" "dist/github-backup-utils_${{ github.event.inputs.version }}_all.deb"
+  #             fi
+  #           done
+  #     - name: Upload deb artifact
+  #       uses: actions/upload-artifact@v3
+  #       with:
+  #         name: github-backup-utils_${{ github.event.inputs.version }}_all.deb
+  #         path: |
+  #           dist/github-backup-utils_${{ github.event.inputs.version }}_all.deb
+  #     - name: Package tarball
+  #       run: |
+  #         ./script/package-tarball
+  #     - name: Upload tarball artifact
+  #       uses: actions/upload-artifact@v3
+  #       with:
+  #         name: github-backup-utils-v${{ github.event.inputs.version }}.tar.gz
+  #         path: |
+  #           dist/github-backup-utils-v${{ github.event.inputs.version }}.tar.gz
+  # release:
+  #   needs: build
+  #   runs-on: ubuntu-latest
+  #   outputs:
+  #     commit-sha: ${{ steps.empty_commit.outputs.commit_sha }}
+  #   steps:
+  #     - uses: timreimherr/create-github-app-token@main
+  #       id: app-token
+  #       with:
+  #         # required
+  #         app_id: ${{ vars.RELEASE_CONTROLLER_APP_ID }}
+  #         private_key: ${{ secrets.RELEASE_CONTROLLER_APP_PRIVATE_KEY }}
+  #         owner: ${{ github.repository_owner }}
+  #         repositories: |
+  #           github/backup-utils
+  #           github/backup-utils-private
+  #     - name: Checkout backup-utils-private
+  #       uses: actions/checkout@v4
+  #       with:
+  #         token: ${{ steps.app-token.outputs.token }}
+  #         repository: github/backup-utils-private
+  #         path: backup-utils-private
+  #     - name: Checkout backup-utils
+  #       uses: actions/checkout@v4
+  #       with:
+  #         token: ${{ steps.app-token.outputs.token }}
+  #         repository: github/backup-utils
+  #         ref: master
+  #         path: backup-utils
+  #     - name: Show direcotry structure
+  #       run: |
+  #         ls -R
+  #     - name: Create empty commit
+  #       id: empty_commit
+  #       run: |
+  #         cp ./backup-utils-private/scripts/create-empty-commit \
+  #         ./create-empty-commit
+  #         cd ./backup-utils
+  #         ./create-empty-commit
+  #     - name: Download deb artifact
+  #       uses: actions/download-artifact@v3
+  #       with:
+  #         name: github-backup-utils_${{ github.event.inputs.version }}_all.deb
+  #     - name: Download tarball artifact
+  #       uses: actions/download-artifact@v3
+  #       with:
+  #         name: github-backup-utils-v${{ github.event.inputs.version }}.tar.gz
+  #     - name: Create Release
+  #       uses: ncipollo/release-action@v1
+  #       with:
+  #         token: ${{ steps.app-token.outputs.token }}
+  #         repo: backup-utils
+  #         name: |
+  #           GitHub Enterprise Server Backup Utilities
+  #           v${{ github.event.inputs.version }}
+  #         artifacts: |
+  #           github-backup-utils-v${{ github.event.inputs.version }}.tar.gz, \
+  #           github-backup-utils_${{ github.event.inputs.version }}_all.deb
+  #         # this action will create a tag with this name on the provided commit
+  #         tag: v${{ github.event.inputs.version }}
+  #         # this can be a commit hash or branch name
+  #         commit: ${{ steps.empty_commit.outputs.commit_sha }}
+  #         bodyFile: release-notes/${{ github.event.inputs.version }}.md
+  #         draft: ${{ github.event.inputs.draft }}
+  #         allowUpdates: true
+  #         artifactContentType: "raw"

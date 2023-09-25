@@ -46,6 +46,7 @@ jobs:
           pwd
           ls -l
           cd ..
+          pwd
           ls -l
       # create tags for the build scripts to work
   #     - name: Create tag

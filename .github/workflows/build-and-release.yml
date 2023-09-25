@@ -42,7 +42,7 @@ jobs:
           git config user.name "release-controller[bot]"
           git config user.email "223695+release-controller[bot]@users.noreply.github.com"
           git commit --allow-empty -m "${{ github.event.inputs.version }} release"
-          git push origin tims-test-branch
+          git push origin master
           echo "commit-sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
       - name: Echo Success if commit was created
         if: steps.empty-commit.outputs.commit-sha != ''

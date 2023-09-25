@@ -40,7 +40,7 @@ jobs:
       - name: Create empty commit in backup-utils
         id: empty-commit
         env:
-          ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+          ACCESS_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           git config user.name "release-controller[bot]"
           git config user.email "ghes-releases-team@github.com"

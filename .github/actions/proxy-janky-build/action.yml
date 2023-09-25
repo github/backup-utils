@@ -1,0 +1,33 @@
+name: 'Trigger a CI Job on Janky'
+description: 'Action to trigger and poll a Janky CI job'
+inputs:
+  janky-token: 
+    description: 'Token for making request to Janky'
+    required: true
+  job-name:
+    description: 'The name of the job to run'
+    required: true
+  branch-name:
+    description: 'The name of the branch to use'
+    required: true
+  force:
+    description: 'Force the job to run even if it is already passed'
+    required: false
+  envVars:
+    description: 'Comma separated list of key value pairs to pass to Janky - ex: key1=value1,key2=value2,key3=value3'
+    required: false
+runs:
+  using: 'composite'
+  steps:
+      - uses: actions/setup-go@a3d889c34c5d4e071b33595c5fe8edfcaaad8260
+        with:
+          go-version: '1.21'
+      - run: |
+          go run main.go \
+          -token ${{ inputs.janky-token }} \
+          -job ${{ inputs.job-name }} \
+          -branch ${{ inputs.branch-name }} \
+          -force ${{ inputs.force }} \
+          -envVars ${{ inputs.envVars }}
+        shell: bash
+        working-directory: .github/actions/proxy-janky-build

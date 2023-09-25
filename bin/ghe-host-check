@@ -151,7 +151,7 @@ if [ -z "$supported" ]; then
 fi
 
 if [[ "$CALLING_SCRIPT" == "ghe-backup" && "$GHE_SKIP_CHECKS" != "true" ]]; then
-  cat << SKIP_MSG 1>&2
+  cat << SKIP_MSG
 **You can disable the following storage & version checks by running ghe-backup with option "--skip-checks"
 OR updating GHE_SKIP_CHECKS to 'true' in your backup.config file.
 
@@ -176,10 +176,9 @@ SKIP_MSG
   fi
 
   #Display dir requirements for repositories and mysql
-  echo "" 1>&2
-  echo "Checking host for sufficient space for a backup..." 1>&2
+  echo -e "\nChecking host for sufficient space for a backup..."
   available_space=$(df -B 1k $GHE_DATA_DIR | awk 'END{printf "%.0f", $4 * 1024}') 
-  echo "  We recommend allocating at least 5x the amount of storage allocated to the primary GitHub appliance for historical snapshots and growth over time." 1>&2
+  echo "  We recommend allocating at least 5x the amount of storage allocated to the primary GitHub appliance for historical snapshots and growth over time."
 
   repos_disk_size=$(transfer_size repositories /tmp)
   pages_disk_size=$(transfer_size pages /tmp)
@@ -192,10 +191,9 @@ SKIP_MSG
 
   min_disk_req=$((repos_disk_size + pages_disk_size + es_disk_size + stor_disk_size + minio_disk_size + mysql_disk_size + actions_disk_size + mssql_disk_size))
   recommended_disk_req=$((min_disk_req * 5))
-  echo "   - Available space: $((available_space / (1024 ** 2))) MB" 1>&2
-  echo "   - Min Disk required for this backup is at least $min_disk_req MB" 1>&2
-  echo "   - Recommended Disk requirement is $recommended_disk_req MB" 1>&2
-  echo "" 1>&2
+  echo "   - Available space: $((available_space / (1024 ** 2))) MB"
+  echo "   - Min Disk required for this backup is at least $min_disk_req MB"
+  echo -e "   - Recommended Disk requirement is $recommended_disk_req MB\n"
 
   printf '### Estimated Data Transfer Sizes
 
@@ -208,7 +206,7 @@ SKIP_MSG
  - actions: %d MB
  - mssql: %d MB
 \n' \
-  "$repos_disk_size" "$pages_disk_size" "$es_disk_size" "$stor_disk_size" "$minio_disk_size" "$mysql_disk_size" "$actions_disk_size" "$mssql_disk_size" 1>&2
+  "$repos_disk_size" "$pages_disk_size" "$es_disk_size" "$stor_disk_size" "$minio_disk_size" "$mysql_disk_size" "$actions_disk_size" "$mssql_disk_size"
 
   if [[ $((available_space / (1024 * 1024))) -lt $min_disk_req ]]; then
     echo "There is not enough disk space for the backup. Please allocate more space and continue." 1>&2
@@ -231,7 +229,7 @@ SKIP_MSG
     exit 1
   fi
 
-  echo "### Software versions" 1>&2
+  echo "### Software versions"
   rsync_version=$(rsync --version | grep 'version' | awk '{print $3}' | tr -cd '[:digit:].\n')
   if awk "BEGIN {exit !($rsync_version < $min_rsync)}" &> /dev/null; then
     echo "rsync version $rsync_version in backup-host does not meet minimum requirements." 1>&2
@@ -241,9 +239,9 @@ SKIP_MSG
     printf "\n  **WARNING:** rsync version %s on backup host is less than 3.2.5, which could result in performance degradation.
   For more details, please read documentation at https://gh.io/april-2023-update-of-rsync-requirements
   You can disable this warning by changing RSYNC_WARNING to 'no' in your backup.config file.\n\n" \
-    "$rsync_version" 1>&2
+    "$rsync_version"
   fi
-  echo " - rsync ${rsync_version} >= required ($min_rsync)" 1>&2
+  echo " - rsync ${rsync_version} >= required ($min_rsync)"
 
   ssh_version=$(ssh -V 2>&1 | awk '{print $1}'|grep -oPm 1 '[\d\.]+' |head -1 | tr -cd '[:digit:].\n')
   if awk "BEGIN {exit !($ssh_version < $min_openssh)}" &> /dev/null; then
@@ -251,7 +249,7 @@ SKIP_MSG
     echo "Please make sure the minimum required version of openSSH: $min_openssh is installed" 1>&2
     exit 1
   else
-    echo " - openSSH ${ssh_version} >= required ($min_openssh)" 1>&2
+    echo " - openSSH ${ssh_version} >= required ($min_openssh)"
   fi
 
   jq_version=$(jq --version |awk -F\- '{print $2}' | tr -cd '[:digit:].\n')
@@ -260,8 +258,8 @@ SKIP_MSG
     echo "Please make sure you have the minimum required version of jq: $min_jq installed" 1>&2
     exit 1
   else
-    echo " - jq ${jq_version} >= required ($min_jq)" 1>&2
+    echo " - jq ${jq_version} >= required ($min_jq)"
   fi
 fi
-echo "" 1>&2
-echo "Connect $hostname:$port OK (v$version)"
+
+echo -e "\nConnect $hostname:$port OK (v$version)"

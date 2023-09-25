@@ -636,6 +636,7 @@ echo "sudo restart -q memcached 2>/dev/null || true" |
 ghe-ssh "$GHE_HOSTNAME" -- /bin/sh
 bm_end "$(basename $0) - Restarting memcached"
 
+
 # Prevent GitHub Connect jobs running before we've had a chance to reset
 # the configuration by setting the last run date to now.
 if ! $RESTORE_SETTINGS; then

@@ -30,6 +30,11 @@ PATH="$ROOTDIR/test/bin:$ROOTDIR/bin:$ROOTDIR/share/github-backup-utils:$PATH"
 TMPDIR="$ROOTDIR/test/tmp"
 TRASHDIR="$TMPDIR/$(basename "$0")-$$"
 
+test_suite_file_name="$(basename "${BASH_SOURCE[1]}")"
+test_suite_name="${GHE_TEST_SUITE_NAME:-${test_suite_file_name%.*}}"
+results_file="$TMPDIR/results"
+test_suite_before_time=$(date '+%s.%3N')
+
 # Set GIT_{AUTHOR,COMMITTER}_{NAME,EMAIL}
 # This removes the assumption that a git config that specifies these is present.
 export GIT_AUTHOR_NAME=make GIT_AUTHOR_EMAIL=make GIT_COMMITTER_NAME=make GIT_COMMITTER_EMAIL=make
@@ -57,13 +62,51 @@ ghe_remote_version_config "$GHE_TEST_REMOTE_VERSION"
 # ghe-restore process groups
 unset GHE_SNAPSHOT_TIMESTAMP
 
+# Color definitions for log output
+color_reset=$(printf '\e[0m')
+# Display commands (lines starting with + in the output) in purple
+color_command=$(printf '\e[0;35m')
+# Display exit code line in red
+color_error_message=$(printf '\e[0;31m')
+# Display test suite name in blue
+color_test_suite=$(printf '\e[0;34m')
+# Display successful tests in bold green
+color_pass=$(printf '\e[1;32m')
+# Display skipped tests in bold gray
+color_skip=$(printf '\e[1;37m')
+# Display failed tests in bold red
+color_fail=$(printf '\e[1;31m')
+
 # keep track of num tests and failures
 tests=0
+successes=0
+skipped=0
 failures=0
 
 # this runs at process exit
 atexit () {
   res=$?
+
+  test_suite_after_time=$(date '+%s.%3N')
+  test_suite_elapsed_time=$(echo "scale=3; $test_suite_after_time - $test_suite_before_time" | bc)
+
+  # Temporarily redirect stdout output to results file
+  exec 3<&1
+  exec 1>>"$results_file"
+
+  # Print test summary for this test suite
+  echo -n "| $test_suite_name | "
+
+  if [ "$failures" -eq "0" ]; then
+    echo -n ":green_circle: passed"
+  else
+    echo -n ":red_circle: failed"
+  fi
+
+  printf " | $successes | $failures | $skipped | %.3f s |\\n" "$test_suite_elapsed_time"
+
+  # Restore stdout
+  exec 1<&3
 
   [ -z "$KEEPTRASH" ] && rm -rf "$TRASHDIR"
   if [ $failures -gt 0 ]; then
@@ -145,36 +188,53 @@ begin_test () {
 
   # allow the subshell to exit non-zero without exiting this process
   set -x +e
-  before_time=$(date '+%s')
+  before_time=$(date '+%s.%3N')
+
+  # Marker to truncate the actual test output later
+  echo "begin_test_truncate_marker" > /dev/null
 }
 
-report_failure () {
-  msg=$1
-  desc=$2
-  failures=$(( failures + 1 ))
-  printf "test: %-73s $msg\\n" "$desc ..."
-  (
-    sed 's/^/    /' <"$TRASHDIR/out" |
-    grep -a -v -e '^\+ end_test' -e '^+ set +x' - "$TRASHDIR/out" |
-    sed 's/[+] test_status=/test failed. last command exited with /' |
-    sed 's/^/    /'
-  ) 1>&2
+report_failure_output () {
+  echo "::group::Output of failed test" 1>&2
+  # Truncate the test output to exclude testing-related instructions
+  echo "$(<"$TRASHDIR/out")" \
+    | sed '0,/begin_test_truncate_marker/d' \
+    | sed -n '/end_test_truncate_marker/q;p' | head -n -2 \
+    | sed "s/^\(+.*\)$/${color_command}\1${color_reset}/" \
+    1>&2
+  echo -e "\n${color_error_message}Test failed. The last command exited with exit code" \
+    "$test_status.${color_reset}" 1>&2
+  echo "::endgroup::" 1>&2
 }
 
 # Mark the end of a test.
 end_test () {
   test_status="${1:-$?}"
-  after_time=$(date '+%s')
-  elapsed_time=$((after_time - before_time))
+
+  # Marker to truncate the actual test output later
+  echo "end_test_truncate_marker" > /dev/null
+
+  after_time=$(date '+%s.%3N')
+  elapsed_time=$(echo "scale=3; $after_time - $before_time" | bc)
   set +x -e
   exec 1>&3 2>&4
 
   if [ "$test_status" -eq 0 ]; then
-    printf "test: %-65s OK (${elapsed_time}s)\\n" "$test_description ..."
+    successes=$(( successes + 1 ))
+    printf "${color_pass}PASS${color_reset}" 1>&2
   elif [ "$test_status" -eq 254 ]; then
-    printf "test: %-65s SKIPPED\\n" "$test_description ..."
+    skipped=$(( skipped + 1 ))
+    printf "${color_skip}SKIP${color_reset}" 1>&2
   else
-    report_failure "FAILED (${elapsed_time}s)" "$test_description ..."
+    failures=$(( failures + 1 ))
+    printf "${color_fail}FAIL${color_reset}" 1>&2
+  fi
+
+  printf " [%8.3f s] ${color_test_suite}$test_suite_name${color_reset} $test_description\\n" \
+    "$elapsed_time" 1>&2
+
+  if [ "$test_status" -ne 0 ] && [ "$test_status" -ne 254 ]; then
+    report_failure_output
   fi
 
   unset test_description
@@ -408,7 +468,6 @@ setup_minio_test_data() {
   bucket="packages"
 
   mkdir -p "$bucket"
-  echo "an example blob" "$bucket/91dfa09f-1801-4e00-95ee-6b763d7da3e2"
 }
 
 cleanup_minio_test_data() {

@@ -39,7 +39,7 @@ jobs:
       - name: Create empty commit in backup-utils
         id: empty_commit
         run: |
-          cp ./backup-utils-private/scripts/create-empty-commit \
+          cp ./backup-utils-private/script/create-empty-commit \
           ./backup-utils/create-empty-commit
           cd ./backup-utils
           ./create-empty-commit

@@ -23,6 +23,10 @@ jobs:
           # required
           app_id: ${{ vars.RELEASE_CONTROLLER_APP_ID }}
           private_key: ${{ secrets.RELEASE_CONTROLLER_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: |
+            github/backup-utils
+            github/backup-utils-private
       - name: Checkout backup-utils-private
         uses: actions/checkout@v4
         with:

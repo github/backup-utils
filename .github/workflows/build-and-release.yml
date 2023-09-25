@@ -23,51 +23,26 @@ jobs:
           # required
           app_id: ${{ vars.RELEASE_CONTROLLER_APP_ID }}
           private_key: ${{ secrets.RELEASE_CONTROLLER_APP_PRIVATE_KEY }}
-      # - name: Checkout backup-utils-private
-      #   uses: actions/checkout@v4
-      #   with:
-      #     token: ${{ steps.app-token.outputs.token }}
-      #     repository: github/backup-utils-private
-      #     path: backup-utils-private
-      # - name: Checkout backup-utils
-      #   uses: actions/checkout@v4
-      #   with:
-      #     token: ${{ steps.app-token.outputs.token }}
-      #     repository: github/backup-utils
-      #     ref: master
-      #     path: backup-utils
-      # - name: Install dependencies
-      #   run: |
-      #     sudo apt-get update -y
-      #     sudo apt-get install -y moreutils debhelper help2man devscripts gzip
       - name: Checkout backup-utils-private
         uses: actions/checkout@v4
         with:
           token: ${{ steps.app-token.outputs.token }}
           repository: github/backup-utils-private
-          path: backup-utils-private
+          path: ./backup-utils-private
       - name: Checkout backup-utils
         uses: actions/checkout@v4
         with:
           token: ${{ steps.app-token.outputs.token }}
           repository: github/backup-utils
           ref: master
-          path: backup-utils
+          path: ./backup-utils
       - name: Create empty commit in backup-utils
         id: empty_commit
         run: |
           cp ./backup-utils-private/scripts/create-empty-commit \
-          .backup-utils/create-empty-commit
+          ./backup-utils/create-empty-commit
           cd ./backup-utils
           ./create-empty-commit
-      # - name: Show direcotry structure
-      #   run: |
-      #     ls -R
-      #     pwd
-      #     ls -l
-      #     cd ..
-      #     pwd
-      #     ls -l
       # create tags for the build scripts to work
       # if empty_commit is successful, then echo success
       - name: Echo success
@@ -169,3 +144,25 @@ jobs:
   #         draft: ${{ github.event.inputs.draft }}
   #         allowUpdates: true
   #         artifactContentType: "raw"
+
+
+
+
+
+      # - name: Checkout backup-utils-private
+      #   uses: actions/checkout@v4
+      #   with:
+      #     token: ${{ steps.app-token.outputs.token }}
+      #     repository: github/backup-utils-private
+      #     path: backup-utils-private
+      # - name: Checkout backup-utils
+      #   uses: actions/checkout@v4
+      #   with:
+      #     token: ${{ steps.app-token.outputs.token }}
+      #     repository: github/backup-utils
+      #     ref: master
+      #     path: backup-utils
+      # - name: Install dependencies
+      #   run: |
+      #     sudo apt-get update -y
+      #     sudo apt-get install -y moreutils debhelper help2man devscripts gzip

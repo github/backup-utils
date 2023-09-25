@@ -38,18 +38,18 @@ jobs:
           token: ${{ steps.app-token.outputs.token }}
           repository: github/backup-utils
       - name: Create empty commit in backup-utils
-          id: empty-commit
-          env:
-            ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
-          run: |
-            git config user.name "release-controller[bot]"
-            git config user.email "ghes-releases-team@github.com"
-            git remote set-url origin https://$ACCESS_TOKEN@github.com/github/backup-utils.git
-            git fetch origin tims-test-branch
-            git checkout tims-test-branch
-            git commit --allow-empty -m "${{ github.event.inputs.version }} release"
-            git push origin tims-test-branch
-            echo "commit-sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
+        id: empty-commit
+        env:
+          ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+        run: |
+          git config user.name "release-controller[bot]"
+          git config user.email "ghes-releases-team@github.com"
+          git remote set-url origin https://$ACCESS_TOKEN@github.com/github/backup-utils.git
+          git fetch origin tims-test-branch
+          git checkout tims-test-branch
+          git commit --allow-empty -m "${{ github.event.inputs.version }} release"
+          git push origin tims-test-branch
+          echo "commit-sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
       # create tags for the build scripts to work
       # if empty_commit is successful, then echo success
       - name: Echo success

@@ -26,34 +26,39 @@ jobs:
           private_key: ${{ secrets.RELEASE_CONTROLLER_APP_PRIVATE_KEY }}
           owner: ${{ github.repository_owner }}
           repositories: backup-utils,backup-utils-private
-      # - name: Checkout backup-utils-private
-      #   uses: actions/checkout@v4
-      #   with:
-      #     token: ${{ steps.app-token.outputs.token }}
-      #     repository: github/backup-utils-private
-      #     path: ./backup-utils-private
       - name: Checkout backup-utils
         uses: actions/checkout@v4
         with:
           token: ${{ steps.app-token.outputs.token }}
           repository: github/backup-utils
-      - name: Create empty commit in backup-utils
-        id: empty-commit
-        env:
-          ACCESS_TOKEN: ${{ steps.app-token.outputs.token }}
+      # set GITHUB_TOKEN to the app token
+      - name: Set GITHUB_TOKEN
         run: |
-          git config user.name "release-controller[bot]"
-          git config user.email "ghes-releases-team@github.com"
-          git remote set-url origin https://$ACCESS_TOKEN@github.com/github/backup-utils.git
-          git fetch origin tims-test-branch
-          git checkout tims-test-branch
-          git commit --allow-empty -m "${{ github.event.inputs.version }} release"
-          git push origin tims-test-branch
-          echo "commit-sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
+          echo "GITHUB_TOKEN=${{ steps.app-token.outputs.token }}" >> $GITHUB_ENV
+      - uses: stefanzweifel/git-auto-commit-action@v4
+        id: empty-commit
+        with:
+          branch: tims-test-branch
+          commit_message: "${{ github.event.inputs.version }} release"
+          commit_options: "--allow-empty"
+          token: ${{ steps.app-token.outputs.token }}
+      # - name: Create empty commit in backup-utils
+      #   id: empty-commit
+      #   env:
+      #     ACCESS_TOKEN: ${{ steps.app-token.outputs.token }}
+      #   run: |
+      #     git config user.name "release-controller[bot]"
+      #     git config user.email "ghes-releases-team@github.com"
+      #     git remote set-url origin https://$ACCESS_TOKEN@github.com/github/backup-utils.git
+      #     git fetch origin tims-test-branch
+      #     git checkout tims-test-branch
+      #     git commit --allow-empty -m "${{ github.event.inputs.version }} release"
+      #     git push origin tims-test-branch
+      #     echo "commit-sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
       # create tags for the build scripts to work
       # if empty_commit is successful, then echo success
       - name: Echo success
-        if: ${{ steps.empty_commit.outcome == 'success' }}
+        if: ${{ steps.empty-commit.outcome == 'success' }}
         run: |
           echo "empty commit successful"
   #     - name: Create tag

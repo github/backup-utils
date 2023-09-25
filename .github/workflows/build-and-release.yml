@@ -43,6 +43,7 @@ jobs:
       - name: Show direcotry structure
         run: |
           ls -R
+          pwd
       # create tags for the build scripts to work
   #     - name: Create tag
   #       run: |

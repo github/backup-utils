@@ -47,6 +47,7 @@ jobs:
           commit_user_name: "${{ github.actor }}"
           commit_user_email: "ghes-releases-team@github.com"
           commit_options: "--allow-empty"
+          tag_message: "v${{ github.event.inputs.version }}"
           skip_dirty_check: true
       # this token still gets denied by the backup-utils repo
       # - uses: timreimherr/create-github-app-token@main

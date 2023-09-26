@@ -44,7 +44,7 @@ jobs:
           git fetch origin tims-test-branch
           git checkout tims-test-branch
           git commit --allow-empty -m "${{ github.event.inputs.version }} release"
-          git push origin tims-test-branch "https://x-access-token:${{ steps.app-token.outputs.token }}@github.com/github/backup-utils.git"
+          git push "https://x-access-token:${{ steps.app-token.outputs.token }}@github.com/github/backup-utils.git" tims-test-branch
           echo "commit-sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
       - name: Echo Success if commit was created
         if: steps.empty-commit.outputs.commit-sha != ''

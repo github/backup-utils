@@ -104,6 +104,11 @@ jobs:
           commit_user_email: "ghes-releases-team@github.com"
           commit_options: "--allow-empty"
           skip_dirty_check: true
+      - name: Checkout backup-utils
+        uses: actions/checkout@v4
+        with:
+          token: ${{ github.event.inputs.gh-token }}
+          repository: github/backup-utils-private
       - name: Download deb artifact
         uses: actions/download-artifact@v3
         with:

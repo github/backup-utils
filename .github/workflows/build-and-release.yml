@@ -22,8 +22,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      # resulting token still gets denied by the backup-utils repo
-      # see: https://github.com/actions/create-github-app-token/pull/46
       - uses: timreimherr/create-github-app-token@main
         id: app-token
         with:
@@ -32,9 +30,39 @@ jobs:
           private_key: ${{ secrets.RELEASE_CONTROLLER_APP_PRIVATE_KEY }}
           owner: ${{ github.repository_owner }}
           repositories: backup-utils,backup-utils-private
-      - name: Print app permissions
+      - name: Checkout backup-utils
+        uses: actions/checkout@v4
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          repository: github/backup-utils
+          ref: master
+      - name: Create empty commit in backup-utils
+        id: empty-commit
         run: |
-            curl -H "Authorization: Bearer ${{ steps.app-token.outputs.token }}" -H "Accept: application/vnd.github.v3+json" https://api.github.com/app/installations | jq '.'
+          git config user.name "release-controller[bot]"
+          git config user.email "223695+release-controller[bot]@users.noreply.github.com"
+          git fetch origin tims-test-branch
+          git checkout tims-test-branch
+          git commit --allow-empty -m "${{ github.event.inputs.version }} release"
+          git push origin tims-test-branch "https://x-access-token:${{ steps.app-token.outputs.token }}@github.com/github/backup-utils.git"
+          echo "commit-sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
+      - name: Echo Success if commit was created
+        if: steps.empty-commit.outputs.commit-sha != ''
+        run: |
+          echo "Success"
+      # resulting token still gets denied by the backup-utils repo
+      # see: https://github.com/actions/create-github-app-token/pull/46
+      # - uses: timreimherr/create-github-app-token@main
+      #   id: app-token
+      #   with:
+      #     # required
+      #     app_id: ${{ vars.RELEASE_CONTROLLER_APP_ID }}
+      #     private_key: ${{ secrets.RELEASE_CONTROLLER_APP_PRIVATE_KEY }}
+      #     owner: ${{ github.repository_owner }}
+      #     repositories: backup-utils,backup-utils-private
+      # - name: Print app permissions
+      #   run: |
+      #       curl -H "Authorization: Bearer ${{ steps.app-token.outputs.token }}" -H "Accept: application/vnd.github.v3+json" https://api.github.com/app/installations | jq '.'
   #     - name: Checkout backup-utils-private
   #       uses: actions/checkout@v4
   #       with:

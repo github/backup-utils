@@ -677,14 +677,15 @@ restore-secret() {
 init-progress() {
   if [ -d /tmp/backup-utils-progress ]; then
     rm -rf /tmp/backup-utils-progress/*
-  else
-    mkdir /tmp/backup-utils-progress
   fi
+
+  mkdir -p /tmp/backup-utils-progress
+  chmod -R 777 /tmp/backup-utils-progress
+  
   touch /tmp/backup-utils-progress/total
   touch /tmp/backup-utils-progress/type
   touch /tmp/backup-utils-progress/progress
   touch /tmp/backup-utils-progress/info
-  chmod -R 777 /tmp/backup-utils-progress
 }
 
 #increase total count of progress

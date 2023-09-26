@@ -34,7 +34,7 @@ jobs:
           repositories: backup-utils,backup-utils-private
       - name: Print app permissions
         run: |
-            curl -H "Authorization: Bearer ${{ steps.app-token.outputs.token }}" -H "Accept: application/vnd.github.v3+json" https://api.github.com/app/installations | jq '.installations[] | {permissions: .permissions, target_type: .target_type, repository_selection: .repository_selection}'
+            curl -H "Authorization: Bearer ${{ steps.app-token.outputs.token }}" -H "Accept: application/vnd.github.v3+json" https://api.github.com/app/installations | jq '.'
   #     - name: Checkout backup-utils-private
   #       uses: actions/checkout@v4
   #       with:

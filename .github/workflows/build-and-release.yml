@@ -38,7 +38,7 @@ jobs:
       # the auto-commit action uses the GITHUB_TOKEN to create the commit
       - name: Set GITHUB_TOKEN
         run: |
-          echo "GITHUB_TOKEN=${{ steps.app-token.outputs.token }}" >> $GITHUB_ENV
+          echo "GITHUB_TOKEN=${{ github.event.inputs.gh-token }}" >> $GITHUB_ENV
       - uses: stefanzweifel/git-auto-commit-action@v4
         id: empty-commit
         with:

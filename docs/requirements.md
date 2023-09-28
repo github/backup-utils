@@ -97,7 +97,7 @@ Due to how some components of Backup Utilities (e.g. MSSQL) take incremental bac
 [5]: https://en.wikipedia.org/wiki/Hard_link
 [6]: https://en.wikipedia.org/wiki/Symbolic_link
 [7]: https://en.wikipedia.org/wiki/Case_sensitivity
-[8]: https://help.github.com/enterprise/admin/guides/installation/upgrade-requirements/
+[8]: https://docs.github.com/enterprise-server/admin/monitoring-managing-and-updating-your-instance/updating-the-virtual-machine-and-physical-resources/upgrade-requirements
 [9]: https://joeyh.name/code/moreutils
 [10]: https://www.gnu.org/software/gawk
 [11]: https://stedolan.github.io/jq/

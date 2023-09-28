@@ -36,6 +36,7 @@ fi
 
 # Perform a host-check and establish GHE_REMOTE_XXX variables.
 ghe_remote_version_required "$GHE_HOSTNAME"
+ghe_remote_parallel
 
 # Generate SSH config for forwarding
 # Split host:port into parts
@@ -210,7 +211,7 @@ if $CLUSTER; then
   ghe-ssh "$GHE_HOSTNAME" -- /bin/bash >&3 <<EOF
     split -l 1000 $remote_to_restore $remote_tempdir/chunk
     chunks=\$(find $remote_tempdir/ -name chunk\*)
-    parallel -i /bin/sh -c "cat {} | github-env ./bin/dgit-cluster-restore-finalize 2>>$remote_warnings" -- \$chunks
+    $PARALLEL_CMD -i /bin/sh -c "cat {} | github-env ./bin/dgit-cluster-restore-finalize 2>>$remote_warnings" -- \$chunks
 EOF
   increment-progress-total-count 1
   bm_end "$(basename $0) - Finalizing routes"

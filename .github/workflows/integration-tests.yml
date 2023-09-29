@@ -37,6 +37,7 @@ jobs:
           janky-token: '${{ secrets.API_AUTH_TOKEN }}'
           job-name: '${{ matrix.jankyJobName }}'
           branch-name: '${{ env.SOURCE_BRANCH }}'
+          force : 'false'
           # enterprise2 target branch is same as target branch for PR (either master or enterprise-[0-9]*.[0-9]*-release)
           envVars: "JANKY_ENV_BACKUP_UTILS_BRANCH=${{ env.SOURCE_BRANCH }},JANKY_ENV_ENTERPRISE2_BRANCH=${{ env.TARGET_BRANCH }}"
 
@@ -63,5 +64,6 @@ jobs:
           janky-token: '${{ secrets.API_AUTH_TOKEN }}'
           job-name: '${{ matrix.jankyJobName }}'
           branch-name: '${{ env.SOURCE_BRANCH }}'
+          force : 'false'
           # enterprise2 target branch is same as target branch for PR (either master or enterprise-[0-9]*.[0-9]*-release)
           envVars: "JANKY_ENV_BACKUP_UTILS_BRANCH=${{ env.SOURCE_BRANCH }},JANKY_ENV_ENTERPRISE2_BRANCH=${{ env.TARGET_BRANCH }}"

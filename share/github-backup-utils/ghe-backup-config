@@ -465,6 +465,7 @@ ghe_parse_remote_version() {
 # In 3.11 we started to install 2 different version parallel(s)
 # moreutils parallel and GNU parallel. When gnu parallel is installed,
 # it renames moreutils parallel to parallel.moreutils
+# set $PARALLEL_CMD envvar to be used in place of parallel commands
 ghe_remote_parallel() {
   if [ -z "$GHE_REMOTE_VERSION" ]; then
     echo "Error: ghe_remote_version_required needs to be invoked before ghe_remote_parallel" 1>&2

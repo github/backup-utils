@@ -207,8 +207,10 @@ ghe_parallel_check() {
   GHE_PARALLEL_COMMAND="parallel"
   local x
   for x in \
+      /usr/bin/parallel-moreutils \
       /usr/bin/parallel.moreutils \
       /usr/bin/parallel_moreutils \
+      /usr/bin/moreutils-parallel \
       /usr/bin/moreutils.parallel \
       /usr/bin/moreutils_parallel \
       ; do

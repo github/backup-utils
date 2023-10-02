@@ -5,8 +5,7 @@ storage and must have network connectivity with the GitHub Enterprise Server app
 
 ## Backup host requirements
 
-Backup host software requirements are modest: Linux or other modern Unix operating
-system (Ubuntu is highly recommended) with [bash][1], [git][2], [OpenSSH][3] 5.6 or newer, [rsync][4] v2.6.4 or newer, and [jq][11] v1.5 or newer.
+Backup host software requirements are modest: Linux or other modern Unix operating system (Ubuntu is highly recommended) with [bash][1], [git][2], [OpenSSH][3] 5.6 or newer, [rsync][4] v2.6.4 or newer* (see [below](#april-2023-update-of-rsync-requirements) for exceptions), [jq][11] v1.5 or newer, and [bc][12] v1.07 or newer.
 
 The parallel backup and restore feature will require [GNU awk][10] and [moreutils][9] to be installed.
 
@@ -79,3 +78,4 @@ Due to how some components of Backup Utilities (e.g. MSSQL) take incremental bac
 [9]: https://joeyh.name/code/moreutils
 [10]: https://www.gnu.org/software/gawk
 [11]: https://stedolan.github.io/jq/
+[12]: https://www.gnu.org/software/bc/

@@ -91,13 +91,19 @@ if ghe-ssh "$host" -- \
   CLUSTER=true
 fi
 
-# ensure all nodes in the cluster are running the same version
+# ensure all nodes in the cluster are online/reachable and running the same version
 if "$CLUSTER"; then
+  online_status=$(ghe-ssh "$host" ghe-cluster-host-check)
+  if [ "$online_status" != "Cluster is ready to configure." ]; then
+    echo "Error: Not all nodes are online! Please ensure cluster is in a healthy state before using backup-utils." 1>&2
+    exit 1
+  fi
+
   node_version_list=$(ghe-ssh "$host" ghe-cluster-each -- ghe-version)
   distinct_versions=$(echo "$node_version_list" | awk '{split($0, a, ":"); print a[2]}' | awk '{print $4}' | uniq | wc -l)
   if [ "$distinct_versions" -ne 1 ]; then
-    echo "$node_version_list" 1>&2
-    echo "Error: Not all nodes are running the same version! Please ensure all nodes are running the same version before using backup-utils." 1>&3
+    echo "Version mismatch: $node_version_list" 1>&2
+    echo "Error: Not all nodes are running the same version! Please ensure all nodes are running the same version before using backup-utils." 1>&2
     exit 1
   fi
 fi
@@ -177,21 +183,24 @@ SKIP_MSG
   mssql_disk_size=$(transfer_size mssql /tmp)
 
   min_disk_req=$((repos_disk_size + pages_disk_size + es_disk_size + stor_disk_size + minio_disk_size + mysql_disk_size + actions_disk_size + mssql_disk_size))
-  echo "Available space: $((available_space / (1024 ** 2))) MB" 1>&2
-  echo -e "Min Disk required for this backup is at least $min_disk_req MB\n" 1>&2
+  recommended_disk_req=$((min_disk_req * 5))
+  echo "   - Available space: $((available_space / (1024 ** 2))) MB" 1>&2
+  echo "   - Min Disk required for this backup is at least $min_disk_req MB" 1>&2
+  echo "   - Recommended Disk requirement is $recommended_disk_req MB" 1>&2
+  echo "" 1>&2
 
-cat <<DATA_TRANSFER_SIZE 1>&2
-### Data Transfer Sizes 
-repositories: $repos_disk_size MB
-pages: $pages_disk_size MB
-elasticsearch: $es_disk_size MB
-storage: $stor_disk_size MB
-minio: $minio_disk_size MB
-mysql: $mysql_disk_size MB
-actions: $actions_disk_size MB
-mssql: $mssql_disk_size MB
+  printf '### Estimated Data Transfer Sizes
 
-DATA_TRANSFER_SIZE
+ - repositories: %d MB
+ - pages: %d MB
+ - elasticsearch: %d MB
+ - storage: %d MB
+ - minio: %d MB
+ - mysql: %d MB
+ - actions: %d MB
+ - mssql: %d MB
+\n' \
+  "$repos_disk_size" "$pages_disk_size" "$es_disk_size" "$stor_disk_size" "$minio_disk_size" "$mysql_disk_size" "$actions_disk_size" "$mssql_disk_size" 1>&2
 
   if [[ $((available_space / (1024 * 1024))) -lt $min_disk_req ]]; then
     echo "There is not enough disk space for the backup. Please allocate more space and continue." 1>&2

@@ -47,6 +47,8 @@ begin_test "ghe-backup subsequent snapshot"
   [ "$first_snapshot" != "$this_snapshot" ]
 
   verify_all_backedup_data
+
+  verify_progress_cleanup_process
 )
 end_test
 
@@ -698,7 +700,7 @@ begin_test "ghe-backup takes backup of encrypted column encryption keying materi
 )
 end_test
 
-begin_test "ghe-backup takes backup of secret scanning encrypted secrets encryption keys"
+begin_test "ghe-backup does not take backups of secret scanning encrypted secrets encryption keys on versions below 3.8.0"
 (
   set -e
 
@@ -713,7 +715,37 @@ begin_test "ghe-backup takes backup of secret scanning encrypted secrets encrypt
     ghe-ssh "$GHE_HOSTNAME" -- ghe-config "$secret" "foo"
   done
 
-  ghe-backup
+  GHE_REMOTE_VERSION=3.7.0 ghe-backup -v | grep -q "secret scanning encrypted secrets" && exit 1
+
+  required_files=(
+    "secret-scanning-encrypted-secrets-current-storage-key"
+    "secret-scanning-encrypted-secrets-delimited-storage-keys"
+    "secret-scanning-encrypted-secrets-current-shared-transit-key"
+    "secret-scanning-encrypted-secrets-delimited-shared-transit-keys"
+  )
+
+  for file in "${required_files[@]}"; do
+    [ "$(cat "$GHE_DATA_DIR/current/$file")" = "" ]
+  done
+)
+end_test
+
+begin_test "ghe-backup takes backup of secret scanning encrypted secrets encryption keys on versions 3.8.0+"
+(
+  set -e
+
+  required_secrets=(
+    "secrets.secret-scanning.encrypted-secrets-current-storage-key"
+    "secrets.secret-scanning.encrypted-secrets-delimited-storage-keys"
+    "secrets.secret-scanning.encrypted-secrets-current-shared-transit-key"
+    "secrets.secret-scanning.encrypted-secrets-delimited-shared-transit-keys"
+  )
+
+  for secret in "${required_secrets[@]}"; do
+    ghe-ssh "$GHE_HOSTNAME" -- ghe-config "$secret" "foo"
+  done
+
+  GHE_REMOTE_VERSION=3.8.0 ghe-backup
 
   required_files=(
     "secret-scanning-encrypted-secrets-current-storage-key"

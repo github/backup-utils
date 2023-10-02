@@ -486,6 +486,12 @@ verify_all_backedup_data() {
   verify_common_data
 }
 
+# A unified method to make sure post backup, the cleanup process works
+verify_progress_cleanup_process() {
+  set -e
+  sudo -u nobody rm -rf /tmp/backup-utils-progress/*
+}
+
 # A unified method to check everything restored when performing a full restore
 # during testing.
 verify_all_restored_data() {
@@ -588,8 +594,10 @@ setup_moreutils_parallel() {
   # We need moreutils parallel
   local x
   for x in \
+      /usr/bin/parallel-moreutils \
       /usr/bin/parallel.moreutils \
       /usr/bin/parallel_moreutils \
+      /usr/bin/moreutils-parallel \
       /usr/bin/moreutils.parallel \
       /usr/bin/moreutils_parallel \
       ; do

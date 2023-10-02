@@ -5,7 +5,7 @@ set -e
 # Enable verbose logging of ssh commands
 export GHE_VERBOSE_SSH=true
 
-if ! find test -name "test-*.sh" -print0 | xargs -0 -P 4 -n 1 /bin/bash; then
+if ! find test -name "test-*.sh" -print0 | xargs -0 -n 1 /bin/bash; then
   exit 1
 fi
 

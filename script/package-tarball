@@ -8,10 +8,23 @@ set -e
 # Change into project root
 cd "$(dirname "$0")"/..
 
+# Fetch tags from remote repository
+git fetch --tags
+
 # Basic package name and version.
 PKG_BASE="github-backup-utils"
 PKG_VERS="$(git describe --tags)"
 PKG_NAME="${PKG_BASE}-${PKG_VERS}"
+
+# Remove all files or directories listed in .releaseignore
+echo "Removing files listed in .releaseignore ..."
+while IFS= read -r line; do
+    rm -rf "$line"
+done < .releaseignore
+
+# Remove the .releaseignore file itself
+echo "Removing .releaseignore ..."
+rm -f .releaseignore
 
 # Run git-archive to generate tarball
 echo "Creating ${PKG_NAME}.tar.gz ..."

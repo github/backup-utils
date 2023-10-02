@@ -217,8 +217,10 @@ ghe_parallel_check() {
   GHE_PARALLEL_COMMAND="parallel"
   local x
   for x in \
+      /usr/bin/parallel-moreutils \
       /usr/bin/parallel.moreutils \
       /usr/bin/parallel_moreutils \
+      /usr/bin/moreutils-parallel \
       /usr/bin/moreutils.parallel \
       /usr/bin/moreutils_parallel \
       ; do
@@ -650,12 +652,22 @@ restore-secret() {
 
 #initialize progress tracking by clearing out the temp files used to track
 init-progress() {
-  rm -f /tmp/backup-utils-progress*
+  if [ -d /tmp/backup-utils-progress ]; then
+    rm -rf /tmp/backup-utils-progress/*
+  fi
+
+  mkdir -p /tmp/backup-utils-progress
+  chmod -R 777 /tmp/backup-utils-progress
+  
+  touch /tmp/backup-utils-progress/total
+  touch /tmp/backup-utils-progress/type
+  touch /tmp/backup-utils-progress/progress
+  touch /tmp/backup-utils-progress/info
 }
 
 
 #increase total count of progress
 increment-progress-total-count() {
   ((PROGRESS_TOTAL += $1))
-  echo "$PROGRESS_TOTAL" > /tmp/backup-utils-progress-total
+  echo "$PROGRESS_TOTAL" > /tmp/backup-utils-progress/total
 }

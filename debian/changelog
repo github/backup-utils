@@ -1,3 +1,9 @@
+github-backup-utils (3.8.3) UNRELEASED; urgency=medium
+
+  * Fix two issues with binary backup (slow gzip compression and support for restore from instances other than SQL master) #551
+
+ -- Devin Dooley <dooleydevin@github.com>  Mon, 02 Oct 2023 20:33:31 +0000
+
 github-backup-utils (3.8.2) UNRELEASED; urgency=medium
 
   * Use calculated routes when backing up storage data from a cluster #318

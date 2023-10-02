@@ -8,6 +8,9 @@ set -e
 # Change into project root
 cd "$(dirname "$0")"/..
 
+# Fetch tags from remote repository
+git fetch --tags
+
 # Basic package name and version.
 PKG_BASE="github-backup-utils"
 PKG_VERS="$(git describe --tags)"
@@ -22,6 +25,14 @@ mkdir -p dist/debuild
 distdir="$(pwd)/dist/debuild/$PKG_NAME"
 git clone -q . "$distdir"
 cd "$distdir"
+
+echo "Removing files listed in .releaseignore ..."
+while IFS= read -r line; do
+    rm -rf "$line"
+done < .releaseignore
+
+echo "Removing .releaseignore ..."
+rm -f .releaseignore
 git checkout -q "$PKG_HEAD"
 
 debuild -uc -us 1>&2

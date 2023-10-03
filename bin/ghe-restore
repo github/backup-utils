@@ -139,6 +139,9 @@ cleanup () {
     log_error "Failed to remove in-progress file" 1>&3
   fi
 
+  # Remove progress files
+  rm -rf /tmp/backup-utils-progress/*
+
   bm_end "$(basename $0)"
 }
 

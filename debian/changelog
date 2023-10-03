@@ -1,3 +1,11 @@
+github-backup-utils (3.9.3) UNRELEASED; urgency=medium
+
+  * Replace "sed -E" in ghe-host-check with a more portable solution #509
+  * Fix `ghe-backup-repositories` performance for large instances #541
+  * Turn off POSIX for ghe-backup-config #632
+
+ -- Devin Dooley <dooleydevin@github.com>  Mon, 02 Oct 2023 20:36:46 +0000
+
 github-backup-utils (3.9.2) UNRELEASED; urgency=medium
 
 

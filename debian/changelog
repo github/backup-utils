@@ -1,3 +1,40 @@
+github-backup-utils (3.10.1) UNRELEASED; urgency=medium
+
+
+ -- Devin Dooley <dooleydevin@github.com>  Mon, 02 Oct 2023 20:38:31 +0000
+
+github-backup-utils (3.10.0) UNRELEASED; urgency=medium
+
+
+ -- Balwinder Sohi <bonsohi@github.com>  Wed, 30 Aug 2023 17:39:31 +0000
+
+github-backup-utils (3.10.0) UNRELEASED; urgency=medium
+
+  * Remove -o option from ps use #341
+  * Switch to TMPDIR before initiating SSH multiplexing workaround to prevent locking the destination filesystem #348
+  * Move check for git for ssh muxing into ghe-ssh #378
+  * Check filesystem supports hardlinks #388
+  * Remove check for git from ghe-ssh #393
+  * Clean up stale HA nodes on restore #396
+
+ -- Balwinder Sohi <bonsohi@github.com>  Wed, 09 Aug 2023 19:37:10 +0000
+
+github-backup-utils (3.9.0) UNRELEASED; urgency=medium
+
+  * Set restore status on all cluster nodes #274
+  * Fix pages backups and restores in GitHub Enterprise 11.10 #275
+  * Backup and restore custom CA certificates #281
+  * Set the benchmark file path consistently #283
+  * Suppress dd output noise #289
+  * Track completeness of Elasticsearch JSON dumps #298
+  * Use existing Elasticsearch indices to speed up transfer during a restore #310
+  * Include the user data directory in the benchmark name #311
+  * Use calculated routes when backing up storage data from a cluster #318
+  * Refresh the existing indices when restoring Elasticsearch indices to cluster #328
+  * Use git to generate short name for SSH multiplex control path  #335
+
+ -- Junior Eluhu <jeluhu@github.com>  Mon, 12 Jun 2023 20:46:10 +0000
+
 github-backup-utils (3.8.0) focal; urgency=medium
 
  -- Daniel Johnson <wirecat@github.com>  Tue, 07 Feb 2023 21:43:26 +0000

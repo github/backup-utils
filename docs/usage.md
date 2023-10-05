@@ -115,5 +115,11 @@ Please refer to [GHES Documentation](https://docs.github.com/en/enterprise-serve
 
 If you are interested in performing incremental backups of the MySQL data in your GitHub Enterprise Server instance, see [Incremental MySQL Backups and Restores](incremental-mysql-backups-and-restores.md) for details.
 
+## Rsync compression
+
+From backup-utils v3.11.0 onwards, we have disabled rsync compression by default to improve transfer speed and reduce CPU usage durign the transfer process.
+
+If you would like to use compression with rsync, you can add `GHE_RSYNC_COMPRESSION_ENABLED=true` in your `backup.config` file.
+
 [1]: https://github.com/github/backup-utils/blob/master/docs/getting-started.md
 [2]: requirements.md

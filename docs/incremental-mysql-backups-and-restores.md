@@ -6,9 +6,9 @@ For larger databases this can conserve a lot of storage space for backups.
 
 ## Configuring number of backups
 
-In your backup.config file you will need to set the variable `GHE_INCREMENTAL_BACKUP_MAX`.
+In your backup.config file you will need to set the variable `GHE_INCREMENTAL_MAX_BACKUPS`.
 This variable determines how many cycles of full and incremental backups will be performed before the next full backup is created.
-For example, if `GHE_INCREMENTAL_BACKUP_MAX` is set to 14, backup-utils will run 1 full backup and then 13 incremental backups before performing another full backup on the next cycle.
+For example, if `GHE_INCREMENTAL_MAX_BACKUPS` is set to 14, backup-utils will run 1 full backup and then 13 incremental backups before performing another full backup on the next cycle.
 
 Incremental backups require the previous snapshot backups before them to work.
 This means they do not follow the pruning strategy based on `GHE_NUM_SNAPSHOTS`.

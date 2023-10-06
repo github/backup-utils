@@ -39,6 +39,7 @@ fi
 
 # Perform a host-check and establish GHE_REMOTE_XXX variables.
 ghe_remote_version_required "$GHE_HOSTNAME"
+ghe_remote_parallel
 
 # Split host:port into parts
 port=$(ssh_port_part "$GHE_HOSTNAME")
@@ -171,7 +172,7 @@ if $CLUSTER; then
   ghe-ssh "$GHE_HOSTNAME" -- /bin/bash >&3 <<EOF
     split -l 1000 $remote_routes_list $remote_tempdir/chunk
     chunks=\$(find $remote_tempdir/ -name chunk\*)
-    parallel -i /bin/sh -c "cat {} | github-env ./bin/storage-cluster-restore-finalize" -- \$chunks
+    $PARALLEL_CMD -i /bin/sh -c "cat {} | github-env ./bin/storage-cluster-restore-finalize" -- \$chunks
 EOF
   increment-progress-total-count 1
   bm_end "$(basename $0) - Finalizing routes"

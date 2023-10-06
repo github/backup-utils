@@ -117,7 +117,7 @@ If you are interested in performing incremental backups of the MySQL data in you
 
 ## Rsync compression
 
-From backup-utils v3.11.0 onwards, we have disabled rsync compression by default to improve transfer speed and reduce CPU usage durign the transfer process.
+From backup-utils v3.11.0 onwards, we have disabled rsync compression by default to improve transfer speed and reduce CPU usage during the transfer process.
 
 If you would like to use compression with rsync, you can add `GHE_RSYNC_COMPRESSION_ENABLED=true` in your `backup.config` file.
 

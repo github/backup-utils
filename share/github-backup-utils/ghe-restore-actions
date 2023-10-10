@@ -52,48 +52,6 @@ log_rsync "END: actions rsync" 1>&3
 # Restore Actions settings.
 ghe_verbose "* Restoring Actions settings to $host ..."
 
-restore-secret "Actions configuration database login" "actions-config-db-login" "secrets.actions.ConfigurationDatabaseSqlLogin"
-restore-secret "Actions configuration database password" "actions-config-db-password" "secrets.actions.ConfigurationDatabaseSqlPassword"
-restore-secret "Actions framework access token key secret" "actions-framework-access-token" "secrets.actions.FrameworkAccessTokenKeySecret"
-restore-secret "Actions Url signing HMAC key primary" "actions-url-signing-hmac-key-primary" "secrets.actions.UrlSigningHmacKeyPrimary"
-restore-secret "Actions Url signing HMAC key secondary" "actions-url-signing-hmac-key-secondary" "secrets.actions.UrlSigningHmacKeySecondary"
-restore-secret "Actions OAuth S2S signing cert" "actions-oauth-s2s-signing-cert" "secrets.actions.OAuthS2SSigningCert"
-restore-secret "Actions OAuth S2S signing key" "actions-oauth-s2s-signing-key" "secrets.actions.OAuthS2SSigningKey"
-restore-secret "Actions OAuth S2S signing cert thumbprint" "actions-oauth-s2s-signing-cert-thumbprint" "secrets.actions.OAuthS2SSigningCertThumbprint"
-restore-secret "Actions primary encryption cert thumbprint" "actions-primary-encryption-cert-thumbprint" "secrets.actions.PrimaryEncryptionCertificateThumbprint"
-restore-secret "Actions AAD cert thumbprint" "actions-aad-cert-thumbprint" "secrets.actions.AADCertThumbprint"
-restore-secret "Actions delegated auth cert thumbprint" "actions-delegated-auth-cert-thumbprint" "secrets.actions.DelegatedAuthCertThumbprint"
-restore-secret "Actions runtime service principal cert" "actions-runtime-service-principal-cert" "secrets.actions.RuntimeServicePrincipalCertificate"
-restore-secret "Actions S2S encryption cert" "actions-s2s-encryption-cert" "secrets.actions.S2SEncryptionCertificate"
-restore-secret "Actions secondary encryption cert thumbprint" "actions-secondary-encryption-cert-thumbprint" "secrets.actions.SecondaryEncryptionCertificateThumbprint"
-restore-secret "Actions service principal cert" "actions-service-principal-cert" "secrets.actions.ServicePrincipalCertificate"
-restore-secret "Actions SPS validation cert thumbprint" "actions-sps-validation-cert-thumbprint" "secrets.actions.SpsValidationCertThumbprint"
-
-restore-secret "Actions Launch secrets encryption/decryption" "actions-launch-secrets-private-key" "secrets.launch.actions-secrets-private-key"
-restore-secret "Actions Launch deployer HMAC key" "actions-launch-deployer-hmac" "secrets.launch.deployer-hmac-secret"
-restore-secret "Actions Launch Client id" "actions-launch-client-id" "secrets.launch.client-id"
-restore-secret "Actions Launch Client secret" "actions-launch-client-secret" "secrets.launch.client-secret"
-restore-secret "Actions Launch receiver webhook secret" "actions-launch-receiver-webhook-secret" "secrets.launch.receiver-webhook-secret"
-restore-secret "Actions Launch app private key" "actions-launch-app-private-key" "secrets.launch.app-private-key"
-restore-secret "Actions Launch app public key" "actions-launch-app-public-key" "secrets.launch.app-public-key"
-restore-secret "Actions Launch app id" "actions-launch-app-id" "secrets.launch.app-id"
-restore-secret "Actions Launch app relay id" "actions-launch-app-relay-id" "secrets.launch.app-relay-id"
-restore-secret "Actions Launch action runner secret" "actions-launch-action-runner-secret" "secrets.launch.action-runner-secret"
-restore-secret "Actions Launch service cert" "actions-launch-azp-app-cert" "secrets.launch.azp-app-cert"
-restore-secret "Actions Launch service private key" "actions-launch-app-app-private-key" "secrets.launch.azp-app-private-key"
-
-restore-secret "Actions Launch token oauth key" "actions-oauth-s2s-signing-key" "secrets.launch.token-oauth-key"
-restore-secret "Actions Launch token oauth cert" "actions-oauth-s2s-signing-cert" "secrets.launch.token-oauth-cert"
-
-# Restore storage container prefix, but only if it exists, and the `-c` option is used with ghe-restore to avoid staging instances using production bucket settings
-if [[ $RESTORE_SETTINGS == "true" ]]; then
-  if [[ -e "$GHE_RESTORE_SNAPSHOT_PATH/actions-storage-container-prefix" ]]; then
-    restore-secret "Actions storage container prefix" "actions-storage-container-prefix" "secrets.actions.storage.container-prefix"
-  else
-    log_warn "Actions storage container prefix not present in backup. Skipping ..."
-  fi
-fi
-
 # Setup the database logins.
 ghe_verbose "* Restoring database logins and users to $host ..."
 

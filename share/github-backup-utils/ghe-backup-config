@@ -659,16 +659,6 @@ prompt_for_confirmation(){
   echo
 }
 
-# Function to restore a secret setting stored in a file.
-#   restore-secret <description> <file-name> <setting-name>
-restore-secret() {
-  if [ -f "$GHE_RESTORE_SNAPSHOT_PATH/$2" ]; then
-    echo "Restoring $1 ..."
-    echo "ghe-config '$3' '$(cat "$GHE_RESTORE_SNAPSHOT_PATH/$2")'" |
-    ghe-ssh "$GHE_HOSTNAME" -- /bin/bash
-  fi
-}
-
 #initialize progress tracking by clearing out the temp files used to track
 init-progress() {
   if [ -d /tmp/backup-utils-progress ]; then

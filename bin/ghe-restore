@@ -466,24 +466,12 @@ else
 fi
 CRON_RUNNING=false
 
+ghe-restore-secrets "$GHE_HOSTNAME"
 
 # Restore settings and license if restoring to an unconfigured appliance or when
 # specified manually.
 if $RESTORE_SETTINGS; then
   ghe-restore-settings "$GHE_HOSTNAME"
-fi
-
-# Always restore column encryption keys
-if [ "$(version $GHE_REMOTE_VERSION)" -ge "$(version 3.7.0)" ]; then
-  log_info "Always restore encrypted column encryption keys on GHES versions 3.7.0+"
-fi
-ghe-restore-column-encryption-keys "$GHE_HOSTNAME"
-
-# Always restore secret scanning encryption keys
-if [ "$(version $GHE_REMOTE_VERSION)" -ge "$(version 3.8.0)" ]; then
-  log_info "Always restore secret scanning encryption keys on GHES versions 3.8.0+"
-  increment-progress-total-count 1
-  ghe-restore-secret-scanning-encryption-keys "$GHE_HOSTNAME"
 fi
 
 # Make sure mysql and elasticsearch are prep'd and running before restoring.
@@ -638,7 +626,6 @@ bm_start "$(basename $0) - Restarting memcached"
 echo "sudo restart -q memcached 2>/dev/null || true" |
 ghe-ssh "$GHE_HOSTNAME" -- /bin/sh
 bm_end "$(basename $0) - Restarting memcached"
-
 
 # Prevent GitHub Connect jobs running before we've had a chance to reset
 # the configuration by setting the last run date to now.

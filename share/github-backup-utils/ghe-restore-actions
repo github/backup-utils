@@ -85,6 +85,14 @@ restore-secret "Actions Launch service private key" "actions-launch-app-app-priv
 restore-secret "Actions Launch token oauth key" "actions-oauth-s2s-signing-key" "secrets.launch.token-oauth-key"
 restore-secret "Actions Launch token oauth cert" "actions-oauth-s2s-signing-cert" "secrets.launch.token-oauth-cert"
 
+# Restore storage container prefix, but only if it exists, and the `-c` option is used with ghe-restore to avoid staging instances using production bucket settings
+if [[ $RESTORE_SETTINGS == "true" ]]; then
+  if [[ -e "$GHE_RESTORE_SNAPSHOT_PATH/actions-storage-container-prefix" ]]; then
+    restore-secret "Actions storage container prefix" "actions-storage-container-prefix" "secrets.actions.storage.container-prefix"
+  else
+    log_warn "Actions storage container prefix not present in backup. Skipping ..."
+  fi
+fi
 
 # Setup the database logins.
 ghe_verbose "* Restoring database logins and users to $host ..."

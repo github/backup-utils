@@ -2,11 +2,10 @@
 
 After the initial backup, use the following commands:
 
- - The `ghe-backup` command creates incremental snapshots of repository data,
-   along with full snapshots of all other pertinent data stores.
- - The `ghe-restore` command restores snapshots to the same or separate GitHub
-   Enterprise appliance. You must add the backup host's SSH key to the target
-   GitHub Enterprise Server appliance before using this command.
+ - The `ghe-backup` command creates incremental snapshots of repository data, long with full snapshots of all other pertinent data stores.
+ - The `ghe-restore` command restores snapshots to the same or separate GitHub 
+Enterprise appliance. You must add the backup host's SSH key to the target
+GitHub Enterprise Server appliance before using this command.
 
 These commands are run on the host you [installed][1] Backup Utilities on.
 

@@ -3,7 +3,7 @@
 After the initial backup, use the following commands:
 
 - The `ghe-backup` command creates incremental snapshots of repository data, long with full snapshots of all other pertinent data stores.
-- The `ghe-restore` command restores snapshots to the same or separate GitHub 
+- The `ghe-restore` command restores snapshots to the same or separate GitHub
 Enterprise appliance. You must add the backup host's SSH key to the target
 GitHub Enterprise Server appliance before using this command.
 
@@ -79,12 +79,12 @@ The `ghe-backup` and `ghe-restore` commands also have a verbose output mode
 (`-v`) that lists files as they're being transferred. It's often useful to
 enable when output is logged to a file.
 
-Every time you execute `ghe-backup` we verify the storage and software setup of the host 
-you [installed][1] Backup Utilities on, to make sure our [requirements][2] for the host are 
-met. You can disable this check using the `--skip-checks` argument or by 
+Every time you execute `ghe-backup` we verify the storage and software setup of the host
+you [installed][1] Backup Utilities on, to make sure our [requirements][2] for the host are
+met. You can disable this check using the `--skip-checks` argument or by
 adding `GHE_SKIP_CHECKS=true` to your configuration file.
 
-### Restoring settings, TLS certificate, and license 
+### Restoring settings, TLS certificate, and license
 
 When restoring to a new GitHub Enterprise Server instance, settings, certificate, and
 license data *are* restored. These settings must be reviewed and saved before
@@ -99,7 +99,7 @@ forcing settings, certificate, and license data to be overwritten with the backu
 ## Backup and restore with GitHub Actions enabled
 
 GitHub Actions data on your external storage provider is not included in regular GitHub Enterprise Server
-backups, and must be backed up separately.  When restoring a GitHub Enterprise Server backup with 
+backups, and must be backed up separately.  When restoring a GitHub Enterprise Server backup with
 GitHub Actions enabled, the following steps are required:
 
 1. Enable GitHub Actions on the replacement appliance and configure it to use the same GitHub Actions

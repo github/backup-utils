@@ -44,10 +44,6 @@ else
     "$snapshot_dir/elasticsearch/" \
     "$(ssh_host_part "$GHE_HOSTNAME"):$GHE_REMOTE_DATA_USER_DIR/elasticsearch-restore" 1>&3
   log_rsync "END: elasticsearch rsync" 1>&3
-  # restoring in >=2.14 will remove incompatible indices created with 1.x.
-  if [ "$GHE_VERSION_MAJOR" -eq 2 ] && [ "$GHE_VERSION_MINOR" -ge 14 ]; then
-    ghe-ssh "$GHE_HOSTNAME" -- "sudo /usr/local/share/enterprise/ghe-es-remove-1x-indices"
-  fi
 fi
 
 bm_end "$(basename $0)"

@@ -122,6 +122,7 @@ if ghe-ssh "$host" -- ghe-config --true app.actions.enabled; then
   backup-secret "Actions secondary encryption cert thumbprint" "actions-secondary-encryption-cert-thumbprint" "secrets.actions.SecondaryEncryptionCertificateThumbprint"
   backup-secret "Actions service principal cert" "actions-service-principal-cert" "secrets.actions.ServicePrincipalCertificate" --best-effort
   backup-secret "Actions SPS validation cert thumbprint" "actions-sps-validation-cert-thumbprint" "secrets.actions.SpsValidationCertThumbprint"
+  backup-secret "Actions storage container prefix" "actions-storage-container-prefix" "secrets.actions.storage.container-prefix"
 
   backup-secret "Actions Launch secrets encryption/decryption" "actions-launch-secrets-private-key" "secrets.launch.actions-secrets-private-key"
   backup-secret "Actions Launch deployer HMAC key" "actions-launch-deployer-hmac" "secrets.launch.deployer-hmac-secret"

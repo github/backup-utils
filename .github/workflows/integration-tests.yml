@@ -7,10 +7,10 @@ on:
   workflow_dispatch:
     inputs:
       target-branch:
-        description: 'Branch that would be merged into'
+        description: 'enterprise2 branch to test against'
         required: true
       source-branch:
-        description: 'Branch that would be merged'
+        description: 'backup-utils-private topic branch to test'
         required: true
 
 # Get target and source branch from different variables depending on how it was triggered

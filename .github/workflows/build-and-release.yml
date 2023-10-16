@@ -85,14 +85,15 @@ jobs:
           owner: ${{ github.repository_owner }}
           repositories: "backup-utils,backup-utils-private"
       - name: Checkout backup-utils
-        if: !github.event.inputs.backup-utils-release-commit
+        if: github.event.inputs.backup-utils-release-commit == ''
         uses: actions/checkout@v4
         with:
           token: ${{ steps.app-token.outputs.token }}
           repository: github/backup-utils
           ref: master
       - name: Create empty commit
-        if: !github.event.inputs.backup-utils-release-commit
+      # if github.event.inputs.backup-utils-release-commit is empty string, then create an empty commit
+        if: github.event.inputs.backup-utils-release-commit == ''
         uses: stefanzweifel/git-auto-commit-action@v4
         id: empty-commit
         with:
@@ -105,7 +106,7 @@ jobs:
           skip_dirty_check: true
       - name: Resolve release commit
         id: resolve-release-commit
-        if: github.event.inputs.backup-utils-release-commit
+        if: github.event.inputs.backup-utils-release-commit != ''
         run: |
           echo "Useing sha from input backup-utils-release-commit"
           echo "release-commit=${{ github.event.inputs.backup-utils-release-commit }}" >> $GITHUB_OUTPUT

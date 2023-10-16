@@ -25,7 +25,6 @@ jobs:
       - uses: actions/create-github-app-token@v1
         id: app-token
         with:
-          # required
           app-id: ${{ vars.RELEASE_CONTROLLER_APP_ID }}
           private-key: ${{ secrets.RELEASE_CONTROLLER_APP_PRIVATE_KEY }}
           owner: ${{ github.repository_owner }}
@@ -92,7 +91,6 @@ jobs:
           repository: github/backup-utils
           ref: master
       - name: Create empty commit
-      # if github.event.inputs.backup-utils-release-commit is empty string, then create an empty commit
         if: github.event.inputs.backup-utils-release-commit == ''
         uses: stefanzweifel/git-auto-commit-action@v4
         id: empty-commit
@@ -114,11 +112,11 @@ jobs:
             echo "Using provided commit sha for release commit"
             echo "release-commit=\"${{ github.event.inputs.backup-utils-release-commit }}\"" >> "$GITHUB_OUTPUT"
           fi
-      - name: Checkout backup-utils-private
-        uses: actions/checkout@v4
-        with:
-          token: ${{ steps.app-token.outputs.token }}
-          repository: github/backup-utils-private
+      # - name: Checkout backup-utils-private
+      #   uses: actions/checkout@v4
+      #   with:
+      #     token: ${{ steps.app-token.outputs.token }}
+      #     repository: github/backup-utils-private
       - name: Download deb artifact
         uses: actions/download-artifact@v3
         with:
@@ -138,7 +136,6 @@ jobs:
             github-backup-utils-v${{ github.event.inputs.version }}.tar.gz, \
             github-backup-utils_${{ github.event.inputs.version }}_all.deb
           tag: v${{ github.event.inputs.version }}
-          # use release-commit value
           commit: ${{ steps.resolve-release-commit.outputs.release-commit }}
           bodyFile: release-notes/${{ github.event.inputs.version }}.md
           draft: ${{ github.event.inputs.draft }}

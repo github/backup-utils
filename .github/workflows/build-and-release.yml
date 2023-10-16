@@ -8,15 +8,15 @@ on:
         description: 'Version - patch version of the release (e.g. x.y.z)'
         required: true
         type: string
+      backup-utils-release-commit:
+        description: 'Backup Utils Release Commit - sha of the commit to associate with backup-utils release. If blank, an empty commit will be created on master'
+        required: false
+        type: string
       draft:
         description: 'Draft - true if the release should be a draft'
         required: true
         type: boolean
         default: true
-      backup-utils-release-commit:
-        description: 'Backup Utils Release Commit - sha of the commit to associate with backup-utils release. If blank, an empty commit will be created on master'
-        required: false
-        type: string
 
 jobs:
   build:

@@ -129,6 +129,7 @@ jobs:
         uses: ncipollo/release-action@v1
         with:
           token: ${{ steps.app-token.outputs.token }}
+          owner: github
           repo: backup-utils
           name: |
             GitHub Enterprise Server Backup Utilities v${{ github.event.inputs.version }}

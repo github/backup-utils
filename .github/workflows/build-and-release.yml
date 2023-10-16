@@ -85,7 +85,7 @@ jobs:
           owner: ${{ github.repository_owner }}
           repositories: "backup-utils,backup-utils-private"
       - name: Checkout backup-utils
-        if: github.event.inputs.backup-utils-release-commit == ''
+        if: ${{ github.event.inputs.backup-utils-release-commit }} == ''
         uses: actions/checkout@v4
         with:
           token: ${{ steps.app-token.outputs.token }}
@@ -93,7 +93,7 @@ jobs:
           ref: master
       - name: Create empty commit
       # if github.event.inputs.backup-utils-release-commit is empty string, then create an empty commit
-        if: github.event.inputs.backup-utils-release-commit == ''
+        if: ${{ github.event.inputs.backup-utils-release-commit }} == ''
         uses: stefanzweifel/git-auto-commit-action@v4
         id: empty-commit
         with:
@@ -144,7 +144,3 @@ jobs:
           draft: ${{ github.event.inputs.draft }}
           allowUpdates: true
           artifactContentType: "raw"
-
-
-
-

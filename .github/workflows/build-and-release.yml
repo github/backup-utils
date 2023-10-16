@@ -37,9 +37,8 @@ jobs:
         with:
           branch: master
           commit_message: "Test ${{ github.event.inputs.version }} release commit"
-          commit_user_name: "release-controller"
+          commit_user_name: "${{ github.actor }}"
           commit_user_email: "ghes-releases-team@github.com"
-          commit_author: "release-controller <release-controller[bot]@users.noreply.github.com>"
           commit_options: "--allow-empty"
           push_options: "--force"
           skip_dirty_check: true

@@ -24,7 +24,7 @@ jobs:
     steps:
       # resulting token still gets denied by the backup-utils repo
       # see: https://github.com/actions/create-github-app-token/pull/46
-      - uses: timreimherr/create-github-app-token@main
+      - uses: actions/create-github-app-token@v1
         id: app-token
         with:
           # required

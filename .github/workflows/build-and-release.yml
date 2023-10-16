@@ -107,13 +107,13 @@ jobs:
       - name: Resolve release commit
         id: resolve-release-commit
         run: |
-          "if [[ -z '${{ github.event.inputs.backup-utils-release-commit }}' ]]; then
-            echo 'Using empty commit sha for release commit'
-            echo 'release-commit=${{ steps.empty-commit.outputs.commit_hash }}' >> $GITHUB_OUTPUT
+          if [[ -z "${{ github.event.inputs.backup-utils-release-commit }}" ]]; then
+            echo "Using empty commit sha for release commit"
+            echo "release-commit=\"${{ steps.empty-commit.outputs.commit_hash }}\"" >> "$GITHUB_OUTPUT"
           else
-            echo 'Using provided commit sha for release commit'
-            echo 'release-commit=${{ github.event.inputs.backup-utils-release-commit }}' >> $GITHUB_OUTPUT
-          fi"
+            echo "Using provided commit sha for release commit"
+            echo "release-commit=\"${{ github.event.inputs.backup-utils-release-commit }}\"" >> "$GITHUB_OUTPUT"
+          fi
       - name: Checkout backup-utils-private
         uses: actions/checkout@v4
         with:

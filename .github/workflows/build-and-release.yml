@@ -14,7 +14,7 @@ on:
         type: boolean
         default: true
       backup-utils-release-commit:
-        description: 'Backup Utils Release Commit - sha of the commit to associate with backup-utils release, if empty an empty commit will be created on master'
+        description: 'Backup Utils Release Commit - sha of the commit to associate with backup-utils release. If blank, an empty commit will be created on master'
         required: false
         type: string
 

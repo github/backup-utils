@@ -8,7 +8,7 @@ on:
         description: 'Version - patch version of the release (e.g. x.y.z)'
         required: true
         type: string
-      branch-ref-or-commit:
+      branch_ref_or_commit:
         description: 'Branch ref or commit -  the backup-utils release will associated with the branch ref or commit provided. If blank, an empty commit will be created on master'
         required: false
         type: string
@@ -80,14 +80,14 @@ jobs:
       release-ref-or-commit: ${{ steps.resolve-release-commit.outputs.release-ref-or-commit }}
     steps:
       - name: Checkout backup-utils
-        if: github.event.inputs.branch-ref-or-commit == ''
+        if: github.event.inputs.branch_ref_or_commit == ''
         uses: actions/checkout@v4
         with:
           token: ${{ needs.build.outputs.token }}
           repository: github/backup-utils
           ref: master
       - name: Create empty commit
-        if: github.event.inputs.branch-ref-or-commit == ''
+        if: github.event.inputs.branch_ref_or_commit == ''
         uses: stefanzweifel/git-auto-commit-action@v4
         id: empty-commit
         with:
@@ -101,12 +101,12 @@ jobs:
       - name: Resolve release commit
         id: resolve-release-commit
         run: |
-          if [[ -z "${{ github.event.inputs.branch-ref-or-commit }}" ]]; then
+          if [[ -z "${{ github.event.inputs.branch_ref_or_commit }}" ]]; then
             echo "Using empty commit sha for release commit"
             echo "release-ref-or-commit=\"${{ steps.empty-commit.outputs.commit_hash }}\"" >> "$GITHUB_OUTPUT"
           else
             echo "Using provided commit sha for release commit"
-            echo "release-ref-or-commit=\"${{ github.event.inputs.branch-ref-or-commit }}\"" >> "$GITHUB_OUTPUT"
+            echo "release-ref-or-commit=\"${{ github.event.inputs.branch_ref_or_commit }}\"" >> "$GITHUB_OUTPUT"
           fi
       # need backup-utils-private for release notes
       - name: Checkout backup-utils-private

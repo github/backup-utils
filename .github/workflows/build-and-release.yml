@@ -23,7 +23,7 @@ jobs:
     name: build
     runs-on: ubuntu-latest
     outputs:
-      token: ${{ steps.app-token.outputs.token }}
+      rc-app-token: ${{ steps.app-token.outputs.token }}
     steps:
       - uses: actions/create-github-app-token@v1
         id: app-token
@@ -32,6 +32,7 @@ jobs:
           private-key: ${{ secrets.RELEASE_CONTROLLER_APP_PRIVATE_KEY }}
           owner: ${{ github.repository_owner }}
           repositories: "backup-utils,backup-utils-private"
+          skip-token-revoke: true
       - name: Checkout backup-utils-private
         uses: actions/checkout@v4
         with:
@@ -83,7 +84,7 @@ jobs:
         if: github.event.inputs.branch_ref_or_commit == ''
         uses: actions/checkout@v4
         with:
-          token: ${{ needs.build.outputs.token }}
+          token: ${{ needs.build.outputs.rc-app-token }}
           repository: github/backup-utils
           ref: master
       - name: Create empty commit
@@ -108,11 +109,10 @@ jobs:
             echo "Using provided commit sha for release commit"
             echo "release-ref-or-commit=\"${{ github.event.inputs.branch_ref_or_commit }}\"" >> "$GITHUB_OUTPUT"
           fi
-      # need backup-utils-private for release notes
-      - name: Checkout backup-utils-private
+      - name: Checkout backup-utils-private for release notes
         uses: actions/checkout@v4
         with:
-          token: ${{ needs.build.outputs.token }}
+          token: ${{ needs.build.outputs.rc-app-token }}
           repository: github/backup-utils-private
       - name: Download deb artifact
         uses: actions/download-artifact@v3
@@ -125,7 +125,7 @@ jobs:
       - name: Create Release
         uses: ncipollo/release-action@v1
         with:
-          token: ${{ needs.build.outputs.token }}
+          token: ${{ needs.build.outputs.rc-app-token }}
           owner: github
           repo: backup-utils
           name: |

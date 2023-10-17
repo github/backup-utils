@@ -8,8 +8,8 @@ on:
         description: 'Version - patch version of the release (e.g. x.y.z)'
         required: true
         type: string
-      backup-utils-release-commit:
-        description: 'Backup Utils Release Commit - sha of the commit to associate with backup-utils release. If blank, an empty commit will be created on master'
+      branch-ref-or-commit:
+        description: 'Branch ref or commit -  the backup-utils release will associated with the branch ref or commit provided. If blank, an empty commit will be created on master'
         required: false
         type: string
       draft:
@@ -84,14 +84,14 @@ jobs:
           owner: ${{ github.repository_owner }}
           repositories: "backup-utils,backup-utils-private"
       - name: Checkout backup-utils
-        if: github.event.inputs.backup-utils-release-commit == ''
+        if: github.event.inputs.branch-ref-or-commit == ''
         uses: actions/checkout@v4
         with:
           token: ${{ steps.app-token.outputs.token }}
           repository: github/backup-utils
           ref: master
       - name: Create empty commit
-        if: github.event.inputs.backup-utils-release-commit == ''
+        if: github.event.inputs.branch-ref-or-commit == ''
         uses: stefanzweifel/git-auto-commit-action@v4
         id: empty-commit
         with:
@@ -105,12 +105,12 @@ jobs:
       - name: Resolve release commit
         id: resolve-release-commit
         run: |
-          if [[ -z "${{ github.event.inputs.backup-utils-release-commit }}" ]]; then
+          if [[ -z "${{ github.event.inputs.branch-ref-or-commit }}" ]]; then
             echo "Using empty commit sha for release commit"
             echo "release-commit=\"${{ steps.empty-commit.outputs.commit_hash }}\"" >> "$GITHUB_OUTPUT"
           else
             echo "Using provided commit sha for release commit"
-            echo "release-commit=\"${{ github.event.inputs.backup-utils-release-commit }}\"" >> "$GITHUB_OUTPUT"
+            echo "release-commit=\"${{ github.event.inputs.branch-ref-or-commit }}\"" >> "$GITHUB_OUTPUT"
           fi
       # need backup-utils-private for release notes
       - name: Checkout backup-utils-private

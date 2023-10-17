@@ -20,7 +20,10 @@ on:
 
 jobs:
   build:
+    name: build
     runs-on: ubuntu-latest
+    outputs:
+      token: ${{ steps.app-token.outputs.token }}
     steps:
       - uses: actions/create-github-app-token@v1
         id: app-token
@@ -74,20 +77,13 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       commit_hash: ${{ steps.empty-commit.outputs.commit_hash }}
-      release-commit: ${{ steps.resolve-release-commit.outputs.release-commit }}
+      release-ref-or-commit: ${{ steps.resolve-release-commit.outputs.release-ref-or-commit }}
     steps:
-      - uses: actions/create-github-app-token@v1
-        id: app-token
-        with:
-          app-id: ${{ vars.RELEASE_CONTROLLER_APP_ID }}
-          private-key: ${{ secrets.RELEASE_CONTROLLER_APP_PRIVATE_KEY }}
-          owner: ${{ github.repository_owner }}
-          repositories: "backup-utils,backup-utils-private"
       - name: Checkout backup-utils
         if: github.event.inputs.branch-ref-or-commit == ''
         uses: actions/checkout@v4
         with:
-          token: ${{ steps.app-token.outputs.token }}
+          token: ${{ needs.build.outputs.token }}
           repository: github/backup-utils
           ref: master
       - name: Create empty commit
@@ -107,16 +103,16 @@ jobs:
         run: |
           if [[ -z "${{ github.event.inputs.branch-ref-or-commit }}" ]]; then
             echo "Using empty commit sha for release commit"
-            echo "release-commit=\"${{ steps.empty-commit.outputs.commit_hash }}\"" >> "$GITHUB_OUTPUT"
+            echo "release-ref-or-commit=\"${{ steps.empty-commit.outputs.commit_hash }}\"" >> "$GITHUB_OUTPUT"
           else
             echo "Using provided commit sha for release commit"
-            echo "release-commit=\"${{ github.event.inputs.branch-ref-or-commit }}\"" >> "$GITHUB_OUTPUT"
+            echo "release-ref-or-commit=\"${{ github.event.inputs.branch-ref-or-commit }}\"" >> "$GITHUB_OUTPUT"
           fi
       # need backup-utils-private for release notes
       - name: Checkout backup-utils-private
         uses: actions/checkout@v4
         with:
-          token: ${{ steps.app-token.outputs.token }}
+          token: ${{ needs.build.outputs.token }}
           repository: github/backup-utils-private
       - name: Download deb artifact
         uses: actions/download-artifact@v3
@@ -129,7 +125,7 @@ jobs:
       - name: Create Release
         uses: ncipollo/release-action@v1
         with:
-          token: ${{ steps.app-token.outputs.token }}
+          token: ${{ needs.build.outputs.token }}
           owner: github
           repo: backup-utils
           name: |
@@ -138,7 +134,7 @@ jobs:
             github-backup-utils-v${{ github.event.inputs.version }}.tar.gz, \
             github-backup-utils_${{ github.event.inputs.version }}_all.deb
           tag: v${{ github.event.inputs.version }}
-          commit: ${{ steps.resolve-release-commit.outputs.release-commit }}
+          commit: ${{ steps.resolve-release-commit.outputs.release-ref-or-commit }}
           bodyFile: release-notes/${{ github.event.inputs.version }}.md
           draft: ${{ github.event.inputs.draft }}
           allowUpdates: true

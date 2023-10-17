@@ -112,11 +112,12 @@ jobs:
             echo "Using provided commit sha for release commit"
             echo "release-commit=\"${{ github.event.inputs.backup-utils-release-commit }}\"" >> "$GITHUB_OUTPUT"
           fi
-      # - name: Checkout backup-utils-private
-      #   uses: actions/checkout@v4
-      #   with:
-      #     token: ${{ steps.app-token.outputs.token }}
-      #     repository: github/backup-utils-private
+      # need backup-utils-private for release notes
+      - name: Checkout backup-utils-private
+        uses: actions/checkout@v4
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          repository: github/backup-utils-private
       - name: Download deb artifact
         uses: actions/download-artifact@v3
         with:

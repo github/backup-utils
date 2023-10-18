@@ -83,7 +83,7 @@ jobs:
       - name: Get major-feature from version
         id: get-major-feature
         run: |
-          echo "MAJOR_FEATURE=\"$(echo "${{ github.event.inputs.version }}" | cut -d '.' -f 1,2)\"" >> "$GITHUB_ENV"
+          echo "MAJOR_FEATURE=$(echo ${{ github.event.inputs.version }} | cut -d '.' -f 1,2)" >> "$GITHUB_ENV"
       - name: Verify major-feature
         run: |
           echo "major_feature: $MAJOR_FEATURE"

@@ -83,7 +83,10 @@ jobs:
       - name: Get major-feature from version
         id: get-major-feature
         run: |
-          echo "major-feature=\"$(echo "${{ github.event.inputs.version }}" | cut -d '.' -f 1,2)\"" >> "$GITHUB_OUTPUT"
+          echo "MAJOR_FEATURE=$(echo "${{ github.event.inputs.version }} | cut -d '.' -f 1,2)" >> "$GITHUB_ENV"
+      - name: Verify major-feature
+        run: |
+          echo "major_feature: $MAJOR_FEATURE"
       - name: Checkout backup-utils
         uses: actions/checkout@v4
         with:
@@ -93,7 +96,7 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v4
         id: empty-commit
         with:
-          branch: ${{ steps.get-major-feature.outputs.major-feature}}-stable
+          branch: ${{ env.MAJOR_FEATURE }}-stable
           commit_message: "Test ${{ github.event.inputs.version }} release commit"
           commit_user_name: "release-controller[bot]"
           commit_user_email: "223695+release-controller[bot]@users.noreply.github.com"

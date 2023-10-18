@@ -118,6 +118,7 @@ cleanup () {
 
   rm -rf "$failures_file"
   rm -f "${GHE_DATA_DIR}/in-progress-backup"
+  rm -rf /tmp/backup-utils-progress/*
 
   # Cleanup SSH multiplexing
   ghe-ssh --clean
@@ -265,6 +266,9 @@ bm_init > /dev/null
 
 ghe-backup-store-version  ||
 log_warn "Warning: storing backup-utils version remotely failed."
+
+log_info "Backing up GitHub secrets ..."
+ghe-backup-secrets || failures="$failures secrets"
 
 log_info "Backing up GitHub settings ..."
 ghe-backup-settings || failures="$failures settings"

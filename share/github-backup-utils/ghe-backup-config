@@ -462,6 +462,24 @@ ghe_parse_remote_version() {
   export GHE_VERSION_MAJOR GHE_VERSION_MINOR GHE_VERSION_PATCH
 }
 
+# In 3.11 we started to install 2 different version parallel(s)
+# moreutils parallel and GNU parallel. When gnu parallel is installed,
+# it renames moreutils parallel to parallel.moreutils
+# set $PARALLEL_CMD envvar to be used in place of parallel commands
+ghe_remote_parallel() {
+  if [ -z "$GHE_REMOTE_VERSION" ]; then
+    echo "Error: ghe_remote_version_required needs to be invoked before ghe_remote_parallel" 1>&2
+    exit 1
+  fi
+
+  if [ "$GHE_VERSION_MINOR" -lt 11 ]; then
+    PARALLEL_CMD="parallel"
+  else
+    PARALLEL_CMD="parallel.moreutils"
+  fi
+  export PARALLEL_CMD
+}
+
 # Parses the <host> part out of a "<host>:<port>" or just "<host>" string.
 # This is used primarily to break hostspecs with non-standard ports down for
 # rsync commands.
@@ -639,16 +657,6 @@ prompt_for_confirmation(){
   done
 
   echo
-}
-
-# Function to restore a secret setting stored in a file.
-#   restore-secret <description> <file-name> <setting-name>
-restore-secret() {
-  if [ -f "$GHE_RESTORE_SNAPSHOT_PATH/$2" ]; then
-    echo "Restoring $1 ..."
-    echo "ghe-config '$3' '$(cat "$GHE_RESTORE_SNAPSHOT_PATH/$2")'" |
-    ghe-ssh "$GHE_HOSTNAME" -- /bin/bash
-  fi
 }
 
 #initialize progress tracking by clearing out the temp files used to track

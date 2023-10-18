@@ -97,7 +97,7 @@ jobs:
         id: empty-commit
         with:
           branch: ${{ env.MAJOR_FEATURE }}-stable
-          commit_message: "Test ${{ github.event.inputs.version }} release commit"
+          commit_message: "${{ github.event.inputs.version }} release"
           commit_user_name: "release-controller[bot]"
           commit_user_email: "223695+release-controller[bot]@users.noreply.github.com"
           commit_options: "--allow-empty"

@@ -76,7 +76,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       commit_hash: ${{ steps.empty-commit.outputs.commit_hash }}
-      release-ref-or-commit: ${{ steps.resolve-release-commit.outputs.release-ref-or-commit }}
+      # release-ref-or-commit: ${{ steps.resolve-release-commit.outputs.release-ref-or-commit }}
     steps:
       - uses: actions/create-github-app-token@v1
         id: app-token

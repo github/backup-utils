@@ -91,7 +91,7 @@ jobs:
         with:
           token: ${{ steps.app-token.outputs.token }}
           repository: github/backup-utils
-          ref: ${{ github.event.inputs.branch_ref_or_commit }}}
+          # ref: ${{ github.event.inputs.branch_ref_or_commit }}}
       - name: Create empty commit
         # if: github.event.inputs.branch_ref_or_commit == ''
         uses: stefanzweifel/git-auto-commit-action@v4

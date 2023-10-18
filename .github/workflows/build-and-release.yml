@@ -72,7 +72,7 @@ jobs:
           path: |
             dist/github-backup-utils-v${{ github.event.inputs.version }}.tar.gz
   release:
-    # needs: build
+    needs: build
     runs-on: ubuntu-latest
     outputs:
       commit_hash: ${{ steps.empty-commit.outputs.commit_hash }}

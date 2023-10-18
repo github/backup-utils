@@ -86,14 +86,14 @@ jobs:
           owner: ${{ github.repository_owner }}
           repositories: "backup-utils,backup-utils-private"
       - name: Checkout backup-utils
-        # if: github.event.inputs.branch_ref_or_commit == ''
+        if: github.event.inputs.branch_ref_or_commit == ''
         uses: actions/checkout@v4
         with:
           token: ${{ steps.app-token.outputs.token }}
           repository: github/backup-utils
           # ref: ${{ github.event.inputs.branch_ref_or_commit }}}
       - name: Create empty commit
-        # if: github.event.inputs.branch_ref_or_commit == ''
+        if: github.event.inputs.branch_ref_or_commit == ''
         uses: stefanzweifel/git-auto-commit-action@v4
         id: empty-commit
         with:
@@ -104,16 +104,16 @@ jobs:
           commit_options: "--allow-empty"
           push_options: "--force"
           skip_dirty_check: true
-      # - name: Resolve release commit
-      #   id: resolve-release-commit
-      #   run: |
-      #     if [[ -z "${{ github.event.inputs.branch_ref_or_commit }}" ]]; then
-      #       echo "Using empty commit sha for release commit"
-      #       echo "release-ref-or-commit=\"${{ steps.empty-commit.outputs.commit_hash }}\"" >> "$GITHUB_OUTPUT"
-      #     else
-      #       echo "Using provided commit sha for release commit"
-      #       echo "release-ref-or-commit=\"${{ github.event.inputs.branch_ref_or_commit }}\"" >> "$GITHUB_OUTPUT"
-      #     fi
+      - name: Resolve release commit
+        id: resolve-release-commit
+        run: |
+          if [[ -z "${{ github.event.inputs.branch_ref_or_commit }}" ]]; then
+            echo "Using empty commit sha for release commit"
+            echo "release-ref-or-commit=\"${{ steps.empty-commit.outputs.commit_hash }}\"" >> "$GITHUB_OUTPUT"
+          else
+            echo "Using provided commit sha for release commit"
+            echo "release-ref-or-commit=\"${{ github.event.inputs.branch_ref_or_commit }}\"" >> "$GITHUB_OUTPUT"
+          fi
       - name: Checkout backup-utils-private for release notes
         uses: actions/checkout@v4
         with:
@@ -139,7 +139,7 @@ jobs:
           #   github-backup-utils-v${{ github.event.inputs.version }}.tar.gz, \
           #   github-backup-utils_${{ github.event.inputs.version }}_all.deb
           tag: v${{ github.event.inputs.version }}
-          commit: ${{ steps.empty-commit.outputs.commit_hash }}
+          commit: ${{ steps.resolve-release-commit.outputs.release-ref-or-commit }}
           bodyFile: release-notes/${{ github.event.inputs.version }}.md
           draft: ${{ github.event.inputs.draft }}
           allowUpdates: true

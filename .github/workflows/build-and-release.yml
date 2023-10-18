@@ -8,10 +8,6 @@ on:
         description: 'Version - patch version of the release (e.g. x.y.z)'
         required: true
         type: string
-      release_commit_branch:
-        description: 'Release Commit Branch -  the branch on which the release commit will be made.'
-        required: true
-        type: string
       draft:
         description: 'Draft - true if the release should be a draft'
         required: true
@@ -76,7 +72,6 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       commit_hash: ${{ steps.empty-commit.outputs.commit_hash }}
-      # release-ref-or-commit: ${{ steps.resolve-release-commit.outputs.release-ref-or-commit }}
     steps:
       - uses: actions/create-github-app-token@v1
         id: app-token
@@ -85,17 +80,20 @@ jobs:
           private-key: ${{ secrets.RELEASE_CONTROLLER_APP_PRIVATE_KEY }}
           owner: ${{ github.repository_owner }}
           repositories: "backup-utils,backup-utils-private"
+      - name: Get major-feature from version
+        id: get-major-feature
+        run: |
+          echo "major-feature=\"$(echo "${{ github.event.inputs.version }}" | cut -d '.' -f 1,2)\"" >> "$GITHUB_OUTPUT"
       - name: Checkout backup-utils
         uses: actions/checkout@v4
         with:
           token: ${{ steps.app-token.outputs.token }}
           repository: github/backup-utils
       - name: Create empty commit
-        # if: github.event.inputs.release_commit_branch == ''
         uses: stefanzweifel/git-auto-commit-action@v4
         id: empty-commit
         with:
-          branch: ${{ github.event.inputs.release_commit_branch }}
+          branch: ${{ steps.get-major-feature.outputs.major-feature}}-stable
           commit_message: "Test ${{ github.event.inputs.version }} release commit"
           commit_user_name: "release-controller[bot]"
           commit_user_email: "223695+release-controller[bot]@users.noreply.github.com"
@@ -134,10 +132,10 @@ jobs:
           name: |
             GitHub Enterprise Server Backup Utilities v${{ github.event.inputs.version }}
           artifacts: |
-            github-backup-utils-v${{ github.event.inputs.version }}.tar.gz, \
+            github-backup-utils-v${{ github.event.inputs.version }}.tar.gz,
             github-backup-utils_${{ github.event.inputs.version }}_all.deb
           tag: v${{ github.event.inputs.version }}
-          commit: 3.9-main
+          commit: ${{ steps.get-major-feature.outputs.major-feature}}-stable
           bodyFile: release-notes/${{ github.event.inputs.version }}.md
           draft: ${{ github.event.inputs.draft }}
           allowUpdates: true

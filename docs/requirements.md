@@ -5,7 +5,7 @@ storage and must have network connectivity with the GitHub Enterprise Server app
 
 ## Backup host requirements
 
-Backup host software requirements are modest: Linux or other modern Unix operating system (Ubuntu is highly recommended) with [bash][1], [git][2], [OpenSSH][3] 5.6 or newer, [rsync][4] v2.6.4 or newer* (see [below](april-2023-update-of-rsync-requirements) for exceptions), and [jq][11] v1.5 or newer. See below for an update on rsync.
+Backup host software requirements are modest: Linux or other modern Unix operating system (Ubuntu is highly recommended) with [bash][1], [git][2], [OpenSSH][3] 5.6 or newer, [rsync][4] v2.6.4 or newer* (see [below](#april-2023-update-of-rsync-requirements) for exceptions), [jq][11] v1.5 or newer, and [bc][12] v1.07 or newer.
 
 The parallel backup and restore feature will require [GNU awk][10] and [moreutils][9] to be installed.
 
@@ -57,6 +57,8 @@ Using a [case sensitive][7] file system is also required to avoid conflicts.
 
 Performance of backup and restore operations are also dependent on the backup host's storage. We recommend using a high performance storage system with low latency and high IOPS.
 
+Please avoid using an NFS mount for the data directory (where backup data is stored) as this can cause performance issues and timeouts during backups.
+
 ## GitHub Enterprise Server version requirements
 
 Starting with Backup Utilities v2.13.0, version support is inline with that of the
@@ -95,7 +97,8 @@ Due to how some components of Backup Utilities (e.g. MSSQL) take incremental bac
 [5]: https://en.wikipedia.org/wiki/Hard_link
 [6]: https://en.wikipedia.org/wiki/Symbolic_link
 [7]: https://en.wikipedia.org/wiki/Case_sensitivity
-[8]: https://help.github.com/enterprise/admin/guides/installation/upgrade-requirements/
+[8]: https://docs.github.com/enterprise-server/admin/monitoring-managing-and-updating-your-instance/updating-the-virtual-machine-and-physical-resources/upgrade-requirements
 [9]: https://joeyh.name/code/moreutils
 [10]: https://www.gnu.org/software/gawk
 [11]: https://stedolan.github.io/jq/
+[12]: https://www.gnu.org/software/bc/

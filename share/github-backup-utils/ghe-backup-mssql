@@ -30,11 +30,11 @@ export_tool_available() {
 }
 
 ghe_ssh_mssql() {
-  ghe-ssh $opts $ssh_config_file_opt "$GHE_MSSQL_PRIMARY_HOST" "$@"
+  ghe-ssh "${opts[@]}" "${ssh_config_file_opt[@]}" "$GHE_MSSQL_PRIMARY_HOST" "$@"
 }
 
 cleanup() {
-  rm -rf $tempdir
+  rm -rf "$tempdir"
 }
 trap 'cleanup' EXIT INT
 
@@ -47,32 +47,32 @@ if [ -z "$GHE_MSSQL_PRIMARY_HOST" ]; then
 fi
 
 tempdir=$(mktemp -d -t backup-utils-backup-XXXXXX)
-ssh_config_file_opt=
-opts=
+ssh_config_file_opt=()
+opts=()
 
 isHA="$(ghe-ssh "$GHE_HOSTNAME" -- "ghe-config cluster.ha" || true)"
 
 # get server hostnames under cluster and HA
 if [ "$GHE_BACKUP_STRATEGY" = "cluster" ] || [ "$isHA" = "true" ]  ; then
   ssh_config_file="$tempdir/ssh_config"
-  ssh_config_file_opt="-F $ssh_config_file"
-  opts="-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no"
+  ssh_config_file_opt=("-F" "$ssh_config_file")
+  opts=("-o" "UserKnownHostsFile=/dev/null" "-o" "StrictHostKeyChecking=no" "-o" "PasswordAuthentication=no")
   ghe-ssh-config "$GHE_HOSTNAME" "$GHE_MSSQL_PRIMARY_HOST" > "$ssh_config_file"
 fi
 
 if ! export_tool_available ; then
   log_error "ghe-export-mssql is not available" 1>&2
-  exit
+  exit 1
 fi
 
 add_minute() {
   # Expect date string in the format of yyyymmddTHHMMSS
   # Here parse date differently depending on GNU Linux vs BSD MacOS
   if date -v -1d > /dev/null 2>&1; then
-    echo "$(date -v +$2M -ujf'%Y%m%dT%H%M%S' $1 +%Y%m%dT%H%M%S)"
+    date -v +"$2"M -ujf'%Y%m%dT%H%M%S' "$1" +%Y%m%dT%H%M%S
   else
     dt=$1
-    echo "$(date -u '+%Y%m%dT%H%M%S' -d "${dt:0:8} ${dt:9:2}:${dt:11:2}:${dt:13:2} $2 minutes")"
+    date -u '+%Y%m%dT%H%M%S' -d "${dt:0:8} ${dt:9:2}:${dt:11:2}:${dt:13:2} $2 minutes"
   fi
 }
 
@@ -335,9 +335,12 @@ if [ -n "$backup_type" ]; then
   elif [ "$backup_type" = "transaction" ]; then
     backup_command='ghe-export-mssql -t'
   fi
-  
+
+  backup_failed=
+
   bm_start "$(basename "$0")"
-  ghe_ssh_mssql  -- "$backup_command" || failures="$failures mssql"
+  # record if generating the backup failed, this will allow us to collect any backups that may have been produced, even if they are not complete they are better than nothing
+  ghe_ssh_mssql -- "$backup_command" || backup_failed='true'
   bm_end "$(basename "$0")"
 
   # Configure the backup cadence on the appliance, which is used for diagnostics
@@ -352,4 +355,9 @@ if [ -n "$backup_type" ]; then
     ghe_verbose "Transferring to backup host $b"
     ghe_ssh_mssql "sudo cat $appliance_dir/$b" > "$backup_dir"/"$b"
   done
+
+  if [ -n "$backup_failed" ]; then
+    log_error 'ghe-export-mssql failed to backup at least one mssql database' 1>&2
+    exit 1
+  fi
 fi

@@ -19,9 +19,64 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[0;33m'
 BLUE='\033[0;34m'
-NC='\033[0m' # No Colo# Logging display and formatting functions
+NC='\033[0m' # No Color
 
-# Log a message to stdout
+
+# Assume this script lives in share/github-backup-utils/ when setting the root
+GHE_BACKUP_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+
+# Get the version from the version file.
+BACKUP_UTILS_VERSION="$(cat "$GHE_BACKUP_ROOT/share/github-backup-utils/version")"
+
+# If a version check was requested, show the current version and exit
+if [ -n "$GHE_SHOW_VERSION" ]; then
+  echo "GitHub backup-utils v$BACKUP_UTILS_VERSION"
+  exit 0
+fi
+
+# Check for "--help|-h" in args or GHE_SHOW_HELP=true and show usage
+# shellcheck disable=SC2120 # Our arguments are optional and not meant to be the owning script's
+print_usage() {
+  grep '^#/' <"$0" | cut -c 4-
+  exit "${1:-1}"
+}
+
+if [ -n "$GHE_SHOW_HELP" ]; then
+  print_usage
+else
+  for a in "$@"; do
+    if [ "$a" = "--help" ] || [ "$a" = "-h" ]; then
+      print_usage
+    fi
+  done
+fi
+
+# Save off GHE_HOSTNAME from the environment since we want it to override the
+# backup.config value when set.
+GHE_HOSTNAME_PRESERVE="$GHE_HOSTNAME"
+
+# Source in the backup config file from the copy specified in the environment
+# first and then fall back to the backup-utils root, home directory and system.
+config_found=false
+for f in "$GHE_BACKUP_CONFIG" "$GHE_BACKUP_ROOT/backup.config" \
+  "$HOME/.github-backup-utils/backup.config" "/etc/github-backup-utils/backup.config"; do
+  if [ -f "$f" ]; then
+    GHE_BACKUP_CONFIG="$f"
+    # shellcheck disable=SC1090 # This is a user-supplied value that can't be predicted
+    . "$GHE_BACKUP_CONFIG"
+    config_found=true
+    break
+  fi
+done
+
+GHE_RESTORE_IN_PROGRESS=$(readlink -fm "${GHE_DATA_DIR}/in-progress-restore")
+GHE_BACKUP_IN_PROGRESS=$(readlink -fm "${GHE_DATA_DIR}/in-progress-backup")
+
+export GHE_RESTORE_IN_PROGRESS
+export GHE_BACKUP_IN_PROGRESS
+
+# Logging display and formatting functions
+
 log_level() {
   local level=$1
   shift
@@ -91,69 +146,15 @@ log_ssh(){
   log_level "ssh" "$1"
 }
 
-# Assume this script lives in share/github-backup-utils/ when setting the root
-GHE_BACKUP_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-
-# Get the version from the version file.
-BACKUP_UTILS_VERSION="$(cat "$GHE_BACKUP_ROOT/share/github-backup-utils/version")"
-
-# If a version check was requested, show the current version and exit
-if [ -n "$GHE_SHOW_VERSION" ]; then
-  echo "GitHub backup-utils v$BACKUP_UTILS_VERSION"
-  exit 0
-fi
-
-# Check for "--help|-h" in args or GHE_SHOW_HELP=true and show usage
-# shellcheck disable=SC2120 # Our arguments are optional and not meant to be the owning script's
-print_usage() {
-  grep '^#/' <"$0" | cut -c 4-
-  exit "${1:-1}"
-}
-
-if [ -n "$GHE_SHOW_HELP" ]; then
-  print_usage
-else
-  for a in "$@"; do
-    if [ "$a" = "--help" ] || [ "$a" = "-h" ]; then
-      print_usage
-    fi
-  done
-fi
-
 # Add the bin and share/github-backup-utils dirs to PATH
 PATH="$GHE_BACKUP_ROOT/bin:$GHE_BACKUP_ROOT/share/github-backup-utils:$PATH"
 # shellcheck source=share/github-backup-utils/bm.sh
 . "$GHE_BACKUP_ROOT/share/github-backup-utils/bm.sh"
+# shellcheck source=share/github-backup-utils/ghe-incremental-backup-restore
+. "$GHE_BACKUP_ROOT/share/github-backup-utils/ghe-incremental-backup-restore"
+# shellcheck source=share/github-backup-utils/track-progress
+. "$GHE_BACKUP_ROOT/share/github-backup-utils/track-progress"
 
-# Save off GHE_HOSTNAME from the environment since we want it to override the
-# backup.config value when set.
-GHE_HOSTNAME_PRESERVE="$GHE_HOSTNAME"
-
-# Source in the backup config file from the copy specified in the environment
-# first and then fall back to the backup-utils root, home directory and system.
-config_found=false
-for f in "$GHE_BACKUP_CONFIG" "$GHE_BACKUP_ROOT/backup.config" \
-  "$HOME/.github-backup-utils/backup.config" "/etc/github-backup-utils/backup.config"; do
-  if [ -f "$f" ]; then
-    GHE_BACKUP_CONFIG="$f"
-    # shellcheck disable=SC1090 # This is a user-supplied value that can't be predicted
-    . "$GHE_BACKUP_CONFIG"
-    config_found=true
-    break
-  fi
-done
-
-# If we don't have a readlink command, error out
-! type readlink 1>/dev/null 2>&1 && {
-    echo "Error: readlink not found. Please install readlink and ensure it is in your PATH." 1>&2
-    exit 1
-}
-
-GHE_RESTORE_IN_PROGRESS=$(readlink -fm "${GHE_DATA_DIR}/in-progress-restore")
-GHE_BACKUP_IN_PROGRESS=$(readlink -fm "${GHE_DATA_DIR}/in-progress-backup")
-
-export GHE_RESTORE_IN_PROGRESS
-export GHE_BACKUP_IN_PROGRESS
 
 ghe_restore_check() {
   if [ -h "$GHE_RESTORE_IN_PROGRESS" ]; then
@@ -216,8 +217,10 @@ ghe_parallel_check() {
   GHE_PARALLEL_COMMAND="parallel"
   local x
   for x in \
+      /usr/bin/parallel-moreutils \
       /usr/bin/parallel.moreutils \
       /usr/bin/parallel_moreutils \
+      /usr/bin/moreutils-parallel \
       /usr/bin/moreutils.parallel \
       /usr/bin/moreutils_parallel \
       ; do
@@ -284,6 +287,7 @@ if [ -n "$GHE_VERBOSE" ]; then
 else
   exec 3>/dev/null
 fi
+
 
 # Restore saved off hostname.
 [ -n "$GHE_HOSTNAME_PRESERVE" ] && GHE_HOSTNAME="$GHE_HOSTNAME_PRESERVE"
@@ -418,14 +422,15 @@ ghe_remote_version_required() {
   if [ -z "$GHE_REMOTE_VERSION" ]; then
     _out=$(ghe-host-check "$@")
     echo "$_out"
+    _out_hostname=$(echo "$_out" | tail -n 1)
 
     # override hostname w/ ghe-host-check output because the port could have
     # been autodetected to 122.
-    GHE_HOSTNAME="${_out/Connect /}"
+    GHE_HOSTNAME="${_out_hostname/Connect /}"
     GHE_HOSTNAME="${GHE_HOSTNAME/ OK*/}"
     export GHE_HOSTNAME
 
-    GHE_REMOTE_VERSION="${_out#*\(}"
+    GHE_REMOTE_VERSION="${_out_hostname#*\(}"
     GHE_REMOTE_VERSION="${GHE_REMOTE_VERSION%%\)*}"
     export GHE_REMOTE_VERSION
 
@@ -455,6 +460,24 @@ ghe_parse_remote_version() {
   # shellcheck disable=SC2046 # Word splitting is required to populate the variables
   read -r GHE_VERSION_MAJOR GHE_VERSION_MINOR GHE_VERSION_PATCH < <(ghe_parse_version "$1")
   export GHE_VERSION_MAJOR GHE_VERSION_MINOR GHE_VERSION_PATCH
+}
+
+# In 3.11 we started to install 2 different version parallel(s)
+# moreutils parallel and GNU parallel. When gnu parallel is installed,
+# it renames moreutils parallel to parallel.moreutils
+# set $PARALLEL_CMD envvar to be used in place of parallel commands
+ghe_remote_parallel() {
+  if [ -z "$GHE_REMOTE_VERSION" ]; then
+    echo "Error: ghe_remote_version_required needs to be invoked before ghe_remote_parallel" 1>&2
+    exit 1
+  fi
+
+  if [ "$GHE_VERSION_MINOR" -lt 11 ]; then
+    PARALLEL_CMD="parallel"
+  else
+    PARALLEL_CMD="parallel.moreutils"
+  fi
+  export PARALLEL_CMD
 }
 
 # Parses the <host> part out of a "<host>:<port>" or just "<host>" string.
@@ -636,17 +659,24 @@ prompt_for_confirmation(){
   echo
 }
 
-# Function to restore a secret setting stored in a file.
-#   restore-secret <description> <file-name> <setting-name>
-restore-secret() {
-  if [ -f "$GHE_RESTORE_SNAPSHOT_PATH/$2" ]; then
-    echo "Restoring $1 ..."
-    echo "ghe-config '$3' '$(cat "$GHE_RESTORE_SNAPSHOT_PATH/$2")'" |
-    ghe-ssh "$GHE_HOSTNAME" -- /bin/bash
+#initialize progress tracking by clearing out the temp files used to track
+init-progress() {
+  if [ -d /tmp/backup-utils-progress ]; then
+    rm -rf /tmp/backup-utils-progress/*
   fi
+
+  mkdir -p /tmp/backup-utils-progress
+  chmod -R 777 /tmp/backup-utils-progress
+  
+  touch /tmp/backup-utils-progress/total
+  touch /tmp/backup-utils-progress/type
+  touch /tmp/backup-utils-progress/progress
+  touch /tmp/backup-utils-progress/info
 }
 
 
-
-
-
+#increase total count of progress
+increment-progress-total-count() {
+  ((PROGRESS_TOTAL += $1))
+  echo "$PROGRESS_TOTAL" > /tmp/backup-utils-progress/total
+}

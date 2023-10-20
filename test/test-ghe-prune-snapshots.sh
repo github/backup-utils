@@ -89,3 +89,23 @@ begin_test "ghe-prune-snapshots incomplete snapshot pruning"
   [ ! -d "$GHE_DATA_DIR/04" ]
 )
 end_test
+
+begin_test "ghe-prune-snapshots scheduled snapshot pruning"
+(
+  set -e
+  # Create the backup data dir and fake remote repositories dirs
+  mkdir -p "$GHE_DATA_DIR" "$GHE_REMOTE_DATA_USER_DIR"
+
+  setup_test_data $GHE_REMOTE_DATA_USER_DIR
+
+  generate_prune_files 5
+
+  pre_num_files=$(file_count_no_current)
+
+  GHE_NUM_SNAPSHOTS=3 GHE_PRUNING_SCHEDULED=yes ghe-backup
+
+  post_num_files=$(file_count_no_current)
+
+  [ "$((pre_num_files + 1))" = "$post_num_files" ]
+)
+end_test

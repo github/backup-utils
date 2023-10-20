@@ -29,9 +29,6 @@ export GHE_RESTORE_SNAPSHOT
 # The directory holding the snapshot to restore
 GHE_RESTORE_SNAPSHOT_PATH="$GHE_DATA_DIR/$GHE_RESTORE_SNAPSHOT"
 
-# Always restore the password pepper here since it is tied to the MySQL data.
-restore-secret "password pepper" "password-pepper" "secrets.github.user-password-secrets"
-
 if is_external_database_snapshot; then
   if [ -n "$EXTERNAL_DATABASE_RESTORE_SCRIPT" ]; then
     $EXTERNAL_DATABASE_RESTORE_SCRIPT

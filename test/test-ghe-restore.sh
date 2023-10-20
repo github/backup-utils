@@ -281,7 +281,18 @@ begin_test "ghe-restore with no pages backup"
 )
 end_test
 
-begin_test "ghe-restore with encrypted column encryption keying material"
+begin_test "ghe-restore does not restore encrypted column encryption keying material for versions below 3.7.0"
+(
+  GHE_REMOTE_VERSION=2.1.10 ghe-restore -v -f localhost | grep -q "encrypted column encryption keying material not set" && exit 1
+  [ ! -f "$GHE_DATA_DIR/current/encrypted-column-keying-material" ]
+
+  GHE_REMOTE_VERSION=3.6.1 ghe-restore -v -f localhost | grep -q "encrypted column encryption keying material not set" && exit 1
+  [ ! -f "$GHE_DATA_DIR/current/encrypted-column-keying-material" ]
+
+)
+end_test
+
+begin_test "ghe-restore with encrypted column encryption keying material for versions 3.7.0+"
 (
   set -e
   rm -rf "$GHE_REMOTE_ROOT_DIR"
@@ -295,6 +306,23 @@ begin_test "ghe-restore with encrypted column encryption keying material"
     echo "foo" > "$GHE_DATA_DIR/current/$file"
   done
 
+  # GHES version 3.7.0
+  GHE_REMOTE_VERSION=3.7.0
+  export GHE_REMOTE_VERSION
+
+  ghe-restore -v -f localhost
+  required_secrets=(
+    "secrets.github.encrypted-column-keying-material"
+  )
+
+  for secret in "${required_secrets[@]}"; do
+    [ "$(ghe-ssh "$GHE_HOSTNAME" -- ghe-config "$secret")" = "foo" ]
+  done
+
+  # GHES version 3.8.0
+  GHE_REMOTE_VERSION=3.8.0
+  export GHE_REMOTE_VERSION
+
   ghe-restore -v -f localhost
   required_secrets=(
     "secrets.github.encrypted-column-keying-material"
@@ -306,7 +334,19 @@ begin_test "ghe-restore with encrypted column encryption keying material"
 )
 end_test
 
-begin_test "ghe-restore with encrypted column current encryption key"
+
+begin_test "ghe-restore does not encrypted column current encryption key for versions below 3.8.0"
+(
+ GHE_REMOTE_VERSION=2.1.10 restore -v -f | grep -q "encrypted column current encryption key not set" && exit 1
+  [ ! -f "$GHE_DATA_DIR/current/encrypted-column-current-encryption-key" ]
+
+  GHE_REMOTE_VERSION=3.7.0 restore -v -f | grep -q "encrypted column current encryption key not set" && exit 1
+  [ ! -f "$GHE_DATA_DIR/current/encrypted-column-current-encryption-key" ]
+
+)
+end_test
+
+begin_test "ghe-restore with encrypted column current encryption key for versions 3.8.0+"
 (
   set -e
   rm -rf "$GHE_REMOTE_ROOT_DIR"
@@ -320,6 +360,10 @@ begin_test "ghe-restore with encrypted column current encryption key"
     echo "foo" > "$GHE_DATA_DIR/current/$file"
   done
 
+  # GHES version 3.8.0
+  GHE_REMOTE_VERSION=3.8.0
+  export GHE_REMOTE_VERSION
+
   ghe-restore -v -f localhost
   required_secrets=(
     "secrets.github.encrypted-column-current-encryption-key"
@@ -327,6 +371,78 @@ begin_test "ghe-restore with encrypted column current encryption key"
 
   for secret in "${required_secrets[@]}"; do
     [ "$(ghe-ssh "$GHE_HOSTNAME" -- ghe-config "$secret")" = "foo" ]
+  done
+
+
+  # GHES version 3.9.0
+  GHE_REMOTE_VERSION=3.9.0
+  export GHE_REMOTE_VERSION
+
+  ghe-restore -v -f localhost
+  required_secrets=(
+    "secrets.github.encrypted-column-current-encryption-key"
+  )
+
+  for secret in "${required_secrets[@]}"; do
+    [ "$(ghe-ssh "$GHE_HOSTNAME" -- ghe-config "$secret")" = "foo" ]
+  done
+)
+end_test
+
+begin_test "ghe-restore with secret scanning encrypted secrets encryption keys for versions 3.8.0+"
+(
+  set -e
+  rm -rf "$GHE_REMOTE_ROOT_DIR"
+  setup_remote_metadata
+
+  required_files=(
+    "secret-scanning-encrypted-secrets-current-storage-key"
+    "secret-scanning-encrypted-secrets-delimited-storage-keys"
+    "secret-scanning-encrypted-secrets-current-shared-transit-key"
+    "secret-scanning-encrypted-secrets-delimited-shared-transit-keys"
+  )
+
+  for file in "${required_files[@]}"; do
+    echo "foo" >"$GHE_DATA_DIR/current/$file"
+  done
+
+  GHE_REMOTE_VERSION=3.8.0 ghe-restore -v -f localhost
+
+  required_secrets=(
+    "secrets.secret-scanning.encrypted-secrets-current-storage-key"
+    "secrets.secret-scanning.encrypted-secrets-delimited-storage-keys"
+    "secrets.secret-scanning.encrypted-secrets-current-shared-transit-key"
+    "secrets.secret-scanning.encrypted-secrets-delimited-shared-transit-keys"
+  )
+
+  for secret in "${required_secrets[@]}"; do
+    [ "$(ghe-ssh "$GHE_HOSTNAME" -- ghe-config "$secret")" = "foo" ] # expecting this to have been restored successfully for versions 3.8.0+
+  done
+)
+end_test
+
+begin_test "ghe-restore with secret scanning encrypted content encryption keys for versions 3.11.0+"
+(
+  set -e
+  rm -rf "$GHE_REMOTE_ROOT_DIR"
+  setup_remote_metadata
+
+  required_files=(
+    "secret-scanning-user-content-delimited-encryption-root-keys"
+  )
+
+  for file in "${required_files[@]}"; do
+    echo "foo" >"$GHE_DATA_DIR/current/$file"
+  done
+
+  GHE_REMOTE_VERSION=3.11.0 ghe-restore -v -f localhost
+
+  required_secrets=(
+    "secrets.secret-scanning.secret-scanning-user-content-delimited-encryption-root-keys"
+  )
+
+  for secret in "${required_secrets[@]}"; do
+    [ "$(ghe-ssh "$GHE_HOSTNAME" -- ghe-config "$secret")" = "foo" ] # expecting this to have been restored successfully for versions 3.11.0+
   done
 )
 end_test
@@ -476,6 +592,94 @@ begin_test "ghe-restore with Actions settings"
     "secrets.actions.ServicePrincipalCertificate"
     "secrets.actions.SpsValidationCertThumbprint"
 
+    "secrets.launch.actions-secrets-private-key"
+    "secrets.launch.deployer-hmac-secret"
+    "secrets.launch.client-id"
+    "secrets.launch.client-secret"
+    "secrets.launch.receiver-webhook-secret"
+    "secrets.launch.app-private-key"
+    "secrets.launch.app-public-key"
+    "secrets.launch.app-id"
+    "secrets.launch.app-relay-id"
+    "secrets.launch.action-runner-secret"
+    "secrets.launch.token-oauth-key"
+    "secrets.launch.token-oauth-cert"
+    "secrets.launch.azp-app-cert"
+    "secrets.launch.azp-app-private-key"
+
+  )
+
+  for secret in "${required_secrets[@]}"; do
+    [ "$(ghe-ssh "$GHE_HOSTNAME" -- ghe-config "$secret")" = "foo" ]
+  done
+)
+end_test
+
+begin_test "ghe-restore with Actions settings passing -c"
+(
+  set -e
+  rm -rf "$GHE_REMOTE_ROOT_DIR"
+  setup_remote_metadata
+  enable_actions
+
+  required_files=(
+    "actions-config-db-login"
+    "actions-config-db-password"
+    "actions-framework-access-token"
+    "actions-url-signing-hmac-key-primary"
+    "actions-url-signing-hmac-key-secondary"
+    "actions-oauth-s2s-signing-cert"
+    "actions-oauth-s2s-signing-key"
+    "actions-oauth-s2s-signing-cert-thumbprint"
+    "actions-primary-encryption-cert-thumbprint"
+    "actions-aad-cert-thumbprint"
+    "actions-delegated-auth-cert-thumbprint"
+    "actions-runtime-service-principal-cert"
+    "actions-s2s-encryption-cert"
+    "actions-secondary-encryption-cert-thumbprint"
+    "actions-service-principal-cert"
+    "actions-sps-validation-cert-thumbprint"
+    "actions-storage-container-prefix"
+
+    "actions-launch-secrets-private-key"
+    "actions-launch-deployer-hmac"
+    "actions-launch-client-id"
+    "actions-launch-client-secret"
+    "actions-launch-receiver-webhook-secret"
+    "actions-launch-app-private-key"
+    "actions-launch-app-public-key"
+    "actions-launch-app-id"
+    "actions-launch-app-relay-id"
+    "actions-launch-action-runner-secret"
+    "actions-launch-azp-app-cert"
+    "actions-launch-app-app-private-key"
+
+  )
+
+  for file in "${required_files[@]}"; do
+    echo "foo" > "$GHE_DATA_DIR/current/$file"
+  done
+
+  ghe-restore -v -f -c localhost
+
+  required_secrets=(
+    "secrets.actions.ConfigurationDatabaseSqlLogin"
+    "secrets.actions.ConfigurationDatabaseSqlPassword"
+    "secrets.actions.FrameworkAccessTokenKeySecret"
+    "secrets.actions.UrlSigningHmacKeyPrimary"
+    "secrets.actions.UrlSigningHmacKeySecondary"
+    "secrets.actions.OAuthS2SSigningCert"
+    "secrets.actions.OAuthS2SSigningKey"
+    "secrets.actions.OAuthS2SSigningCertThumbprint"
+    "secrets.actions.PrimaryEncryptionCertificateThumbprint"
+    "secrets.actions.AADCertThumbprint"
+    "secrets.actions.DelegatedAuthCertThumbprint"
+    "secrets.actions.RuntimeServicePrincipalCertificate"
+    "secrets.actions.S2SEncryptionCertificate"
+    "secrets.actions.SecondaryEncryptionCertificateThumbprint"
+    "secrets.actions.ServicePrincipalCertificate"
+    "secrets.actions.SpsValidationCertThumbprint"
+    "secrets.actions.storage.container-prefix"
     "secrets.launch.actions-secrets-private-key"
     "secrets.launch.deployer-hmac-secret"
     "secrets.launch.client-id"

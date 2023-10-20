@@ -33,6 +33,14 @@ else
   if is_binary_backup_feature_on; then
     ghe-backup-mysql-binary
   else
+    # if incremental backups are turned on, we can't do them with
+    # logical backups, so we need to tell the user and exit
+    is_inc=$(is_incremental_backup_feature_on)
+    if [ $is_inc = true ]; then
+      log_warn "Incremental backups are configured on the target environment."
+      log_warn "Incremental backup is not supported with a logical MySQL backup. Please disable incremental backups with 'ghe-config mysql.backup.incremental false'"
+      exit 1
+    fi
     ghe-backup-mysql-logical
   fi
 fi

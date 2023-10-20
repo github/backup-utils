@@ -5,9 +5,11 @@
 #/ the MySQL database, instance settings, GitHub Pages data, etc.
 #/
 #/ OPTIONS:
-#/   -v | --verbose    Enable verbose output.
-#/   -h | --help       Show this message.
-#/        --version    Display version information.
+#/   -v | --verbose       Enable verbose output.
+#/   -h | --help          Show this message.
+#/        --version       Display version information.
+#/   -i | --incremental   Incremental backup
+#/        --skip-checks   Skip storage/sw version checks
 #/
 
 set -e
@@ -27,6 +29,14 @@ while true; do
       export GHE_VERBOSE=true
       shift
       ;;
+    -i|--incremental)
+      export GHE_INCREMENTAL=true
+      shift
+      ;;
+    --skip-checks)
+      export GHE_SKIP_CHECKS=true
+      shift
+      ;;
     -*)
       echo "Error: invalid argument: '$1'" 1>&2
       exit 1
@@ -37,10 +47,13 @@ while true; do
   esac
 done
 
+
 export CALLING_SCRIPT="ghe-backup"
+
 # Bring in the backup configuration
 # shellcheck source=share/github-backup-utils/ghe-backup-config
 . "$( dirname "${BASH_SOURCE[0]}" )/../share/github-backup-utils/ghe-backup-config"
+
 
 # Check to make sure moreutils parallel is installed and working properly
 ghe_parallel_check
@@ -105,9 +118,12 @@ cleanup () {
 
   rm -rf "$failures_file"
   rm -f "${GHE_DATA_DIR}/in-progress-backup"
+  rm -rf /tmp/backup-utils-progress/*
 
   # Cleanup SSH multiplexing
   ghe-ssh --clean
+
+  bm_end "$(basename $0)"
 }
 
 # Setup exit traps
@@ -121,7 +137,7 @@ ghe_restore_check
 # Check to see if there is a running backup
 if [ -h ../in-progress ]; then
 
-  log_error "Error: detected a backup already in progress from a previous version of ghe-backup. \nIf there is no backup in progress anymore, please remove \nthe $GHE_DATA_DIR/in-progress file." 1>&2
+  log_error "Detected a backup already in progress from a previous version of ghe-backup. \nIf there is no backup in progress anymore, please remove \nthe $GHE_DATA_DIR/in-progress file." >&2
   exit 1
 fi
 
@@ -139,17 +155,75 @@ if [ -f ../in-progress ]; then
   fi
 fi
 
-echo "$GHE_SNAPSHOT_TIMESTAMP $$" > ../in-progress
-echo "$GHE_SNAPSHOT_TIMESTAMP $$" > "${GHE_DATA_DIR}/in-progress-backup"
-
-START_TIME=$(date +%s)
-log_info "Starting backup of $GHE_HOSTNAME with backup-utils v$BACKUP_UTILS_VERSION in snapshot $GHE_SNAPSHOT_TIMESTAMP"
-
 # Perform a host connection check and establish the remote appliance version.
 # The version is available in the GHE_REMOTE_VERSION variable and also written
 # to a version file in the snapshot directory itself.
+# ghe_remote_version_required should be run before any other instances of ghe-ssh
+# to ensure that there are no problems with host key verification.
 ghe_remote_version_required
 echo "$GHE_REMOTE_VERSION" > version
+
+# Setup progress tracking
+init-progress
+export PROGRESS_TOTAL=14 # Minimum number of steps in backup is 14
+echo "$PROGRESS_TOTAL" > /tmp/backup-utils-progress/total
+export PROGRESS_TYPE="Backup"
+echo "$PROGRESS_TYPE" > /tmp/backup-utils-progress/type
+export PROGRESS=0 # Used to track progress of backup
+echo "$PROGRESS" > /tmp/backup-utils-progress/progress
+
+OPTIONAL_STEPS=0
+# Backup actions+mssql
+if ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config --true app.actions.enabled'; then
+  OPTIONAL_STEPS=$((OPTIONAL_STEPS + 2))
+fi
+
+# Backup fsck
+if [ "$GHE_BACKUP_FSCK" = "yes" ]; then
+  OPTIONAL_STEPS=$((OPTIONAL_STEPS + 1))
+fi
+
+# Backup minio
+if ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config --true app.minio.enabled'; then
+  OPTIONAL_STEPS=$((OPTIONAL_STEPS + 1))
+fi
+
+# Backup pages
+if [ "$GHE_BACKUP_PAGES" != "no" ]; then
+  OPTIONAL_STEPS=$((OPTIONAL_STEPS + 1))
+fi
+
+PROGRESS_TOTAL=$((OPTIONAL_STEPS + PROGRESS_TOTAL)) # Minimum number of steps in backup is 14
+echo "$PROGRESS_TOTAL" > /tmp/backup-utils-progress/total
+
+# check that incremental settings are valid if set
+is_inc=$(is_incremental_backup_feature_on)
+
+if [ "$is_inc" = true ]; then
+if [ "$GHE_VERSION_MAJOR" -lt 3 ]; then
+  log_error "Can only perform incremental backups on enterprise version 3.10 or higher"
+  exit 1
+fi
+if [ "$GHE_VERSION_MINOR" -lt 10 ]; then
+  log_error "Can only perform incremental backups on enterprise version 3.10 or higher"
+  exit 1
+fi
+
+  incremental_backup_check
+  # If everything is ok, check if we have hit GHE_MAX_INCREMENTAL_BACKUPS, performing pruning actions if necessary
+  check_for_incremental_max_backups
+  # initialize incremental backup if it hasn't been done yet
+  incremental_backup_init
+fi
+
+echo "$GHE_SNAPSHOT_TIMESTAMP $$" > ../in-progress
+echo "$GHE_SNAPSHOT_TIMESTAMP $$" > "${GHE_DATA_DIR}/in-progress-backup"
+
+bm_start "$(basename $0)"
+START_TIME=$(date +%s)
+log_info "Starting backup of $GHE_HOSTNAME with backup-utils v$BACKUP_UTILS_VERSION in snapshot $GHE_SNAPSHOT_TIMESTAMP"
+
+
 
 if [ -n "$GHE_ALLOW_REPLICA_BACKUP" ]; then
   echo "Warning: backing up a high availability replica may result in inconsistent or unreliable backups."
@@ -192,6 +266,9 @@ bm_init > /dev/null
 
 ghe-backup-store-version  ||
 log_warn "Warning: storing backup-utils version remotely failed."
+
+log_info "Backing up GitHub secrets ..."
+ghe-backup-secrets || failures="$failures secrets"
 
 log_info "Backing up GitHub settings ..."
 ghe-backup-settings || failures="$failures settings"
@@ -259,6 +336,7 @@ echo \"$cmd_title\"
 ghe-backup-git-hooks || printf %s \"git-hooks \" >> \"$failures_file\"")
 
 if [ "$GHE_BACKUP_STRATEGY" = "rsync" ]; then
+  increment-progress-total-count 1
   cmd_title=$(log_info "Backing up Elasticsearch indices ...")
   commands+=("
   echo \"$cmd_title\"
@@ -292,7 +370,13 @@ if [ -z "$failures" ]; then
   rm -f "../current"
   ln -s "$GHE_SNAPSHOT_TIMESTAMP" "../current"
 
-  ghe-prune-snapshots
+  if [[ $GHE_PRUNING_SCHEDULED != "yes" ]]; then
+    ghe-prune-snapshots
+  else
+    log_info "Expired and incomplete snapshots to be pruned separately"
+  fi
+else 
+  log_info "Skipping pruning snapshots, since some backups failed..."
 fi
 
 END_TIME=$(date +%s)
@@ -306,6 +390,7 @@ else
   steps="${failures// /, }"
   ghe_remote_logger "Completed backup from $(hostname) / snapshot $GHE_SNAPSHOT_TIMESTAMP with failures: ${steps}."
   log_error "Error: Snapshot incomplete. Some steps failed: ${steps}. "
+  ghe_backup_finished
   exit 1
 fi
 

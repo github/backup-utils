@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+#/ track-progress: track progress of backup or restore tasks
+
+progress(){
+  ## Those progress files should be created by init_progress function
+  ## If they are not present (e.g., individual script is being invoked directly), 
+  ## we will not track progress
+  if [ -f "/tmp/backup-utils-progress/progress" ] && 
+    [ -f "/tmp/backup-utils-progress/total" ] &&
+    [ -f "/tmp/backup-utils-progress/type" ]; then
+    PROGRESS=$(cat /tmp/backup-utils-progress/progress)
+    PROGRESS_TOTAL=$(cat /tmp/backup-utils-progress/total)
+    PROGRESS_TYPE=$(cat /tmp/backup-utils-progress/type)
+    PROGRESS_PERCENT=$( echo "scale = 2; ($PROGRESS / $PROGRESS_TOTAL) * 100" | bc)
+    echo $((PROGRESS + 1)) > /tmp/backup-utils-progress/progress
+    echo "${PROGRESS_TYPE} progress: $PROGRESS_PERCENT % ($PROGRESS / $PROGRESS_TOTAL ) $1 " > /tmp/backup-utils-progress/info
+  fi
+}

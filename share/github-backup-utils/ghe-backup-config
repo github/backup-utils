@@ -217,8 +217,10 @@ ghe_parallel_check() {
   GHE_PARALLEL_COMMAND="parallel"
   local x
   for x in \
+      /usr/bin/parallel-moreutils \
       /usr/bin/parallel.moreutils \
       /usr/bin/parallel_moreutils \
+      /usr/bin/moreutils-parallel \
       /usr/bin/moreutils.parallel \
       /usr/bin/moreutils_parallel \
       ; do
@@ -420,14 +422,15 @@ ghe_remote_version_required() {
   if [ -z "$GHE_REMOTE_VERSION" ]; then
     _out=$(ghe-host-check "$@")
     echo "$_out"
+    _out_hostname=$(echo "$_out" | tail -n 1)
 
     # override hostname w/ ghe-host-check output because the port could have
     # been autodetected to 122.
-    GHE_HOSTNAME="${_out/Connect /}"
+    GHE_HOSTNAME="${_out_hostname/Connect /}"
     GHE_HOSTNAME="${GHE_HOSTNAME/ OK*/}"
     export GHE_HOSTNAME
 
-    GHE_REMOTE_VERSION="${_out#*\(}"
+    GHE_REMOTE_VERSION="${_out_hostname#*\(}"
     GHE_REMOTE_VERSION="${GHE_REMOTE_VERSION%%\)*}"
     export GHE_REMOTE_VERSION
 
@@ -457,6 +460,24 @@ ghe_parse_remote_version() {
   # shellcheck disable=SC2046 # Word splitting is required to populate the variables
   read -r GHE_VERSION_MAJOR GHE_VERSION_MINOR GHE_VERSION_PATCH < <(ghe_parse_version "$1")
   export GHE_VERSION_MAJOR GHE_VERSION_MINOR GHE_VERSION_PATCH
+}
+
+# In 3.11 we started to install 2 different version parallel(s)
+# moreutils parallel and GNU parallel. When gnu parallel is installed,
+# it renames moreutils parallel to parallel.moreutils
+# set $PARALLEL_CMD envvar to be used in place of parallel commands
+ghe_remote_parallel() {
+  if [ -z "$GHE_REMOTE_VERSION" ]; then
+    echo "Error: ghe_remote_version_required needs to be invoked before ghe_remote_parallel" 1>&2
+    exit 1
+  fi
+
+  if [ "$GHE_VERSION_MINOR" -lt 11 ]; then
+    PARALLEL_CMD="parallel"
+  else
+    PARALLEL_CMD="parallel.moreutils"
+  fi
+  export PARALLEL_CMD
 }
 
 # Parses the <host> part out of a "<host>:<port>" or just "<host>" string.
@@ -638,24 +659,24 @@ prompt_for_confirmation(){
   echo
 }
 
-# Function to restore a secret setting stored in a file.
-#   restore-secret <description> <file-name> <setting-name>
-restore-secret() {
-  if [ -f "$GHE_RESTORE_SNAPSHOT_PATH/$2" ]; then
-    echo "Restoring $1 ..."
-    echo "ghe-config '$3' '$(cat "$GHE_RESTORE_SNAPSHOT_PATH/$2")'" |
-    ghe-ssh "$GHE_HOSTNAME" -- /bin/bash
-  fi
-}
-
 #initialize progress tracking by clearing out the temp files used to track
 init-progress() {
-  rm -f /tmp/backup-utils-progress*
+  if [ -d /tmp/backup-utils-progress ]; then
+    rm -rf /tmp/backup-utils-progress/*
+  fi
+
+  mkdir -p /tmp/backup-utils-progress
+  chmod -R 777 /tmp/backup-utils-progress
+  
+  touch /tmp/backup-utils-progress/total
+  touch /tmp/backup-utils-progress/type
+  touch /tmp/backup-utils-progress/progress
+  touch /tmp/backup-utils-progress/info
 }
 
 
 #increase total count of progress
 increment-progress-total-count() {
   ((PROGRESS_TOTAL += $1))
-  echo "$PROGRESS_TOTAL" > /tmp/backup-utils-progress-total
+  echo "$PROGRESS_TOTAL" > /tmp/backup-utils-progress/total
 }

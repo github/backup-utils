@@ -118,9 +118,12 @@ cleanup () {
 
   rm -rf "$failures_file"
   rm -f "${GHE_DATA_DIR}/in-progress-backup"
+  rm -rf /tmp/backup-utils-progress/*
 
   # Cleanup SSH multiplexing
   ghe-ssh --clean
+
+  bm_end "$(basename $0)"
 }
 
 # Setup exit traps
@@ -163,11 +166,11 @@ echo "$GHE_REMOTE_VERSION" > version
 # Setup progress tracking
 init-progress
 export PROGRESS_TOTAL=14 # Minimum number of steps in backup is 14
-echo "$PROGRESS_TOTAL" > /tmp/backup-utils-progress-total
+echo "$PROGRESS_TOTAL" > /tmp/backup-utils-progress/total
 export PROGRESS_TYPE="Backup"
-echo "$PROGRESS_TYPE" > /tmp/backup-utils-progress-type
+echo "$PROGRESS_TYPE" > /tmp/backup-utils-progress/type
 export PROGRESS=0 # Used to track progress of backup
-echo "$PROGRESS" > /tmp/backup-utils-progress
+echo "$PROGRESS" > /tmp/backup-utils-progress/progress
 
 OPTIONAL_STEPS=0
 # Backup actions+mssql
@@ -191,7 +194,7 @@ if [ "$GHE_BACKUP_PAGES" != "no" ]; then
 fi
 
 PROGRESS_TOTAL=$((OPTIONAL_STEPS + PROGRESS_TOTAL)) # Minimum number of steps in backup is 14
-echo "$PROGRESS_TOTAL" > /tmp/backup-utils-progress-total
+echo "$PROGRESS_TOTAL" > /tmp/backup-utils-progress/total
 
 # check that incremental settings are valid if set
 is_inc=$(is_incremental_backup_feature_on)
@@ -216,6 +219,7 @@ fi
 echo "$GHE_SNAPSHOT_TIMESTAMP $$" > ../in-progress
 echo "$GHE_SNAPSHOT_TIMESTAMP $$" > "${GHE_DATA_DIR}/in-progress-backup"
 
+bm_start "$(basename $0)"
 START_TIME=$(date +%s)
 log_info "Starting backup of $GHE_HOSTNAME with backup-utils v$BACKUP_UTILS_VERSION in snapshot $GHE_SNAPSHOT_TIMESTAMP"
 
@@ -262,6 +266,9 @@ bm_init > /dev/null
 
 ghe-backup-store-version  ||
 log_warn "Warning: storing backup-utils version remotely failed."
+
+log_info "Backing up GitHub secrets ..."
+ghe-backup-secrets || failures="$failures secrets"
 
 log_info "Backing up GitHub settings ..."
 ghe-backup-settings || failures="$failures settings"

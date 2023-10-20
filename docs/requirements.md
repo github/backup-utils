@@ -57,6 +57,8 @@ Using a [case sensitive][7] file system is also required to avoid conflicts.
 
 Performance of backup and restore operations are also dependent on the backup host's storage. We recommend using a high performance storage system with low latency and high IOPS.
 
+Please avoid using an NFS mount for the data directory (where backup data is stored) as this can cause performance issues and timeouts during backups.
+
 ## GitHub Enterprise Server version requirements
 
 Starting with Backup Utilities v2.13.0, version support is inline with that of the
@@ -95,7 +97,7 @@ Due to how some components of Backup Utilities (e.g. MSSQL) take incremental bac
 [5]: https://en.wikipedia.org/wiki/Hard_link
 [6]: https://en.wikipedia.org/wiki/Symbolic_link
 [7]: https://en.wikipedia.org/wiki/Case_sensitivity
-[8]: https://help.github.com/enterprise/admin/guides/installation/upgrade-requirements/
+[8]: https://docs.github.com/enterprise-server/admin/monitoring-managing-and-updating-your-instance/updating-the-virtual-machine-and-physical-resources/upgrade-requirements
 [9]: https://joeyh.name/code/moreutils
 [10]: https://www.gnu.org/software/gawk
 [11]: https://stedolan.github.io/jq/

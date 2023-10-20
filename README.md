@@ -41,6 +41,7 @@ GitHub Enterprise Server.
 - **[Backup snapshot file structure](docs/backup-snapshot-file-structure.md)**
 - **[How does Backup Utilities differ from a High Availability replica?](docs/faq.md)**
 - **[Docker](docs/docker.md)**
+- **[Releases](https://github.com/github/enterprise-releases/blob/master/docs/release-backup-utils.md)**
 
 ## Support
 

@@ -1,3 +1,4 @@
+---
 name: Lint Code Base
 
 on:
@@ -20,3 +21,4 @@ jobs:
           VALIDATE_ALL_CODEBASE: false
           BASH_SEVERITY: error
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          FILTER_REGEX_EXCLUDE: .*release-notes/.*

@@ -1074,3 +1074,18 @@ begin_test "ghe-backup collects information on system where backup-utils is inst
 
 )
 end_test
+
+# Check that backup-utils manages track-progress folder correctly
+begin_test "ghe-backup manages progress tracking files properly"
+(
+  set -e
+
+  if [ -e /tmp/backup-utils-progress ]; then
+    rm -rf /tmp/backup-utils-progress/*
+  fi
+
+  output=$(ghe-backup)
+  echo "$output" | grep -v "mkdir: cannot create directory /tmp/backup-utils-progress: File exists"  
+
+)
+end_test

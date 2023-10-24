@@ -1,8 +1,8 @@
 github-backup-utils (3.9.4) UNRELEASED; urgency=medium
 
- * On an instance with Actions enabled, incorrect backup and restore settings prevented the storage container name from being restored. This made the logs from that container inaccessible, and caused Actions to create a new storage container in a different location. {% comment %} https://github.com/github/backup-utils-private/pull/652, https://github.com/github/backup-utils-private/pull/459 {% endcomment %}
+ * On an instance with Actions enabled, incorrect backup and restore settings prevented the storage container name from being restored. This made the logs from that container inaccessible, and caused Actions to create a new storage container in a different location.
 
-When a NFS mount is detected for snapshots on backup hosts, backup logs will show a warning to notify the user that such a setup may incur performance issues as highlighted in [storage requirements](https://github.com/github/backup-utils-private/blob/master/docs/requirements.md#storage-requirements) documentation.
+* When a NFS mount is detected for snapshots on backup hosts, backup logs will show a warning to notify the user that such a setup may incur performance issues as highlighted in [storage requirements](https://github.com/github/backup-utils-private/blob/master/docs/requirements.md#storage-requirements) documentation.
 
  -- ghes-releases-team  Fri, 20 Oct 2023 18:49:19 +0000
 

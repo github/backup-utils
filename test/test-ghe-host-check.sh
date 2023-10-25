@@ -123,3 +123,13 @@ begin_test "ghe-host-check blocks restore to old release"
   ! GHE_TEST_REMOTE_VERSION=$bu_version_major.$((bu_version_minor-1)).$bu_version_patch ghe-restore -v
 )
 end_test
+
+# Check ghe-host-check detects RO file system
+begin_test "ghe-host-check fails when encountering RO file-system"
+(
+  set -e
+
+  enable_ro_fs
+  ! FILE_TO_TEST=/run/user/501/test ghe-host-check
+)
+end_test

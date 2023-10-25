@@ -115,6 +115,39 @@ if [ -z "$version" ]; then
   exit 2
 fi
 
+NON_WRITABLE=""
+# ensure all nodes are writable
+if "$CLUSTER"; then
+  if [ -z "$FILE_TO_TEST" ]; then
+    FILE_TO_TEST="/data/user/tmp/test-ro-file.txt"
+  fi
+
+  # Iterate through each node in the cluster
+  nodes=$(ghe-ssh "$host" ghe-cluster-nodes)
+  first=true
+  # echo $nodes | while read -r node; do
+  for node in $nodes; do
+    if ! $(echo "set -o pipefail; ssh "$node" -- 'touch "$FILE_TO_TEST" && rm "$FILE_TO_TEST"'" | ghe-ssh "$host" /bin/bash); then
+      #echo "File system is writable on $node"
+    #else
+      echo "File system is not writeable on $node" 1>&2
+      if [ "$first" = true ]; then
+        NON_WRITABLE="$node"
+        first=false
+      else
+        NON_WRITABLE="$NON_WRITABLE, $node"
+      fi
+    fi || true
+  done
+  # Display the comma-separated list of non-writable nodes
+  if [ ! -z "$NON_WRITABLE" ]; then
+    echo "Error: Non-writable nodes: $NON_WRITABLE . Please make sure the file systems for all Enterprise nodes are writable." 1>&2
+    exit 1
+  else
+    echo "All nodes are writable."
+  fi
+fi
+
 # Block restoring snapshots to older releases of GitHub Enterprise Server
 if [ -n "$GHE_RESTORE_SNAPSHOT_PATH" ]; then
   snapshot_version=$(cat $GHE_RESTORE_SNAPSHOT_PATH/version)
@@ -177,7 +210,7 @@ SKIP_MSG
 
   #Display dir requirements for repositories and mysql
   echo -e "\nChecking host for sufficient space for a backup..."
-  available_space=$(df -B 1k $GHE_DATA_DIR | awk 'END{printf "%.0f", $4 * 1024}') 
+  available_space=$(df -B 1k $GHE_DATA_DIR | awk 'END{printf "%.0f", $4 * 1024}')
   echo "  We recommend allocating at least 5x the amount of storage allocated to the primary GitHub appliance for historical snapshots and growth over time."
 
   repos_disk_size=$(transfer_size repositories /tmp)

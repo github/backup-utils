@@ -1068,7 +1068,9 @@ begin_test "ghe-backup collects information on system where backup-utils is inst
   set -e
 
   output=$(ghe-backup)
-  echo "$output" | grep "Running on: $(cat /etc/issue.net)"
+  OS_NAME=$(grep '^NAME' /etc/os-release | cut -d'"' -f2)
+  VERSION_ID=$(grep '^VERSION_ID' /etc/os-release | cut -d'"' -f2)
+  echo "$output" | grep "Running on: $OS_NAME $VERSION_ID"
   echo "$output" | grep "CPUs: $(nproc)"
   echo "$output" | grep "Memory total/used/free+share/buff/cache:"
 

@@ -119,7 +119,11 @@ NON_WRITABLE=""
 # ensure all nodes are writable
 if "$CLUSTER"; then
   if [ -z "$FILE_TO_TEST" ]; then
-    FILE_TO_TEST="/data/user/tmp/test-ro-file.txt"
+    if [ -d "/data/user/tmp" ]; then
+      FILE_TO_TEST="/data/user/tmp/test-ro-file.txt"
+    else
+      FILE_TO_TEST="/tmp/test-ro-file.txt"
+    fi
   fi
 
   # Iterate through each node in the cluster

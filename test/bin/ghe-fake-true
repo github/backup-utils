@@ -1,4 +1,0 @@
-#!/usr/bin/env bash
-# Emulates a remote GitHub command that doesn't return any output. Tests use this to assert
-# that a command was executed.
-true

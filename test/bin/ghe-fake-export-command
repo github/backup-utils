@@ -1,6 +1,0 @@
-#!/usr/bin/env bash
-# Emulates a remote GitHub export command. Each of the ghe-export-* utilities
-# that are run on the remote side have corresponding commands in this directory
-# that symlink to this file. The command outputs a simple bit of text including
-# the command name. Tests use this to assert that a command was executed.
-echo "fake $(basename "$0") data"

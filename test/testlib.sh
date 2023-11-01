@@ -728,7 +728,3 @@ setup_actions_enabled_settings_for_restore() {
   echo > "$GHE_DATA_DIR/1/settings.json"
   git config -f "$GHE_DATA_DIR/1/settings.json" --bool app.actions.enabled $1
 }
-
-enable_ro_fs() {
-  ghe-ssh "$GHE_HOSTNAME" -- 'sudo mount -o remount,rw /run/user/501'
-}

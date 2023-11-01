@@ -129,7 +129,12 @@ begin_test "ghe-host-check fails when encountering RO file-system"
 (
   set -e
 
-  enable_ro_fs
-  ! FILE_TO_TEST=/run/user/501/test ghe-host-check
+  ghe-ssh "$GHE_HOSTNAME" -- 'mkdir -p "~/tmp"'
+  # Remove write access in ~/tmp
+  ghe-ssh "$GHE_HOSTNAME" -- 'chmod a-w -R "~/tmp"'
+
+  # File creation fails for CLUSTER
+  ! FILE_TO_TEST="~/tmp/test" CLUSTER=true ghe-host-check
+  FILE_TO_TEST="~/tmp/test" CLUSTER=false ghe-host-check
 )
 end_test

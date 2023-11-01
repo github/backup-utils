@@ -133,7 +133,7 @@ if [ "$CLUSTER" == "true" ] ; then
   first=true
   # echo $nodes | while read -r node; do
   for node in $nodes; do
-    if ! $(echo "set -o pipefail; ssh "$node" -- 'touch "$FILE_TO_TEST" && rm "$FILE_TO_TEST"'" | ghe-ssh "$host" /bin/bash); then
+    if ! echo "set -o pipefail; ssh $node -- 'touch $FILE_TO_TEST && rm $FILE_TO_TEST'" | ghe-ssh "$host" /bin/bash; then
       #echo "File system is writable on $node"
     #else
       echo "File system is not writeable on $node" 1>&2

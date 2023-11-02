@@ -1068,9 +1068,26 @@ begin_test "ghe-backup collects information on system where backup-utils is inst
   set -e
 
   output=$(ghe-backup)
-  echo "$output" | grep "Running on: $(cat /etc/issue.net)"
+  OS_NAME=$(grep '^NAME' /etc/os-release | cut -d'"' -f2)
+  VERSION_ID=$(grep '^VERSION_ID' /etc/os-release | cut -d'"' -f2)
+  echo "$output" | grep "Running on: $OS_NAME $VERSION_ID"
   echo "$output" | grep "CPUs: $(nproc)"
   echo "$output" | grep "Memory total/used/free+share/buff/cache:"
+
+)
+end_test
+
+# Check that backup-utils manages track-progress folder correctly
+begin_test "ghe-backup manages progress tracking files properly"
+(
+  set -e
+
+  if [ -e /tmp/backup-utils-progress ]; then
+    rm -rf /tmp/backup-utils-progress/*
+  fi
+
+  output=$(ghe-backup)
+  echo "$output" | grep -v "mkdir: cannot create directory /tmp/backup-utils-progress: File exists"  
 
 )
 end_test

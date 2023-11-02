@@ -661,17 +661,13 @@ prompt_for_confirmation(){
 
 #initialize progress tracking by clearing out the temp files used to track
 init-progress() {
-  if [ -d /tmp/backup-utils-progress ]; then
+
+  if [ -e /tmp/backup-utils-progress ]; then
     rm -rf /tmp/backup-utils-progress/*
   fi
-
-  mkdir -p /tmp/backup-utils-progress
-  chmod -R 777 /tmp/backup-utils-progress
-  
-  touch /tmp/backup-utils-progress/total
-  touch /tmp/backup-utils-progress/type
-  touch /tmp/backup-utils-progress/progress
-  touch /tmp/backup-utils-progress/info
+  # shellcheck disable=SC2174 # We are fine with -m only affecting the deepest directory
+  mkdir -m 777 -p /tmp/backup-utils-progress
+  touch /tmp/backup-utils-progress/{total,type,progress,info}
 }
 
 

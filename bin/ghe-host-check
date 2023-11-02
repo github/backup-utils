@@ -120,23 +120,22 @@ fi
 NON_WRITABLE=""
 # ensure all nodes are writable
 if [ "$CLUSTER" == "true" ] ; then
-  if [ -z "$FILE_TO_TEST" ]; then
+  if [ -z "$GHE_FILE_SYSTEM_CHECK" ]; then
     if [ -d "/data/user/tmp" ]; then
       FILE_TO_TEST="/data/user/tmp/test-ro-file.txt"
     else
       FILE_TO_TEST="/tmp/test-ro-file.txt"
     fi
+  else
+    FILE_TO_TEST="$GHE_FILE_SYSTEM_CHECK/test-ro-file.txt"
   fi
 
   # Iterate through each node in the cluster
   nodes=$(ghe-ssh "$host" ghe-cluster-nodes)
   first=true
-  # echo $nodes | while read -r node; do
   for node in $nodes; do
     if ! echo "set -o pipefail; ssh $node -- 'touch $FILE_TO_TEST && rm $FILE_TO_TEST'" | ghe-ssh "$host" /bin/bash; then
-      #echo "File system is writable on $node"
-    #else
-      echo "File system is not writeable on $node" 1>&2
+      echo "File system is not writeable or no permission on $node" 1>&2
       if [ "$first" = true ]; then
         NON_WRITABLE="$node"
         first=false
@@ -147,7 +146,7 @@ if [ "$CLUSTER" == "true" ] ; then
   done
   # Display the comma-separated list of non-writable nodes
   if [ ! -z "$NON_WRITABLE" ]; then
-    echo "Error: Non-writable nodes: $NON_WRITABLE . Please make sure the file systems for all Enterprise nodes are writable." 1>&2
+    log_error "Error: Following nodes are non-writable - $NON_WRITABLE. Please make sure the filesystem for all GHES nodes are writable." 1>&2
     exit 1
   else
     echo "All nodes are writable."

@@ -32,6 +32,10 @@ GHE_NUM_SNAPSHOTS=10
 # disk space validation and software version checks on the backup-host will be disabled.
 #GHE_SKIP_CHECKS=false
 
+# Cluster filesystem to check if it's writable as part of ghe-host-check
+# By default it is /data/user/tmp but can be updated if needed
+#GHE_FILE_SYSTEM_CHECK="/data/user/tmp"
+
 # The hostname of the GitHub appliance to restore. If you've set up a separate
 # GitHub appliance to act as a standby for recovery, specify its IP or hostname
 # here. The host to restore to may also be specified directly when running

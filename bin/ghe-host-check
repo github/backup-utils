@@ -165,7 +165,7 @@ if [ -n "$GHE_RESTORE_SNAPSHOT_PATH" ]; then
 fi
 
 if [ -z "$GHE_ALLOW_REPLICA_BACKUP" ]; then
-  if [ "$(ghe-ssh $host -- cat $GHE_REMOTE_ROOT_DIR/etc/github/repl-state1 2>/dev/null || true)" = "replica" ]; then
+  if [ "$(ghe-ssh $host -- cat $GHE_REMOTE_ROOT_DIR/etc/github/repl-state 2>/dev/null || true)" = "replica" ]; then
     echo "Error: high availability replica detected." 1>&2
     echo "Backup Utilities should be used to backup from the primary node in" 1>&2
     echo "high availability environments to ensure consistent and reliable backups." 1>&2

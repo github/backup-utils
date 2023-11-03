@@ -375,7 +375,7 @@ if [ -z "$failures" ]; then
   else
     log_info "Expired and incomplete snapshots to be pruned separately"
   fi
-else 
+else
   log_info "Skipping pruning snapshots, since some backups failed..."
 fi
 

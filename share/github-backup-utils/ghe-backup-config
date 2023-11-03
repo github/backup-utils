@@ -667,7 +667,7 @@ init-progress() {
 
   mkdir -p /tmp/backup-utils-progress
   chmod -R 777 /tmp/backup-utils-progress
-  
+
   touch /tmp/backup-utils-progress/total
   touch /tmp/backup-utils-progress/type
   touch /tmp/backup-utils-progress/progress

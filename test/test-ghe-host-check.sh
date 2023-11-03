@@ -134,7 +134,7 @@ begin_test "ghe-host-check fails when encountering RO file-system"
   ghe-ssh "$GHE_HOSTNAME" -- 'chmod a-w -R "~/tmp"'
 
   # File creation fails for CLUSTER
-  ! FILE_TO_TEST="$HOME/tmp/test" CLUSTER=true ghe-host-check
-  FILE_TO_TEST="$HOME/tmp/test" CLUSTER=false ghe-host-check
+  ! FILE_TO_TEST="$HOME/tmp/test" CLUSTER=true GHE_ALLOW_REPLICA_BACKUP=no ghe-host-check
+  FILE_TO_TEST="$HOME/tmp/test" CLUSTER=false GHE_ALLOW_REPLICA_BACKUP=no ghe-host-check
 )
 end_test

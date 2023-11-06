@@ -120,36 +120,32 @@ fi
 NON_WRITABLE=""
 # ensure all nodes are writable
 if [ "$CLUSTER" == "true" ] ; then
-  if [ -z "$GHE_FILE_SYSTEM_CHECK" ]; then
+  if [ -z "$GHE_FILE_SYSTEM_WRITE_CHECK" ]; then
     if [ -d "/data/user/tmp" ]; then
-      FILE_TO_TEST="/data/user/tmp/test-ro-file.txt"
+      WRITE_CHECK_FILE="/data/user/tmp/test-ro-file.txt"
     else
-      FILE_TO_TEST="/tmp/test-ro-file.txt"
+      WRITE_CHECK_FILE="/tmp/test-ro-file.txt"
     fi
   else
-    FILE_TO_TEST="$GHE_FILE_SYSTEM_CHECK/test-ro-file.txt"
+    WRITE_CHECK_FILE="$GHE_FILE_SYSTEM_CHECK/test-ro-file.txt"
   fi
 
   # Iterate through each node in the cluster
   nodes=$(ghe-ssh "$host" ghe-cluster-nodes)
   first=true
   for node in $nodes; do
-    if ! echo "set -o pipefail; ssh $node -- 'touch $FILE_TO_TEST && rm $FILE_TO_TEST'" | ghe-ssh "$host" /bin/bash; then
+    if ! echo "set -o pipefail; ssh $node -- 'touch $WRITE_CHECK_FILE && rm $WRITE_CHECK_FILE'" | ghe-ssh "$host" /bin/bash; then
       echo "File system is not writeable or no permission on $node" 1>&2
-      if [ "$first" = true ]; then
-        NON_WRITABLE="$node"
-        first=false
-      else
-        NON_WRITABLE="$NON_WRITABLE, $node"
-      fi
+      NON_WRITABLE+="$node "
     fi || true
   done
   # Display the comma-separated list of non-writable nodes
-  if [ ! -z "$NON_WRITABLE" ]; then
+  if [ -n "$NON_WRITABLE" ]; then
+    NON_WRITABLE=$(echo "$NON_WRITABLE" | sed 's/ /, /g; s/, $//')
     log_error "Error: Following nodes are non-writable - $NON_WRITABLE. Please make sure the filesystem for all GHES nodes are writable." 1>&2
     exit 1
   else
-    echo "All nodes are writable."
+    log_info "All nodes are writable."
   fi
 fi
 

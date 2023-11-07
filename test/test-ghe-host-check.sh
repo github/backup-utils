@@ -123,3 +123,18 @@ begin_test "ghe-host-check blocks restore to old release"
   ! GHE_TEST_REMOTE_VERSION=$bu_version_major.$((bu_version_minor-1)).$bu_version_patch ghe-restore -v
 )
 end_test
+
+# Check ghe-host-check detects RO file system
+begin_test "ghe-host-check fails when encountering RO file-system"
+(
+  set -e
+
+  ghe-ssh "$GHE_HOSTNAME" -- 'mkdir -p "~/tmp"'
+  # Remove write access in ~/tmp
+  ghe-ssh "$GHE_HOSTNAME" -- 'chmod a-w -R "~/tmp"'
+
+  # File creation fails for CLUSTER
+  ! WRITE_CHECK_FILE="$HOME/tmp/test" CLUSTER=true GHE_ALLOW_REPLICA_BACKUP=no ghe-host-check
+  WRITE_CHECK_FILE="$HOME/tmp/test" CLUSTER=false GHE_ALLOW_REPLICA_BACKUP=no ghe-host-check
+)
+end_test

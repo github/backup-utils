@@ -85,17 +85,21 @@ if [ $rc -ne 0 ]; then
   exit $rc
 fi
 
-CLUSTER=false
+if [ -z "$CLUSTER" ]; then
+  CLUSTER=false
+fi
 if ghe-ssh "$host" -- \
   "[ -f '$GHE_REMOTE_ROOT_DIR/etc/github/cluster' ]"; then
   CLUSTER=true
 fi
 
+set +e
 # ensure all nodes in the cluster are online/reachable and running the same version
 if "$CLUSTER"; then
   online_status=$(ghe-ssh "$host" ghe-cluster-host-check)
   if [ "$online_status" != "Cluster is ready to configure." ]; then
-    echo "Error: Not all nodes are online! Please ensure cluster is in a healthy state before using backup-utils." 1>&2
+    echo "$online_status" 1>&2
+    log_error "Error: Not all nodes are online! Please ensure cluster is in a healthy state before using backup-utils." 1>&2
     exit 1
   fi
 
@@ -103,16 +107,48 @@ if "$CLUSTER"; then
   distinct_versions=$(echo "$node_version_list" | awk '{split($0, a, ":"); print a[2]}' | awk '{print $4}' | uniq | wc -l)
   if [ "$distinct_versions" -ne 1 ]; then
     echo "Version mismatch: $node_version_list" 1>&2
-    echo "Error: Not all nodes are running the same version! Please ensure all nodes are running the same version before using backup-utils." 1>&2
+    log_error "Error: Not all nodes are running the same version! Please ensure all nodes are running the same version before using backup-utils." 1>&2
     exit 1
   fi
 fi
+set -e
 
 version=$(echo "$output" | grep "GitHub Enterprise" | awk '{print $NF}')
 
 if [ -z "$version" ]; then
   echo "Error: failed to parse version on '$host' or this isn't a GitHub appliance." 1>&2
   exit 2
+fi
+
+NON_WRITABLE=""
+# ensure all nodes are writable
+if [ "$CLUSTER" == "true" ] ; then
+  if [ -z "$GHE_FILE_SYSTEM_WRITE_CHECK" ]; then
+    if [ -d "/data/user/tmp" ]; then
+      WRITE_CHECK_FILE="/data/user/tmp/test-ro-file.txt"
+    else
+      WRITE_CHECK_FILE="/tmp/test-ro-file.txt"
+    fi
+  else
+    WRITE_CHECK_FILE="$GHE_FILE_SYSTEM_CHECK/test-ro-file.txt"
+  fi
+
+  # Iterate through each node in the cluster
+  nodes=$(ghe-ssh "$host" ghe-cluster-nodes)
+  for node in $nodes; do
+    if ! echo "set -o pipefail; ssh $node -- 'touch $WRITE_CHECK_FILE && rm $WRITE_CHECK_FILE'" | ghe-ssh "$host" /bin/bash; then
+      echo "File system is not writeable or no permission on $node" 1>&2
+      NON_WRITABLE+="$node "
+    fi || true
+  done
+  # Display the comma-separated list of non-writable nodes
+  if [ -n "$NON_WRITABLE" ]; then
+    NON_WRITABLE=$(echo "$NON_WRITABLE" | sed 's/ /, /g; s/, $//')
+    log_error "Error: Following nodes are non-writable - $NON_WRITABLE. Please make sure the filesystem for all GHES nodes are writable." 1>&2
+    exit 1
+  else
+    log_info "All nodes are writable."
+  fi
 fi
 
 # Block restoring snapshots to older releases of GitHub Enterprise Server
@@ -177,7 +213,7 @@ SKIP_MSG
 
   #Display dir requirements for repositories and mysql
   echo -e "\nChecking host for sufficient space for a backup..."
-  available_space=$(df -B 1k $GHE_DATA_DIR | awk 'END{printf "%.0f", $4 * 1024}') 
+  available_space=$(df -B 1k $GHE_DATA_DIR | awk 'END{printf "%.0f", $4 * 1024}')
   echo "  We recommend allocating at least 5x the amount of storage allocated to the primary GitHub appliance for historical snapshots and growth over time."
 
   repos_disk_size=$(transfer_size repositories /tmp)

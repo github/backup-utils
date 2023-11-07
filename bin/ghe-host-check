@@ -85,7 +85,9 @@ if [ $rc -ne 0 ]; then
   exit $rc
 fi
 
-CLUSTER=false
+if [ -z "$CLUSTER" ]; then
+  CLUSTER=false
+fi
 if ghe-ssh "$host" -- \
   "[ -f '$GHE_REMOTE_ROOT_DIR/etc/github/cluster' ]"; then
   CLUSTER=true
@@ -116,6 +118,37 @@ version=$(echo "$output" | grep "GitHub Enterprise" | awk '{print $NF}')
 if [ -z "$version" ]; then
   echo "Error: failed to parse version on '$host' or this isn't a GitHub appliance." 1>&2
   exit 2
+fi
+
+NON_WRITABLE=""
+# ensure all nodes are writable
+if [ "$CLUSTER" == "true" ] ; then
+  if [ -z "$GHE_FILE_SYSTEM_WRITE_CHECK" ]; then
+    if [ -d "/data/user/tmp" ]; then
+      WRITE_CHECK_FILE="/data/user/tmp/test-ro-file.txt"
+    else
+      WRITE_CHECK_FILE="/tmp/test-ro-file.txt"
+    fi
+  else
+    WRITE_CHECK_FILE="$GHE_FILE_SYSTEM_CHECK/test-ro-file.txt"
+  fi
+
+  # Iterate through each node in the cluster
+  nodes=$(ghe-ssh "$host" ghe-cluster-nodes)
+  for node in $nodes; do
+    if ! echo "set -o pipefail; ssh $node -- 'touch $WRITE_CHECK_FILE && rm $WRITE_CHECK_FILE'" | ghe-ssh "$host" /bin/bash; then
+      echo "File system is not writeable or no permission on $node" 1>&2
+      NON_WRITABLE+="$node "
+    fi || true
+  done
+  # Display the comma-separated list of non-writable nodes
+  if [ -n "$NON_WRITABLE" ]; then
+    NON_WRITABLE=$(echo "$NON_WRITABLE" | sed 's/ /, /g; s/, $//')
+    log_error "Error: Following nodes are non-writable - $NON_WRITABLE. Please make sure the filesystem for all GHES nodes are writable." 1>&2
+    exit 1
+  else
+    log_info "All nodes are writable."
+  fi
 fi
 
 # Block restoring snapshots to older releases of GitHub Enterprise Server

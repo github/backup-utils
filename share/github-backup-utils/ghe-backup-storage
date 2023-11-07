@@ -54,7 +54,7 @@ fi
 # hostnames for HA
 if ghe-ssh "$GHE_HOSTNAME" -- \
   "[ -f '$GHE_REMOTE_ROOT_DIR/etc/github/cluster' ] && [ -f '$GHE_REMOTE_ROOT_DIR/etc/github/repl-state' ]"; then
-  hostnames=$(ghe-ssh "$GHE_HOSTNAME" ghe-cluster-nodes -i |cut -f 2)
+  hostnames=$(ghe-ssh "$GHE_HOSTNAME" ghe-cluster-nodes -i | cut -f 2)
 fi
 
 # Make sure root backup dir exists if this is the first run

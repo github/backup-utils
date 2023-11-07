@@ -49,7 +49,7 @@ jobs:
         name: backup-utils
     - name: Load docker container 
       run: docker load -i backup-utils.tar
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Create backup directory
       run: mkdir "$HOME"/ghe-backup-data
     - name: set up ssh SSH_KEY

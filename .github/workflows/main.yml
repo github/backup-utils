@@ -18,7 +18,7 @@ jobs:
         tar --xz -xvf "shellcheck-stable.linux.x86_64.tar.xz"
         sudo cp shellcheck-stable/shellcheck /usr/bin/shellcheck
     - name: Get Sources
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Test
       run: |
         export PATH="$PATH:/snap/bin"

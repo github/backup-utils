@@ -27,7 +27,7 @@ jobs:
         - enterprise2-backup-utils-binary-backup
         - enterprise2-backup-utils-migration
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 1
       - name: Queue ${{ matrix.jankyJobName }} build
@@ -50,7 +50,7 @@ jobs:
         - enterprise2-backup-utils-cluster-binary-backup
         - enterprise2-backup-utils-cluster-migration
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 1
       - name: Queue ${{ matrix.jankyJobName }} build

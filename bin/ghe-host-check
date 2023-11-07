@@ -132,7 +132,6 @@ if [ "$CLUSTER" == "true" ] ; then
 
   # Iterate through each node in the cluster
   nodes=$(ghe-ssh "$host" ghe-cluster-nodes)
-  first=true
   for node in $nodes; do
     if ! echo "set -o pipefail; ssh $node -- 'touch $WRITE_CHECK_FILE && rm $WRITE_CHECK_FILE'" | ghe-ssh "$host" /bin/bash; then
       echo "File system is not writeable or no permission on $node" 1>&2

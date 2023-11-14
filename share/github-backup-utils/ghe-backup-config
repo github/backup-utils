@@ -682,6 +682,10 @@ increment-progress-total-count() {
 # This function should be used directly to disable and drain GC operations ONLY on HA-replica node
 # (as done in ghe-backup-repositories and ghe-backup-storage)
 # Otherwise use ghe-gc-disable which will call this function with the correct parameters.
+#
+# Arguments:
+#   $1 - path to sync-in-progress file ($SYNC_IN_PROGRESS_FILE)
+#   $2 - git cooldown period ($GHE_GIT_COOLDOWN_PERIOD)
 ##
 gc_disable() {
   set -e

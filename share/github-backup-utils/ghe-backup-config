@@ -695,7 +695,7 @@ gc_disable() {
   # Touch the sync-in-progress file, disabling GC operations, and wait for all
   # active GC processes to finish on the remote side.
   sudo -u git touch "$sync_in_progress"
-  for i in $(seq $git_cooldown_period); do
+  for _ in $(seq $git_cooldown_period); do
     # note: the bracket synta[x] below is to prevent matches against the
     # grep process itself.
     if ps axo args | grep -E -e "^git( -.*)? nw-repac[k]( |$)" -e "^git( -.*)? g[c]( |$)" >/dev/null; then

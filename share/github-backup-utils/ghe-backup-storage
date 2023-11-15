@@ -52,7 +52,9 @@ if [ "$GHE_BACKUP_STRATEGY" = "cluster" ]; then
 fi
 
 # Replica hostnames for HA
-ha_replica_hosts=$(ghe-ssh "$GHE_HOSTNAME" ghe-cluster-nodes --replica)
+if ghe-ssh "$GHE_HOSTNAME" -- "[ -f '$GHE_REMOTE_ROOT_DIR/etc/github/repl-state' ]"; then
+  ha_replica_hosts=$(ghe-ssh "$GHE_HOSTNAME" ghe-cluster-nodes --replica)
+fi
 
 # Make sure root backup dir exists if this is the first run
 mkdir -p "$backup_dir"

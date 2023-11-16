@@ -676,3 +676,33 @@ increment-progress-total-count() {
   ((PROGRESS_TOTAL += $1))
   echo "$PROGRESS_TOTAL" > /tmp/backup-utils-progress/total
 }
+
+##
+# This function is used by ghe-gc-disable, ghe-backup-repositories, and ghe-backup-storage
+# This function should be used directly to disable and drain GC operations ONLY on HA-replica node
+# (as done in ghe-backup-repositories and ghe-backup-storage)
+# Otherwise use ghe-gc-disable which will call this function with the correct parameters.
+#
+# Arguments:
+#   $1 - path to sync-in-progress file ($SYNC_IN_PROGRESS_FILE)
+#   $2 - git cooldown period ($GHE_GIT_COOLDOWN_PERIOD)
+##
+gc_disable() {
+  set -e
+  local sync_in_progress="$1"
+  local git_cooldown_period="$2"
+
+  # Touch the sync-in-progress file, disabling GC operations, and wait for all
+  # active GC processes to finish on the remote side.
+  sudo -u git touch "$sync_in_progress"
+  for _ in $(seq $git_cooldown_period); do
+    # note: the bracket synta[x] below is to prevent matches against the
+    # grep process itself.
+    if ps axo args | grep -E -e "^git( -.*)? nw-repac[k]( |$)" -e "^git( -.*)? g[c]( |$)" >/dev/null; then
+      sleep 1
+    else
+      exit 0
+    fi
+  done
+  exit 7
+}

@@ -170,7 +170,7 @@ if [ -z "$GHE_SKIP_ROUTE_VERIFICATION" ]; then
   cat $tempdir/*.rsync | uniq | sort | uniq > $tempdir/source_routes
   (cd $backup_dir/ && find * -mindepth 3 -maxdepth 3 -type f -print | uniq | sort | uniq) > $tempdir/destination_routes
 
-  git --no-pager diff --unified=0 --no-prefix -- $tempdir/source_routes $tempdir/destination_routes || echo "Warning: One or more storage objects were not found on the source appliance. Please contact GitHub Enterprise Support for assistance."
+  git --no-pager diff --unified=0 --no-prefix -- $tempdir/source_routes $tempdir/destination_routes || echo "Warning: One or more storage objects were not found on the source appliance."
 
   increment-progress-total-count 1
   bm_end "$(basename $0) - Verifying Routes"

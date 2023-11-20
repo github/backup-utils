@@ -67,9 +67,7 @@ jobs:
 
   restore:
     needs: build
-    runs-on:
-      group: larger-hosted-public-runners
-      labels: ubuntu-latest
+    runs-on: ubuntu-latest-xl
     env:
         SSH_KEY: ${{ secrets.BACKUP_SSH_KEY }}
     steps:

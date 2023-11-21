@@ -78,7 +78,7 @@ jobs:
     - name: set up ssh key permissions
       run: chmod 0600 "$HOME/backup"
     - name: change version
-      run: echo "3.8.0" > "$HOME/version"
+      run: echo "3.10.0" > "$HOME/version"
 
     - name: Perform backup
       run: |

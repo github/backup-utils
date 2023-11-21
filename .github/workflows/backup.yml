@@ -13,6 +13,11 @@ on:
         required: false
         default: ""
         type: string
+      version:
+        description: 'Version of the GHES instance (3.9.0)'
+        required: false
+        default: '3.10.0'
+        type: string
     secrets:
       BACKUP_SSH_KEY:
         description: SSH key to access the GitHub Enterprise instance
@@ -66,7 +71,7 @@ jobs:
     - name: set up ssh key permissions
       run: chmod 0600 "$HOME/backup"
     - name: change version
-      run: echo "3.10.0" > "$HOME/version"
+      run: echo "${{ inputs.version }}" > "$HOME/version"
 
     - name: Perform backup
       run: |

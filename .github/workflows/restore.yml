@@ -46,6 +46,22 @@ on:
         required: false
         type: string
         default: 'master'
+    secrets:
+      BACKUP_SSH_KEY:
+        description: SSH key to access the GitHub Enterprise instance
+        required: true
+      INTERNAL_ACTIONS_DX_BOT_ACCOUNT_TOKEN:
+        description: Token for the internal actions dx bot account
+        required: true
+      AZURE_ACCOUNT_NAME:
+        description: Azure storage account name
+        required: false
+      AZURE_CONTAINER_NAME:
+        description: Azure storage container name
+        required: false
+      CONNECTIONSTRING:
+        description: Azure storage connection string
+        required: false
 
 jobs:
   build:
@@ -99,12 +115,12 @@ jobs:
         echo "version=$file_version" >> "$GITHUB_OUTPUT"
         echo "name=v$file_version-$size.tar.gz" >> "$GITHUB_OUTPUT"
 
-    - name: Download from blob storage
+    - name: Download from Azure storage
       run: |
         mkdir ghes-data
         az storage blob download \
-        --account-name ghesresults \
-        --container-name ghes-data \
+        --account-name "${{ secrets.AZURE_ACCOUNT_NAME }}" \
+        --container-name "${{ secrets.AZURE_CONTAINER_NAME }}" \
         --name "${{ steps.file.outputs.name }}" \
         --file "ghes-data/${{ steps.file.outputs.name }}" \
         --connection-string "${{ secrets.CONNECTIONSTRING }}"

@@ -20,18 +20,6 @@ on:
       INTERNAL_ACTIONS_DX_BOT_ACCOUNT_TOKEN:
         description: Token for the internal actions dx bot account
         required: true
-      AZURE_USERNAME:
-        description: Azure service principal username
-        required: false
-      AZURE_PASSWORD:
-        description: Azure service principal password
-        required: false
-      AZURE_TENANT_ID:
-        description: Azure tenant ID
-        required: false
-      AZURE_SUBSCRIPTION_ID:
-        description: Azure subscription ID
-        required: false
       AZURE_ACCOUNT_NAME:
         description: Azure storage account name
         required: false
@@ -96,17 +84,7 @@ jobs:
         current=$(readlink "$HOME/ghe-backup-data/current")
         sudo tar -czvf "${{ inputs.backup-name }}.tar.gz" -C "$HOME/ghe-backup-data/$current" .
 
-    - name: Login to Azure
-      if: "${{ inputs.backup-name != '' }}"
-      run: |
-        az login \
-          --service-principal \
-          -u "${{ secrets.AZURE_USERNAME }}" \
-          -p "${{ secrets.AZURE_PASSWORD }}" \
-          --tenant "${{ secrets.AZURE_TENANT_ID }}"
-        az account set --subscription "${{ secrets.AZURE_SUBSCRIPTION_ID }}"
-
-    - name: Upload backup to Azure
+    - name: Upload backup to Azure storage
       if: "${{ inputs.backup-name != '' }}"
       run: |
         az storage blob upload \

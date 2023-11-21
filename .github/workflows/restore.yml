@@ -100,13 +100,17 @@ jobs:
         version="${{ inputs.version }}"
         size="${{ inputs.size }}"
         V3_6_COMPATIBLE="3.6 3.7"
-        V3_8_COMPATIBLE="3.8 3.9 3.10"
-        if echo "$V3_8_COMPATIBLE" | grep -q -w "$version"; then
-            echo "Version $version is acceptable by 3.8 backup"
-            file_version=3.8
+        V3_8_COMPATIBLE="3.8 3.9"
+        V3_10_COMPATIBLE="3.10 3.11"
+        if echo "$V3_10_COMPATIBLE" | grep -q -w "$version"; then
+            echo "Version $version is acceptable by 3.10 backup"
+            file_version=3.10
+        elif echo "$V3_8_COMPATIBLE" | grep -q -w "$version"; then
+          echo "Version $version is acceptable by 3.8 backup"
+          file_version=3.8
         elif echo "$V3_6_COMPATIBLE" | grep -q -w "$version"; then
-            echo "Version $version is acceptable by 3.6 backup"
-            file_version=3.6
+          echo "Version $version is acceptable by 3.6 backup"
+          file_version=3.6
         else
             echo "Version $version is not acceptable"
             exit 1

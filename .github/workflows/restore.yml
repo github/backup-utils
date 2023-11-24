@@ -78,7 +78,7 @@ jobs:
 
     - uses: actions/upload-artifact@v3
       with:
-        name: backup-utils-${{ github.run_id }}
+        name: backup-utils-${{ inputs.hostname }}
         path: backup-utils.tar
 
   restore:
@@ -89,7 +89,7 @@ jobs:
     steps:
     - uses: actions/download-artifact@v3
       with:
-        name: backup-utils-${{ github.run_id }}
+        name: backup-utils-${{ inputs.hostname }}
 
     - name: Load docker container
       run: docker load -i backup-utils.tar

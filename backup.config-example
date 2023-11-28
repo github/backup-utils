@@ -26,11 +26,15 @@ GHE_NUM_SNAPSHOTS=10
 # performed before the next full backup is created.
 # For example, if `GHE_INCREMENTAL_BACKUP_MAX` is set to 14, backup-utils will 
 # run 1 full backup and then 13 incremental backups before performing another full backup on the next cycle.
-#GHE_INCREMENTAL_BACKUP_MAX=14
+#GHE_INCREMENTAL_MAX_BACKUPS=14
 
 # If GHE_SKIP_CHECKS is set to true (or if --skip-checks is used with ghe-backup) then ghe-host-check
 # disk space validation and software version checks on the backup-host will be disabled.
 #GHE_SKIP_CHECKS=false
+
+# Cluster filesystem to check if it's writable as part of ghe-host-check
+# By default it is /data/user/tmp but can be updated if needed
+#GHE_FILE_SYSTEM_WRITE_CHECK="/data/user/tmp"
 
 # The hostname of the GitHub appliance to restore. If you've set up a separate
 # GitHub appliance to act as a standby for recovery, specify its IP or hostname
@@ -57,6 +61,10 @@ GHE_NUM_SNAPSHOTS=10
 # Any extra options passed to the rsync command. Nothing required by default.
 #
 #GHE_EXTRA_RSYNC_OPTS=""
+
+# If set to 'yes', rsync will be set to use compression during backups and restores transfers. Defaults to 'no'.
+#
+#GHE_RSYNC_COMPRESSION_ENABLED=yes
 
 # If enabled and set to 'no', rsync warning message during backups will be suppressed.
 #RSYNC_WARNING=no

@@ -51,6 +51,11 @@ if [ "$GHE_BACKUP_STRATEGY" = "cluster" ]; then
   ghe-ssh-config "$GHE_HOSTNAME" "$hostnames" > "$ssh_config_file"
 fi
 
+# Replica hostnames for HA
+if ghe-ssh "$GHE_HOSTNAME" -- "[ -f '$GHE_REMOTE_ROOT_DIR/etc/github/repl-state' ]"; then
+  ha_replica_hosts=$(ghe-ssh "$GHE_HOSTNAME" ghe-cluster-nodes --replica)
+fi
+
 # Make sure root backup dir exists if this is the first run
 mkdir -p "$backup_dir"
 
@@ -59,8 +64,15 @@ mkdir -p "$backup_dir"
 cleanup() {
   # Enable remote maintenance operations
   for hostname in $hostnames; do
-    ghe-gc-enable $ssh_config_file_opt $hostname:$port || { 
+    ghe-gc-enable $ssh_config_file_opt $hostname:$port || {
       log_warn "Re-enable gc on $hostname failed, please manually delete $SYNC_IN_PROGRESS_FILE" 1>&2
+    }
+  done
+
+  # Enable remote GC operations for HA replica
+  for replica_host in $ha_replica_hosts; do
+    echo "set -o pipefail; ssh $replica_host -- 'sudo rm -f $SYNC_IN_PROGRESS_FILE'" | ghe-ssh "$host" /bin/bash || {
+      echo "Re-enable gc on $replica_host failed, please manually delete $SYNC_IN_PROGRESS_FILE" 1>&2
     }
   done
 
@@ -72,6 +84,15 @@ trap 'cleanup' EXIT INT
 # Disable remote maintenance operations
 for hostname in $hostnames; do
   ghe-gc-disable $ssh_config_file_opt $hostname:$port
+done
+
+# Disable remote GC operations for HA replica
+# gc_disable is a function defined in ghe-backup-config
+# gc_disable is called on the replica node via the primary node, because replica node is not expected to be reachable from backup host. But replica node is expected to be reachable from primary node.
+for replica_host in $ha_replica_hosts; do
+  echo "set -o pipefail; ssh $replica_host -- '$(declare -f gc_disable); gc_disable \"$SYNC_IN_PROGRESS_FILE\" \"$GHE_GIT_COOLDOWN_PERIOD\"'" | ghe-ssh "$host" /bin/bash || {
+    echo "Disable gc on $replica_host failed" 1>&2
+  }
 done
 
 # If we have a previous increment and it is not empty, avoid transferring existing files via rsync's
@@ -149,7 +170,7 @@ if [ -z "$GHE_SKIP_ROUTE_VERIFICATION" ]; then
   cat $tempdir/*.rsync | uniq | sort | uniq > $tempdir/source_routes
   (cd $backup_dir/ && find * -mindepth 3 -maxdepth 3 -type f -print | uniq | sort | uniq) > $tempdir/destination_routes
 
-  git --no-pager diff --unified=0 --no-prefix -- $tempdir/source_routes $tempdir/destination_routes || echo "Warning: One or more storage objects were not found on the source appliance. Please contact GitHub Enterprise Support for assistance."
+  git --no-pager diff --unified=0 --no-prefix -- $tempdir/source_routes $tempdir/destination_routes || echo "Warning: One or more storage objects were not found on the source appliance."
 
   increment-progress-total-count 1
   bm_end "$(basename $0) - Verifying Routes"

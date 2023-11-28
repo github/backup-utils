@@ -85,28 +85,70 @@ if [ $rc -ne 0 ]; then
   exit $rc
 fi
 
-CLUSTER=false
+if [ -z "$CLUSTER" ]; then
+  CLUSTER=false
+fi
 if ghe-ssh "$host" -- \
   "[ -f '$GHE_REMOTE_ROOT_DIR/etc/github/cluster' ]"; then
   CLUSTER=true
 fi
 
-# ensure all nodes in the cluster are running the same version
+set +e
+# ensure all nodes in the cluster are online/reachable and running the same version
 if "$CLUSTER"; then
+  online_status=$(ghe-ssh "$host" ghe-cluster-host-check)
+  if [ "$online_status" != "Cluster is ready to configure." ]; then
+    echo "$online_status" 1>&2
+    log_error "Error: Not all nodes are online! Please ensure cluster is in a healthy state before using backup-utils." 1>&2
+    exit 1
+  fi
+
   node_version_list=$(ghe-ssh "$host" ghe-cluster-each -- ghe-version)
   distinct_versions=$(echo "$node_version_list" | awk '{split($0, a, ":"); print a[2]}' | awk '{print $4}' | uniq | wc -l)
   if [ "$distinct_versions" -ne 1 ]; then
-    echo "$node_version_list" 1>&2
-    echo "Error: Not all nodes are running the same version! Please ensure all nodes are running the same version before using backup-utils." 1>&3
+    echo "Version mismatch: $node_version_list" 1>&2
+    log_error "Error: Not all nodes are running the same version! Please ensure all nodes are running the same version before using backup-utils." 1>&2
     exit 1
   fi
 fi
+set -e
 
 version=$(echo "$output" | grep "GitHub Enterprise" | awk '{print $NF}')
 
 if [ -z "$version" ]; then
   echo "Error: failed to parse version on '$host' or this isn't a GitHub appliance." 1>&2
   exit 2
+fi
+
+NON_WRITABLE=""
+# ensure all nodes are writable
+if [ "$CLUSTER" == "true" ] ; then
+  if [ -z "$GHE_FILE_SYSTEM_WRITE_CHECK" ]; then
+    if [ -d "/data/user/tmp" ]; then
+      WRITE_CHECK_FILE="/data/user/tmp/test-ro-file.txt"
+    else
+      WRITE_CHECK_FILE="/tmp/test-ro-file.txt"
+    fi
+  else
+    WRITE_CHECK_FILE="$GHE_FILE_SYSTEM_CHECK/test-ro-file.txt"
+  fi
+
+  # Iterate through each node in the cluster
+  nodes=$(ghe-ssh "$host" ghe-cluster-nodes)
+  for node in $nodes; do
+    if ! echo "set -o pipefail; ssh $node -- 'touch $WRITE_CHECK_FILE && rm $WRITE_CHECK_FILE'" | ghe-ssh "$host" /bin/bash; then
+      echo "File system is not writeable or no permission on $node" 1>&2
+      NON_WRITABLE+="$node "
+    fi || true
+  done
+  # Display the comma-separated list of non-writable nodes
+  if [ -n "$NON_WRITABLE" ]; then
+    NON_WRITABLE=$(echo "$NON_WRITABLE" | sed 's/ /, /g; s/, $//')
+    log_error "Error: Following nodes are non-writable - $NON_WRITABLE. Please make sure the filesystem for all GHES nodes are writable." 1>&2
+    exit 1
+  else
+    log_info "All nodes are writable."
+  fi
 fi
 
 # Block restoring snapshots to older releases of GitHub Enterprise Server
@@ -145,7 +187,7 @@ if [ -z "$supported" ]; then
 fi
 
 if [[ "$CALLING_SCRIPT" == "ghe-backup" && "$GHE_SKIP_CHECKS" != "true" ]]; then
-  cat << SKIP_MSG 1>&2
+  cat << SKIP_MSG
 **You can disable the following storage & version checks by running ghe-backup with option "--skip-checks"
 OR updating GHE_SKIP_CHECKS to 'true' in your backup.config file.
 
@@ -162,11 +204,17 @@ SKIP_MSG
   # shellcheck source=share/github-backup-utils/ghe-rsync-size
   . "$(dirname "${BASH_SOURCE[0]}")/../share/github-backup-utils/ghe-rsync-size"
 
+  #Check if GHE_DATA_DIR is NFS mounted
+  fs_info=$(stat -f -c "%T" "$GHE_DATA_DIR") || true
+  if [ "$fs_info" == "nfs" ]; then
+    echo "Warning: NFS (Network File System) detected for $GHE_DATA_DIR" 1>&2
+    echo "Please review https://gh.io/backup-utils-storage-requirements for details." 1>&2
+  fi
+
   #Display dir requirements for repositories and mysql
-  echo "" 1>&2
-  echo "Checking host for sufficient space for a backup..." 1>&2
-  available_space=$(df -B 1k $GHE_DATA_DIR | awk 'END{printf "%.0f", $4 * 1024}') 
-  echo "  We recommend allocating at least 5x the amount of storage allocated to the primary GitHub appliance for historical snapshots and growth over time." 1>&2
+  echo -e "\nChecking host for sufficient space for a backup..."
+  available_space=$(df -B 1k $GHE_DATA_DIR | awk 'END{printf "%.0f", $4 * 1024}')
+  echo "  We recommend allocating at least 5x the amount of storage allocated to the primary GitHub appliance for historical snapshots and growth over time."
 
   repos_disk_size=$(transfer_size repositories /tmp)
   pages_disk_size=$(transfer_size pages /tmp)
@@ -179,12 +227,12 @@ SKIP_MSG
 
   min_disk_req=$((repos_disk_size + pages_disk_size + es_disk_size + stor_disk_size + minio_disk_size + mysql_disk_size + actions_disk_size + mssql_disk_size))
   recommended_disk_req=$((min_disk_req * 5))
-  echo "   - Available space: $((available_space / (1024 ** 2))) MB" 1>&2
-  echo "   - Min Disk required for this backup is at least $min_disk_req MB" 1>&2
-  echo "   - Recommended Disk requirement is $recommended_disk_req MB" 1>&2
-  echo "" 1>&2
+  echo "   - Available space: $((available_space / (1024 ** 2))) MB"
+  echo "   - Min Disk required for this backup is at least $min_disk_req MB"
+  echo -e "   - Recommended Disk requirement is $recommended_disk_req MB\n"
 
-  printf '### Data Transfer Sizes 
+  printf '### Estimated Data Transfer Sizes
+
  - repositories: %d MB
  - pages: %d MB
  - elasticsearch: %d MB
@@ -192,8 +240,9 @@ SKIP_MSG
  - minio: %d MB
  - mysql: %d MB
  - actions: %d MB
- - mssql: %d MB\n' \
-  "$repos_disk_size" "$pages_disk_size" "$es_disk_size" "$stor_disk_size" "$minio_disk_size" "$mysql_disk_size" "$actions_disk_size" "$mssql_disk_size" 1>&2
+ - mssql: %d MB
+\n' \
+  "$repos_disk_size" "$pages_disk_size" "$es_disk_size" "$stor_disk_size" "$minio_disk_size" "$mysql_disk_size" "$actions_disk_size" "$mssql_disk_size"
 
   if [[ $((available_space / (1024 * 1024))) -lt $min_disk_req ]]; then
     echo "There is not enough disk space for the backup. Please allocate more space and continue." 1>&2
@@ -216,7 +265,7 @@ SKIP_MSG
     exit 1
   fi
 
-  echo "### Software versions" 1>&2
+  echo "### Software versions"
   rsync_version=$(rsync --version | grep 'version' | awk '{print $3}' | tr -cd '[:digit:].\n')
   if awk "BEGIN {exit !($rsync_version < $min_rsync)}" &> /dev/null; then
     echo "rsync version $rsync_version in backup-host does not meet minimum requirements." 1>&2
@@ -226,9 +275,9 @@ SKIP_MSG
     printf "\n  **WARNING:** rsync version %s on backup host is less than 3.2.5, which could result in performance degradation.
   For more details, please read documentation at https://gh.io/april-2023-update-of-rsync-requirements
   You can disable this warning by changing RSYNC_WARNING to 'no' in your backup.config file.\n\n" \
-    "$rsync_version" 1>&2
+    "$rsync_version"
   fi
-  echo " - rsync ${rsync_version} >= required ($min_rsync)" 1>&2
+  echo " - rsync ${rsync_version} >= required ($min_rsync)"
 
   ssh_version=$(ssh -V 2>&1 | awk '{print $1}'|grep -oPm 1 '[\d\.]+' |head -1 | tr -cd '[:digit:].\n')
   if awk "BEGIN {exit !($ssh_version < $min_openssh)}" &> /dev/null; then
@@ -236,7 +285,7 @@ SKIP_MSG
     echo "Please make sure the minimum required version of openSSH: $min_openssh is installed" 1>&2
     exit 1
   else
-    echo " - openSSH ${ssh_version} >= required ($min_openssh)" 1>&2
+    echo " - openSSH ${ssh_version} >= required ($min_openssh)"
   fi
 
   jq_version=$(jq --version |awk -F\- '{print $2}' | tr -cd '[:digit:].\n')
@@ -245,8 +294,8 @@ SKIP_MSG
     echo "Please make sure you have the minimum required version of jq: $min_jq installed" 1>&2
     exit 1
   else
-    echo " - jq ${jq_version} >= required ($min_jq)" 1>&2
+    echo " - jq ${jq_version} >= required ($min_jq)"
   fi
 fi
-echo "" 1>&2
-echo "Connect $hostname:$port OK (v$version)"
+
+echo -e "\nConnect $hostname:$port OK (v$version)"

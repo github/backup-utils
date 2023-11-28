@@ -56,9 +56,14 @@ begin_test "ghe-host-check detects unsupported GitHub Enterprise Server versions
   read -r bu_version_major bu_version_minor _ <<<$(ghe_parse_version $BACKUP_UTILS_VERSION)
   bu_major_minor="$bu_version_major.$bu_version_minor"
   releases=$(/usr/bin/curl -s https://github-enterprise.s3.amazonaws.com/release/latest.json)
-  supported=$(echo $releases | jq -r 'select(."'${bu_major_minor}'")')
+  latest_value=$(echo "$releases" | jq -r '.latest')
+  latest_major_version=$(echo $latest_value | cut -d "." -f 1-2)
+  # Replace "latest" with the derived major version in the releases string
+  releases_with_replacement=$(echo "$releases" | sed 's/"latest"/"'"$latest_major_version"'"/g')
+  # Use the modified releases string as needed
+  supported=$(echo "$releases_with_replacement" | jq -r 'select(."'${bu_major_minor}'")')
   # shellcheck disable=SC2207 # Command required as alternatives fail
-  keys=($(echo $releases | jq -r 'keys[]'))
+  keys=($(echo "$releases_with_replacement" | jq -r 'keys[]'))
 
   if [ -z "$supported" ]
   then
@@ -78,7 +83,10 @@ begin_test "ghe-host-check detects unsupported GitHub Enterprise Server versions
        ix=$(( $ix + 1 ))
       done
       GHE_TEST_REMOTE_VERSION="${keys[$ix]}.0" ghe-host-check
-      GHE_TEST_REMOTE_VERSION="${keys[$(( $ix - 1 ))]}.0" ghe-host-check
+      # sometimes when the latest.json is updated during a release this test gets broken.
+      if [ "${keys[$(( $ix - 1 ))]}" != "latest" ]; then
+        GHE_TEST_REMOTE_VERSION="${keys[$(( $ix - 1 ))]}.0" ghe-host-check
+      fi
       GHE_TEST_REMOTE_VERSION="${keys[$(( $ix - 2 ))]}.0" ghe-host-check
 
   fi
@@ -113,5 +121,20 @@ begin_test "ghe-host-check blocks restore to old release"
   # shellcheck disable=SC2046 # Word splitting is required to populate the variables
   read -r bu_version_major bu_version_minor bu_version_patch <<<$(ghe_parse_version $GHE_TEST_REMOTE_VERSION)
   ! GHE_TEST_REMOTE_VERSION=$bu_version_major.$((bu_version_minor-1)).$bu_version_patch ghe-restore -v
+)
+end_test
+
+# Check ghe-host-check detects RO file system
+begin_test "ghe-host-check fails when encountering RO file-system"
+(
+  set -e
+
+  ghe-ssh "$GHE_HOSTNAME" -- 'mkdir -p "~/tmp"'
+  # Remove write access in ~/tmp
+  ghe-ssh "$GHE_HOSTNAME" -- 'chmod a-w -R "~/tmp"'
+
+  # File creation fails for CLUSTER
+  ! WRITE_CHECK_FILE="$HOME/tmp/test" CLUSTER=true GHE_ALLOW_REPLICA_BACKUP=no ghe-host-check
+  WRITE_CHECK_FILE="$HOME/tmp/test" CLUSTER=false GHE_ALLOW_REPLICA_BACKUP=no ghe-host-check
 )
 end_test

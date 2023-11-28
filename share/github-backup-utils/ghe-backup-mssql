@@ -62,7 +62,7 @@ fi
 
 if ! export_tool_available ; then
   log_error "ghe-export-mssql is not available" 1>&2
-  exit
+  exit 1
 fi
 
 add_minute() {
@@ -335,9 +335,12 @@ if [ -n "$backup_type" ]; then
   elif [ "$backup_type" = "transaction" ]; then
     backup_command='ghe-export-mssql -t'
   fi
-  
+
+  backup_failed=
+
   bm_start "$(basename "$0")"
-  ghe_ssh_mssql  -- "$backup_command"
+  # record if generating the backup failed, this will allow us to collect any backups that may have been produced, even if they are not complete they are better than nothing
+  ghe_ssh_mssql -- "$backup_command" || backup_failed='true'
   bm_end "$(basename "$0")"
 
   # Configure the backup cadence on the appliance, which is used for diagnostics
@@ -352,4 +355,9 @@ if [ -n "$backup_type" ]; then
     ghe_verbose "Transferring to backup host $b"
     ghe_ssh_mssql "sudo cat $appliance_dir/$b" > "$backup_dir"/"$b"
   done
+
+  if [ -n "$backup_failed" ]; then
+    log_error 'ghe-export-mssql failed to backup at least one mssql database' 1>&2
+    exit 1
+  fi
 fi

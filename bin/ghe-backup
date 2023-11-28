@@ -54,38 +54,7 @@ export CALLING_SCRIPT="ghe-backup"
 # shellcheck source=share/github-backup-utils/ghe-backup-config
 . "$( dirname "${BASH_SOURCE[0]}" )/../share/github-backup-utils/ghe-backup-config"
 
-# Setup progress tracking
-init-progress
-export PROGRESS_TOTAL=14 # Minimum number of steps in backup is 14
-echo "$PROGRESS_TOTAL" > /tmp/backup-utils-progress-total
-export PROGRESS_TYPE="Backup"
-echo "$PROGRESS_TYPE" > /tmp/backup-utils-progress-type
-export PROGRESS=0 # Used to track progress of backup
-echo "$PROGRESS" > /tmp/backup-utils-progress
 
-OPTIONAL_STEPS=0
-# Backup actions+mssql
-if ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config --true app.actions.enabled'; then
-  OPTIONAL_STEPS=$((OPTIONAL_STEPS + 2))
-fi
-
-# Backup fsck
-if [ "$GHE_BACKUP_FSCK" = "yes" ]; then
-  OPTIONAL_STEPS=$((OPTIONAL_STEPS + 1))
-fi
-
-# Backup minio
-if ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config --true app.minio.enabled'; then
-  OPTIONAL_STEPS=$((OPTIONAL_STEPS + 1))
-fi
-
-# Backup pages
-if [ "$GHE_BACKUP_PAGES" != "no" ]; then
-  OPTIONAL_STEPS=$((OPTIONAL_STEPS + 1))
-fi
-
-PROGRESS_TOTAL=$((OPTIONAL_STEPS + PROGRESS_TOTAL)) # Minimum number of steps in backup is 14
-echo "$PROGRESS_TOTAL" > /tmp/backup-utils-progress-total
 # Check to make sure moreutils parallel is installed and working properly
 ghe_parallel_check
 
@@ -149,9 +118,12 @@ cleanup () {
 
   rm -rf "$failures_file"
   rm -f "${GHE_DATA_DIR}/in-progress-backup"
+  rm -rf /tmp/backup-utils-progress/*
 
   # Cleanup SSH multiplexing
   ghe-ssh --clean
+
+  bm_end "$(basename $0)"
 }
 
 # Setup exit traps
@@ -186,8 +158,43 @@ fi
 # Perform a host connection check and establish the remote appliance version.
 # The version is available in the GHE_REMOTE_VERSION variable and also written
 # to a version file in the snapshot directory itself.
+# ghe_remote_version_required should be run before any other instances of ghe-ssh
+# to ensure that there are no problems with host key verification.
 ghe_remote_version_required
 echo "$GHE_REMOTE_VERSION" > version
+
+# Setup progress tracking
+init-progress
+export PROGRESS_TOTAL=14 # Minimum number of steps in backup is 14
+echo "$PROGRESS_TOTAL" > /tmp/backup-utils-progress/total
+export PROGRESS_TYPE="Backup"
+echo "$PROGRESS_TYPE" > /tmp/backup-utils-progress/type
+export PROGRESS=0 # Used to track progress of backup
+echo "$PROGRESS" > /tmp/backup-utils-progress/progress
+
+OPTIONAL_STEPS=0
+# Backup actions+mssql
+if ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config --true app.actions.enabled'; then
+  OPTIONAL_STEPS=$((OPTIONAL_STEPS + 2))
+fi
+
+# Backup fsck
+if [ "$GHE_BACKUP_FSCK" = "yes" ]; then
+  OPTIONAL_STEPS=$((OPTIONAL_STEPS + 1))
+fi
+
+# Backup minio
+if ghe-ssh "$GHE_HOSTNAME" -- 'ghe-config --true app.minio.enabled'; then
+  OPTIONAL_STEPS=$((OPTIONAL_STEPS + 1))
+fi
+
+# Backup pages
+if [ "$GHE_BACKUP_PAGES" != "no" ]; then
+  OPTIONAL_STEPS=$((OPTIONAL_STEPS + 1))
+fi
+
+PROGRESS_TOTAL=$((OPTIONAL_STEPS + PROGRESS_TOTAL)) # Minimum number of steps in backup is 14
+echo "$PROGRESS_TOTAL" > /tmp/backup-utils-progress/total
 
 # check that incremental settings are valid if set
 is_inc=$(is_incremental_backup_feature_on)
@@ -212,6 +219,7 @@ fi
 echo "$GHE_SNAPSHOT_TIMESTAMP $$" > ../in-progress
 echo "$GHE_SNAPSHOT_TIMESTAMP $$" > "${GHE_DATA_DIR}/in-progress-backup"
 
+bm_start "$(basename $0)"
 START_TIME=$(date +%s)
 log_info "Starting backup of $GHE_HOSTNAME with backup-utils v$BACKUP_UTILS_VERSION in snapshot $GHE_SNAPSHOT_TIMESTAMP"
 
@@ -223,9 +231,11 @@ fi
 
 # Output system information of the backup host
 
-# If /etc/issue.net exists, use it to get the OS version
-if [ -f /etc/issue.net ]; then
-  echo "Running on: $(cat /etc/issue.net)"
+# If /etc/os-release exists, use it to get the OS version
+if [ -f /etc/os-release ]; then
+  OS_NAME=$(grep '^NAME' /etc/os-release | cut -d'"' -f2)
+  VERSION_ID=$(grep '^VERSION_ID' /etc/os-release | cut -d'"' -f2)
+  echo "Running on: $OS_NAME $VERSION_ID"
 else
   echo "Running on: Unknown OS"
 fi
@@ -258,6 +268,9 @@ bm_init > /dev/null
 
 ghe-backup-store-version  ||
 log_warn "Warning: storing backup-utils version remotely failed."
+
+log_info "Backing up GitHub secrets ..."
+ghe-backup-secrets || failures="$failures secrets"
 
 log_info "Backing up GitHub settings ..."
 ghe-backup-settings || failures="$failures settings"
@@ -364,7 +377,7 @@ if [ -z "$failures" ]; then
   else
     log_info "Expired and incomplete snapshots to be pruned separately"
   fi
-else 
+else
   log_info "Skipping pruning snapshots, since some backups failed..."
 fi
 

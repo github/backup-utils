@@ -70,9 +70,10 @@ begin_test "ghe-host-check detects unsupported GitHub Enterprise Server versions
      #BACKUP_UTILS_VERSION WAS NOT FOUND IN LATEST.JSON, CHECK IF ITS GREATER THAN LAST VERSION
      if [ "$(version $bu_major_minor)" -ge "$(version ${keys[-1]})" ]; then
         GHE_TEST_REMOTE_VERSION="$bu_major_minor.0" ghe-host-check
-        # Test most recent 2 versions
+        # Test most recent version
+        # Don't test 2 versions back because it fails when we bump the version on
+        # master after branching for a feature release, before it's released
         GHE_TEST_REMOTE_VERSION="${keys[-1]}.0" ghe-host-check
-        GHE_TEST_REMOTE_VERSION="${keys[-2]}.0" ghe-host-check
      fi
   else
       #BACKUP_UTILS_VERSION WAS FOUND IN LATEST.JSON

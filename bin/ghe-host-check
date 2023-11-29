@@ -173,7 +173,7 @@ fi
 
 # backup-utils 2.13 onwards limits support to the current and previous two releases
 # of GitHub Enterprise Server.
-supported_minimum_version="3.7.0"
+supported_minimum_version="3.9.0"
 
 if [ "$(version $version)" -ge "$(version $supported_minimum_version)" ]; then
   supported=1

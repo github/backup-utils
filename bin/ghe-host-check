@@ -93,13 +93,11 @@ if ghe-ssh "$host" -- \
   CLUSTER=true
 fi
 
-set +e
 # ensure all nodes in the cluster are online/reachable and running the same version
 if "$CLUSTER"; then
   online_status=$(ghe-ssh "$host" ghe-cluster-host-check)
   if [ "$online_status" != "Cluster is ready to configure." ]; then
-    echo "$online_status" 1>&2
-    log_error "Error: Not all nodes are online! Please ensure cluster is in a healthy state before using backup-utils." 1>&2
+    echo "Error: Not all nodes are online! Please ensure cluster is in a healthy state before using backup-utils." 1>&2
     exit 1
   fi
 
@@ -107,11 +105,10 @@ if "$CLUSTER"; then
   distinct_versions=$(echo "$node_version_list" | awk '{split($0, a, ":"); print a[2]}' | awk '{print $4}' | uniq | wc -l)
   if [ "$distinct_versions" -ne 1 ]; then
     echo "Version mismatch: $node_version_list" 1>&2
-    log_error "Error: Not all nodes are running the same version! Please ensure all nodes are running the same version before using backup-utils." 1>&2
+    echo "Error: Not all nodes are running the same version! Please ensure all nodes are running the same version before using backup-utils." 1>&2
     exit 1
   fi
 fi
-set -e
 
 version=$(echo "$output" | grep "GitHub Enterprise" | awk '{print $NF}')
 
@@ -213,7 +210,7 @@ SKIP_MSG
 
   #Display dir requirements for repositories and mysql
   echo -e "\nChecking host for sufficient space for a backup..."
-  available_space=$(df -B 1k $GHE_DATA_DIR | awk 'END{printf "%.0f", $4 * 1024}')
+  available_space=$(df -B 1k $GHE_DATA_DIR | awk 'END{printf "%.0f", $4 * 1024}') 
   echo "  We recommend allocating at least 5x the amount of storage allocated to the primary GitHub appliance for historical snapshots and growth over time."
 
   repos_disk_size=$(transfer_size repositories /tmp)

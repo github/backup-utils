@@ -30,6 +30,11 @@ PATH="$ROOTDIR/test/bin:$ROOTDIR/bin:$ROOTDIR/share/github-backup-utils:$PATH"
 TMPDIR="$ROOTDIR/test/tmp"
 TRASHDIR="$TMPDIR/$(basename "$0")-$$"
 
+test_suite_file_name="$(basename "${BASH_SOURCE[1]}")"
+test_suite_name="${GHE_TEST_SUITE_NAME:-${test_suite_file_name%.*}}"
+results_file="$TMPDIR/results"
+test_suite_before_time=$(date '+%s.%3N')
+
 # Set GIT_{AUTHOR,COMMITTER}_{NAME,EMAIL}
 # This removes the assumption that a git config that specifies these is present.
 export GIT_AUTHOR_NAME=make GIT_AUTHOR_EMAIL=make GIT_COMMITTER_NAME=make GIT_COMMITTER_EMAIL=make
@@ -43,7 +48,7 @@ export GHE_BACKUP_CONFIG GHE_DATA_DIR GHE_REMOTE_DATA_DIR GHE_REMOTE_ROOT_DIR
 
 # The default remote appliance version. This may be set in the environment prior
 # to invoking tests to emulate a different remote vm version.
-: ${GHE_TEST_REMOTE_VERSION:=3.10.0.rc1}
+: ${GHE_TEST_REMOTE_VERSION:=3.11.0.rc1}
 export GHE_TEST_REMOTE_VERSION
 
 # Source in the backup config and set GHE_REMOTE_XXX variables based on the
@@ -57,13 +62,51 @@ ghe_remote_version_config "$GHE_TEST_REMOTE_VERSION"
 # ghe-restore process groups
 unset GHE_SNAPSHOT_TIMESTAMP
 
+# Color definitions for log output
+color_reset=$(printf '\e[0m')
+# Display commands (lines starting with + in the output) in purple
+color_command=$(printf '\e[0;35m')
+# Display exit code line in red
+color_error_message=$(printf '\e[0;31m')
+# Display test suite name in blue
+color_test_suite=$(printf '\e[0;34m')
+# Display successful tests in bold green
+color_pass=$(printf '\e[1;32m')
+# Display skipped tests in bold gray
+color_skip=$(printf '\e[1;37m')
+# Display failed tests in bold red
+color_fail=$(printf '\e[1;31m')
+
 # keep track of num tests and failures
 tests=0
+successes=0
+skipped=0
 failures=0
 
 # this runs at process exit
 atexit () {
   res=$?
+
+  test_suite_after_time=$(date '+%s.%3N')
+  test_suite_elapsed_time=$(echo "scale=3; $test_suite_after_time - $test_suite_before_time" | bc)
+
+  # Temporarily redirect stdout output to results file
+  exec 3<&1
+  exec 1>>"$results_file"
+
+  # Print test summary for this test suite
+  echo -n "| $test_suite_name | "
+
+  if [ "$failures" -eq "0" ]; then
+    echo -n ":green_circle: passed"
+  else
+    echo -n ":red_circle: failed"
+  fi
+
+  printf " | $successes | $failures | $skipped | %.3f s |\\n" "$test_suite_elapsed_time"
+
+  # Restore stdout
+  exec 1<&3
 
   [ -z "$KEEPTRASH" ] && rm -rf "$TRASHDIR"
   if [ $failures -gt 0 ]; then
@@ -87,6 +130,8 @@ setup_remote_metadata () {
   mkdir -p "$GHE_REMOTE_DATA_DIR" "$GHE_REMOTE_DATA_USER_DIR"
   mkdir -p "$GHE_REMOTE_DATA_USER_DIR/common"
   mkdir -p "$GHE_REMOTE_ROOT_DIR/etc/github"
+  # Create fake remote repositories dir
+  mkdir -p "$GHE_REMOTE_DATA_USER_DIR/repositories"
 }
 setup_remote_metadata
 
@@ -143,36 +188,53 @@ begin_test () {
 
   # allow the subshell to exit non-zero without exiting this process
   set -x +e
-  before_time=$(date '+%s')
+  before_time=$(date '+%s.%3N')
+
+  # Marker to truncate the actual test output later
+  echo "begin_test_truncate_marker" > /dev/null
 }
 
-report_failure () {
-  msg=$1
-  desc=$2
-  failures=$(( failures + 1 ))
-  printf "test: %-73s $msg\\n" "$desc ..."
-  (
-    sed 's/^/    /' <"$TRASHDIR/out" |
-    grep -a -v -e '^\+ end_test' -e '^+ set +x' - "$TRASHDIR/out" |
-    sed 's/[+] test_status=/test failed. last command exited with /' |
-    sed 's/^/    /'
-  ) 1>&2
+report_failure_output () {
+  echo "::group::Output of failed test" 1>&2
+  # Truncate the test output to exclude testing-related instructions
+  echo "$(<"$TRASHDIR/out")" \
+    | sed '0,/begin_test_truncate_marker/d' \
+    | sed -n '/end_test_truncate_marker/q;p' | head -n -2 \
+    | sed "s/^\(+.*\)$/${color_command}\1${color_reset}/" \
+    1>&2
+  echo -e "\n${color_error_message}Test failed. The last command exited with exit code" \
+    "$test_status.${color_reset}" 1>&2
+  echo "::endgroup::" 1>&2
 }
 
 # Mark the end of a test.
 end_test () {
   test_status="${1:-$?}"
-  after_time=$(date '+%s')
-  elapsed_time=$((after_time - before_time))
+
+  # Marker to truncate the actual test output later
+  echo "end_test_truncate_marker" > /dev/null
+
+  after_time=$(date '+%s.%3N')
+  elapsed_time=$(echo "scale=3; $after_time - $before_time" | bc)
   set +x -e
   exec 1>&3 2>&4
 
   if [ "$test_status" -eq 0 ]; then
-    printf "test: %-65s OK (${elapsed_time}s)\\n" "$test_description ..."
+    successes=$(( successes + 1 ))
+    printf "${color_pass}PASS${color_reset}" 1>&2
   elif [ "$test_status" -eq 254 ]; then
-    printf "test: %-65s SKIPPED\\n" "$test_description ..."
+    skipped=$(( skipped + 1 ))
+    printf "${color_skip}SKIP${color_reset}" 1>&2
   else
-    report_failure "FAILED (${elapsed_time}s)" "$test_description ..."
+    failures=$(( failures + 1 ))
+    printf "${color_fail}FAIL${color_reset}" 1>&2
+  fi
+
+  printf " [%8.3f s] ${color_test_suite}$test_suite_name${color_reset} $test_description\\n" \
+    "$elapsed_time" 1>&2
+
+  if [ "$test_status" -ne 0 ] && [ "$test_status" -ne 254 ]; then
+    report_failure_output
   fi
 
   unset test_description
@@ -327,6 +389,40 @@ setup_test_data () {
   setup_minio_test_data "$GHE_DATA_DIR"
 }
 
+# Sets up test data for testing incremental restores.
+setup_incremental_restore_data() {
+  local full="$GHE_DATA_DIR/1"
+  local inc_1="$GHE_DATA_DIR/2"
+  local inc_2="$GHE_DATA_DIR/3"
+  # Run the setup_test_data function to create three directories: 1 for full backup and two incremental.
+  # we can use these directories for different types of tests
+  setup_test_data "$full"
+  setup_test_data "$inc_1"
+  setup_test_data "$inc_2" 
+  # Setup the metadata files that track which files are used to track full and incremental files
+  echo "$full" >> "$GHE_DATA_DIR/inc_full_backup"
+  echo -e "$inc_1\n$inc_2" >> "$GHE_DATA_DIR/inc_snapshot_data"
+  # Configure lsn data in xtrabackup_checkpoints for the full backup and the incremental backup
+  setup_incremental_lsn $full 1 100 full
+  setup_incremental_lsn $inc_1 101 200 incremental
+  setup_incremental_lsn $inc_2 201 300 incremental
+}
+
+setup_incremental_lsn() {
+  local loc=$1
+  local start=$2
+  local end=$3
+  local type=$4
+
+cat <<LSN >> "$loc/xtrabackup_checkpoints"
+backup_type = $type
+from_lsn = $start
+to_lsn = $end
+last_lsn = $end
+flushed_lsn = $end
+LSN
+}
+
 setup_incremental_backup_config() {
   ghe-ssh "$GHE_HOSTNAME" -- 'mkdir -p /tmp/lsndir'
   ghe-ssh "$GHE_HOSTNAME" -- 'echo "fake xtrabackup checkpoint" > /tmp/lsndir/xtrabackup_checkpoints'
@@ -372,7 +468,6 @@ setup_minio_test_data() {
   bucket="packages"
 
   mkdir -p "$bucket"
-  echo "an example blob" "$bucket/91dfa09f-1801-4e00-95ee-6b763d7da3e2"
 }
 
 cleanup_minio_test_data() {
@@ -494,6 +589,12 @@ verify_all_backedup_data() {
   verify_common_data
 }
 
+# A unified method to make sure post backup, the cleanup process works
+verify_progress_cleanup_process() {
+  set -e
+  sudo -u nobody rm -rf /tmp/backup-utils-progress/*
+}
+
 # A unified method to check everything restored when performing a full restore
 # during testing.
 verify_all_restored_data() {
@@ -600,8 +701,10 @@ setup_moreutils_parallel() {
   # We need moreutils parallel
   local x
   for x in \
+      /usr/bin/parallel-moreutils \
       /usr/bin/parallel.moreutils \
       /usr/bin/parallel_moreutils \
+      /usr/bin/moreutils-parallel \
       /usr/bin/moreutils.parallel \
       /usr/bin/moreutils_parallel \
       ; do

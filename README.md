@@ -44,11 +44,8 @@ GitHub Enterprise Server.
 
 ## Support
 
-If you find a bug or would like to request a feature in Backup Utilities, please
-open an issue or pull request on this repository. If you have a question related
-to your specific GitHub Enterprise Server setup or would like assistance with
-backup site setup or recovery, please contact our [Enterprise support team][3]
-instead.
+If you have a question related to your specific GitHub Enterprise Server setup, would like assistance with
+backup site setup or recovery, or would like to report a bug or a feature request, please contact our [Enterprise support team][3].
 
 [1]: https://github.com/enterprise
 [2]: docs/requirements.md#github-enterprise-version-requirements

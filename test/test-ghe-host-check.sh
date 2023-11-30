@@ -63,32 +63,31 @@ begin_test "ghe-host-check detects unsupported GitHub Enterprise Server versions
   # Use the modified releases string as needed
   supported=$(echo "$releases_with_replacement" | jq -r 'select(."'${bu_major_minor}'")')
   # shellcheck disable=SC2207 # Command required as alternatives fail
-  keys=($(echo "$releases_with_replacement" | jq -r 'keys[]'))
+  keys=($(echo "$releases_with_replacement" | jq -r '. | keys_unsorted | sort_by( split(".") | map(tonumber) )[]'))
 
   if [ -z "$supported" ]
   then
      #BACKUP_UTILS_VERSION WAS NOT FOUND IN LATEST.JSON, CHECK IF ITS GREATER THAN LAST VERSION
-     if [ "$(version $bu_major_minor)" -ge "$(version ${keys[$((${#keys[@]} - 2 ))]})" ]; then
+     if [ "$(version $bu_major_minor)" -ge "$(version ${keys[-1]})" ]; then
         GHE_TEST_REMOTE_VERSION="$bu_major_minor.0" ghe-host-check
-        GHE_TEST_REMOTE_VERSION="${keys[$(( ${#keys[@]} - 2 ))]}.0" ghe-host-check
-        GHE_TEST_REMOTE_VERSION="${keys[$(( ${#keys[@]} - 3 ))]}.0" ghe-host-check
+        # Test most recent version
+        # Don't test 2 versions back because it fails when we bump the version on
+        # master after branching for a feature release, before it's released
+        GHE_TEST_REMOTE_VERSION="${keys[-1]}.0" ghe-host-check
      fi
   else
       #BACKUP_UTILS_VERSION WAS FOUND IN LATEST.JSON
       ix=0
-      for i in "${keys[@]}";do 
+      for i in "${keys[@]}";do
        if [ "$i" == "$bu_major_minor" ];then
           break
        fi
        ix=$(( $ix + 1 ))
       done
       GHE_TEST_REMOTE_VERSION="${keys[$ix]}.0" ghe-host-check
-      # sometimes when the latest.json is updated during a release this test gets broken.
-      if [ "${keys[$(( $ix - 1 ))]}" != "latest" ]; then
-        GHE_TEST_REMOTE_VERSION="${keys[$(( $ix - 1 ))]}.0" ghe-host-check
-      fi
+      # Test previous 2 supported versions
+      GHE_TEST_REMOTE_VERSION="${keys[$(( $ix - 1 ))]}.0" ghe-host-check
       GHE_TEST_REMOTE_VERSION="${keys[$(( $ix - 2 ))]}.0" ghe-host-check
-
   fi
   ! GHE_TEST_REMOTE_VERSION=11.340.36 ghe-host-check
   GHE_TEST_REMOTE_VERSION=$bu_version_major.$bu_version_minor.999 ghe-host-check

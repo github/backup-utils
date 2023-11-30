@@ -1,0 +1,16 @@
+name: Disable PR merge
+
+on: [pull_request]
+
+jobs:
+
+  build-docker:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Disable PR merge
+        run: |
+          echo "Backup-utils repo no longer accepts PRs. Please check https://github.com/github/backup-utils/issues/1140 for details."
+          exit 1

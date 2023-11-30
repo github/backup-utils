@@ -47,7 +47,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         repository: github/backup-utils-private
         token: "${{ secrets.INTERNAL_ACTIONS_DX_BOT_ACCOUNT_TOKEN }}"
@@ -62,7 +62,7 @@ jobs:
     needs: build
     runs-on:
       group: larger-hosted-public-runners
-      labels: ubuntu-latest-xl
+      labels: ubuntu-latest
     env:
         SSH_KEY: ${{ secrets.BACKUP_SSH_KEY }}
     steps:
@@ -71,7 +71,7 @@ jobs:
         name: backup-utils
     - name: Load docker container
       run: docker load -i backup-utils.tar
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Create backup directory
       run: mkdir "$HOME/ghe-backup-data"
     - name: set up ssh SSH_KEY
@@ -98,7 +98,7 @@ jobs:
         sudo tar -czvf "${{ inputs.backup-name }}.tar.gz" -C "$HOME/ghe-backup-data/$current" .
 
     - name: Login to Azure
-      if: ${{ inputs.backup-name }} != ""
+      if: "${{ inputs.backup-name != '' }}"
       run: |
         az login \
           --service-principal \
@@ -108,7 +108,7 @@ jobs:
         az account set --subscription "${{ secrets.AZURE_SUBSCRIPTION_ID }}"
 
     - name: Upload backup to Azure
-      if: ${{ inputs.backup-name }} != ""
+      if: "${{ inputs.backup-name != '' }}"
       run: |
         az storage blob upload \
         --account-name "${{ secrets.AZURE_ACCOUNT_NAME }}" \

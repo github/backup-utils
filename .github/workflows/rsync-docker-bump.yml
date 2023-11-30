@@ -1,6 +1,7 @@
 name: Update Rsync Tag in Dockerfile
 
 on:
+  workflow_dispatch:
   schedule:
     - cron: '0 0 * * *' # Runs daily at 00:00
 
@@ -10,19 +11,18 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Get latest rsync tag
         id: latest_tag
-        run: |
-          curl --silent "https://api.github.com/repos/WayneD/rsync/tags" | jq -r '.[0].name' | xargs -I {} echo "::set-output name=latest_tag::{}"
+        run: curl --silent "https://api.github.com/repos/WayneD/rsync/tags" | jq -r '.[].name' | grep -m1 -v pre | xargs -I {} echo "name=latest_tag::{}" >> "$GITHUB_OUTPUT"
 
       - name: Update Dockerfile with latest tag
         run: |
           sed -i -E "s/RSYNC_TAG=[0-9\.]+/RSYNC_TAG=${{ steps.latest_tag.outputs.latest_tag }}/g" Dockerfile
 
       - name: Create Pull Request for tag update
-        uses: peter-evans/create-pull-request@v3
+        uses: peter-evans/create-pull-request@v5
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: "Update rsync tag in Dockerfile"
@@ -30,5 +30,5 @@ jobs:
           body: "This PR updates the rsync tag in the Dockerfile to the latest tagged version."
           branch: "update-rsync-tag"
           base: "master"
-          path: "."
+          add-paths: "Dockerfile"
           labels: "automated-update,rsync"

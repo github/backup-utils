@@ -32,22 +32,8 @@ done
 # Exit early when testing
 [ -n "$GHE_TEST_REMOTE_VERSION" ] && exit 0
 
-# Touch the sync-in-progress file, disabling GC operations, and wait for all
-# active GC processes to finish on the remote side.
-echo "
-  set -e
-  sudo -u git touch '$SYNC_IN_PROGRESS_FILE'
-  for i in \$(seq $GHE_GIT_COOLDOWN_PERIOD); do
-    # note: the bracket synta[x] below is to prevent matches against the
-    # grep process itself.
-    if ps axo args | grep -E -e '^git( -.*)? nw-repac[k]( |$)' -e '^git( -.*)? g[c]( |$)' >/dev/null; then
-      sleep 1
-    else
-      exit 0
-    fi
-  done
-  exit 7
-" | ghe-ssh $opts "$host" -- /bin/bash || {
+# gc_disable is a function defined in ghe-backup-config
+echo "set -o pipefail; $(declare -f gc_disable); gc_disable \"$SYNC_IN_PROGRESS_FILE\" \"$GHE_GIT_COOLDOWN_PERIOD\"" | ghe-ssh $opts "$host" -- /bin/bash || {
   res=$?
   if [ $res = 7 ]; then
     log_error "Error: Git GC processes remain after $GHE_GIT_COOLDOWN_PERIOD seconds. Aborting..." 1>&2

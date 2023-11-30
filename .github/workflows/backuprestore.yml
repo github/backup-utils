@@ -28,7 +28,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         repository: github/backup-utils-private
         ref: ${{ inputs.ref }}
@@ -49,15 +49,15 @@ jobs:
         name: backup-utils
     - name: Load docker container 
       run: docker load -i backup-utils.tar
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Create backup directory
-      run: mkdir $HOME/ghe-backup-data
+      run: mkdir "$HOME"/ghe-backup-data
     - name: set up ssh SSH_KEY
-      run: echo -e "${SSH_KEY}\n" > $HOME/backup
+      run: echo -e "${SSH_KEY}\n" > "$HOME"/backup
     - name: set up ssh key permissions
-      run: chmod 0600 $HOME/backup
+      run: chmod 0600 "$HOME"/backup
     - name: change version
-      run: echo "3.8.0" > $HOME/version
+      run: echo "3.8.0" > "$HOME"/version
     - name: Perform backup
       run: |
         docker run -e "GHE_HOSTNAME=${{ inputs.hostname }}" \
@@ -70,7 +70,7 @@ jobs:
         --rm \
         backup-utils ghe-backup
     - name: Prepare for restore
-      run: ssh -p122 -i $HOME/backup -o StrictHostKeyChecking=no admin@${{ inputs.hostname }} "ghe-maintenance -s"
+      run: ssh -p122 -i "$HOME"/backup -o StrictHostKeyChecking=no admin@${{ inputs.hostname }} "ghe-maintenance -s"
     - name: Restore data to instance
       run: |
         docker run -e "GHE_HOSTNAME=${{ inputs.hostname }}" \
@@ -83,5 +83,5 @@ jobs:
         --rm \
         backup-utils ghe-restore ${{ inputs.hostname }}
     - name: Reset maintenance mode after restore
-      run: ssh -p122 -i $HOME/backup -o StrictHostKeyChecking=no admin@${{ inputs.hostname }} "ghe-maintenance -u"
+      run: ssh -p122 -i "$HOME"/backup -o StrictHostKeyChecking=no admin@${{ inputs.hostname }} "ghe-maintenance -u"
   

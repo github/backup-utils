@@ -2,7 +2,7 @@ SHELL = /bin/sh
 
 test: info
 	@echo Running tests
-	@script/cibuild --no-package
+	@script/test
 
 info:
 	@echo This is github/backup-utils

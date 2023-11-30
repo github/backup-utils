@@ -2,11 +2,10 @@
 
 After the initial backup, use the following commands:
 
- - The `ghe-backup` command creates incremental snapshots of repository data,
-   along with full snapshots of all other pertinent data stores.
- - The `ghe-restore` command restores snapshots to the same or separate GitHub
-   Enterprise appliance. You must add the backup host's SSH key to the target
-   GitHub Enterprise Server appliance before using this command.
+- The `ghe-backup` command creates incremental snapshots of repository data, long with full snapshots of all other pertinent data stores.
+- The `ghe-restore` command restores snapshots to the same or separate GitHub
+Enterprise appliance. You must add the backup host's SSH key to the target
+GitHub Enterprise Server appliance before using this command.
 
 These commands are run on the host you [installed][1] Backup Utilities on.
 
@@ -16,7 +15,7 @@ You can supply your own configuration file or use the example configuration file
 
 An example configuration file with documentation on possible settings can found in [backup.config-example](../backup.config-example).
 
-There are a number of command line options that can also be passed to the `ghe-restore` command. Of particular note, if you use an external MySQL service but are restoring from a snapshot prior to enabling this, or vice versa, you must migrate the MySQL data outside of the context of backup-utils first, then pass the `--skip-mysql` flag to `ghe-restore`.
+There are a number of command-line options that can also be passed to the `ghe-restore` command. Of particular note, if you use an external MySQL service but are restoring from a snapshot prior to enabling this, or vice versa, you must migrate the MySQL data outside of the context of backup-utils first, then pass the `--skip-mysql` flag to `ghe-restore`.
 
 ## Example backup and restore usage
 
@@ -80,12 +79,12 @@ The `ghe-backup` and `ghe-restore` commands also have a verbose output mode
 (`-v`) that lists files as they're being transferred. It's often useful to
 enable when output is logged to a file.
 
-Every time you execute `ghe-backup` we verify the storage and software setup of the host 
-you [installed][1] Backup Utilities on, to make sure our [requirements][2] for the host are 
-met. You can disable this check using the `--skip-checks` argument or by 
+Every time you execute `ghe-backup` we verify the storage and software setup of the host
+you [installed][1] Backup Utilities on, to make sure our [requirements][2] for the host are
+met. You can disable this check using the `--skip-checks` argument or by
 adding `GHE_SKIP_CHECKS=true` to your configuration file.
 
-### Restoring settings, TLS certificate, and license 
+### Restoring settings, TLS certificate, and license
 
 When restoring to a new GitHub Enterprise Server instance, settings, certificate, and
 license data *are* restored. These settings must be reviewed and saved before
@@ -100,12 +99,12 @@ forcing settings, certificate, and license data to be overwritten with the backu
 ## Backup and restore with GitHub Actions enabled
 
 GitHub Actions data on your external storage provider is not included in regular GitHub Enterprise Server
-backups, and must be backed up separately.  When restoring a GitHub Enterprise Server backup with 
+backups, and must be backed up separately.  When restoring a GitHub Enterprise Server backup with
 GitHub Actions enabled, the following steps are required:
 
 1. Enable GitHub Actions on the replacement appliance and configure it to use the same GitHub Actions
    external storage configuration as the original appliance.
-2. Put replacement appliance into maintenance mode. 
+2. Put replacement appliance into maintenance mode.
 3. Use `ghe-restore` to restore the backup.
 4. Re-register your self-hosted runners on the replacement appliance.
 
@@ -114,6 +113,12 @@ Please refer to [GHES Documentation](https://docs.github.com/en/enterprise-serve
 ## Incremental MySQL Backups and Restores
 
 If you are interested in performing incremental backups of the MySQL data in your GitHub Enterprise Server instance, see [Incremental MySQL Backups and Restores](incremental-mysql-backups-and-restores.md) for details.
+
+## Rsync compression
+
+From backup-utils v3.11.0 onwards, we have disabled rsync compression by default to improve transfer speed and reduce CPU usage during the transfer process.
+
+If you would like to use compression with rsync, you can add `GHE_RSYNC_COMPRESSION_ENABLED=true` in your `backup.config` file.
 
 [1]: https://github.com/github/backup-utils/blob/master/docs/getting-started.md
 [2]: requirements.md

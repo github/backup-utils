@@ -1,3 +1,18 @@
+github-backup-utils (3.11.0) UNRELEASED; urgency=medium
+
+  * `ghe-backup-myql` and `ghe-restore-mysql` will now exit 1 on errors.
+  * On an instance with Actions enabled, incorrect backup and restore settings prevented the storage container name from being restored. This made the logs from that container inaccessible, and caused Actions to create a new storage container in a different location.
+  * When backups are run for HA instances in both primary and replica nodes a `.sync-in-progress` file will be created. This will disable `NetworkMaintenance` jobs from running and queueing up when backups are running from the primary node.
+  * Estimated transfer sizes will be calculated on appropriate nodes for clustered environments.
+  * Added support for finding the `parallel` command from the `moreutils` tool suite on more Linux distributions, including Arch Linux and Alpine Linux.
+  * `ghe-restore` avoids unnecessary `rsync` operations when restoring to non-clustered environments.
+  * `ghe-backup` and `ghe-restore` output their total runtime
+  * `rsync` compression is now disabled by default. The `-z` flag has been removed from the `ghe-rsync` command in multiple files to improve transfer speed and reduce CPU usage. To enable `rsync` compression globally, add `GHE_RSYNC_COMPRESSION_ENABLED=yes` to the `backup.config` file.
+  * Updates the Host OS version output to use `/etc/os-release` for better compatibility with other Linux distributions.
+  * When a NFS mount is detected for snapshots on backup hosts, backup logs will show a warning to notify the user that such a setup may incur performance issues as highlighted in [storage requirements](https://github.com/github/backup-utils-private/blob/master/docs/requirements.md#storage-requirements) documentation.
+
+ -- Andrew Mildahl <amildahl@github.com> Thu, 30 Nov 2023 01:57:12 +0000
+
 github-backup-utils (3.10.0) UNRELEASED; urgency=medium
 
   * Remove -o option from ps use #341

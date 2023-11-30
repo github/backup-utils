@@ -30,37 +30,10 @@ ghe-ssh "$GHE_HOSTNAME" -- 'ghe-import-license' < "$GHE_RESTORE_SNAPSHOT_PATH/en
 
 log_info "Restoring settings and applying configuration ..."
 
-# Restore external MySQL password if running external MySQL DB.
-restore-secret "external MySQL password" "external-mysql-password" "secrets.external.mysql"
-
-log_info "Restoring packages settings ..."
-ghe-restore-packages "$GHE_HOSTNAME" 1>&3
-
-echo "Restoring chat integration settings ..."
-ghe-restore-chat-integration "$GHE_HOSTNAME" 1>&3
-
 # work around issue importing settings with bad storage mode values
 ( cat "$GHE_RESTORE_SNAPSHOT_PATH/settings.json" && echo ) |
   sed 's/"storage_mode": "device"/"storage_mode": "rootfs"/' |
   ghe-ssh "$GHE_HOSTNAME" -- '/usr/bin/env GHEBUVER=2 ghe-import-settings' 1>&3
-
-# Restore management console password hash if present.
-restore-secret "management console password" "manage-password" "secrets.manage"
-
-# Restore management console argon2 secret if present.
-restore-secret "management console argon2 secret" "manage-argon-secret" "secrets.manage-auth.argon-secret"
-
-# Restore kredz.credz HMAC key if present.
-restore-secret "kredz.credz HMAC key" "kredz-credz-hmac" "secrets.kredz.credz-hmac-secret"
-
-# Restore kredz.varz HMAC key if present.
-restore-secret "kredz.varz HMAC key" "kredz-varz-hmac" "secrets.kredz.varz-hmac-secret"
-
-# Restore encrypted column encryption keying material if present
-restore-secret "encrypted column encryption keying material" "encrypted-column-encryption-keying-material" "secrets.github.encrypted-column-keying-material"
-
-# Restore encrypted column current encryption key if present
-restore-secret "encrypted column current encryption key" "encrypted-column-current-encryption-key" "secrets.github.encrypted-column-current-encryption-key"
 
 # Restore SAML keys if present.
 if [ -f "$GHE_RESTORE_SNAPSHOT_PATH/saml-keys.tar" ]; then

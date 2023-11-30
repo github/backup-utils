@@ -75,7 +75,7 @@ for hostname in $hostnames; do
   ghe_verbose "* Transferring pages files ..."
   log_rsync "BEGIN: pages rsync" 1>&3
   # Transfer all data from the user data directory using rsync.
-  ghe-rsync -avz \
+  ghe-rsync -av \
     -e "ssh -q $opts -p $port $ssh_config_file_opt -l $user" \
     --rsync-path='sudo -u git rsync' \
     $link_dest \

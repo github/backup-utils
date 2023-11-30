@@ -51,7 +51,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         repository: github/backup-utils-private
         ref: ${{ inputs.ref }}
@@ -69,7 +69,7 @@ jobs:
     needs: build
     runs-on:
       group: larger-hosted-public-runners
-      labels: ubuntu-latest-xl
+      labels: ubuntu-latest
     env:
         SSH_KEY: ${{ secrets.BACKUP_SSH_KEY }}
     steps:

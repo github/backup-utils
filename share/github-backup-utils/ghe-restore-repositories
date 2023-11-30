@@ -36,6 +36,7 @@ fi
 
 # Perform a host-check and establish GHE_REMOTE_XXX variables.
 ghe_remote_version_required "$GHE_HOSTNAME"
+ghe_remote_parallel
 
 # Generate SSH config for forwarding
 # Split host:port into parts
@@ -104,42 +105,60 @@ done > $tmp_list
 IFS=$OLDIFS
 bm_end "$(basename $0) - Building network list"
 
-# The server returns a list of routes:
-#
-# a/nw/a8/3f/02/100000855 dgit-node1 dgit-node2 dgit-node3
-# a/nw/a8/bc/8d/100000880 dgit-node1 dgit-node2 dgit-node4
-# a/nw/a5/06/81/100000659 dgit-node3 dgit-node2 dgit-node4
-# ...
-#
-# One route per line.
-#
-# NOTE: The route generation is performed on the appliance as it is considerably
-# more performant than performing over an SSH pipe.
-#
-bm_start "$(basename $0) - Transferring network list"
-cat $tmp_list | ghe-ssh "$GHE_HOSTNAME" -- sponge $remote_tmp_list
-cat $tmp_list | ghe_debug
-bm_end "$(basename $0) - Transferring network list"
+# In cluster environments, we need to ensure that all repository networks are replicated back to the
+# same Spokes nodes that they were present on when the backup was taken. For this, the list of
+# routes of each repository network is first obtained. Afterward, an rsync file list is created for
+# each Spokes node including only those repository networks for which there was a route to the
+# respective Spokes node.
+if $CLUSTER; then
+  log_info "* Restoring repository networks to cluster nodes according to Spokes routes" 1>&3
 
-bm_start "$(basename $0) - Generating routes"
-restore_routes_script="github-env ./bin/dgit-cluster-restore-routes"
-if ghe-ssh "$GHE_HOSTNAME" test -e /usr/local/share/enterprise/ghe-restore-network-routes; then
-  restore_routes_script="/usr/local/share/enterprise/ghe-restore-network-routes"
+  # The server returns a list of routes:
+  #
+  # a/nw/a8/3f/02/100000855 dgit-node1 dgit-node2 dgit-node3
+  # a/nw/a8/bc/8d/100000880 dgit-node1 dgit-node2 dgit-node4
+  # a/nw/a5/06/81/100000659 dgit-node3 dgit-node2 dgit-node4
+  # ...
+  #
+  # One route per line.
+  #
+  # NOTE: The route generation is performed on the appliance as it is considerably
+  # more performant than performing over an SSH pipe.
+  #
+  bm_start "$(basename $0) - Transferring network list"
+  cat $tmp_list | ghe-ssh "$GHE_HOSTNAME" -- sponge $remote_tmp_list
+  cat $tmp_list | ghe_debug
+  bm_end "$(basename $0) - Transferring network list"
+
+  bm_start "$(basename $0) - Generating routes"
+  restore_routes_script="github-env ./bin/dgit-cluster-restore-routes"
+  if ghe-ssh "$GHE_HOSTNAME" test -e /usr/local/share/enterprise/ghe-restore-network-routes; then
+    restore_routes_script="/usr/local/share/enterprise/ghe-restore-network-routes"
+  fi
+  echo "cat $remote_tmp_list | $restore_routes_script | grep 'git-server-' > $remote_routes_list" | ghe-ssh "$GHE_HOSTNAME" -- /bin/bash
+  ghe-ssh "$GHE_HOSTNAME" -- cat $remote_routes_list | ghe_debug
+  bm_end "$(basename $0) - Generating routes"
+
+  bm_start "$(basename $0) - Fetching routes"
+  ghe-ssh "$GHE_HOSTNAME" -- gzip -c $remote_routes_list | gzip -d > $routes_list
+  cat $routes_list | ghe_debug
+  bm_end "$(basename $0) - Fetching routes"
+
+  bm_start "$(basename $0) - Processing routes"
+
+  cat $routes_list | awk -v tempdir="$tempdir" '{ for(i=2;i<=NF;i++){ print $1 > (tempdir"/"$i".rsync") }}'
+  cat $routes_list | awk '{ n = split($1, p, "/"); printf p[n] " /data/repositories/" $1; $1=""; print $0}' > $to_restore
+  ghe_debug "\n$(find "$tempdir" -maxdepth 1 -name '*.rsync')"
+  bm_end "$(basename $0) - Processing routes"
+# There is no need to collect routes and split them by Spokes server in noncluster setups because
+# we need to transfer all repository networks to the primary instance unconditionally, regardless of
+# the Spokes route list captured during the backup. As we already have the list of all repository
+# network paths, we can simply use that as the rsync file list in noncluster environments.
+else
+  log_info "* Restoring all repository networks to target host unconditionally" 1>&3
+
+  cp "$tmp_list" "$tempdir/git-server-primary.rsync"
 fi
-echo "cat $remote_tmp_list | $restore_routes_script | grep 'git-server-' > $remote_routes_list" | ghe-ssh "$GHE_HOSTNAME" -- /bin/bash
-ghe-ssh "$GHE_HOSTNAME" -- cat $remote_routes_list | ghe_debug
-bm_end "$(basename $0) - Generating routes"
-
-bm_start "$(basename $0) - Fetching routes"
-ghe-ssh "$GHE_HOSTNAME" -- gzip -c $remote_routes_list | gzip -d > $routes_list
-cat $routes_list | ghe_debug
-bm_end "$(basename $0) - Fetching routes"
-
-bm_start "$(basename $0) - Processing routes"
-cat $routes_list | awk -v tempdir="$tempdir" '{ for(i=2;i<=NF;i++){ print $1 > (tempdir"/"$i".rsync") }}'
-cat $routes_list | awk '{ n = split($1, p, "/"); printf p[n] " /data/repositories/" $1; $1=""; print $0}' > $to_restore
-ghe_debug "\n$(find "$tempdir" -maxdepth 1 -name '*.rsync')"
-bm_end "$(basename $0) - Processing routes"
 
 if [ -z "$(find "$tempdir" -maxdepth 1 -name '*.rsync')" ]; then
   log_warn "Warning: no routes found, skipping repositories restore ..."
@@ -192,7 +211,7 @@ if $CLUSTER; then
   ghe-ssh "$GHE_HOSTNAME" -- /bin/bash >&3 <<EOF
     split -l 1000 $remote_to_restore $remote_tempdir/chunk
     chunks=\$(find $remote_tempdir/ -name chunk\*)
-    parallel -i /bin/sh -c "cat {} | github-env ./bin/dgit-cluster-restore-finalize 2>>$remote_warnings" -- \$chunks
+    $PARALLEL_CMD -i /bin/sh -c "cat {} | github-env ./bin/dgit-cluster-restore-finalize 2>>$remote_warnings" -- \$chunks
 EOF
   increment-progress-total-count 1
   bm_end "$(basename $0) - Finalizing routes"

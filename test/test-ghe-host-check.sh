@@ -56,31 +56,38 @@ begin_test "ghe-host-check detects unsupported GitHub Enterprise Server versions
   read -r bu_version_major bu_version_minor _ <<<$(ghe_parse_version $BACKUP_UTILS_VERSION)
   bu_major_minor="$bu_version_major.$bu_version_minor"
   releases=$(/usr/bin/curl -s https://github-enterprise.s3.amazonaws.com/release/latest.json)
-  supported=$(echo $releases | jq -r 'select(."'${bu_major_minor}'")')
+  latest_value=$(echo "$releases" | jq -r '.latest')
+  latest_major_version=$(echo $latest_value | cut -d "." -f 1-2)
+  # Replace "latest" with the derived major version in the releases string
+  releases_with_replacement=$(echo "$releases" | sed 's/"latest"/"'"$latest_major_version"'"/g')
+  # Use the modified releases string as needed
+  supported=$(echo "$releases_with_replacement" | jq -r 'select(."'${bu_major_minor}'")')
   # shellcheck disable=SC2207 # Command required as alternatives fail
-  keys=($(echo $releases | jq -r 'keys[]'))
+  keys=($(echo "$releases_with_replacement" | jq -r '. | keys_unsorted | sort_by( split(".") | map(tonumber) )[]'))
 
   if [ -z "$supported" ]
   then
      #BACKUP_UTILS_VERSION WAS NOT FOUND IN LATEST.JSON, CHECK IF ITS GREATER THAN LAST VERSION
-     if [ "$(version $bu_major_minor)" -ge "$(version ${keys[$((${#keys[@]} - 2 ))]})" ]; then
+     if [ "$(version $bu_major_minor)" -ge "$(version ${keys[-1]})" ]; then
         GHE_TEST_REMOTE_VERSION="$bu_major_minor.0" ghe-host-check
-        GHE_TEST_REMOTE_VERSION="${keys[$(( ${#keys[@]} - 2 ))]}.0" ghe-host-check
-        GHE_TEST_REMOTE_VERSION="${keys[$(( ${#keys[@]} - 3 ))]}.0" ghe-host-check
+        # Test most recent version
+        # Don't test 2 versions back because it fails when we bump the version on
+        # master after branching for a feature release, before it's released
+        GHE_TEST_REMOTE_VERSION="${keys[-1]}.0" ghe-host-check
      fi
   else
       #BACKUP_UTILS_VERSION WAS FOUND IN LATEST.JSON
       ix=0
-      for i in "${keys[@]}";do 
+      for i in "${keys[@]}";do
        if [ "$i" == "$bu_major_minor" ];then
           break
        fi
        ix=$(( $ix + 1 ))
       done
       GHE_TEST_REMOTE_VERSION="${keys[$ix]}.0" ghe-host-check
+      # Test previous 2 supported versions
       GHE_TEST_REMOTE_VERSION="${keys[$(( $ix - 1 ))]}.0" ghe-host-check
       GHE_TEST_REMOTE_VERSION="${keys[$(( $ix - 2 ))]}.0" ghe-host-check
-
   fi
   ! GHE_TEST_REMOTE_VERSION=11.340.36 ghe-host-check
   GHE_TEST_REMOTE_VERSION=$bu_version_major.$bu_version_minor.999 ghe-host-check

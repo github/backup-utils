@@ -22,6 +22,7 @@ CPU and memory requirements are dependent on the size of the GitHub Enterprise S
 The [fix in rsync `3.2.5`](https://github.com/WayneD/rsync/blob/master/NEWS.md#news-for-rsync-325-14-aug-2022) for [CVE-2022-29154](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-29154) can cause severe performance degradation to `backup-utils`.
 
 If you encounter this degradation you can mitigate it by using the `--trust-sender` flag, which is available in rsync >= v3.2.5.
+**Note**: If you are using backup-utils 3.9 or greater, `--trust-sender` is automatically used if your rsync version supports it and no further changes are needed.
 
 If your backup host is running rsync < v3.2.5 you may or may not need to make changes to your rsync package, depending on whether your rsync package has backported the fix for CVE-2022-29154 without also backporting the `--trust-sender` flag.
 

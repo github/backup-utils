@@ -83,7 +83,7 @@ Customers will need to download a specific version of backup-utils from the [rel
 Below is the two phase timeline we will follow to roll out the changes described above:
 
 * **Phase 1 (rolled out on 2023-11-30):** We have closed all open pull requests and issues (after reviewing each one and porting them to our internal repository if merited),
-and updated the repository settings so that new issues cannot be opened. Also, we have stop syncing code from our internal repository to this repository.
+and updated the repository settings so that new issues cannot be opened. Also, we have stopped syncing code from our internal repository to this repository.
   * As of 2023-11-30, you can still get a working copy of backup-utils by cloning the repository.
       But the code will not be updated in the repository; you can access updated versions of backup-utils via the [release page](https://github.com/github/backup-utils/releases).
 * **Phase 2 (rolling out 2024-02-20):** The backup-utils code will be removed and the repository will be used to host documentation for backup-utils.

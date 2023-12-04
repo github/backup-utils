@@ -663,7 +663,7 @@ prompt_for_confirmation(){
 init-progress() {
 
   if [ -e /tmp/backup-utils-progress ]; then
-    rm -rf /tmp/backup-utils-progress/*
+    rm -rf /tmp/backup-utils-progress
   fi
   # shellcheck disable=SC2174 # We are fine with -m only affecting the deepest directory
   mkdir -m 777 -p /tmp/backup-utils-progress

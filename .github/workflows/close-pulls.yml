@@ -14,7 +14,7 @@ jobs:
         uses: peter-evans/close-fork-pulls@v2
         with:
           comment: |
-            As of 2023-11-30 we have stopped this 2-way sync so that our internal repository becomes the source of truth for the backup-utils source code. With the the 2-way sync stopped, this public repository will be used to host documentation about backup-utils and to publish new versions of backup-utils. You will be able to access a specific version of backup-utils (which includes the full source code) from the [release page](https://github.com/github/backup-utils/releases) of this repository.
+            As of 2023-11-30 we have stopped the 2-way sync between this repository and our internal repository, so that our internal repository becomes the source of truth for the backup-utils source code. With the the 2-way sync stopped, this public repository will be used to host documentation about backup-utils and to publish new versions of backup-utils. You will be able to access a specific version of backup-utils (which includes the full source code) from the [release page](https://github.com/github/backup-utils/releases) of this repository.
 
             Customers should no longer open pull requests in this repository. These pull requests will not be reviewed or merged. We will automatically close all PRs opened in this repository.
 

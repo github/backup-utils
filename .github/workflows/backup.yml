@@ -66,7 +66,7 @@ jobs:
     env:
         SSH_KEY: ${{ secrets.BACKUP_SSH_KEY }}
     steps:
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
       with:
         name: backup-utils
     - name: Load docker container

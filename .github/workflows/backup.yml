@@ -53,7 +53,7 @@ jobs:
         token: "${{ secrets.INTERNAL_ACTIONS_DX_BOT_ACCOUNT_TOKEN }}"
     - run: docker build . --file Dockerfile --tag backup-utils
     - run: docker save backup-utils -o backup-utils.tar
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
         name: backup-utils
         path: backup-utils.tar

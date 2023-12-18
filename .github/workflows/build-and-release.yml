@@ -45,7 +45,7 @@ jobs:
         run: |
           ./script/package-deb
       - name: Upload deb artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: github-backup-utils_${{ github.event.inputs.version }}_all.deb
           path: |
@@ -54,7 +54,7 @@ jobs:
         run: |
           ./script/package-tarball
       - name: Upload tarball artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: github-backup-utils-v${{ github.event.inputs.version }}.tar.gz
           path: |

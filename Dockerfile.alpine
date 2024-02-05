@@ -1,6 +1,7 @@
 FROM alpine:latest
 
 RUN apk --update --no-cache add \
+    jq \
     tar \
     rsync \
     ca-certificates \

@@ -1,6 +1,6 @@
 # Getting started
 
- 1. [Download the latest release version][1] and extract the repository using `tar`:
+ 1. [Download the latest version of backup-utils][1] and extract the repository using `tar`:
 
     `tar -xzvf /path/to/github-backup-utils-vMAJOR.MINOR.PATCH.tar.gz`
 

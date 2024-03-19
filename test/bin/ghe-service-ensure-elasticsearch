@@ -1,6 +1,0 @@
-#!/usr/bin/env bash
-# Usage: ghe-service-ensure-elasticsearch
-# Emulates the remote GitHub ghe-service-ensure-elasticsearch command. Tests use this
-# to assert that the command was executed.
-set -e
-echo "ghe-service-ensure-elasticsearch OK"

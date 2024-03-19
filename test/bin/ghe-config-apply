@@ -1,6 +1,0 @@
-#!/usr/bin/env bash
-# Usage: ghe-config-apply
-# Emulates the remote GitHub ghe-config-apply command. Tests use this
-# to assert that the command was executed.
-set -e
-echo "ghe-config-apply OK"

@@ -1,5 +1,0 @@
-#!/usr/bin/env bash
-# Usage: ghe-cluster-host-check
-# Emulates a cluster reachability check
-set -e
-echo "Cluster is ready to configure."

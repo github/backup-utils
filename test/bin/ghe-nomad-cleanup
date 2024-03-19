@@ -1,5 +1,0 @@
-#!/usr/bin/env bash
-# Usage: ghe-nomad-cleanup
-# Emulates the remote GitHub ghe-nomad-cleanup command. Tests use this
-# to assert that the command was executed.
-echo "$(basename $0)" "'$(cat)'" "OK"

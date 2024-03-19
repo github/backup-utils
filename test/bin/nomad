@@ -1,6 +1,0 @@
-#!/usr/bin/env bash
-# Usage: nomad
-# Emulates the remote GitHub nomad command. Tests use this
-# to assert that the command was executed.
-set -e
-echo "nomad OK"

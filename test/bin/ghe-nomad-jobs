@@ -1,7 +1,0 @@
-#!/usr/bin/env bash
-# Usage: ghe-nomad-jobs
-# Emulates the remote GitHub ghe-nomad-jobs command. Tests use this
-# to assert that the command was executed.
-set -e
-echo "$(basename $0)" "'$(cat)'" "OK"
-

@@ -1,9 +1,0 @@
-#!/usr/bin/env bash
-# Usage: dpages-cluster-restore-routes
-# Emulates the remote GitHub dpages-cluster-restore-routes command. Tests use this
-# to assert that the command was executed.
-set -e
-cat <<EOF
-4/c8/1e/72/2 git-server-fake-uuid git-server-fake-uuid2
-4/c1/6a/53/31 git-server-fake-uuid1
-EOF

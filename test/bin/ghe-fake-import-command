@@ -1,6 +1,0 @@
-#!/usr/bin/env bash
-# Emulates a remote GitHub import command. Each of the ghe-import-* utilities
-# that are run on the remote side have corresponding commands in this directory
-# that symlink to this file. The command just gobbles up stdin and writes a
-# simple success message.
-echo "$(basename $0)" "'$(cat)'" "OK"

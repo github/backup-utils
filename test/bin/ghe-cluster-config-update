@@ -1,6 +1,0 @@
-#!/usr/bin/env bash
-# Usage: ghe-cluster-config-update
-# Emulates the remote GitHub ghe-cluster-config-update command. Tests use this
-# to assert that the command was executed.
-set -e
-echo "ghe-cluster-config-update OK"

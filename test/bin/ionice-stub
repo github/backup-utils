@@ -1,3 +1,0 @@
-#!/usr/bin/env bash
-# Fake ionice command for environments that don't support it.
-exec "$@"

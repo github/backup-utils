@@ -1,3 +1,6 @@
+ > ⚠️ After 2024-03-29, this repo will contain only releases and documentation. Instead of cloning the repo for a working copy of backup-utils, please [download it from the releases page](https://github.com/github/backup-utils/releases).
+
+
 # GitHub Enterprise Server Backup Utilities
 
 This repository includes backup and recovery utilities for

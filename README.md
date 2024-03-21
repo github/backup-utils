@@ -1,6 +1,7 @@
 # GitHub Enterprise Server Backup Utilities
 
- > ⚠️ After 2024-03-29, this repo will contain only releases and documentation. Instead of cloning the repo for a working copy of backup-utils, please [download it from the releases page](https://github.com/github/backup-utils/releases).
+This repository includes backup and recovery utilities for
+[GitHub Enterprise Server][1].
 
 **Note**: The parallel backup and restore feature will require [GNU awk](https://www.gnu.org/software/gawk) and [moreutils](https://joeyh.name/code/moreutils) to be installed. Note that on some distributions/platforms, the `moreutils-parallel` package is separate from `moreutils` and must be installed on its own.
 

@@ -3,7 +3,16 @@
 Regular backups should be scheduled using `cron(8)` or similar command
 scheduling service on the backup host. The backup frequency will dictate the
 worst case [recovery point objective (RPO)][1] in your backup plan. We recommend
-hourly backups at the least.
+hourly backups as a starting point.
+
+It's important to consider the duration of each backup operation on the
+GitHub Enterprise Server (GHES) appliance. Backups of large datasets or
+over slow network links can take more than an hour. Additionally,
+maintenance queues are paused during a portion of a backup runs.
+We recommend scheduling backups to allow sufficient time for jobs
+waiting in maintenance queues to process between backup runs
+
+Only one backup may be in progress at a time.
 
 ## Example scheduling of backups
 
@@ -19,7 +28,8 @@ storage.
 
 To schedule hourly backup snapshots with verbose informational output written to
 a log file and errors generating an email:
-```
+
+```shell
 MAILTO=admin@example.com
 
 0 * * * * /opt/backup-utils/bin/ghe-backup -v 1>>/opt/backup-utils/backup.log 2>&1
@@ -27,13 +37,13 @@ MAILTO=admin@example.com
 
 To schedule nightly backup snapshots instead, use:
 
-```
+```shell
 MAILTO=admin@example.com
 
 0 0 * * * /opt/backup-utils/bin/ghe-backup -v 1>>/opt/backup-utils/backup.log 2>&1
 ```
 
-## Example snapshot pruning 
+## Example snapshot pruning
 
 By default all expired and incomplete snapshots are deleted at the end of the main
 backup process `ghe-backup`. If pruning these snapshots takes a long time you can
@@ -44,7 +54,7 @@ If this option is enabled you will need to schedule the pruning script `ghe-prun
 
 To schedule daily snapshot pruning, use:
 
-```
+```shell
 MAILTO=admin@example.com
 
 0 3 * * * /opt/backup-utils/share/github-backup-utils/ghe-prune-snapshots 1>>/opt/backup-utils/prune-snapshots.log 2>&1

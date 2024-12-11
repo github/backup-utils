@@ -19,7 +19,7 @@ To perform incremental backups:
 
 `bin/ghe-backup --incremental`
 
-the program will detect whether it needs to performa full or incremental snapshot based on what is currently in `GHE_DATA_DIR`.
+the program will detect whether it needs to perform full or incremental snapshot based on what is currently in `GHE_DATA_DIR`.
 
 To see what snapshots are part of your full and incremental backups, you can reference `GHE_DATA_DIR/inc_full_backup` and `GHE_DATA_DIR/inc_snapshot_data`, respectively.
 

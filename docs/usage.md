@@ -13,7 +13,7 @@ These commands are run on the host you [installed][1] Backup Utilities on.
 
 You can supply your own configuration file or use the example configuration file as a template where you can set up your environment for backing up and restoring.
 
-An example configuration file with documentation on possible settings can found in [backup.config-example](../backup.config-example).
+An example configuration file with documentation on possible settings can found in [backup.config-example](backup.config-example).
 
 There are a number of command-line options that can also be passed to the `ghe-restore` command. Of particular note, if you use an external MySQL service but are restoring from a snapshot prior to enabling this, or vice versa, you must migrate the MySQL data outside of the context of backup-utils first, then pass the `--skip-mysql` flag to `ghe-restore`.
 
@@ -112,8 +112,7 @@ Please refer to [GHES Documentation](https://docs.github.com/en/enterprise-serve
 
 ## Incremental MySQL Backups and Restores
 
-If you are interested in performing incremental backups of the MySQL data in your GitHub Enterprise Server instance, see [Incremental MySQL Backups and Restores](incremental-mysql-backups-and-restores.md) for details.
-
+Incremental MySQL backup has been deprecated since 3.17 due to data integrity concerns. Restoring backups created with incremental backups remains supported for compatibility reasons.
 ## Rsync compression
 
 From backup-utils v3.11.0 onwards, we have disabled rsync compression by default to improve transfer speed and reduce CPU usage during the transfer process.

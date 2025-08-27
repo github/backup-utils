@@ -37,5 +37,5 @@
 
 [1]: https://github.com/github/backup-utils/releases
 [2]: https://github.com/github/backup-utils/releases/tag/v2.11.4
-[3]: https://github.com/github/enterprise-backup-site/blob/master/backup.config-example
+[3]: https://github.com/github/backup-utils/blob/master/docs/backup.config-example
 [4]: https://docs.github.com/enterprise-server/admin/configuration/configuring-your-enterprise/accessing-the-administrative-shell-ssh

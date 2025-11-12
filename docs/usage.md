@@ -112,7 +112,8 @@ Please refer to [GHES Documentation](https://docs.github.com/en/enterprise-serve
 
 ## Incremental MySQL Backups and Restores
 
-Incremental MySQL backup has been deprecated since 3.17 due to data integrity concerns. Restoring backups created with incremental backups remains supported for compatibility reasons.
+If you are interested in performing incremental backups of the MySQL data in your GitHub Enterprise Server instance, see [Incremental MySQL Backups and Restores](incremental-mysql-backups-and-restores.md) for details.
+
 ## Rsync compression
 
 From backup-utils v3.11.0 onwards, we have disabled rsync compression by default to improve transfer speed and reduce CPU usage during the transfer process.

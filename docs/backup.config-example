@@ -21,13 +21,6 @@ GHE_NUM_SNAPSHOTS=10
 # Instead, ghe-prune-snapshots will need to be invoked separately via cron
 #GHE_PRUNING_SCHEDULED=yes
 
-# If --incremental is used to generate incremental MySQL backups with ghe-backup,
-# then you need to specify how many cycles of full and incremental backups will be 
-# performed before the next full backup is created.
-# For example, if `GHE_INCREMENTAL_BACKUP_MAX` is set to 14, backup-utils will 
-# run 1 full backup and then 13 incremental backups before performing another full backup on the next cycle.
-#GHE_INCREMENTAL_MAX_BACKUPS=14
-
 # If GHE_ROUTE_VERIFICATION is set to true then ghe-repository-backup and
 # ghe-storage-backup will issue a warning if the repositories and objects in
 # the backup do not match the pre-backup inventory of routes.

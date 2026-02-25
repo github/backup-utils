@@ -1,11 +1,7 @@
 ---
-# NOTE: This workflow belongs in the github/backup-utils repository.
-# It is stored here for convenience and should be copied to
-# github/backup-utils/.github/workflows/create-release-pr.yml
-#
 # This workflow is triggered via repository_dispatch from the
 # build-and-release workflow in backup-utils-private. It copies
-# docs and README.md from backup-utils-private onto a release branch
+# docs and README.md from backup-utils-private to a release dev branch
 # in backup-utils, then creates a PR using GITHUB_TOKEN so that the
 # PR author is github-actions[bot]. This allows the app token in
 # backup-utils-private to approve the PR as a different actor.

@@ -21,6 +21,13 @@ GHE_NUM_SNAPSHOTS=10
 # Instead, ghe-prune-snapshots will need to be invoked separately via cron
 #GHE_PRUNING_SCHEDULED=yes
 
+# If --incremental is used to generate incremental MySQL backups with ghe-backup,
+# then you need to specify how many cycles of full and incremental backups will be 
+# performed before the next full backup is created.
+# For example, if `GHE_INCREMENTAL_BACKUP_MAX` is set to 14, backup-utils will 
+# run 1 full backup and then 13 incremental backups before performing another full backup on the next cycle.
+#GHE_INCREMENTAL_MAX_BACKUPS=14
+
 # If GHE_ROUTE_VERIFICATION is set to true then ghe-repository-backup and
 # ghe-storage-backup will issue a warning if the repositories and objects in
 # the backup do not match the pre-backup inventory of routes.
@@ -117,7 +124,7 @@ GHE_NUM_SNAPSHOTS=10
 #GHE_PARALLEL_MAX_JOBS=2
 
 # Sets the maximum number of rsync jobs to run in parallel. Defaults to the
-# configured GHE_PARALLEL_MAX_JOBS, or the number of available processing
+# configured GHE_PARALLEL_MAX_JOBS, or the number of available processing 
 # units on the machine.
 #
 # GHE_PARALLEL_RSYNC_MAX_JOBS=3
@@ -138,22 +145,3 @@ GHE_NUM_SNAPSHOTS=10
 
 # If set to 'yes', Pages data will be included in backup and restore. Defaults to 'yes'
 #GHE_BACKUP_PAGES=no
-
-# Elasticsearch backup strategy. Valid values: 'rsync' or 'snapshot'
-# 'rsync' uses the traditional on-disk rsync method (default for backward compatibility)
-# 'snapshot' uses native Elasticsearch snapshots stored in customer-managed cloud storage
-#
-# Requirements for snapshot strategy:
-# - Configure the repository via ghe-config (for example, app.elasticsearch.backup.*)
-#   and apply it with ghe-config-apply on the appliance
-# - Repository name format: search_index_snapshots-{version} (e.g., search_index_snapshots-3.19.1)
-# - Supported storage types: S3 (repository-s3), Azure (repository-azure), Google Cloud Storage (repository-gcs)
-# - Backup-utils stores only snapshot metadata locally; snapshot contents remain in the configured repository
-#
-#GHE_ES_BACKUP_STRATEGY=snapshot
-
-# Snapshot naming prefix
-#GHE_ES_SNAPSHOT_NAME_PREFIX=snapshot
-
-# Elasticsearch snapshots always include cluster global state (templates, pipelines, data streams).
-# This setting is not configurable.

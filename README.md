@@ -1,13 +1,5 @@
 # GitHub Enterprise Server Backup Utilities
 
-> [!IMPORTANT]
-> Did you mean: [Backup Service](https://github.com/github/ghes-backup-utils)?
->
-> - `backup-utils` is the older backup solution for GHES. It provides a set of tools for a customer to copy data from their GHES appliance to an unrelated machine over SSH. These tools are not run on the appliance, but on the remote machine.
-> - `backup-service` is the newer solution. It is a service that runs on the GHES appliance itself and backs up data to a disk mounted at `/data/backup`.
->
-> `backup-service` becomes GA in GHES 3.20 and is the preferred solution for backups. `backup-utils` will be deprecated in GHES 3.22.
-
 This repository includes backup and recovery utilities for
 [GitHub Enterprise Server][1].
 

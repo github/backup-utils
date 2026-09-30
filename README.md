@@ -1,15 +1,15 @@
 # GitHub Enterprise Server Backup Utilities
 
 > [!IMPORTANT]
-> Did you mean: [Backup Service](https://github.com/github/ghes-backup-utils)?
+> The [backup service for GitHub Enterprise Server](https://docs.github.com/en/enterprise-server@3.20/admin/backing-up-and-restoring-your-instance/backup-service-for-github-enterprise-server/about-the-backup-service-for-github-enterprise-server),
+> previously in public preview, is now [generally available in GitHub Enterprise Server 3.20](https://docs.github.com/en/enterprise-server@3.20/admin/release-notes#3.20.0-features). The managed, built-in service provides an alternative to GitHub Enterprise Server Backup Utilities and does not require a separate host for backup software.
 >
-> - `backup-utils` is the older backup solution for GHES. It provides a set of tools for a customer to copy data from their GHES appliance to an unrelated machine over SSH. These tools are not run on the appliance, but on the remote machine.
-> - `backup-service` is the newer solution. It is a service that runs on the GHES appliance itself and backs up data to a disk mounted at `/data/backup`.
->
-> `backup-service` becomes GA in GHES 3.20 and is the preferred solution for backups. `backup-utils` will be deprecated in GHES 3.22.
+> Backup Utilities will be retired starting in GitHub Enterprise Server 3.22.
 
-This repository includes backup and recovery utilities for
-[GitHub Enterprise Server][1].
+This repository includes the legacy backup and recovery utilities for
+[GitHub Enterprise Server][1]. For new deployments on GHES 3.20 or later, use
+the [built-in backup service](https://docs.github.com/en/enterprise-server@latest/admin/backing-up-and-restoring-your-instance/backup-service-for-github-enterprise-server/about-the-backup-service-for-github-enterprise-server)
+instead.
 
 **Note**: The parallel backup and restore feature will require [GNU awk](https://www.gnu.org/software/gawk) and [moreutils](https://joeyh.name/code/moreutils) to be installed. Note that on some distributions/platforms, the `moreutils-parallel` package is separate from `moreutils` and must be installed on its own.
 
